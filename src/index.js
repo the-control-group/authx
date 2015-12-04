@@ -1,4 +1,6 @@
-require('babel-polyfill');
+
+if (!global._babelPolyfill)
+	require('babel-polyfill');
 
 import * as errors from './errors';
 import * as route from './util/route';
