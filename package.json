@@ -2,7 +2,7 @@
   "name": "authx",
   "version": "0.1.0",
   "description": "",
-  "main": "dist/authx.js",
+  "main": "dist/index.js",
   "scripts": {
     "test": "node_modules/mocha/bin/mocha --compilers js:babel-register test/tests/*",
     "start": "node server.js",
