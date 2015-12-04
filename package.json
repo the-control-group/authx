@@ -12,7 +12,6 @@
   "author": "",
   "license": "UNLICENSED",
   "dependencies": {
-    "async": "^1.5.0",
     "basic-auth": "^1.0.3",
     "babel-polyfill": "^6.2.0",
     "bcrypt": "^0.8.5",
@@ -31,6 +30,7 @@
     "uuid": "^2.0.1"
   },
   "devDependencies": {
+    "async": "^1.5.0",
     "babel-core": "^6.2.1",
     "babel-eslint": "^4.1.6",
     "babel-plugin-syntax-async-functions": "^6.1.18",
@@ -44,8 +44,6 @@
     "eslint": "^1.10.3",
     "gulp": "^3.9.0",
     "gulp-babel": "^6.1.1",
-    "gulp-concat": "^2.6.0",
-    "gulp-sourcemaps": "^1.6.0",
     "mocha": "^2.3.3",
     "supertest": "^1.1.0"
   }

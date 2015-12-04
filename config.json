@@ -1,0 +1,42 @@
+{
+	"realm": "AuthX",
+	"cluster": false,
+	"gracefulShutdownTimeout": 5000,
+	"port": 3000,
+	"root": "/v1/",
+	"proxy": true,
+	"db": {
+		"host": "127.0.0.1",
+		"port": "28015",
+		"db": "AuthX",
+		"pool": {}
+	},
+	"session_token": {
+		"private_key": "-----BEGIN RSA PRIVATE KEY-----\nMIIEpAIBAAKCAQEAhF1Q+CGNTUOS5MqrqavDquKq/BgVpNDgtWzZ9+/D2jKxlHt0\nQ03On73O9kZtGZC+YrQ2pGp1yl3LYVND8Zre+Y1MIMZnb81YbSdMMnykFpz0UMQ/\n90VezX51w85QuvoB/9yLhSHI1LEnzAvzBd/T5DEKPmfxuE62dXfejMJEutT5lXH5\nkHy6OrZa9myhC2UeE/nGzXbHJDkwwfQfyrJxDkqZp+HwtwOPg8B917UT/Pv9LJOO\ny+SOArYik9vB7ORqa0scDdJ3U5fuBpKOIgtBpTCkUShw0YjTSVnrC61r/bfLfTy1\n5xutcmlbIHZMgM8YQ0zqLI6lAz8SBVHkoK1wzwIDAQABAoIBAE7mNPKDRXAN3IzG\nhkbQHQVKsbMtRBGHdLqQVOkmoW76EsI4SJgp1AWCJdDFMBkyH1pEo+Gjl+z1tdqg\nwHpO36SPZhaPTW7mT1RZPWFGzKSyECvon1xsnFMPk3ERFSwvBGwYcY39EnI920QU\nx1r0DaES3lFOslYzjS0+M4lh74gRuXpTWmuabXR/QnE67+4ukjlGV9etRKpreP6u\nXhRLypshcSl1ZZXnkDLZ2qxSkVUncdDQpL8DR6ghh4w5/jZpmcQy3eVxJD2dhcWB\ngFNl/TMHHRLmI1GfJWeH9PsWkUn2vg/AZjmtIFC6iXESzA6YW8TeF9Wa781EvUPF\nASkgk0kCgYEAxJiilUJW7CozUtRzOwkSYV5oJrY5CwrgZZ3bZFg1NUGgv+wwp5tZ\nyDtKTQcnGyurZAg/Lo10R9jEZezP8+U4YTDWHK3P9QTNzXv20eNzMpxvF+oSgPct\n9FyOCBurtO9ARI+IbMEO9qRyHAlFnuB7eNy3wSwMLxZ9UwtdIjQSawMCgYEArFwl\nm2yiUlCSMI5a0tSV03F4lbrmSXCnanX+8m/qJemQDHmgUbDVD8CAo7rmuwDYtT2A\n/9r8wbwGzQsrKlrmDNjWMZcMuj2ih79OpsAwB5VHyHtukuXM4gN+iTKuhRx6NrUz\nH2kyoywTtlxsRaGbvO81+HpIRbSG6HYT/7p3M0UCgYEAwV8Y3BNKiDTiEqDhTroX\nmCpR63HlHdVu7sScXVDd1SpeQSjCmrmVT/vxk15ruq/zfwsVimacb2bplw+dY9qc\n4Aw3LjJQkEJPY8SA++XrE2cHZtBXrv5x9x9qnNMKy4dhAY7ks4QZgcQycR01m5ZW\nHIWNQLZgrZhDYQGWc+QgEZ0CgYEAhSxpjk6AmNNSMRw8xrukzAvXnPEc78+QO2zS\nQOYB56swNsNfAN99sD8P5fIKRqEfz+Gmo4nDU7mBE7q2bnJvX6vGy+gm2Fu5EePZ\n1HOYaLOKFDhytiPCizsh8MXtHEJll5Gn33Q7wOHUlUmSCrcUiwXVEJkC8IDM4B4j\n06pyYXUCgYBMeDzN6WFoFVPxaORamdox9ywo2514FUGO6w771bvcHMBcB/eRDhga\nbARo8bQQrepEOIaDYPFOET8M8IMR/KH/PKccgPkpd1Ugze8R6/L5qdvlz+ipfkF3\nV2wNhPX/pnBKwccO57uZq4TByil4jii2EWiZqXdaGibuHN7fX1jOGA==\n-----END RSA PRIVATE KEY-----",
+		"public": [{
+			"algorithm": "RS512",
+			"key": "-----BEGIN PUBLIC KEY-----\nMIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAhF1Q+CGNTUOS5MqrqavD\nquKq/BgVpNDgtWzZ9+/D2jKxlHt0Q03On73O9kZtGZC+YrQ2pGp1yl3LYVND8Zre\n+Y1MIMZnb81YbSdMMnykFpz0UMQ/90VezX51w85QuvoB/9yLhSHI1LEnzAvzBd/T\n5DEKPmfxuE62dXfejMJEutT5lXH5kHy6OrZa9myhC2UeE/nGzXbHJDkwwfQfyrJx\nDkqZp+HwtwOPg8B917UT/Pv9LJOOy+SOArYik9vB7ORqa0scDdJ3U5fuBpKOIgtB\npTCkUShw0YjTSVnrC61r/bfLfTy15xutcmlbIHZMgM8YQ0zqLI6lAz8SBVHkoK1w\nzwIDAQAB\n-----END PUBLIC KEY-----"
+		}],
+		"algorithm": "RS512",
+		"expiresIn": 86400
+	},
+	"access_token": {
+		"private_key": "-----BEGIN RSA PRIVATE KEY-----\nMIIEpAIBAAKCAQEAhF1Q+CGNTUOS5MqrqavDquKq/BgVpNDgtWzZ9+/D2jKxlHt0\nQ03On73O9kZtGZC+YrQ2pGp1yl3LYVND8Zre+Y1MIMZnb81YbSdMMnykFpz0UMQ/\n90VezX51w85QuvoB/9yLhSHI1LEnzAvzBd/T5DEKPmfxuE62dXfejMJEutT5lXH5\nkHy6OrZa9myhC2UeE/nGzXbHJDkwwfQfyrJxDkqZp+HwtwOPg8B917UT/Pv9LJOO\ny+SOArYik9vB7ORqa0scDdJ3U5fuBpKOIgtBpTCkUShw0YjTSVnrC61r/bfLfTy1\n5xutcmlbIHZMgM8YQ0zqLI6lAz8SBVHkoK1wzwIDAQABAoIBAE7mNPKDRXAN3IzG\nhkbQHQVKsbMtRBGHdLqQVOkmoW76EsI4SJgp1AWCJdDFMBkyH1pEo+Gjl+z1tdqg\nwHpO36SPZhaPTW7mT1RZPWFGzKSyECvon1xsnFMPk3ERFSwvBGwYcY39EnI920QU\nx1r0DaES3lFOslYzjS0+M4lh74gRuXpTWmuabXR/QnE67+4ukjlGV9etRKpreP6u\nXhRLypshcSl1ZZXnkDLZ2qxSkVUncdDQpL8DR6ghh4w5/jZpmcQy3eVxJD2dhcWB\ngFNl/TMHHRLmI1GfJWeH9PsWkUn2vg/AZjmtIFC6iXESzA6YW8TeF9Wa781EvUPF\nASkgk0kCgYEAxJiilUJW7CozUtRzOwkSYV5oJrY5CwrgZZ3bZFg1NUGgv+wwp5tZ\nyDtKTQcnGyurZAg/Lo10R9jEZezP8+U4YTDWHK3P9QTNzXv20eNzMpxvF+oSgPct\n9FyOCBurtO9ARI+IbMEO9qRyHAlFnuB7eNy3wSwMLxZ9UwtdIjQSawMCgYEArFwl\nm2yiUlCSMI5a0tSV03F4lbrmSXCnanX+8m/qJemQDHmgUbDVD8CAo7rmuwDYtT2A\n/9r8wbwGzQsrKlrmDNjWMZcMuj2ih79OpsAwB5VHyHtukuXM4gN+iTKuhRx6NrUz\nH2kyoywTtlxsRaGbvO81+HpIRbSG6HYT/7p3M0UCgYEAwV8Y3BNKiDTiEqDhTroX\nmCpR63HlHdVu7sScXVDd1SpeQSjCmrmVT/vxk15ruq/zfwsVimacb2bplw+dY9qc\n4Aw3LjJQkEJPY8SA++XrE2cHZtBXrv5x9x9qnNMKy4dhAY7ks4QZgcQycR01m5ZW\nHIWNQLZgrZhDYQGWc+QgEZ0CgYEAhSxpjk6AmNNSMRw8xrukzAvXnPEc78+QO2zS\nQOYB56swNsNfAN99sD8P5fIKRqEfz+Gmo4nDU7mBE7q2bnJvX6vGy+gm2Fu5EePZ\n1HOYaLOKFDhytiPCizsh8MXtHEJll5Gn33Q7wOHUlUmSCrcUiwXVEJkC8IDM4B4j\n06pyYXUCgYBMeDzN6WFoFVPxaORamdox9ywo2514FUGO6w771bvcHMBcB/eRDhga\nbARo8bQQrepEOIaDYPFOET8M8IMR/KH/PKccgPkpd1Ugze8R6/L5qdvlz+ipfkF3\nV2wNhPX/pnBKwccO57uZq4TByil4jii2EWiZqXdaGibuHN7fX1jOGA==\n-----END RSA PRIVATE KEY-----",
+		"public": [{
+			"algorithm": "RS512",
+			"key": "-----BEGIN PUBLIC KEY-----\nMIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAhF1Q+CGNTUOS5MqrqavD\nquKq/BgVpNDgtWzZ9+/D2jKxlHt0Q03On73O9kZtGZC+YrQ2pGp1yl3LYVND8Zre\n+Y1MIMZnb81YbSdMMnykFpz0UMQ/90VezX51w85QuvoB/9yLhSHI1LEnzAvzBd/T\n5DEKPmfxuE62dXfejMJEutT5lXH5kHy6OrZa9myhC2UeE/nGzXbHJDkwwfQfyrJx\nDkqZp+HwtwOPg8B917UT/Pv9LJOOy+SOArYik9vB7ORqa0scDdJ3U5fuBpKOIgtB\npTCkUShw0YjTSVnrC61r/bfLfTy15xutcmlbIHZMgM8YQ0zqLI6lAz8SBVHkoK1w\nzwIDAQAB\n-----END PUBLIC KEY-----"
+		}],
+		"algorithm": "RS512",
+		"expiresIn": 2592000
+	},
+	"mailer": {
+		"transport": null,
+		"defaults": {
+			"from": "auth@example.com"
+		}
+	},
+	"routes": {
+		"login": "/login",
+		"authorize": "/authorize"
+	}
+}

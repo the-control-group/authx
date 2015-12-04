@@ -1,3 +1,5 @@
+require('babel-polyfill');
+
 import * as errors from './errors';
 import * as route from './util/route';
 import * as scopes from './util/scopes';

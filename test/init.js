@@ -6,9 +6,6 @@ import config from './config';
 
 function setup(done){
 
-	// include the bower polyfill
-	require('babel-polyfill');
-
 	// set the test environment
 	process.env.NODE_ENV = 'test';
 
