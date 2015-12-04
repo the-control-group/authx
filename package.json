@@ -1,0 +1,39 @@
+{
+  "name": "authx",
+  "version": "0.1.0",
+  "description": "",
+  "main": "lib/index.js",
+  "scripts": {
+    "test": "mocha --compilers js:babel/register test/tests/*",
+    "start": "node server.js",
+    "lint": "eslint lib"
+  },
+  "author": "",
+  "license": "UNLICENSED",
+  "dependencies": {
+    "async": "^1.5.0",
+    "babel": "^5.8.23",
+    "basic-auth": "^1.0.3",
+    "bcrypt": "^0.8.5",
+    "bluebird": "^3.0.6",
+    "generic-pool": "^2.2.0",
+    "handlebars": "^4.0.3",
+    "jjv": "^1.0.2",
+    "jsonwebtoken": "^5.4.0",
+    "koa": "^2.0.0-alpha",
+    "lodash": "^3.10.1",
+    "nodemailer": "^1.8.0",
+    "path-match": "^1.2.3",
+    "raw-body": "^2.1.5",
+    "request-promise": "^1.0.1",
+    "rethinkdb": "^2.2.0",
+    "uuid": "^2.0.1"
+  },
+  "devDependencies": {
+    "babel-eslint": "^4.1.6",
+    "eslint": "^1.10.3",
+    "chai": "^3.3.0",
+    "mocha": "^2.3.3",
+    "supertest": "^1.1.0"
+  }
+}

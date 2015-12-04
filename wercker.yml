@@ -1,0 +1,13 @@
+box: nodesource/trusty
+
+services:
+  - rethinkdb:2.2
+
+build:
+  steps:
+    - npm-install
+    - npm-test
+    - script:
+        name: lint
+        code: |
+          npm run lint

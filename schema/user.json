@@ -1,0 +1,42 @@
+{
+	"id": "user",
+	"type": "object",
+	"properties": {
+		"id": {
+			"type": "string",
+			"title": "User ID"
+		},
+		"type": {
+			"type": "string",
+			"title": "Type",
+			"enum": ["human", "api"]
+		},
+		"profile": {
+			"$ref": "profile",
+			"title": "Profile"
+		},
+		"team_id": {
+			"type": ["null", "string"],
+			"title": "Team ID",
+			"default": null
+		},
+		"status": {
+			"type": "string",
+			"title": "Status",
+			"enum": ["active", "disabled"],
+			"default": "active"
+		},
+		"last_updated": {
+			"type": "number",
+			"title": "Last Updated",
+			"description": "Timestamp (in seconds) when the user was last updated."
+		},
+		"created": {
+			"type": "number",
+			"title": "Created",
+			"description": "Timestamp (in seconds) when the user was created."
+		}
+	},
+	"additionalProperties": false,
+	"required": ["type"]
+}

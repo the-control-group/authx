@@ -1,0 +1,38 @@
+{
+	"id": "authority",
+	"type": "object",
+	"properties": {
+		"id": {
+			"type": "string",
+			"title": "Authority ID"
+		},
+		"strategy": {
+			"type": "string",
+			"title": "Strategy",
+			"description": "The AuthX strategy to use."
+		},
+		"name": {
+			"type": "string",
+			"title": "Name",
+			"description": "The name of the authority.",
+			"default": ""
+		},
+		"details": {
+			"type": "object",
+			"additionalProperties": true,
+			"description": "Configuration details specific to the strategy.",
+			"default": {}
+		},
+		"last_updated": {
+			"type": "number",
+			"title": "Last Updated",
+			"description": "Timestamp (in seconds) when the authority was last updated."
+		},
+		"created": {
+			"type": "number",
+			"description": "Timestamp (in seconds) when the authority was created."
+		}
+	},
+	"additionalProperties": false,
+	"required": ["strategy"]
+}

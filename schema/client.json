@@ -1,0 +1,48 @@
+{
+	"id": "client",
+	"type": "object",
+	"properties": {
+		"id": {
+			"type": "string",
+			"title": "Client ID",
+			"pattern": "([a-zA-Z0-0_\\-]+\\.)*([a-zA-Z0-0_\\-]+)"
+		},
+		"name": {
+			"type": "string",
+			"title": "Name",
+			"default": ""
+		},
+		"secret": {
+			"type": "string",
+			"title": "Secret"
+		},
+		"scopes": {
+			"type": "array",
+			"items": {
+				"type": "string",
+				"pattern": "^(([a-zA-Z0-9_\\-]+|(\\*(?!\\*\\*))+)\\.)*([a-zA-Z0-9_\\-]+|(\\*(?!\\*\\*))+):(([a-zA-Z0-9_\\-]+|(\\*(?!\\*\\*))+)\\.)*([a-zA-Z0-9_\\-]+|(\\*(?!\\*\\*))+):(([a-zA-Z0-9_\\-]+|(\\*(?!\\*\\*))+)\\.)*([a-zA-Z0-9_\\-]+|(\\*(?!\\*\\*))+)$"
+			},
+			"default": []
+		},
+		"base_urls": {
+			"type": "array",
+			"items": {
+				"type": "string",
+				"pattern": "[Hh][Tt][Tt][Pp][Ss]?:\\/\\/(-\\.)?([^\\s\\/?\\.#-]+\\.?)+(\\/[^\\s]*)?$"
+			},
+			"default": []
+		},
+		"last_updated": {
+			"type": "number",
+			"title": "Last Updated",
+			"description": "Timestamp (in seconds) when the client was last updated."
+		},
+		"created": {
+			"type": "number",
+			"description": "Timestamp (in seconds) when the client was created."
+		}
+	},
+	"required": [
+		"secret"
+	]
+}

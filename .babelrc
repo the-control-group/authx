@@ -1,0 +1,11 @@
+{
+	"whitelist": [
+		"strict",
+		"regenerator",
+		"es6.modules",
+		"es6.arrowFunctions",
+		"es6.destructuring",
+		"es6.spread",
+		"es7.asyncFunctions"
+	]
+}

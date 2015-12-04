@@ -1,0 +1,40 @@
+{
+	"id": "role",
+	"type": "object",
+	"properties": {
+		"id": {
+			"type": "string",
+			"title": "Role ID"
+		},
+		"name": {
+			"type": "string",
+			"title": "Name"
+		},
+		"assignments": {
+			"type": "object",
+			"title": "Assignments",
+			"additionalProperties": {
+				"type": "boolean"
+			}
+		},
+		"scopes": {
+			"type": "array",
+			"items": {
+				"type": "string",
+				"title": "Scopes",
+				"pattern": "^(([a-zA-Z0-9_\\-]+|(\\*(?!\\*\\*))+)\\.)*([a-zA-Z0-9_\\-]+|(\\*(?!\\*\\*))+):(([a-zA-Z0-9_\\-]+|(\\*(?!\\*\\*))+)\\.)*([a-zA-Z0-9_\\-]+|(\\*(?!\\*\\*))+):(([a-zA-Z0-9_\\-]+|(\\*(?!\\*\\*))+)\\.)*([a-zA-Z0-9_\\-]+|(\\*(?!\\*\\*))+)$"
+			}
+		},
+		"last_updated": {
+			"type": "number",
+			"title": "Last Updated",
+			"description": "Timestamp (in seconds) when the authority was last updated."
+		},
+		"created": {
+			"type": "number",
+			"description": "Timestamp (in seconds) when the authority was created."
+		}
+	},
+	"additionalProperties": false,
+	"required": []
+}
