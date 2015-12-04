@@ -40,6 +40,7 @@
     "babel-plugin-transform-es2015-spread": "^6.1.18",
     "babel-plugin-transform-regenerator": "^6.2.0",
     "babel-plugin-transform-strict-mode": "^6.2.0",
+    "babel-register": "^6.3.2",
     "chai": "^3.3.0",
     "eslint": "^1.10.3",
     "gulp": "^3.9.0",
