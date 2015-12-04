@@ -1,4 +1,4 @@
-[![wercker status](https://app.wercker.com/status/7897a00c300dc0dcbdd952ebab50dc35/s/master "wercker status")](https://app.wercker.com/project/bykey/7897a00c300dc0dcbdd952ebab50dc35)
+[![wercker status](https://app.wercker.com/status/fe30b946cc0ec765b7f89d03ae512793/m "wercker status")](https://app.wercker.com/project/bykey/fe30b946cc0ec765b7f89d03ae512793)
 
 This is the TCG auth service. It's named AuthX because it's an "exchange" of sorts, consolidating upstream identities from several authorities into a single identity for downstream clients. AuthX uses the (kinda disgusting) OAuth2 framework in both directions, and adds an *authorization* layer. Authorizations are based on scopes.
 
