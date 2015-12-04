@@ -1,4 +1,4 @@
-box: nodesource/trusty
+box: nodesource/trusty:4
 
 services:
   - rethinkdb:2.2
@@ -6,11 +6,16 @@ services:
 build:
   steps:
     - script:
-        name: npm install
-        code: npm install
+        name: install dependencies
+        code: NODE_ENV=test npm install
     - script:
-        name: npm test
+        name: run tests
         code: npm test
     - script:
-        name: npm run lint
+        name: run linter
         code: npm run lint
+    - script:
+        name: echo nodejs information
+        code: |
+          echo "node version $(node -v) running"
+          echo "npm version $(npm -v) running"
