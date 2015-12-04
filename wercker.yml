@@ -5,9 +5,12 @@ services:
 
 build:
   steps:
-    - npm-install
-    - npm-test
     - script:
-        name: lint
-        code: |
-          npm run lint
+        name: npm install
+        code: npm install
+    - script:
+        name: npm test
+        code: npm test
+    - script:
+        name: npm run lint
+        code: npm run lint
