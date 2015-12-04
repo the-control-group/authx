@@ -2,18 +2,19 @@
   "name": "authx",
   "version": "0.1.0",
   "description": "",
-  "main": "lib/index.js",
+  "main": "dist/authx.js",
   "scripts": {
-    "test": "node_modules/mocha/bin/mocha --compilers js:babel/register test/tests/*",
+    "test": "node_modules/mocha/bin/mocha --compilers js:babel-register test/tests/*",
     "start": "node server.js",
-    "lint": "eslint lib"
+    "lint": "eslint src",
+    "build": "gulp"
   },
   "author": "",
   "license": "UNLICENSED",
   "dependencies": {
     "async": "^1.5.0",
-    "babel": "^5.8.23",
     "basic-auth": "^1.0.3",
+    "babel-polyfill": "^6.2.0",
     "bcrypt": "^0.8.5",
     "bluebird": "^3.0.6",
     "generic-pool": "^2.2.0",
@@ -30,9 +31,21 @@
     "uuid": "^2.0.1"
   },
   "devDependencies": {
+    "babel-core": "^6.2.1",
     "babel-eslint": "^4.1.6",
-    "eslint": "^1.10.3",
+    "babel-plugin-syntax-async-functions": "^6.1.18",
+    "babel-plugin-transform-es2015-arrow-functions": "^6.1.18",
+    "babel-plugin-transform-es2015-destructuring": "^6.1.18",
+    "babel-plugin-transform-es2015-modules-commonjs": "^6.2.0",
+    "babel-plugin-transform-es2015-spread": "^6.1.18",
+    "babel-plugin-transform-regenerator": "^6.2.0",
+    "babel-plugin-transform-strict-mode": "^6.2.0",
     "chai": "^3.3.0",
+    "eslint": "^1.10.3",
+    "gulp": "^3.9.0",
+    "gulp-babel": "^6.1.1",
+    "gulp-concat": "^2.6.0",
+    "gulp-sourcemaps": "^1.6.0",
     "mocha": "^2.3.3",
     "supertest": "^1.1.0"
   }

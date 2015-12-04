@@ -1,11 +1,12 @@
 'use strict';
 
-require('babel/register');
+require('babel-core/register');
+require('babel-polyfill');
 
-var cluster = require('cluster');
-var async   = require('async');
+var cluster = require('cluster').default;
+var async   = require('async').default;
 
-var config = require(process.argv[2] || process.env.AUTHX_CONFIG_FILE || './config');
+var config = require(process.argv[2] || process.env.AUTHX_CONFIG_FILE || './config').default;
 
 // the master
 if (config.cluster && cluster.isMaster) {
@@ -34,7 +35,7 @@ else {
 	// ------------------------------------------------------------------
 	// BEGIN AuthX
 
-	var AuthX = require('./lib/index');
+	var AuthX = require('./src/index').default;
 	var app = new AuthX(config);
 
 	// log errors

@@ -2,10 +2,10 @@
 
 import r from 'rethinkdb';
 import {assert} from 'chai';
-import * as errors from '../../../lib/errors';
-import Client from '../../../lib/models/Client';
-import Grant from '../../../lib/models/Grant';
-import User from '../../../lib/models/User';
+import * as errors from '../../../src/errors';
+import Client from '../../../src/models/Client';
+import Grant from '../../../src/models/Grant';
+import User from '../../../src/models/User';
 
 require('../../init.js');
 

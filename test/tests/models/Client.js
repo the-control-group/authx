@@ -2,8 +2,8 @@
 
 import r from 'rethinkdb';
 import {assert} from 'chai';
-import * as errors from '../../../lib/errors';
-import Client from '../../../lib/models/Client';
+import * as errors from '../../../src/errors';
+import Client from '../../../src/models/Client';
 
 require('../../init.js');
 

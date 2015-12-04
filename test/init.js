@@ -1,10 +1,13 @@
 'use strict';
 
-require('babel/register');
-
-var async = require('async');
+import fs from 'fs';
+import async from 'async';
+import config from './config';
 
 function setup(done){
+
+	// include the bower polyfill
+	require('babel-polyfill');
 
 	// set the test environment
 	process.env.NODE_ENV = 'test';
@@ -19,42 +22,38 @@ function setup(done){
 		tests: 1 // the number of queued tests
 	};
 
+	// get test config
+	global.setup.config = config;
+
+
 	// automatically load all init scripts
-	require('fs').readdir(__dirname + '/init/', function(err, files){
-		if(err){
-			throw err;
+	var files = fs.readdirSync(__dirname + '/init/');
+	var scripts = [];
+	files.forEach(function(file){
+		if(file.indexOf('.js') === (file.length - 3)){
+			var script = require(__dirname + '/init/' + file);
+
+			if(script.setup){
+				scripts.push(script.setup);
+			}
+		}
+	});
+
+	// run init scripts
+	return async.series(scripts, function(setupErr){
+		if(setupErr){
+			var err = {setup: setupErr};
+			return teardown(function(teardownErr){
+				if(teardownErr){
+					err.teardown = teardownErr;
+				}
+
+				console.error(err);
+				throw err;
+			});
 		}
 
-		var scripts = [];
-		files.forEach(function(file){
-			if(file.indexOf('.js') === (file.length - 3)){
-				var script = require(__dirname + '/init/' + file);
-
-				if(script.setup){
-					scripts.push(script.setup);
-				}
-			}
-		});
-
-		// get test config
-		global.setup.config = require('./config');
-
-		// run init scripts
-		return async.series(scripts, function(setupErr){
-			if(setupErr){
-				var err = {setup: setupErr};
-				return teardown(function(teardownErr){
-					if(teardownErr){
-						err.teardown = teardownErr;
-					}
-
-					console.error(err);
-					throw err;
-				});
-			}
-
-			return done();
-		});
+		return done();
 	});
 }
 
@@ -73,7 +72,7 @@ function teardown(done){
 	}
 
 	// automatically load all init scripts
-	require('fs').readdir(__dirname + '/init/', function(err, files){
+	fs.readdir(__dirname + '/init/', function(err, files){
 		if(err){
 			throw err;
 		}

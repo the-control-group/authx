@@ -32,7 +32,7 @@ export default class Model {
 
 	// get a record by its primary ID
 	static async query(conn, transform) {
-		transform = transform || (q => q);
+		if (!transform) transform = (q => q);
 
 		var result = await transform(r.table(this.table)).run(conn);
 		result = await result.toArray();

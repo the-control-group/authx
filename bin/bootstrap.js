@@ -52,15 +52,15 @@ r.connect(host, function(err, conn) {
 	if (err) return error(err);
 
 	// create database
-	r.dbCreate(database).run(conn, function(err, res) {
+	r.dbCreate(database).run(conn, function(err) {
 		if (err) return error(err);
 
 		// load the fixtures
-		async.map(fs.readdirSync(__dirname + '/../test/fixtures/'), function(file, done) {
-			var fixture = require(__dirname + '/../test/fixtures/' + file);
+		async.map(fs.readdirSync(__dirname + '/../fixtures/'), function(file, done) {
+			var fixture = require(__dirname + '/../fixtures/' + file);
 
 			// create table
-			r.db(database).tableCreate(fixture.table).run(conn, function(err, res) {
+			r.db(database).tableCreate(fixture.table).run(conn, function(err) {
 				if (err) return done(err);
 
 				// create secondary indices
@@ -71,7 +71,7 @@ r.connect(host, function(err, conn) {
 					if (err) return done(err);
 
 					// wait for indices to finish
-					r.db(database).table(fixture.table).indexWait().run(conn, function(err, res) {
+					r.db(database).table(fixture.table).indexWait().run(conn, function(err) {
 						if (err) return done(err);
 
 						// no data to insert

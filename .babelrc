@@ -1,11 +1,11 @@
 {
-	"whitelist": [
-		"strict",
-		"regenerator",
-		"es6.modules",
-		"es6.arrowFunctions",
-		"es6.destructuring",
-		"es6.spread",
-		"es7.asyncFunctions"
+	"plugins": [
+		"syntax-async-functions",
+		"transform-es2015-arrow-functions",
+		"transform-es2015-spread",
+		"transform-es2015-destructuring",
+		"transform-es2015-modules-commonjs",
+		"transform-strict-mode",
+		"transform-regenerator"
 	]
 }

@@ -7,27 +7,27 @@ import profile from '../../schema/profile';
 env.addSchema(profile);
 
 import authority from '../../schema/authority';
-import authorities from '../fixtures/authorities';
+import authorities from '../../fixtures/authorities';
 env.addSchema(authority);
 
 import client from '../../schema/client';
-import clients from '../fixtures/clients';
+import clients from '../../fixtures/clients';
 env.addSchema(client);
 
 import credential from '../../schema/credential';
-import credentials from '../fixtures/credentials';
+import credentials from '../../fixtures/credentials';
 env.addSchema(credential);
 
 import grant from '../../schema/grant';
-import grants from '../fixtures/grants';
+import grants from '../../fixtures/grants';
 env.addSchema(grant);
 
 import role from '../../schema/role';
-import roles from '../fixtures/roles';
+import roles from '../../fixtures/roles';
 env.addSchema(role);
 
 import user from '../../schema/user';
-import users from '../fixtures/users';
+import users from '../../fixtures/users';
 env.addSchema(user);
 
 

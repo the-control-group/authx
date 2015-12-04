@@ -2,9 +2,9 @@
 
 import r from 'rethinkdb';
 import {assert} from 'chai';
-import * as errors from '../../../lib/errors';
-import Authority from '../../../lib/models/Authority';
-import Credential from '../../../lib/models/Credential';
+import * as errors from '../../../src/errors';
+import Authority from '../../../src/models/Authority';
+import Credential from '../../../src/models/Credential';
 
 require('../../init.js');
 

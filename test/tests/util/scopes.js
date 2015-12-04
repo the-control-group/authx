@@ -1,7 +1,7 @@
 'use strict';
 
 import {assert} from 'chai';
-import * as scopes from '../../../lib/util/scopes';
+import * as scopes from '../../../src/util/scopes';
 
 
 describe('scopes', () => {

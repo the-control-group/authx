@@ -24,8 +24,8 @@ module.exports = {
 				global.setup.config.db.db = database;
 
 				// load the fixtures
-				async.map(fs.readdirSync(__dirname + '/../fixtures/'), function(file, done){
-					var fixture = require(__dirname + '/../fixtures/' + file);
+				async.map(fs.readdirSync(__dirname + '/../../fixtures/'), function(file, done){
+					var fixture = require(__dirname + '/../../fixtures/' + file);
 
 					// create table
 					r.db(database).tableCreate(fixture.table).run(conn, function(err) {
