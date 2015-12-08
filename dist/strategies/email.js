@@ -240,21 +240,22 @@ class EmailStrategy extends _Strategy2.default {
 		return regeneratorRuntime.async(function _callee2$(_context2) {
 			while (1) switch (_context2.prev = _context2.next) {
 				case 0:
+					data.details = data.details || {};
 
 					// validate data
 					err = env.validate('authority', data, { useDefault: true });
 
 					if (!err) {
-						_context2.next = 3;
+						_context2.next = 4;
 						break;
 					}
 
 					throw new errors.ValidationError('The authority details were invalid.', err.validation);
 
-				case 3:
+				case 4:
 					return _context2.abrupt('return', _Strategy2.default.createAuthority.call(this, conn, data));
 
-				case 4:
+				case 5:
 				case 'end':
 					return _context2.stop();
 			}
@@ -266,21 +267,22 @@ class EmailStrategy extends _Strategy2.default {
 		return regeneratorRuntime.async(function _callee3$(_context3) {
 			while (1) switch (_context3.prev = _context3.next) {
 				case 0:
+					delta.details = delta.details || {};
 
 					// validate data
 					err = env.validate('authority', delta, { useDefault: true });
 
 					if (!err) {
-						_context3.next = 3;
+						_context3.next = 4;
 						break;
 					}
 
 					throw new errors.ValidationError('The authority details were invalid.', err.validation);
 
-				case 3:
+				case 4:
 					return _context3.abrupt('return', _Strategy2.default.updateAuthority.call(this, authority, delta));
 
-				case 4:
+				case 5:
 				case 'end':
 					return _context3.stop();
 			}
@@ -295,21 +297,22 @@ class EmailStrategy extends _Strategy2.default {
 		return regeneratorRuntime.async(function _callee4$(_context4) {
 			while (1) switch (_context4.prev = _context4.next) {
 				case 0:
+					data.details = data.details || {};
 
 					// validate data
 					err = env.validate('credential', data, { useDefault: true });
 
 					if (!err) {
-						_context4.next = 3;
+						_context4.next = 4;
 						break;
 					}
 
 					throw new errors.ValidationError('The credential details were invalid.', err.validation);
 
-				case 3:
+				case 4:
 					return _context4.abrupt('return', _Strategy2.default.prototype.createCredential.call(this, data));
 
-				case 4:
+				case 5:
 				case 'end':
 					return _context4.stop();
 			}
@@ -321,21 +324,22 @@ class EmailStrategy extends _Strategy2.default {
 		return regeneratorRuntime.async(function _callee5$(_context5) {
 			while (1) switch (_context5.prev = _context5.next) {
 				case 0:
+					delta.details = delta.details || {};
 
 					// validate data
 					err = env.validate('credential', delta, { useDefault: true });
 
 					if (!err) {
-						_context5.next = 3;
+						_context5.next = 4;
 						break;
 					}
 
 					throw new errors.ValidationError('The credential details were invalid.', err.validation);
 
-				case 3:
+				case 4:
 					return _context5.abrupt('return', _Strategy2.default.prototype.updateCredential.call(this, credential, delta));
 
-				case 4:
+				case 5:
 				case 'end':
 					return _context5.stop();
 			}

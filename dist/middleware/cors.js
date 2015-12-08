@@ -38,10 +38,13 @@ exports.default = function _callee(ctx, next) {
 				ctx.set('Access-Control-Allow-Methods', 'OPTIONS, HEAD, GET, POST, PUT, PATCH, DELETE');
 
 			case 9:
-				_context.next = 11;
+
+				if (ctx.method === 'OPTIONS') ctx.status = 204;
+
+				_context.next = 12;
 				return regeneratorRuntime.awrap(next());
 
-			case 11:
+			case 12:
 			case 'end':
 				return _context.stop();
 		}

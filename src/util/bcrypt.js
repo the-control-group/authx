@@ -9,9 +9,9 @@ export var genSalt = async (a) => {
 	});
 };
 
-export var hash = async (a, b) => {
+export var hash = async (plain, rounds) => {
 	return new Promise((resolve, reject) => {
-		return bcrypt.hash(a, b, (err, res) => {
+		return bcrypt.hash(plain, rounds, (err, res) => {
 			if(err) return reject(err);
 			return resolve(res);
 		});

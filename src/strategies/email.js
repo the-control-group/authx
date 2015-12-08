@@ -151,6 +151,7 @@ export default class EmailStrategy extends Strategy {
 	// -----------------
 
 	static async createAuthority(conn, data) {
+		data.details = data.details || {};
 
 		// validate data
 		var err = env.validate('authority', data, {useDefault: true});
@@ -162,6 +163,7 @@ export default class EmailStrategy extends Strategy {
 
 
 	static async updateAuthority(authority, delta) {
+		delta.details = delta.details || {};
 
 		// validate data
 		var err = env.validate('authority', delta, {useDefault: true});
@@ -176,10 +178,11 @@ export default class EmailStrategy extends Strategy {
 	// ------------------
 
 	async createCredential(data) {
+		data.details = data.details || {};
 
 		// validate data
 		var err = env.validate('credential', data, {useDefault: true});
-		if(err) throw new errors.ValidationError('The credential details were invalid.', err.validation);
+		if (err) throw new errors.ValidationError('The credential details were invalid.', err.validation);
 
 		return Strategy.prototype.createCredential.call(this, data);
 	}
@@ -187,10 +190,11 @@ export default class EmailStrategy extends Strategy {
 
 
 	async updateCredential(credential, delta) {
+		delta.details = delta.details || {};
 
 		// validate data
 		var err = env.validate('credential', delta, {useDefault: true});
-		if(err) throw new errors.ValidationError('The credential details were invalid.', err.validation);
+		if (err) throw new errors.ValidationError('The credential details were invalid.', err.validation);
 
 		return Strategy.prototype.updateCredential.call(this, credential, delta);
 	}

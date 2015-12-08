@@ -2,7 +2,7 @@ import jjv from 'jjv';
 import auth from 'basic-auth';
 import json from '../util/json';
 import form from '../util/form';
-import {compare} from '../util/bcrypt';
+import {hash, compare} from '../util/bcrypt';
 import * as errors from '../errors';
 
 import Strategy from '../Strategy';
@@ -56,7 +56,7 @@ export default class PasswordStrategy extends Strategy {
 		// HTTP Basic Authentication
 		else {
 			let basic = auth(ctx.req);
-			if(basic) try {
+			if (basic) try {
 				request = {
 					username: JSON.parse(basic.name),
 					password: basic.pass
@@ -100,7 +100,7 @@ export default class PasswordStrategy extends Strategy {
 
 
 		// validate password
-		if (!await compare(password, credential.details.hash)) {
+		if (!await compare(password, credential.details.password)) {
 			ctx.set('WWW-Authenticate', 'Basic realm="authx"');
 			ctx.throw(401, 'Incorrect password.');
 		}
@@ -126,23 +126,25 @@ export default class PasswordStrategy extends Strategy {
 	// -----------------
 
 	static async createAuthority(conn, data) {
+		data.details = data.details || {};
 
 		// validate data
-		var err = env.validate('authority', data, {useDefault: true});
-		if(err) throw new errors.ValidationError('The authority details were invalid.', err.validation);
+		var err = env.validate('authority', data.details, {useDefault: true});
+		if (err) throw new errors.ValidationError('The authority details were invalid.', err.validation);
 
-		return Strategy.createCredential.call(this, conn, data);
+		return Strategy.createAuthority.call(this, conn, data);
 	}
 
 
 
 	static async updateAuthority(authority, delta) {
+		delta.details = delta.details || {};
 
 		// validate data
-		var err = env.validate('authority', delta, {useDefault: true});
-		if(err) throw new errors.ValidationError('The authority details were invalid.', err.validation);
+		var err = env.validate('authority', delta.details, {useDefault: true});
+		if (err) throw new errors.ValidationError('The authority details were invalid.', err.validation);
 
-		return Strategy.updateCredential.call(this, authority, delta);
+		return Strategy.updateAuthority.call(this, authority, delta);
 	}
 
 
@@ -151,10 +153,14 @@ export default class PasswordStrategy extends Strategy {
 	// ------------------
 
 	async createCredential(data) {
+		data.details = data.details || {};
 
 		// validate data
-		var err = env.validate('credential', data, {useDefault: true});
-		if(err) throw new errors.ValidationError('The credential details were invalid.', err.validation);
+		var err = env.validate('credential', data.details, {useDefault: true});
+		if (err) throw new errors.ValidationError('The credential details were invalid.', err.validation);
+
+		// hash the password
+		data.details.password = await hash(data.details.password, this.authority.details.rounds);
 
 		return Strategy.prototype.createCredential.call(this, data);
 	}
@@ -162,10 +168,15 @@ export default class PasswordStrategy extends Strategy {
 
 
 	async updateCredential(credential, delta) {
+		delta.details = delta.details || {};
 
 		// validate data
-		var err = env.validate('credential', delta, {useDefault: true});
-		if(err) throw new errors.ValidationError('The credential details were invalid.', err.validation);
+		var err = env.validate('credential', delta.details, {useDefault: true});
+		if (err) throw new errors.ValidationError('The credential details were invalid.', err.validation);
+
+		// hash the password
+		if (delta.details.password)
+			delta.details.password = await hash(delta.details.password, this.authority.details.rounds);
 
 		return Strategy.prototype.updateCredential.call(this, credential, delta);
 	}

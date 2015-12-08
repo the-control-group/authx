@@ -98,7 +98,7 @@ module.exports = {
 		id: ['password', 'a6a0946d-eeb4-45cd-83c6-c7920f2272eb'],
 		user_id: 'a6a0946d-eeb4-45cd-83c6-c7920f2272eb',
 		details: {
-			hash: '$2a$04$j.W.ev.hBuIZZEKRZRpcPOmHz6SjaYtg/cO8vnBlq3lHHnFh2B1N2' // password: 123456
+			password: '$2a$04$j.W.ev.hBuIZZEKRZRpcPOmHz6SjaYtg/cO8vnBlq3lHHnFh2B1N2' // password: 123456
 		},
 		profile: null,
 		last_used: null,
@@ -108,7 +108,7 @@ module.exports = {
 		id: ['password', '0cbd3783-0424-4f35-be51-b42f07a2a987'],
 		user_id: '0cbd3783-0424-4f35-be51-b42f07a2a987',
 		details: {
-			hash: '$2a$04$VAAR33JYHsDALax5e0DO2eVkqitvn5UZOL0awZk90e7CwoxJvbrOW' // password: beets are awesome
+			password: '$2a$04$VAAR33JYHsDALax5e0DO2eVkqitvn5UZOL0awZk90e7CwoxJvbrOW' // password: beets are awesome
 		},
 		profile: null,
 		last_used: null,
@@ -118,7 +118,7 @@ module.exports = {
 		id: ['password', 'd0fc4c64-a3d6-4d97-9341-07de24439bb1'],
 		user_id: 'd0fc4c64-a3d6-4d97-9341-07de24439bb1',
 		details: {
-			hash: '$2a$04$9AqH/83kt7Tid5n01ysLBOs2u23S/2PUWXKf9vOzOUzyk6.kwT4R2' // password: baseball
+			password: '$2a$04$9AqH/83kt7Tid5n01ysLBOs2u23S/2PUWXKf9vOzOUzyk6.kwT4R2' // password: baseball
 		},
 		profile: null,
 		last_used: null,
@@ -128,7 +128,7 @@ module.exports = {
 		id: ['password', 'eaa9fa5e-088a-4ae2-a6ab-f120006b20a9'],
 		user_id: 'eaa9fa5e-088a-4ae2-a6ab-f120006b20a9',
 		details: {
-			hash: '$2a$04$EnRptYjQNyS5zo16RyuOie5QJGAuq492YhQVzoWZe96y9LYjJEU8K' // password: i love jim
+			password: '$2a$04$EnRptYjQNyS5zo16RyuOie5QJGAuq492YhQVzoWZe96y9LYjJEU8K' // password: i love jim
 		},
 		profile: null,
 		last_used: null,
@@ -138,7 +138,7 @@ module.exports = {
 		id: ['password', '306eabbb-cc2b-4f88-be19-4bb6ec98e5c3'],
 		user_id: '306eabbb-cc2b-4f88-be19-4bb6ec98e5c3',
 		details: {
-			hash: '$2a$04$bEApeUnCL0pMAZf6fNym9OO/z6SJsyN6CY773Fx1O7ZTSzgwu1pXG' // password: costa rica
+			password: '$2a$04$bEApeUnCL0pMAZf6fNym9OO/z6SJsyN6CY773Fx1O7ZTSzgwu1pXG' // password: costa rica
 		},
 		profile: null,
 		last_used: null,
@@ -148,7 +148,7 @@ module.exports = {
 		id: ['password', 'dc396449-2c7d-4a23-a159-e6415ded71d2'],
 		user_id: 'dc396449-2c7d-4a23-a159-e6415ded71d2',
 		details: {
-			hash: '$2a$04$GM8OJ7/Oq4H2Q.d9Yk3Ga.ffKmrUez7EYTHmEoX7jHpkDmmepl1/W' // password: you can get through today
+			password: '$2a$04$GM8OJ7/Oq4H2Q.d9Yk3Ga.ffKmrUez7EYTHmEoX7jHpkDmmepl1/W' // password: you can get through today
 		},
 		profile: null,
 		last_used: null,
@@ -158,7 +158,7 @@ module.exports = {
 		id: ['password', '51192909-3664-44d5-be62-c6b45f0b0ee6'],
 		user_id: '51192909-3664-44d5-be62-c6b45f0b0ee6',
 		details: {
-			hash: '$2a$04$cVcd/QO4.LxGRTi7g4iON.HAiFsmuKBqcIp9WvTTTWTBhbnjHMRbe' // password: whatever
+			password: '$2a$04$cVcd/QO4.LxGRTi7g4iON.HAiFsmuKBqcIp9WvTTTWTBhbnjHMRbe' // password: whatever
 		},
 		profile: null,
 		last_used: null,
@@ -168,7 +168,7 @@ module.exports = {
 		id: ['password', '9ad4b34b-781d-44fe-ac39-9b7ac43dde21'],
 		user_id: '9ad4b34b-781d-44fe-ac39-9b7ac43dde21',
 		details: {
-			hash: '$2a$04$R/nz0oaq8l4Ba0CNznZ3v.P2CRZEN/z4jN/2s1VFMPFVTQ9qQL/WO' // password: art sucks
+			password: '$2a$04$R/nz0oaq8l4Ba0CNznZ3v.P2CRZEN/z4jN/2s1VFMPFVTQ9qQL/WO' // password: art sucks
 		},
 		profile: null,
 		last_used: null,

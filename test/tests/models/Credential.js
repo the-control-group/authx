@@ -30,7 +30,7 @@ describe('Credential', () => {
 				assert.lengthOf(credentials, 16);
 			});
 			it('accepts a query tranformation argument', async () => {
-				var credentials = await Credential.query(conn, (q) => q.filter({details: {hash: '$2a$04$GM8OJ7/Oq4H2Q.d9Yk3Ga.ffKmrUez7EYTHmEoX7jHpkDmmepl1/W'}}));
+				var credentials = await Credential.query(conn, (q) => q.filter({details: {password: '$2a$04$GM8OJ7/Oq4H2Q.d9Yk3Ga.ffKmrUez7EYTHmEoX7jHpkDmmepl1/W'}}));
 				assert.isArray(credentials);
 				assert.lengthOf(credentials, 1);
 			});
@@ -51,7 +51,7 @@ describe('Credential', () => {
 			});
 			it('should reject a mismatched profile ID', async () => {
 				try {
-					var credential = await Credential.create(conn, {id: ['email', 'support@dundermifflin.com'], user_id: 'eaa9fa5e-088a-4ae2-a6ab-f120006b20a9', details: {token: 'Created Credential'}, profile: {id: 'foo', displayName: 'Dunder Mifflin Support'}});
+					await Credential.create(conn, {id: ['email', 'support@dundermifflin.com'], user_id: 'eaa9fa5e-088a-4ae2-a6ab-f120006b20a9', details: {token: 'Created Credential'}, profile: {id: 'foo', displayName: 'Dunder Mifflin Support'}});
 				} catch (err) {
 					assert.instanceOf(err, errors.ValidationError);
 					return;

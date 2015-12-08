@@ -29,12 +29,12 @@ var genSalt = exports.genSalt = function _callee(a) {
 	}, null, this);
 };
 
-var hash = exports.hash = function _callee2(a, b) {
+var hash = exports.hash = function _callee2(plain, rounds) {
 	return regeneratorRuntime.async(function _callee2$(_context2) {
 		while (1) switch (_context2.prev = _context2.next) {
 			case 0:
 				return _context2.abrupt('return', new Promise(function (resolve, reject) {
-					return _bcrypt2.default.hash(a, b, function (err, res) {
+					return _bcrypt2.default.hash(plain, rounds, function (err, res) {
 						if (err) return reject(err);
 						return resolve(res);
 					});

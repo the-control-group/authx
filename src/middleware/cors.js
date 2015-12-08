@@ -11,6 +11,9 @@ export default async (ctx, next) => {
 		ctx.set('Access-Control-Allow-Methods', 'OPTIONS, HEAD, GET, POST, PUT, PATCH, DELETE');
 	}
 
+	if (ctx.method === 'OPTIONS')
+		ctx.status = 204;
+
 	await next();
 
 };

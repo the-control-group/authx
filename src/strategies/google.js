@@ -257,23 +257,25 @@ export default class OAuth2Strategy extends Strategy {
 	// -----------------
 
 	static async createAuthority(conn, data) {
+		data.details = data.details || {};
 
 		// validate data
-		var err = env.validate('authority', data, {useDefault: true});
+		var err = env.validate('authority', data.details, {useDefault: true});
 		if(err) throw new errors.ValidationError('The authority details were invalid.', err.validation);
 
-		return Strategy.createCredential.call(this, conn, data);
+		return Strategy.createAuthority.call(this, conn, data);
 	}
 
 
 
 	static async updateAuthority(authority, delta) {
+		delta.details = delta.details || {};
 
 		// validate data
-		var err = env.validate('authority', delta, {useDefault: true});
+		var err = env.validate('authority', delta.details, {useDefault: true});
 		if(err) throw new errors.ValidationError('The authority details were invalid.', err.validation);
 
-		return Strategy.updateCredential.call(this, authority, delta);
+		return Strategy.updateAuthority.call(this, authority, delta);
 	}
 
 
@@ -282,9 +284,10 @@ export default class OAuth2Strategy extends Strategy {
 	// ------------------
 
 	async createCredential(data) {
+		data.details = data.details || {};
 
 		// validate data
-		var err = env.validate('credential', data, {useDefault: true});
+		var err = env.validate('credential', data.details, {useDefault: true});
 		if (err) throw new errors.ValidationError('The credential details were invalid.', err.validation);
 
 		return Strategy.prototype.createCredential.call(this, data);
@@ -293,9 +296,10 @@ export default class OAuth2Strategy extends Strategy {
 
 
 	async updateCredential(credential, delta) {
+		delta.details = delta.details || {};
 
 		// validate data
-		var err = env.validate('credential', delta, {useDefault: true});
+		var err = env.validate('credential', delta.details, {useDefault: true});
 		if (err) throw new errors.ValidationError('The credential details were invalid.', err.validation);
 
 		return Strategy.prototype.updateCredential.call(this, credential, delta);
