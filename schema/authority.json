@@ -4,7 +4,8 @@
 	"properties": {
 		"id": {
 			"type": "string",
-			"title": "Authority ID"
+			"title": "Authority ID",
+			"pattern": "^[a-zA-Z0-9_\\-]+$"
 		},
 		"strategy": {
 			"type": "string",

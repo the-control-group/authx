@@ -30,7 +30,7 @@ describe('Tokens', () => {
 			agent.get('/v1/tokens')
 			.query({
 				response_type: 'code',
-				client_id: 'dundermifflin.inventory',
+				client_id: 'dundermifflin-inventory',
 				redirect_uri: 'https://www.example.com',
 				scope: 'AuthX:me:read',
 				state: 'xyz'
@@ -55,7 +55,7 @@ describe('Tokens', () => {
 				logged_in_agent.get('/v1/tokens')
 				.query({
 					response_type: 'code',
-					client_id: 'dundermifflin.inventory',
+					client_id: 'dundermifflin-inventory',
 					redirect_uri: 'https://www.example.com',
 					scope: 'AuthX:me:read',
 					state: 'xyz'
@@ -89,7 +89,7 @@ describe('Tokens', () => {
 		it('should return 403 for an incorrect client secret', done => {
 			agent.post('/v1/tokens')
 			.send({
-				client_id: 'dundermifflin.inventory',
+				client_id: 'dundermifflin-inventory',
 				client_secret: 'sadkhfjl',
 				grant_type: 'authorization_code',
 				authorization_code: 'asilduf'
@@ -101,7 +101,7 @@ describe('Tokens', () => {
 		it('should return 404 for an incorrect authorization code', done => {
 			agent.post('/v1/tokens')
 			.send({
-				client_id: 'dundermifflin.inventory',
+				client_id: 'dundermifflin-inventory',
 				client_secret: '1f1bb71ebe4341418dbeab6e8e693ec27336425fb2c021219305593ad12043a2',
 				grant_type: 'authorization_code',
 				code: 'WyIzYjIxMmI3YS01MDQyLTQwYjItOWVkMC01YzQ5ZWE2NTM2YjciLCI4ODM5Njk1Yy04MzFkLTRmMGItYmU1MC04Njk3NDY0NWRmZTAiXQ=='
@@ -112,7 +112,7 @@ describe('Tokens', () => {
 		it('should return a valid response', done => {
 			agent.post('/v1/tokens')
 			.send({
-				client_id: 'dundermifflin.inventory',
+				client_id: 'dundermifflin-inventory',
 				client_secret: '1f1bb71ebe4341418dbeab6e8e693ec27336425fb2c021219305593ad12043a2',
 				grant_type: 'authorization_code',
 				code: authorization_code
@@ -130,7 +130,7 @@ describe('Tokens', () => {
 		it('should refuse to process the same authorization code twice', done => {
 			agent.post('/v1/tokens')
 			.send({
-				client_id: 'dundermifflin.inventory',
+				client_id: 'dundermifflin-inventory',
 				client_secret: '1f1bb71ebe4341418dbeab6e8e693ec27336425fb2c021219305593ad12043a2',
 				grant_type: 'authorization_code',
 				code: authorization_code
@@ -156,7 +156,7 @@ describe('Tokens', () => {
 		it('should return 403 for an incorrect client secret', done => {
 			agent.post('/v1/tokens')
 			.send({
-				client_id: 'dundermifflin.inventory',
+				client_id: 'dundermifflin-inventory',
 				client_secret: 'sadkhfjl',
 				grant_type: 'refresh_token',
 				authorization_code: 'asilduf'
@@ -168,7 +168,7 @@ describe('Tokens', () => {
 		it('should return a valid response', done => {
 			agent.post('/v1/tokens')
 			.send({
-				client_id: 'dundermifflin.inventory',
+				client_id: 'dundermifflin-inventory',
 				client_secret: '1f1bb71ebe4341418dbeab6e8e693ec27336425fb2c021219305593ad12043a2',
 				grant_type: 'refresh_token',
 				refresh_token: refresh_token

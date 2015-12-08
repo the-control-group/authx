@@ -18,7 +18,7 @@ module.exports = {
 		last_updated: Date.now() / 1000,
 		created: Date.now() / 1000
 	}, {
-		id: 'dundermifflin.inventory',
+		id: 'dundermifflin-inventory',
 		name: 'Dunder Mifflin Inventory Portal',
 		secret: '1f1bb71ebe4341418dbeab6e8e693ec27336425fb2c021219305593ad12043a2',
 		scopes: [],

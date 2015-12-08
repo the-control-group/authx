@@ -50,7 +50,7 @@ describe('Grant', () => {
 				throw new Error('Should throw an error.');
 			});
 			it('should create a new object', async () => {
-				var grant = await Grant.create(conn, {id: ['1691f38d-92c8-4d86-9a89-da99528cfcb5', 'dundermifflin.inventory'], scopes: ['a:b:c']});
+				var grant = await Grant.create(conn, {id: ['1691f38d-92c8-4d86-9a89-da99528cfcb5', 'dundermifflin-inventory'], scopes: ['a:b:c']});
 				assert.isArray(grant.id);
 				assert.deepEqual(grant.scopes, ['a:b:c']);
 				assert(grant.created >= time, 'Expected `created` timestamp to be after ' + time);
@@ -71,8 +71,8 @@ describe('Grant', () => {
 				throw new Error('Should throw an error.');
 			});
 			it('should fetch the correct object', async () => {
-				var grant = await Grant.get(conn, ['a6a0946d-eeb4-45cd-83c6-c7920f2272eb', 'dundermifflin.inventory']);
-				assert.deepEqual(grant.id, ['a6a0946d-eeb4-45cd-83c6-c7920f2272eb', 'dundermifflin.inventory']);
+				var grant = await Grant.get(conn, ['a6a0946d-eeb4-45cd-83c6-c7920f2272eb', 'dundermifflin-inventory']);
+				assert.deepEqual(grant.id, ['a6a0946d-eeb4-45cd-83c6-c7920f2272eb', 'dundermifflin-inventory']);
 			});
 		});
 
@@ -134,7 +134,7 @@ describe('Grant', () => {
 	describe('(instance methods)', () => {
 
 		before(async () => {
-			var grant = await Grant.create(conn, {id: ['306eabbb-cc2b-4f88-be19-4bb6ec98e5c3', 'dundermifflin.inventory'], scopes: ['a:b:c']});
+			var grant = await Grant.create(conn, {id: ['306eabbb-cc2b-4f88-be19-4bb6ec98e5c3', 'dundermifflin-inventory'], scopes: ['a:b:c']});
 			assert.isArray(grant.id);
 			ids.push(grant.id);
 		});

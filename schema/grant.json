@@ -9,11 +9,13 @@
 			"items": [
 				{
 					"type": "string",
-					"title": "User ID"
+					"title": "User ID",
+					"pattern": "^[a-zA-Z0-9_\\-]+$"
 				},
 				{
 					"type": "string",
-					"title": "Client ID"
+					"title": "Client ID",
+					"pattern": "^[a-zA-Z0-9_\\-]+$"
 				}
 			]
 		},

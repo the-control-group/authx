@@ -69,8 +69,8 @@ describe('Client', () => {
 				throw new Error('Should throw an error.');
 			});
 			it('should fetch the correct object', async () => {
-				var client = await Client.get(conn, 'dundermifflin.inventory');
-				assert.equal(client.id, 'dundermifflin.inventory');
+				var client = await Client.get(conn, 'dundermifflin-inventory');
+				assert.equal(client.id, 'dundermifflin-inventory');
 			});
 		});
 

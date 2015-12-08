@@ -4,7 +4,8 @@
 	"properties": {
 		"id": {
 			"type": "string",
-			"title": "Role ID"
+			"title": "Role ID",
+			"pattern": "^[a-zA-Z0-9_\\-]+$"
 		},
 		"name": {
 			"type": "string",

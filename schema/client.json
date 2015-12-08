@@ -5,7 +5,7 @@
 		"id": {
 			"type": "string",
 			"title": "Client ID",
-			"pattern": "([a-zA-Z0-0_\\-]+\\.)*([a-zA-Z0-0_\\-]+)"
+			"pattern": "^[a-zA-Z0-9_\\-]+$"
 		},
 		"name": {
 			"type": "string",
