@@ -8,14 +8,16 @@
 		},
 		"name": {
 			"type": "string",
-			"title": "Name"
+			"title": "Name",
+			"default": ""
 		},
 		"assignments": {
 			"type": "object",
 			"title": "Assignments",
 			"additionalProperties": {
 				"type": "boolean"
-			}
+			},
+			"default": {}
 		},
 		"scopes": {
 			"type": "array",
@@ -23,7 +25,8 @@
 				"type": "string",
 				"title": "Scopes",
 				"pattern": "^(([a-zA-Z0-9_\\-]+|(\\*(?!\\*\\*))+)\\.)*([a-zA-Z0-9_\\-]+|(\\*(?!\\*\\*))+):(([a-zA-Z0-9_\\-]+|(\\*(?!\\*\\*))+)\\.)*([a-zA-Z0-9_\\-]+|(\\*(?!\\*\\*))+):(([a-zA-Z0-9_\\-]+|(\\*(?!\\*\\*))+)\\.)*([a-zA-Z0-9_\\-]+|(\\*(?!\\*\\*))+)$"
-			}
+			},
+			"default": []
 		},
 		"last_updated": {
 			"type": "number",
@@ -35,6 +38,5 @@
 			"description": "Timestamp (in seconds) when the authority was created."
 		}
 	},
-	"additionalProperties": false,
-	"required": []
+	"additionalProperties": false
 }
