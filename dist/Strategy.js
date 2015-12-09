@@ -4,6 +4,10 @@ Object.defineProperty(exports, "__esModule", {
 	value: true
 });
 
+var _Authority = require('./models/Authority');
+
+var _Authority2 = _interopRequireDefault(_Authority);
+
 var _Credential = require('./models/Credential');
 
 var _Credential2 = _interopRequireDefault(_Credential);
@@ -45,7 +49,7 @@ class EmailStarategy {
 		return regeneratorRuntime.async(function _callee2$(_context2) {
 			while (1) switch (_context2.prev = _context2.next) {
 				case 0:
-					return _context2.abrupt('return', _Credential2.default.create(this.conn, data));
+					return _context2.abrupt('return', _Authority2.default.create(conn, data));
 
 				case 1:
 				case 'end':
@@ -58,13 +62,9 @@ class EmailStarategy {
 		return regeneratorRuntime.async(function _callee3$(_context3) {
 			while (1) switch (_context3.prev = _context3.next) {
 				case 0:
-					_context3.next = 2;
-					return regeneratorRuntime.awrap(authority.update(delta));
+					return _context3.abrupt('return', authority.update(delta));
 
-				case 2:
-					return _context3.abrupt('return', _context3.sent);
-
-				case 3:
+				case 1:
 				case 'end':
 					return _context3.stop();
 			}
@@ -75,13 +75,9 @@ class EmailStarategy {
 		return regeneratorRuntime.async(function _callee4$(_context4) {
 			while (1) switch (_context4.prev = _context4.next) {
 				case 0:
-					_context4.next = 2;
-					return regeneratorRuntime.awrap(authority.delete());
+					return _context4.abrupt('return', authority.delete());
 
-				case 2:
-					return _context4.abrupt('return', _context4.sent);
-
-				case 3:
+				case 1:
 				case 'end':
 					return _context4.stop();
 			}
@@ -108,13 +104,9 @@ class EmailStarategy {
 		return regeneratorRuntime.async(function _callee6$(_context6) {
 			while (1) switch (_context6.prev = _context6.next) {
 				case 0:
-					_context6.next = 2;
-					return regeneratorRuntime.awrap(credential.update(delta));
+					return _context6.abrupt('return', credential.update(delta));
 
-				case 2:
-					return _context6.abrupt('return', _context6.sent);
-
-				case 3:
+				case 1:
 				case 'end':
 					return _context6.stop();
 			}
@@ -125,13 +117,9 @@ class EmailStarategy {
 		return regeneratorRuntime.async(function _callee7$(_context7) {
 			while (1) switch (_context7.prev = _context7.next) {
 				case 0:
-					_context7.next = 2;
-					return regeneratorRuntime.awrap(credential.delete());
+					return _context7.abrupt('return', credential.delete());
 
-				case 2:
-					return _context7.abrupt('return', _context7.sent);
-
-				case 3:
+				case 1:
 				case 'end':
 					return _context7.stop();
 			}

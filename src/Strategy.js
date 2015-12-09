@@ -1,4 +1,4 @@
-import Authority from './models/Credential';
+import Authority from './models/Authority';
 import Credential from './models/Credential';
 
 export default class EmailStarategy {
@@ -28,19 +28,19 @@ export default class EmailStarategy {
 	// -----------------
 
 	static async createAuthority(conn, data) {
-		return Authority.create(this.conn, data);
+		return Authority.create(conn, data);
 	}
 
 
 
 	static async updateAuthority(authority, delta) {
-		return await authority.update(delta);
+		return authority.update(delta);
 	}
 
 
 
 	static async deleteAuthority(authority) {
-		return await authority.delete();
+		return authority.delete();
 	}
 
 
@@ -55,13 +55,13 @@ export default class EmailStarategy {
 
 
 	async updateCredential(credential, delta) {
-		return await credential.update(delta);
+		return credential.update(delta);
 	}
 
 
 
 	async deleteCredential(credential) {
-		return await credential.delete();
+		return credential.delete();
 	}
 
 }

@@ -42,6 +42,10 @@ var _password = require('./strategies/password');
 
 var _password2 = _interopRequireDefault(_password);
 
+var _incontact = require('./strategies/incontact');
+
+var _incontact2 = _interopRequireDefault(_incontact);
+
 var _bearer = require('./middleware/bearer');
 
 var _bearer2 = _interopRequireDefault(_bearer);
@@ -125,7 +129,8 @@ class AuthX extends _koa2.default {
 		this.strategies = strategies || {
 			email: _email2.default,
 			password: _password2.default,
-			google: _google2.default
+			google: _google2.default,
+			incontact: _incontact2.default
 		};
 
 		var root = this.config.root || '/';

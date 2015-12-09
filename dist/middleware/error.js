@@ -23,7 +23,7 @@ exports.default = function _callee(ctx, next) {
 				ctx.status = _context.t0.status || 500;
 
 				// display an error
-				if (typeof _context.t0.expose === 'function') ctx.body = _context.t0.expose();else ctx.body = { message: _context.t0.expose ? _context.t0.message : 'An unknown error has occurred' };
+				if (typeof _context.t0.expose === 'function') ctx.body = _context.t0.expose();else ctx.body = { message: _context.t0.expose ? _context.t0.message : 'An unknown error has occurred.' };
 
 				ctx.app.emit('error', _context.t0, ctx);
 

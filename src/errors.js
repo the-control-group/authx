@@ -50,3 +50,12 @@ export class ForbiddenError extends Error {
 	}
 }
 
+export class ServerError extends Error {
+	constructor(message, fileName, lineNumber) {
+		super(message, fileName, lineNumber);
+		this.expose = true;
+		this.message = message || 'An unknown error has occurred.';
+		this.status = this.statusCode = 500;
+	}
+}
+
