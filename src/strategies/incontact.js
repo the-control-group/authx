@@ -1,4 +1,5 @@
 import jjv from 'jjv';
+import form from '../util/form';
 import json from '../util/json';
 import request from 'request-promise';
 import requestErrors from 'request-promise/errors';
@@ -98,10 +99,23 @@ export default class InContactStrategy extends Strategy {
 
 	async authenticate(ctx) {
 
-		if (ctx.method !== 'POST' || !ctx.is('application/json'))
-			throw new errors.ValidationError('A POST request of application/json is the only allowed value.');
+		if (ctx.method !== 'POST')
+			throw new errors.ValidationError();
 
-		var body = await json(ctx.req);
+
+
+		var body;
+
+		if (ctx.is('application/json'))
+			body = await json(ctx.req);
+
+		else if (ctx.is('application/x-www-form-urlencoded'))
+			body = await form(ctx.req);
+
+		else
+			throw new errors.ValidationError('The content type must be "application/json" or "application/x-www-form-urlencoded".');
+
+
 
 		if (typeof body.username !== 'string')
 			throw new errors.ValidationError('A username is required');
