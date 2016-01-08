@@ -356,9 +356,9 @@ class User extends _Model2.default {
 						return role.scopes;
 					});
 
-					this[SCOPES] = scopes.length ? scopes.reduce(function (a, b) {
+					this[SCOPES] = scopes.reduce(function (a, b) {
 						return a.concat(b);
-					}) : scopes;
+					}, []);
 
 				case 6:
 					return _context9.abrupt('return', this[SCOPES]);

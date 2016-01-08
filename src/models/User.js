@@ -152,9 +152,7 @@ export default class User extends Model {
 			let roles = await this.roles();
 			let scopes = roles.map(role => role.scopes);
 
-			this[SCOPES] = scopes.length
-				? scopes.reduce((a, b) => a.concat(b))
-				: scopes;
+			this[SCOPES] = scopes.reduce((a, b) => a.concat(b), []);
 		}
 
 		return this[SCOPES];

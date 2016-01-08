@@ -112,40 +112,16 @@ export function combine(a, b) {
 	return null;
 }
 
+function simplify(winners, candidate) {
+	if (can(winners, candidate)) return winners;
+	return winners.concat(candidate);
+}
 
 // returns a de-duplified array of scope rules
 export function simplifyCollection(collection) {
-
-	// scopes that cannot be represented by another scope in this collection
-	var output = [];
-
-	// scopes we've already determined can be represented by another scope in this collection
-	var skip = [];
-	for (let a = 0; a < collection.length; a++) {
-		if (skip.indexOf(a) !== -1) continue;
-		let candidate = collection[a];
-
-		for (let b = a+1; b < collection.length; b++) {
-			if (skip.indexOf(b) !== -1) continue;
-			let challenger = collection[b];
-
-			// the challenger can be represented by the candidate
-			if (candidate == challenger || can(candidate, challenger))
-				skip.push(b);
-
-			// the candidate can be represented by the challenger
-			else if (can(challenger, candidate)) {
-				skip.push(a);
-				a = b;
-				candidate = challenger;
-			}
-		}
-
-		// the winner
-		output.push(candidate);
-	}
-
-	return output;
+	return collection
+	.reduce(simplify, [])
+	.reduceRight(simplify, []);
 }
 
 // calculates the product of scope rules or returns null

@@ -5,7 +5,6 @@ import * as scopes from '../../../src/util/scopes';
 
 
 describe('scopes', () => {
-
 	describe('validate', () => {
 		it('should return false for invalid scopes', () => {
 			assert.isFalse(scopes.validate('client'));
@@ -189,6 +188,7 @@ describe('scopes', () => {
 
 	describe('simplifyCollection', () => {
 		[
+			{args: [[]], results: []},
 			{args: [['x:b:c']], results: ['x:b:c']},
 			{args: [['x:b:c', 'a:b:c']], results: ['x:b:c', 'a:b:c']},
 			{args: [['a:b:c', 'a:b:c']], results: ['a:b:c']},
@@ -202,10 +202,12 @@ describe('scopes', () => {
 			{args: [['foo.*:b:c', 'foo.*:b:c']], results: ['foo.*:b:c']},
 			{args: [['foo.**:b:c', 'foo.*:b:c', 'foo.*:b:c']], results: ['foo.**:b:c']},
 			{args: [['foo.**:b:c', 'foo.*:b:c', 'foo.*:b:c', 'foo.a:b:c']], results: ['foo.**:b:c']},
-			{args: [['foo.a:b:c', 'foo.*:b:c', 'foo.*:b:c', 'foo.**:b:c']], results: ['foo.**:b:c']}
+			{args: [['foo.a:b:c', 'foo.*:b:c', 'foo.*:b:c', 'foo.**:b:c']], results: ['foo.**:b:c']},
+			{args: [['AuthX:credential.incontact.me:read', 'AuthX:credential.incontact.user:read', 'AuthX:credential.*.me:*']], results: ['AuthX:credential.*.me:*', 'AuthX:credential.incontact.user:read']}
+
 		].forEach((test) => {
 			it('(' + test.args.join(') • (') + ') => ' + test.results, () => {
-				assert.deepEqual(scopes.simplifyCollection(...test.args), test.results);
+				assert.deepEqual(scopes.simplifyCollection(...test.args).sort(), test.results.sort());
 			});
 		});
 	});
