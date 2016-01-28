@@ -31,7 +31,7 @@ export async function query(ctx) {
 
 
 	// restrict to provided roles
-	else if (ctx.query.roles) {
+	else if (ctx.query.role_ids) {
 		let role_ids = parseRoles(ctx);
 
 		// make sure we have permission to access these roles
