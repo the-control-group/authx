@@ -90,7 +90,7 @@ export default class Grant extends Model {
 
 		// query the database for users
 		if (!this[USER] || refresh)
-			this[USER] = await User.get(this[Model.Symbols.CONN], this.user_id);
+			this[USER] = User.get(this[Model.Symbols.CONN], this.user_id);
 
 		return this[USER];
 	}
@@ -101,7 +101,7 @@ export default class Grant extends Model {
 
 		// query the database for users
 		if (!this[CLIENT] || refresh)
-			this[CLIENT] = await Client.get(this[Model.Symbols.CONN], this.client_id);
+			this[CLIENT] = Client.get(this[Model.Symbols.CONN], this.client_id);
 
 		return this[CLIENT];
 	}

@@ -77,7 +77,7 @@ export default class Credential extends Model {
 
 		// get the user from the database
 		if (!this[USER] || refresh)
-			this[USER] = await User.get(this[Model.Symbols.CONN], this.user_id);
+			this[USER] = User.get(this[Model.Symbols.CONN], this.user_id);
 
 		return this[USER];
 	}
@@ -88,7 +88,7 @@ export default class Credential extends Model {
 
 		// get the user from the database
 		if (!this[AUTHORITY] || refresh)
-			this[AUTHORITY] = await Authority.get(this[Model.Symbols.CONN], this.authority_id);
+			this[AUTHORITY] = Authority.get(this[Model.Symbols.CONN], this.authority_id);
 
 		return this[AUTHORITY];
 	}

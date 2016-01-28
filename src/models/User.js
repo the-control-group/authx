@@ -96,7 +96,7 @@ export default class User extends Model {
 		var user = await Model.delete.call(this, conn, id);
 
 		// attach the deleted credentials
-		user[CREDENTIALS] = credentials;
+		user[CREDENTIALS] = Promise.resolve(credentials);
 
 		return user;
 	}
@@ -107,7 +107,7 @@ export default class User extends Model {
 
 		// query the database for credentials
 		if (!this[CREDENTIALS] || refresh)
-			this[CREDENTIALS] = await Credential.query(this[Model.Symbols.CONN], q => q.getAll(this.id, {index: 'user_id'}));
+			this[CREDENTIALS] = Credential.query(this[Model.Symbols.CONN], q => q.getAll(this.id, {index: 'user_id'}));
 
 		return this[CREDENTIALS];
 	}
@@ -118,7 +118,7 @@ export default class User extends Model {
 
 		// query the database for roles
 		if (!this[ROLES] || refresh)
-			this[ROLES] = await Role.query(this[Model.Symbols.CONN], q => q.getAll(this.id, {index: 'assignments'}));
+			this[ROLES] = Role.query(this[Model.Symbols.CONN], q => q.getAll(this.id, {index: 'assignments'}));
 
 		return this[ROLES];
 	}
@@ -129,7 +129,7 @@ export default class User extends Model {
 
 		// query the database for roles
 		if (!this[GRANTS] || refresh)
-			this[GRANTS] = await Grant.query(this[Model.Symbols.CONN], q => q.getAll(this.id, {index: 'user_id'}));
+			this[GRANTS] = Grant.query(this[Model.Symbols.CONN], q => q.getAll(this.id, {index: 'user_id'}));
 
 		return this[GRANTS];
 	}
@@ -140,7 +140,7 @@ export default class User extends Model {
 
 		// query the database for team
 		if (!this[TEAM] || refresh)
-			this[TEAM] = this.team_id ? await Team.get(this[Model.Symbols.CONN], this.team_id) : null;
+			this[TEAM] = this.team_id ? Team.get(this[Model.Symbols.CONN], this.team_id) : null;
 
 		return this[TEAM];
 	}

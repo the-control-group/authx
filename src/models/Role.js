@@ -65,7 +65,7 @@ export default class Role extends Model {
 		// query the database for users
 		if (!this[USERS] || refresh) {
 			let assignments = Object.keys(this.assignments).filter(k => this.assignments[k]);
-			this[USERS] = await User.query(this[Model.Symbols.CONN], q => q.getAll(r.args(assignments)));
+			this[USERS] = User.query(this[Model.Symbols.CONN], q => q.getAll(r.args(assignments)));
 		}
 
 		return this[USERS];
