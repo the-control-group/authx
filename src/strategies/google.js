@@ -32,11 +32,16 @@ env.addSchema({
 			default: null
 		},
 		email_domains: {
-			type: ['null', 'array'],
+			type: ['null', 'object'],
 			title: 'Email Domains',
 			description: 'Restrict creation of new users to these domain names. If null, all domains are allowed.',
-			items: {
-				type: 'string'
+			additionalProperties: {
+				type: 'array',
+				title: 'Domain Role IDs',
+				description: 'The IDs of AuthX roles to assign any users verified with this domain.',
+				items: {
+					type: 'string'
+				}
 			},
 			default: null
 		},
@@ -139,7 +144,26 @@ export default class OAuth2Strategy extends Strategy {
 
 
 
-			let credential, user;
+			let credential, user, role_ids = this.authority.details.role_ids;
+
+
+			// check that the email domain is whitelisted
+			if (this.authority.details.email_domains !== null) {
+				let parts = details.email.split('@');
+				let domain = parts[parts.length - 1];
+
+				if(!Array.isArray(this.authority.details.email_domains[domain]))
+					throw new errors.AuthenticationError('The email domain "' + parts[parts.length - 1] + '" is not allowed.');
+
+				// assign to roles based on domain
+				role_ids = role_ids
+					.concat(this.authority.details.email_domains[domain])
+					.reduce((reduction, role_id) => {
+						if (reduction.indexOf(role_id) < 0) reduction.push(role_id);
+						return reduction;
+					});
+
+			}
 
 
 			// look for an existing credential by ID
@@ -172,7 +196,7 @@ export default class OAuth2Strategy extends Strategy {
 
 				// assign the user to all configured roles
 				let assignments = {}; assignments[user.id] = true;
-				await Promise.all(this.authority.details.role_ids.map(id => Role.update(this.conn, id, {
+				await Promise.all(role_ids.map(id => Role.update(this.conn, id, {
 					assignments: assignments
 				})));
 
@@ -182,13 +206,6 @@ export default class OAuth2Strategy extends Strategy {
 
 			// create a brand-new user
 			if (!credential) {
-
-				// check that the email domain is whitelisted
-				if (Array.isArray(this.authority.details.email_domains)) {
-					let parts = details.email.split('@');
-					if(this.authority.details.email_domains.indexOf(parts[parts.length - 1]) === -1)
-						throw new errors.AuthenticationError('The email domain "' + parts[parts.length - 1] + '" is not allowed.');
-				}
 
 				// create a new user account
 				user = await User.create(this.conn, {
@@ -215,7 +232,7 @@ export default class OAuth2Strategy extends Strategy {
 
 				// assign the user to all configured roles
 				let assignments = {}; assignments[user.id] = true;
-				await Promise.all(this.authority.details.role_ids.map(id => Role.update(this.conn, id, {
+				await Promise.all(role_ids.map(id => Role.update(this.conn, id, {
 					assignments: assignments
 				})));
 			}
