@@ -161,7 +161,7 @@ export default class OAuth2Strategy extends Strategy {
 					.reduce((reduction, role_id) => {
 						if (reduction.indexOf(role_id) < 0) reduction.push(role_id);
 						return reduction;
-					});
+					}, []);
 
 			}
 
