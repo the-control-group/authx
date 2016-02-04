@@ -220,7 +220,7 @@ class OAuth2Strategy extends _Strategy2.default {
 					role_ids = role_ids.concat(this.authority.details.email_domains[domain]).reduce(function (reduction, role_id) {
 						if (reduction.indexOf(role_id) < 0) reduction.push(role_id);
 						return reduction;
-					});
+					}, []);
 
 				case 29:
 					_context.prev = 29;
