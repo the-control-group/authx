@@ -125,7 +125,7 @@ function query(ctx) {
 				break;
 
 			case 15:
-				if (!ctx.query.roles) {
+				if (!ctx.query.role_ids) {
 					_context3.next = 25;
 					break;
 				}

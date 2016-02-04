@@ -201,7 +201,7 @@ class User extends _Model2.default {
 					user = _context4.sent;
 
 					// attach the deleted credentials
-					user[CREDENTIALS] = credentials;
+					user[CREDENTIALS] = Promise.resolve(credentials);
 
 					return _context4.abrupt('return', user);
 
@@ -218,23 +218,15 @@ class User extends _Model2.default {
 		return regeneratorRuntime.async(function _callee5$(_context5) {
 			while (1) switch (_context5.prev = _context5.next) {
 				case 0:
-					if (!(!this[CREDENTIALS] || refresh)) {
-						_context5.next = 4;
-						break;
-					}
 
-					_context5.next = 3;
-					return regeneratorRuntime.awrap(_Credential2.default.query(this[_Model2.default.Symbols.CONN], function (q) {
+					// query the database for credentials
+					if (!this[CREDENTIALS] || refresh) this[CREDENTIALS] = _Credential2.default.query(this[_Model2.default.Symbols.CONN], function (q) {
 						return q.getAll(_this.id, { index: 'user_id' });
-					}));
+					});
 
-				case 3:
-					this[CREDENTIALS] = _context5.sent;
-
-				case 4:
 					return _context5.abrupt('return', this[CREDENTIALS]);
 
-				case 5:
+				case 2:
 				case 'end':
 					return _context5.stop();
 			}
@@ -247,23 +239,15 @@ class User extends _Model2.default {
 		return regeneratorRuntime.async(function _callee6$(_context6) {
 			while (1) switch (_context6.prev = _context6.next) {
 				case 0:
-					if (!(!this[ROLES] || refresh)) {
-						_context6.next = 4;
-						break;
-					}
 
-					_context6.next = 3;
-					return regeneratorRuntime.awrap(_Role2.default.query(this[_Model2.default.Symbols.CONN], function (q) {
+					// query the database for roles
+					if (!this[ROLES] || refresh) this[ROLES] = _Role2.default.query(this[_Model2.default.Symbols.CONN], function (q) {
 						return q.getAll(_this2.id, { index: 'assignments' });
-					}));
+					});
 
-				case 3:
-					this[ROLES] = _context6.sent;
-
-				case 4:
 					return _context6.abrupt('return', this[ROLES]);
 
-				case 5:
+				case 2:
 				case 'end':
 					return _context6.stop();
 			}
@@ -276,23 +260,15 @@ class User extends _Model2.default {
 		return regeneratorRuntime.async(function _callee7$(_context7) {
 			while (1) switch (_context7.prev = _context7.next) {
 				case 0:
-					if (!(!this[GRANTS] || refresh)) {
-						_context7.next = 4;
-						break;
-					}
 
-					_context7.next = 3;
-					return regeneratorRuntime.awrap(_Grant2.default.query(this[_Model2.default.Symbols.CONN], function (q) {
+					// query the database for roles
+					if (!this[GRANTS] || refresh) this[GRANTS] = _Grant2.default.query(this[_Model2.default.Symbols.CONN], function (q) {
 						return q.getAll(_this3.id, { index: 'user_id' });
-					}));
+					});
 
-				case 3:
-					this[GRANTS] = _context7.sent;
-
-				case 4:
 					return _context7.abrupt('return', this[GRANTS]);
 
-				case 5:
+				case 2:
 				case 'end':
 					return _context7.stop();
 			}
@@ -303,34 +279,13 @@ class User extends _Model2.default {
 		return regeneratorRuntime.async(function _callee8$(_context8) {
 			while (1) switch (_context8.prev = _context8.next) {
 				case 0:
-					if (!(!this[TEAM] || refresh)) {
-						_context8.next = 9;
-						break;
-					}
 
-					if (!this.team_id) {
-						_context8.next = 7;
-						break;
-					}
+					// query the database for team
+					if (!this[TEAM] || refresh) this[TEAM] = this.team_id ? _Team2.default.get(this[_Model2.default.Symbols.CONN], this.team_id) : null;
 
-					_context8.next = 4;
-					return regeneratorRuntime.awrap(_Team2.default.get(this[_Model2.default.Symbols.CONN], this.team_id));
-
-				case 4:
-					_context8.t0 = _context8.sent;
-					_context8.next = 8;
-					break;
-
-				case 7:
-					_context8.t0 = null;
-
-				case 8:
-					this[TEAM] = _context8.t0;
-
-				case 9:
 					return _context8.abrupt('return', this[TEAM]);
 
-				case 10:
+				case 2:
 				case 'end':
 					return _context8.stop();
 			}

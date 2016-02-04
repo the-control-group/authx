@@ -188,21 +188,13 @@ class Grant extends _Model2.default {
 		return regeneratorRuntime.async(function _callee5$(_context5) {
 			while (1) switch (_context5.prev = _context5.next) {
 				case 0:
-					if (!(!this[USER] || refresh)) {
-						_context5.next = 4;
-						break;
-					}
 
-					_context5.next = 3;
-					return regeneratorRuntime.awrap(_User2.default.get(this[_Model2.default.Symbols.CONN], this.user_id));
+					// query the database for users
+					if (!this[USER] || refresh) this[USER] = _User2.default.get(this[_Model2.default.Symbols.CONN], this.user_id);
 
-				case 3:
-					this[USER] = _context5.sent;
-
-				case 4:
 					return _context5.abrupt('return', this[USER]);
 
-				case 5:
+				case 2:
 				case 'end':
 					return _context5.stop();
 			}
@@ -213,21 +205,13 @@ class Grant extends _Model2.default {
 		return regeneratorRuntime.async(function _callee6$(_context6) {
 			while (1) switch (_context6.prev = _context6.next) {
 				case 0:
-					if (!(!this[CLIENT] || refresh)) {
-						_context6.next = 4;
-						break;
-					}
 
-					_context6.next = 3;
-					return regeneratorRuntime.awrap(_Client2.default.get(this[_Model2.default.Symbols.CONN], this.client_id));
+					// query the database for users
+					if (!this[CLIENT] || refresh) this[CLIENT] = _Client2.default.get(this[_Model2.default.Symbols.CONN], this.client_id);
 
-				case 3:
-					this[CLIENT] = _context6.sent;
-
-				case 4:
 					return _context6.abrupt('return', this[CLIENT]);
 
-				case 5:
+				case 2:
 				case 'end':
 					return _context6.stop();
 			}

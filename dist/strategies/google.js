@@ -73,11 +73,16 @@ env.addSchema({
 			default: null
 		},
 		email_domains: {
-			type: ['null', 'array'],
+			type: ['null', 'object'],
 			title: 'Email Domains',
 			description: 'Restrict creation of new users to these domain names. If null, all domains are allowed.',
-			items: {
-				type: 'string'
+			additionalProperties: {
+				type: 'array',
+				title: 'Domain Role IDs',
+				description: 'The IDs of AuthX roles to assign any users verified with this domain.',
+				items: {
+					type: 'string'
+				}
 			},
 			default: null
 		},
@@ -110,12 +115,12 @@ class OAuth2Strategy extends _Strategy2.default {
 	authenticate(ctx) {
 		var _this = this;
 
-		var state, response, profile, err, details, credential, user, email_credential, assignments, parts;
+		var state, response, profile, err, details, credential, user, role_ids, parts, domain, email_credential, assignments;
 		return regeneratorRuntime.async(function _callee$(_context) {
 			while (1) switch (_context.prev = _context.next) {
 				case 0:
 					if (!ctx.query.code) {
-						_context.next = 77;
+						_context.next = 80;
 						break;
 					}
 
@@ -190,52 +195,80 @@ class OAuth2Strategy extends _Strategy2.default {
 
 					// decode the JWT
 					details = _jsonwebtoken2.default.decode(response.id_token);
-					_context.prev = 22;
-					_context.next = 25;
+					role_ids = this.authority.details.role_ids;
+
+					// check that the email domain is whitelisted
+
+					if (!(this.authority.details.email_domains !== null)) {
+						_context.next = 29;
+						break;
+					}
+
+					parts = details.email.split('@');
+					domain = parts[parts.length - 1];
+
+					if (Array.isArray(this.authority.details.email_domains[domain])) {
+						_context.next = 28;
+						break;
+					}
+
+					throw new errors.AuthenticationError('The email domain "' + parts[parts.length - 1] + '" is not allowed.');
+
+				case 28:
+
+					// add role_ids specific to the email domain
+					role_ids = role_ids.concat(this.authority.details.email_domains[domain]).reduce(function (reduction, role_id) {
+						if (reduction.indexOf(role_id) < 0) reduction.push(role_id);
+						return reduction;
+					});
+
+				case 29:
+					_context.prev = 29;
+					_context.next = 32;
 					return regeneratorRuntime.awrap(_Credential2.default.update(this.conn, [this.authority.id, details.sub], {
 						details: details,
 						profile: profile
 					}));
 
-				case 25:
+				case 32:
 					credential = _context.sent;
-					_context.next = 28;
+					_context.next = 35;
 					return regeneratorRuntime.awrap(_User2.default.get(this.conn, credential.user_id));
 
-				case 28:
+				case 35:
 					user = _context.sent;
-					_context.next = 35;
+					_context.next = 42;
 					break;
 
-				case 31:
-					_context.prev = 31;
-					_context.t4 = _context['catch'](22);
+				case 38:
+					_context.prev = 38;
+					_context.t4 = _context['catch'](29);
 
 					if (_context.t4 instanceof errors.NotFoundError) {
-						_context.next = 35;
+						_context.next = 42;
 						break;
 					}
 
 					throw _context.t4;
 
-				case 35:
+				case 42:
 					if (!(!credential && this.authority.details.email_authority_id && details.email && details.email_verified)) {
-						_context.next = 56;
+						_context.next = 63;
 						break;
 					}
 
-					_context.prev = 36;
-					_context.next = 39;
+					_context.prev = 43;
+					_context.next = 46;
 					return regeneratorRuntime.awrap(_Credential2.default.get(this.conn, [this.authority.details.email_authority_id, details.email]));
 
-				case 39:
+				case 46:
 					email_credential = _context.sent;
-					_context.next = 42;
+					_context.next = 49;
 					return regeneratorRuntime.awrap(_User2.default.get(this.conn, email_credential.user_id));
 
-				case 42:
+				case 49:
 					user = _context.sent;
-					_context.next = 45;
+					_context.next = 52;
 					return regeneratorRuntime.awrap(_Credential2.default.create(this.conn, {
 						id: [this.authority.id, details.sub],
 						user_id: email_credential.user_id,
@@ -243,64 +276,49 @@ class OAuth2Strategy extends _Strategy2.default {
 						profile: profile
 					}));
 
-				case 45:
+				case 52:
 					credential = _context.sent;
 
 					// assign the user to all configured roles
 					assignments = {};
 					assignments[user.id] = true;
-					_context.next = 50;
-					return regeneratorRuntime.awrap(Promise.all(this.authority.details.role_ids.map(function (id) {
+					_context.next = 57;
+					return regeneratorRuntime.awrap(Promise.all(role_ids.map(function (id) {
 						return _Role2.default.update(_this.conn, id, {
 							assignments: assignments
 						});
 					})));
 
-				case 50:
-					_context.next = 56;
+				case 57:
+					_context.next = 63;
 					break;
 
-				case 52:
-					_context.prev = 52;
-					_context.t5 = _context['catch'](36);
+				case 59:
+					_context.prev = 59;
+					_context.t5 = _context['catch'](43);
 
 					if (_context.t5 instanceof errors.NotFoundError) {
-						_context.next = 56;
+						_context.next = 63;
 						break;
 					}
 
 					throw _context.t5;
 
-				case 56:
+				case 63:
 					if (credential) {
-						_context.next = 74;
+						_context.next = 77;
 						break;
 					}
 
-					if (!Array.isArray(this.authority.details.email_domains)) {
-						_context.next = 61;
-						break;
-					}
-
-					parts = details.email.split('@');
-
-					if (!(this.authority.details.email_domains.indexOf(parts[parts.length - 1]) === -1)) {
-						_context.next = 61;
-						break;
-					}
-
-					throw new errors.AuthenticationError('The email domain "' + parts[parts.length - 1] + '" is not allowed.');
-
-				case 61:
-					_context.next = 63;
+					_context.next = 66;
 					return regeneratorRuntime.awrap(_User2.default.create(this.conn, {
 						type: 'human',
 						profile: without(profile, 'id')
 					}));
 
-				case 63:
+				case 66:
 					user = _context.sent;
-					_context.next = 66;
+					_context.next = 69;
 					return regeneratorRuntime.awrap(_Credential2.default.create(this.conn, {
 						id: [this.authority.id, details.sub],
 						user_id: user.id,
@@ -308,37 +326,37 @@ class OAuth2Strategy extends _Strategy2.default {
 						profile: profile
 					}));
 
-				case 66:
+				case 69:
 					credential = _context.sent;
 
 					if (!this.authority.details.email_authority_id) {
-						_context.next = 70;
+						_context.next = 73;
 						break;
 					}
 
-					_context.next = 70;
+					_context.next = 73;
 					return regeneratorRuntime.awrap(_Credential2.default.create(this.conn, {
 						id: [this.authority.details.email_authority_id, details.email],
 						user_id: user.id,
 						profile: null
 					}));
 
-				case 70:
+				case 73:
 
 					// assign the user to all configured roles
 					assignments = {};
 					assignments[user.id] = true;
-					_context.next = 74;
-					return regeneratorRuntime.awrap(Promise.all(this.authority.details.role_ids.map(function (id) {
+					_context.next = 77;
+					return regeneratorRuntime.awrap(Promise.all(role_ids.map(function (id) {
 						return _Role2.default.update(_this.conn, id, {
 							assignments: assignments
 						});
 					})));
 
-				case 74:
+				case 77:
 					return _context.abrupt('return', user);
 
-				case 77:
+				case 80:
 
 					// store the url in a cookie
 					ctx.cookies.set('AuthX/session/' + this.authority.id + '/url', ctx.query.url);
@@ -357,11 +375,11 @@ class OAuth2Strategy extends _Strategy2.default {
 						state: state
 					}));
 
-				case 81:
+				case 84:
 				case 'end':
 					return _context.stop();
 			}
-		}, null, this, [[22, 31], [36, 52]]);
+		}, null, this, [[29, 38], [43, 59]]);
 	}
 
 	// Authority Methods

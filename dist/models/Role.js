@@ -145,26 +145,21 @@ class Role extends _Model2.default {
 		return regeneratorRuntime.async(function _callee4$(_context4) {
 			while (1) switch (_context4.prev = _context4.next) {
 				case 0:
-					if (!(!this[USERS] || refresh)) {
-						_context4.next = 5;
-						break;
+
+					// query the database for users
+					if (!this[USERS] || refresh) {
+						assignments = Object.keys(this.assignments).filter(function (k) {
+							return _this.assignments[k];
+						});
+
+						this[USERS] = _User2.default.query(this[_Model2.default.Symbols.CONN], function (q) {
+							return q.getAll(_rethinkdb2.default.args(assignments));
+						});
 					}
 
-					assignments = Object.keys(this.assignments).filter(function (k) {
-						return _this.assignments[k];
-					});
-					_context4.next = 4;
-					return regeneratorRuntime.awrap(_User2.default.query(this[_Model2.default.Symbols.CONN], function (q) {
-						return q.getAll(_rethinkdb2.default.args(assignments));
-					}));
-
-				case 4:
-					this[USERS] = _context4.sent;
-
-				case 5:
 					return _context4.abrupt('return', this[USERS]);
 
-				case 6:
+				case 2:
 				case 'end':
 					return _context4.stop();
 			}

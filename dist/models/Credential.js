@@ -169,21 +169,13 @@ class Credential extends _Model2.default {
 		return regeneratorRuntime.async(function _callee4$(_context4) {
 			while (1) switch (_context4.prev = _context4.next) {
 				case 0:
-					if (!(!this[USER] || refresh)) {
-						_context4.next = 4;
-						break;
-					}
 
-					_context4.next = 3;
-					return regeneratorRuntime.awrap(_User2.default.get(this[_Model2.default.Symbols.CONN], this.user_id));
+					// get the user from the database
+					if (!this[USER] || refresh) this[USER] = _User2.default.get(this[_Model2.default.Symbols.CONN], this.user_id);
 
-				case 3:
-					this[USER] = _context4.sent;
-
-				case 4:
 					return _context4.abrupt('return', this[USER]);
 
-				case 5:
+				case 2:
 				case 'end':
 					return _context4.stop();
 			}
@@ -194,21 +186,13 @@ class Credential extends _Model2.default {
 		return regeneratorRuntime.async(function _callee5$(_context5) {
 			while (1) switch (_context5.prev = _context5.next) {
 				case 0:
-					if (!(!this[AUTHORITY] || refresh)) {
-						_context5.next = 4;
-						break;
-					}
 
-					_context5.next = 3;
-					return regeneratorRuntime.awrap(_Authority2.default.get(this[_Model2.default.Symbols.CONN], this.authority_id));
+					// get the user from the database
+					if (!this[AUTHORITY] || refresh) this[AUTHORITY] = _Authority2.default.get(this[_Model2.default.Symbols.CONN], this.authority_id);
 
-				case 3:
-					this[AUTHORITY] = _context5.sent;
-
-				case 4:
 					return _context5.abrupt('return', this[AUTHORITY]);
 
-				case 5:
+				case 2:
 				case 'end':
 					return _context5.stop();
 			}
