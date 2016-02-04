@@ -155,7 +155,7 @@ export default class OAuth2Strategy extends Strategy {
 				if(!Array.isArray(this.authority.details.email_domains[domain]))
 					throw new errors.AuthenticationError('The email domain "' + parts[parts.length - 1] + '" is not allowed.');
 
-				// assign to roles based on domain
+				// add role_ids specific to the email domain
 				role_ids = role_ids
 					.concat(this.authority.details.email_domains[domain])
 					.reduce((reduction, role_id) => {
