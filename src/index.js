@@ -15,6 +15,7 @@ import {can} from './util/protect';
 import EmailStrategy from './strategies/email';
 import GoogleStrategy from './strategies/google';
 import PasswordStrategy from './strategies/password';
+import SecretStrategy from './strategies/secret';
 import InContactStrategy from './strategies/incontact';
 
 
@@ -56,6 +57,7 @@ export default class AuthX extends Koa {
 		this.strategies = strategies || {
 			email: EmailStrategy,
 			password: PasswordStrategy,
+			secret: SecretStrategy,
 			google: GoogleStrategy,
 			incontact: InContactStrategy
 		};

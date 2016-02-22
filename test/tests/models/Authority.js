@@ -26,7 +26,7 @@ describe('Authority', () => {
 			it('should return all objects', async () => {
 				var authoritys = await Authority.query(conn);
 				assert.isArray(authoritys);
-				assert.lengthOf(authoritys, 3);
+				assert.lengthOf(authoritys, 4);
 			});
 			it('accepts a query tranformation argument', async () => {
 				var authoritys = await Authority.query(conn, (q) => q.filter({strategy: 'google'}));

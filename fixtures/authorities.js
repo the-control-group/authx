@@ -28,6 +28,15 @@ module.exports = {
 		last_updated: Date.now() / 1000,
 		created: Date.now() / 1000
 	}, {
+		id: 'secret',
+		name: 'Secret',
+		strategy: 'secret',
+		details: {
+			rounds: 4
+		},
+		last_updated: Date.now() / 1000,
+		created: Date.now() / 1000
+	}, {
 		id: 'google',
 		name: 'Google',
 		strategy: 'google',

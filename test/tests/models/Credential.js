@@ -27,7 +27,7 @@ describe('Credential', () => {
 			it('should return all objects', async () => {
 				var credentials = await Credential.query(conn);
 				assert.isArray(credentials);
-				assert.lengthOf(credentials, 16);
+				assert.lengthOf(credentials, 17);
 			});
 			it('accepts a query tranformation argument', async () => {
 				var credentials = await Credential.query(conn, (q) => q.filter({details: {password: '$2a$04$GM8OJ7/Oq4H2Q.d9Yk3Ga.ffKmrUez7EYTHmEoX7jHpkDmmepl1/W'}}));
