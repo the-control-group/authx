@@ -174,5 +174,15 @@ module.exports = {
 		last_used: null,
 		last_updated: Date.now() / 1000,
 		created: Date.now() / 1000
+	}, {
+		id: ['secret', '1691f38d-92c8-4d86-9a89-da99528cfcb5'],
+		user_id: '1691f38d-92c8-4d86-9a89-da99528cfcb5',
+		details: {
+			secret: '$2a$04$SPRITTeZvQ9hI.TPkvoE0Op19wAgBlObKRQ6sz.ahjVVDFBajjFrO' // secret: da8ad1c19e0f
+		},
+		profile: null,
+		last_used: null,
+		last_updated: Date.now() / 1000,
+		created: Date.now() / 1000
 	}]
 };
