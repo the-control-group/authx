@@ -34,6 +34,11 @@ env.addSchema({
 			description: 'The ID of an email authority with which verified email addresses can be registered.',
 			default: null
 		},
+		sync_profile_to_customer: {
+			type: 'boolean',
+			title: 'Sync Profile to Customer',
+			default: false
+		},
 		teams: {
 			type: 'object',
 			title: 'Team/Role Map',
@@ -171,7 +176,7 @@ export default class InContactStrategy extends Strategy {
 		// normalize the profile with our schema
 		let profile = {
 			id: response.agent_id.toString(),
-			displayName: agent.FirstName + ' ' + agent.MiddleName + ' ' + agent.LastName,
+			displayName: agent.FirstName + ' ' + (agent.MiddleName ? agent.MiddleName + ' ' : '') + agent.LastName,
 			name: {
 				givenName: agent.FirstName,
 				middleName: agent.MiddleName,
@@ -223,7 +228,14 @@ export default class InContactStrategy extends Strategy {
 				profile: profile
 			});
 
-			user = await User.get(this.conn, credential.user_id);
+
+			// sync the user's profile
+			if (this.authority.details.sync_profile_to_customer)
+				user = await User.update(this.conn, credential.user_id, {profile: profile});
+			else
+				user = await User.get(this.conn, credential.user_id);
+
+
 		} catch (err) { if (!(err instanceof errors.NotFoundError)) throw err; }
 
 
