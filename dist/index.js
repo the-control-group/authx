@@ -114,10 +114,11 @@ if (!global._babelPolyfill) require('babel-polyfill');
 
 // strategies
 
+
 // middleware
 
-// controllers
 
+// controllers
 class AuthX extends _koa2.default {
 
 	constructor(config, strategies) {
@@ -253,6 +254,7 @@ class AuthX extends _koa2.default {
 
 		// Resources
 		// =========
+
 
 		// Authorities
 		// -----------

@@ -171,6 +171,7 @@ class OAuth2Strategy extends _Strategy2.default {
 					_context.t3 = _context.sent;
 					profile = _context.t2.parse.call(_context.t2, _context.t3);
 
+
 					// normalize the profile with our schema
 					if (profile.url && !profile.urls) profile.urls = [{ value: profile.url }];
 
@@ -227,7 +228,8 @@ class OAuth2Strategy extends _Strategy2.default {
 					_context.next = 32;
 					return regeneratorRuntime.awrap(_Credential2.default.update(this.conn, [this.authority.id, details.sub], {
 						details: details,
-						profile: profile
+						profile: profile,
+						last_used: Date.now()
 					}));
 
 				case 32:
@@ -272,12 +274,14 @@ class OAuth2Strategy extends _Strategy2.default {
 					return regeneratorRuntime.awrap(_Credential2.default.create(this.conn, {
 						id: [this.authority.id, details.sub],
 						user_id: email_credential.user_id,
+						last_used: Date.now(),
 						details: details,
 						profile: profile
 					}));
 
 				case 52:
 					credential = _context.sent;
+
 
 					// assign the user to all configured roles
 					assignments = {};
@@ -322,6 +326,7 @@ class OAuth2Strategy extends _Strategy2.default {
 					return regeneratorRuntime.awrap(_Credential2.default.create(this.conn, {
 						id: [this.authority.id, details.sub],
 						user_id: user.id,
+						last_used: Date.now(),
 						details: details,
 						profile: profile
 					}));
@@ -338,6 +343,7 @@ class OAuth2Strategy extends _Strategy2.default {
 					return regeneratorRuntime.awrap(_Credential2.default.create(this.conn, {
 						id: [this.authority.details.email_authority_id, details.email],
 						user_id: user.id,
+						last_used: Date.now(),
 						profile: null
 					}));
 

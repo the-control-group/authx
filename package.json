@@ -3,24 +3,26 @@
   "version": "0.3.0",
   "description": "",
   "main": "dist/index.js",
+  "repository": "https://github.com/the-control-group/authx",
   "scripts": {
-    "test": "node_modules/mocha/bin/mocha --compilers js:babel-register test/tests/*",
-    "start": "node server.js",
+    "bootstrap": "node bin/bootstrap.js",
+    "build": "gulp",
     "lint": "eslint src",
-    "build": "gulp"
+    "start": "node server.js",
+    "test": "node_modules/mocha/bin/mocha --compilers js:babel-register test/tests/*"
   },
   "author": "",
   "license": "UNLICENSED",
   "dependencies": {
-    "basic-auth": "^1.0.3",
     "babel-polyfill": "^6.2.0",
+    "basic-auth": "^1.0.3",
     "bcrypt": "^0.8.5",
     "bluebird": "^3.0.6",
     "generic-pool": "^2.2.0",
     "handlebars": "^4.0.3",
     "jjv": "^1.0.2",
     "jsonwebtoken": "^5.4.0",
-    "koa": "^2.0.0-alpha",
+    "koa-router": "^7.0.1",
     "lodash": "^3.10.1",
     "nodemailer": "^1.8.0",
     "path-match": "^1.2.3",
@@ -45,7 +47,11 @@
     "eslint": "^1.10.3",
     "gulp": "^3.9.0",
     "gulp-babel": "^6.1.1",
+    "koa": "^2.0.0",
     "mocha": "^2.3.3",
     "supertest": "^1.1.0"
+  },
+  "peerDependencies": {
+    "koa": "^2.0.0"
   }
 }

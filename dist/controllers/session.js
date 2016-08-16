@@ -12,6 +12,10 @@ var _jsonwebtoken = require('jsonwebtoken');
 
 var _jsonwebtoken2 = _interopRequireDefault(_jsonwebtoken);
 
+var _errors = require('../errors');
+
+var _errors2 = _interopRequireDefault(_errors);
+
 var _Authority = require('../models/Authority');
 
 var _Authority2 = _interopRequireDefault(_Authority);
@@ -44,6 +48,7 @@ exports.default = function _callee(ctx, next) {
 			case 5:
 				authority = _context.sent;
 
+
 				// get the strategy
 				Strategy = ctx.app.strategies[authority.strategy];
 
@@ -67,32 +72,45 @@ exports.default = function _callee(ctx, next) {
 			case 12:
 				user = _context.sent;
 
-				if (user && user.status === 'active') {
-
-					// generate token from user
-					token = _jsonwebtoken2.default.sign({}, ctx.app.config.session_token.private_key, {
-						algorithm: ctx.app.config.session_token.algorithm,
-						expiresIn: ctx.app.config.session_token.expiresIn,
-						audience: ctx.app.config.realm,
-						subject: user.id,
-						issuer: ctx.app.config.realm
-					});
-
-					// set the session cookie
-
-					ctx.cookies.set('session', token);
-
-					ctx.status = 200;
-					ctx.body = { message: 'You have successfully logged in.' };
+				if (!user) {
+					_context.next = 20;
+					break;
 				}
+
+				if (!(user.status !== 'active')) {
+					_context.next = 16;
+					break;
+				}
+
+				throw new _errors2.default.ForbiddenError('Your user account has been disabled.');
+
+			case 16:
+
+				// generate token from user
+				token = _jsonwebtoken2.default.sign({}, ctx.app.config.session_token.private_key, {
+					algorithm: ctx.app.config.session_token.algorithm,
+					expiresIn: ctx.app.config.session_token.expiresIn,
+					audience: ctx.app.config.realm,
+					subject: user.id,
+					issuer: ctx.app.config.realm
+				});
+
+				// set the session cookie
+
+				ctx.cookies.set('session', token);
+
+				ctx.status = 200;
+				ctx.body = { message: 'You have successfully logged in.' };
+
+			case 20:
 
 				respond();
 
-				_context.next = 23;
+				_context.next = 29;
 				break;
 
-			case 17:
-				_context.prev = 17;
+			case 23:
+				_context.prev = 23;
 				_context.t0 = _context['catch'](2);
 
 				ctx.app.emit('error', _context.t0, ctx);
@@ -105,9 +123,9 @@ exports.default = function _callee(ctx, next) {
 
 				respond();
 
-			case 23:
+			case 29:
 			case 'end':
 				return _context.stop();
 		}
-	}, null, this, [[2, 17]]);
+	}, null, undefined, [[2, 23]]);
 };

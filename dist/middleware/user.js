@@ -69,5 +69,5 @@ exports.default = function _callee(ctx, next) {
 			case 'end':
 				return _context.stop();
 		}
-	}, null, this);
+	}, null, undefined);
 };

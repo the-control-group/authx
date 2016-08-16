@@ -26,7 +26,7 @@ var genSalt = exports.genSalt = function _callee(a) {
 			case 'end':
 				return _context.stop();
 		}
-	}, null, this);
+	}, null, undefined);
 };
 
 var hash = exports.hash = function _callee2(plain, rounds) {
@@ -44,7 +44,7 @@ var hash = exports.hash = function _callee2(plain, rounds) {
 			case 'end':
 				return _context2.stop();
 		}
-	}, null, this);
+	}, null, undefined);
 };
 
 var compare = exports.compare = function _callee3(a, b) {
@@ -62,5 +62,5 @@ var compare = exports.compare = function _callee3(a, b) {
 			case 'end':
 				return _context3.stop();
 		}
-	}, null, this);
+	}, null, undefined);
 };

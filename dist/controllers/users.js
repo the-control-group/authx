@@ -79,6 +79,8 @@ function post(ctx) {
 }
 
 function query(ctx) {
+	var _this = this;
+
 	var ids, role_ids, roles, assignments, transformer, includes, users;
 	return regeneratorRuntime.async(function query$(_context3) {
 		while (1) switch (_context3.prev = _context3.next) {
@@ -147,6 +149,7 @@ function query(ctx) {
 
 			case 21:
 				roles = _context3.sent;
+
 
 				// combine assignments
 				assignments = {};
@@ -221,7 +224,7 @@ function query(ctx) {
 							case 'end':
 								return _context2.stop();
 						}
-					}, null, this);
+					}, null, _this);
 				})));
 
 			case 32:
@@ -333,6 +336,8 @@ function del(ctx) {
 }
 
 function include(user, includes, ctx) {
+	var _this2 = this;
+
 	var results, included;
 	return regeneratorRuntime.async(function include$(_context8) {
 		while (1) switch (_context8.prev = _context8.next) {
@@ -405,11 +410,12 @@ function include(user, includes, ctx) {
 							case 'end':
 								return _context7.stop();
 						}
-					}, null, this);
+					}, null, _this2);
 				}));
 
 			case 4:
 				results = _context8.sent;
+
 
 				// assign the results to a new object
 				included = Object.assign(Object.create(_User2.default.prototype), user);

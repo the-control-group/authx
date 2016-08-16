@@ -1,5 +1,6 @@
 import qs from 'querystring';
 import jwt from 'jsonwebtoken';
+import errors from '../errors';
 import Authority from '../models/Authority';
 
 export default async (ctx, next) => {
@@ -20,9 +21,11 @@ export default async (ctx, next) => {
 
 		// pass the request to the strategy
 		var user = await strategy.authenticate(ctx, next);
+		if (user) {
 
-
-		if (user && user.status === 'active') {
+			// make sure the user is active
+			if (user.status !== 'active')
+				throw new errors.ForbiddenError('Your user account has been disabled.');
 
 			// generate token from user
 			let token = jwt.sign({}, ctx.app.config.session_token.private_key, {

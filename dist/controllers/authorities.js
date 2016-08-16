@@ -199,6 +199,7 @@ function del(ctx) {
 			case 4:
 				authority = _context5.sent;
 
+
 				// get the strategy
 				Strategy = ctx.app.strategies[authority.strategy];
 

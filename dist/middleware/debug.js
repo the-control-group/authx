@@ -20,7 +20,7 @@ exports.default = function _callee(ctx, next) {
 			case 6:
 				_context.prev = 6;
 
-				if (ctx.conn) ctx.conn.release();
+				ctx.conn.release();
 				return _context.finish(6);
 
 			case 9:

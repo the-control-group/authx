@@ -139,68 +139,86 @@ class InContactStrategy extends _Strategy2.default {
 	authenticate(ctx) {
 		var _this = this;
 
-		var body, response, agent, profile, details, credential, user, oldRoleIds, newRoleIds, email_credential, assignments;
+		var lastUsed, debug, body, response, agent, profile, details, credential, user, oldRoleIds, newRoleIds, email_credential, assignments;
 		return regeneratorRuntime.async(function _callee$(_context) {
 			while (1) switch (_context.prev = _context.next) {
 				case 0:
+					debug = function debug(message, data) {
+						ctx.app.emit('debug', {
+							message: message,
+							class: 'InContactStrategy',
+							timestamp: Date.now(),
+							type: 'strategy',
+							data: data
+						});
+					};
+
+					lastUsed = Date.now();
+
 					if (!(ctx.method !== 'POST')) {
-						_context.next = 2;
+						_context.next = 4;
 						break;
 					}
 
 					throw new errors.ValidationError();
 
-				case 2:
+				case 4:
 					if (!ctx.is('application/json')) {
-						_context.next = 8;
+						_context.next = 10;
 						break;
 					}
 
-					_context.next = 5;
+					_context.next = 7;
 					return regeneratorRuntime.awrap((0, _json2.default)(ctx.req));
 
-				case 5:
+				case 7:
 					body = _context.sent;
-					_context.next = 15;
+					_context.next = 17;
 					break;
 
-				case 8:
+				case 10:
 					if (!ctx.is('application/x-www-form-urlencoded')) {
-						_context.next = 14;
+						_context.next = 16;
 						break;
 					}
 
-					_context.next = 11;
+					_context.next = 13;
 					return regeneratorRuntime.awrap((0, _form2.default)(ctx.req));
 
-				case 11:
+				case 13:
 					body = _context.sent;
-					_context.next = 15;
+					_context.next = 17;
 					break;
 
-				case 14:
+				case 16:
 					throw new errors.ValidationError('The content type must be "application/json" or "application/x-www-form-urlencoded".');
 
-				case 15:
+				case 17:
 					if (!(typeof body.username !== 'string')) {
-						_context.next = 17;
+						_context.next = 19;
 						break;
 					}
 
 					throw new errors.ValidationError('A username is required');
 
-				case 17:
+				case 19:
 					if (!(typeof body.password !== 'string')) {
-						_context.next = 19;
+						_context.next = 21;
 						break;
 					}
 
 					throw new errors.ValidationError('A password is required');
 
-				case 19:
-					_context.prev = 19;
+				case 21:
+					_context.prev = 21;
+
+
+					debug('Sending token request to inContact', {
+						username: body.username
+					});
+
 					_context.t0 = JSON;
-					_context.next = 23;
+					_context.next = 26;
 					return regeneratorRuntime.awrap((0, _requestPromise2.default)({
 						method: 'POST',
 						uri: 'https://api.incontact.com/InContactAuthorizationServer/Token',
@@ -217,42 +235,55 @@ class InContactStrategy extends _Strategy2.default {
 						})
 					}));
 
-				case 23:
+				case 26:
 					_context.t1 = _context.sent;
 					response = _context.t0.parse.call(_context.t0, _context.t1);
-					_context.next = 35;
+
+
+					debug('Token received from inContact', response);
+
+					_context.next = 40;
 					break;
 
-				case 27:
-					_context.prev = 27;
-					_context.t2 = _context['catch'](19);
+				case 31:
+					_context.prev = 31;
+					_context.t2 = _context['catch'](21);
+
+
+					debug('Token request to inContact failed', _context.t2);
 
 					if (!(_context.t2 instanceof _errors2.default.StatusCodeError)) {
-						_context.next = 34;
+						_context.next = 39;
 						break;
 					}
 
 					if (!(_context.t2.statusCode === 401)) {
-						_context.next = 32;
+						_context.next = 37;
 						break;
 					}
 
 					throw new errors.AuthenticationError('Incorrect username or bad password.');
 
-				case 32:
+				case 37:
 					if (!(_context.t2.statusCode === 400)) {
-						_context.next = 34;
+						_context.next = 39;
 						break;
 					}
 
 					throw new errors.ValidationError('Invalid username or bad password.');
 
-				case 34:
+				case 39:
 					throw _context.t2;
 
-				case 35:
+				case 40:
+
+					debug('Sending agent request to inContact', {
+						agentId: response.agent_id
+					});
+
+					// get the agent
 					_context.t3 = JSON;
-					_context.next = 38;
+					_context.next = 44;
 					return regeneratorRuntime.awrap((0, _requestPromise2.default)({
 						method: 'GET',
 						uri: response.resource_server_base_uri + 'services/v6.0/agents/' + response.agent_id,
@@ -262,9 +293,12 @@ class InContactStrategy extends _Strategy2.default {
 						}
 					}));
 
-				case 38:
+				case 44:
 					_context.t4 = _context.sent;
 					agent = _context.t3.parse.call(_context.t3, _context.t4).agents[0];
+
+
+					debug('Agent received from inContact', agent);
 
 					// normalize the profile with our schema
 					profile = {
@@ -292,31 +326,43 @@ class InContactStrategy extends _Strategy2.default {
 					// check that the team has been mapped
 
 					if (this.authority.details.teams[details.team_id]) {
-						_context.next = 44;
+						_context.next = 51;
 						break;
 					}
 
 					throw new errors.AuthenticationError('The team #' + details.team_id + ' is not configured.');
 
-				case 44:
-					_context.prev = 44;
-					_context.next = 47;
+				case 51:
+					_context.prev = 51;
+
+
+					debug('Checking for an existing credential by ID', {
+						authorityId: this.authority.id,
+						agentId: details.agent_id.toString()
+					});
+
+					_context.next = 55;
 					return regeneratorRuntime.awrap(_Credential2.default.get(this.conn, [this.authority.id, details.agent_id.toString()]));
 
-				case 47:
+				case 55:
 					credential = _context.sent;
 
 					if (!(details.team_id !== credential.details.team_id)) {
-						_context.next = 53;
+						_context.next = 62;
 						break;
 					}
 
 					oldRoleIds = this.authority.details.teams[credential.details.team_id].role_ids;
 					newRoleIds = this.authority.details.teams[details.team_id].role_ids;
 
-					// remove any roles that aren't shared between the old and new teams
 
-					_context.next = 53;
+					debug('Team has changed; changing roles accordingly.', {
+						oldRoleIds: oldRoleIds,
+						newRoleIds: newRoleIds
+					});
+
+					// remove any roles that aren't shared between the old and new teams
+					_context.next = 62;
 					return regeneratorRuntime.awrap(oldRoleIds.filter(function (id) {
 						return newRoleIds.indexOf(id) === -1;
 					}).map(function (id) {
@@ -325,69 +371,106 @@ class InContactStrategy extends _Strategy2.default {
 							} });
 					}));
 
-				case 53:
-					_context.next = 55;
+				case 62:
+
+					debug('Updating the credential.', {
+						details: details,
+						profile: profile,
+						lastUsed: lastUsed
+					});
+
+					// update the credential
+					_context.next = 65;
 					return regeneratorRuntime.awrap(credential.update({
 						details: details,
-						profile: profile
+						profile: profile,
+						last_used: lastUsed
 					}));
 
-				case 55:
+				case 65:
 					credential = _context.sent;
 
 					if (!this.authority.details.sync_profile_to_customer) {
-						_context.next = 62;
+						_context.next = 73;
 						break;
 					}
 
-					_context.next = 59;
+					debug('Syncing the user\'s profile.', {
+						userId: credential.user_id,
+						profile: profile
+					});
+
+					_context.next = 70;
 					return regeneratorRuntime.awrap(_User2.default.update(this.conn, credential.user_id, { profile: profile }));
 
-				case 59:
+				case 70:
 					user = _context.sent;
-					_context.next = 65;
+					_context.next = 77;
 					break;
 
-				case 62:
-					_context.next = 64;
+				case 73:
+
+					debug('Fetching the user by ID.', {
+						userId: credential.user_id
+					});
+
+					_context.next = 76;
 					return regeneratorRuntime.awrap(_User2.default.get(this.conn, credential.user_id));
 
-				case 64:
+				case 76:
 					user = _context.sent;
 
-				case 65:
-					_context.next = 71;
+				case 77:
+					_context.next = 83;
 					break;
 
-				case 67:
-					_context.prev = 67;
-					_context.t5 = _context['catch'](44);
+				case 79:
+					_context.prev = 79;
+					_context.t5 = _context['catch'](51);
 
 					if (_context.t5 instanceof errors.NotFoundError) {
-						_context.next = 71;
+						_context.next = 83;
 						break;
 					}
 
 					throw _context.t5;
 
-				case 71:
+				case 83:
 					if (!(!credential && this.authority.details.email_authority_id && details.email)) {
-						_context.next = 88;
+						_context.next = 102;
 						break;
 					}
 
-					_context.prev = 72;
-					_context.next = 75;
+					_context.prev = 84;
+
+
+					debug('Fetching the user by email.', {
+						authorityId: this.authority.details.email_authority_id,
+						email: details.email
+					});
+
+					_context.next = 88;
 					return regeneratorRuntime.awrap(_Credential2.default.get(this.conn, [this.authority.details.email_authority_id, details.email]));
 
-				case 75:
+				case 88:
 					email_credential = _context.sent;
-					_context.next = 78;
+					_context.next = 91;
 					return regeneratorRuntime.awrap(_User2.default.get(this.conn, email_credential.user_id));
 
-				case 78:
+				case 91:
 					user = _context.sent;
-					_context.next = 81;
+
+
+					debug('Creating a new credential.', {
+						authorityId: this.authority.id,
+						agentId: details.agent_id,
+						userId: email_credential.user_id,
+						details: details,
+						profile: profile
+					});
+
+					// create a new credential
+					_context.next = 95;
 					return regeneratorRuntime.awrap(_Credential2.default.create(this.conn, {
 						id: [this.authority.id, details.agent_id.toString()],
 						user_id: email_credential.user_id,
@@ -395,87 +478,122 @@ class InContactStrategy extends _Strategy2.default {
 						profile: profile
 					}));
 
-				case 81:
+				case 95:
 					credential = _context.sent;
-					_context.next = 88;
+					_context.next = 102;
 					break;
 
-				case 84:
-					_context.prev = 84;
-					_context.t6 = _context['catch'](72);
+				case 98:
+					_context.prev = 98;
+					_context.t6 = _context['catch'](84);
 
 					if (_context.t6 instanceof errors.NotFoundError) {
-						_context.next = 88;
+						_context.next = 102;
 						break;
 					}
 
 					throw _context.t6;
 
-				case 88:
+				case 102:
 					if (credential) {
-						_context.next = 98;
+						_context.next = 115;
 						break;
 					}
 
-					_context.next = 91;
+					debug('Creating a new user.', {
+						type: 'human',
+						profile: without(profile, 'id')
+					});
+
+					// create a new user account
+					_context.next = 106;
 					return regeneratorRuntime.awrap(_User2.default.create(this.conn, {
 						type: 'human',
 						profile: without(profile, 'id')
 					}));
 
-				case 91:
+				case 106:
 					user = _context.sent;
-					_context.next = 94;
+
+
+					debug('Creating a new credential.', {
+						authorityId: this.authority.id,
+						agentId: details.agent_id,
+						userId: user.id,
+						lastUsed: lastUsed,
+						details: details,
+						profile: profile
+					});
+
+					// create a new credential
+					_context.next = 110;
 					return regeneratorRuntime.awrap(_Credential2.default.create(this.conn, {
 						id: [this.authority.id, details.agent_id.toString()],
 						user_id: user.id,
+						last_used: lastUsed,
 						details: details,
 						profile: profile
 					}));
 
-				case 94:
+				case 110:
 					credential = _context.sent;
 
 					if (!this.authority.details.email_authority_id) {
-						_context.next = 98;
+						_context.next = 115;
 						break;
 					}
 
-					_context.next = 98;
+					debug('Creating a new email credential.', {
+						authorityId: this.authority.details.email_authority_id,
+						email: details.email,
+						userId: user.id,
+						lastUsed: lastUsed,
+						details: details,
+						profile: profile
+					});
+
+					_context.next = 115;
 					return regeneratorRuntime.awrap(_Credential2.default.create(this.conn, {
 						id: [this.authority.details.email_authority_id, details.email],
 						user_id: user.id,
+						last_used: lastUsed,
 						profile: null
 					}));
 
-				case 98:
-					_context.prev = 98;
+				case 115:
+					_context.prev = 115;
+
+
+					debug('Assigning the user to configured roles.', {
+						roleIds: this.authority.details.teams[details.team_id].role_ids
+					});
+
 					assignments = {};
 					assignments[user.id] = true;
-					_context.next = 103;
+					_context.next = 121;
 					return regeneratorRuntime.awrap(Promise.all(this.authority.details.teams[details.team_id].role_ids.map(function (id) {
 						return _Role2.default.update(_this.conn, id, {
 							assignments: assignments
 						});
 					})));
 
-				case 103:
-					_context.next = 108;
+				case 121:
+					_context.next = 126;
 					break;
 
-				case 105:
-					_context.prev = 105;
-					_context.t7 = _context['catch'](98);
+				case 123:
+					_context.prev = 123;
+					_context.t7 = _context['catch'](115);
 					throw new errors.ServerError('Unable to assign roles for team #' + details.team_id + '.');
 
-				case 108:
+				case 126:
 					return _context.abrupt('return', user);
 
-				case 109:
+				case 127:
 				case 'end':
 					return _context.stop();
 			}
-		}, null, this, [[19, 27], [44, 67], [72, 84], [98, 105]]);
+		}, null, this, [[21, 31], [51, 79], [84, 98], [115, 123]]);
 	}
 
 	// Authority Methods

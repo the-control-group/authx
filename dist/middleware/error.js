@@ -31,5 +31,5 @@ exports.default = function _callee(ctx, next) {
 			case 'end':
 				return _context.stop();
 		}
-	}, null, this, [[0, 5]]);
+	}, null, undefined, [[0, 5]]);
 };

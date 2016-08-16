@@ -103,6 +103,19 @@ function without(o, key) {
 export default class InContactStrategy extends Strategy {
 
 	async authenticate(ctx) {
+		let lastUsed = Date.now();
+
+
+		function debug(message, data) {
+			ctx.app.emit('debug', {
+				message: message,
+				class: 'InContactStrategy',
+				timestamp: Date.now(),
+				type: 'strategy',
+				data: data
+			});
+		}
+
 
 		if (ctx.method !== 'POST')
 			throw new errors.ValidationError();
@@ -132,6 +145,11 @@ export default class InContactStrategy extends Strategy {
 		// make a request to inContact
 		var response;
 		try {
+
+			debug('Sending token request to inContact', {
+				username: body.username
+			});
+
 			response = JSON.parse(await request({
 				method: 'POST',
 				uri: 'https://api.incontact.com/InContactAuthorizationServer/Token',
@@ -151,7 +169,13 @@ export default class InContactStrategy extends Strategy {
 					scope: 'AdminApi'
 				})
 			}));
+
+			debug('Token received from inContact', response);
+
 		} catch (err) {
+
+			debug('Token request to inContact failed', err);
+
 			if (err instanceof requestErrors.StatusCodeError) {
 				if (err.statusCode === 401) throw new errors.AuthenticationError('Incorrect username or bad password.');
 				if (err.statusCode === 400) throw new errors.ValidationError('Invalid username or bad password.');
@@ -159,6 +183,11 @@ export default class InContactStrategy extends Strategy {
 
 			throw err;
 		}
+
+
+		debug('Sending agent request to inContact', {
+			agentId: response.agent_id
+		});
 
 
 		// get the agent
@@ -171,6 +200,8 @@ export default class InContactStrategy extends Strategy {
 			}
 		})).agents[0];
 
+
+		debug('Agent received from inContact', agent);
 
 
 		// normalize the profile with our schema
@@ -207,12 +238,24 @@ export default class InContactStrategy extends Strategy {
 
 		// look for an existing credential by ID
 		try {
+
+			debug('Checking for an existing credential by ID', {
+				authorityId: this.authority.id,
+				agentId: details.agent_id.toString()
+			});
+
 			credential = await Credential.get(this.conn, [this.authority.id, details.agent_id.toString()]);
 
 			// detect a change in team
 			if (details.team_id !== credential.details.team_id) {
+
 				let oldRoleIds = this.authority.details.teams[credential.details.team_id].role_ids;
 				let newRoleIds = this.authority.details.teams[details.team_id].role_ids;
+
+				debug('Team has changed; changing roles accordingly.', {
+					oldRoleIds: oldRoleIds,
+					newRoleIds: newRoleIds
+				});
 
 				// remove any roles that aren't shared between the old and new teams
 				await oldRoleIds
@@ -222,18 +265,37 @@ export default class InContactStrategy extends Strategy {
 					}}));
 			}
 
+			debug('Updating the credential.', {
+				details: details,
+				profile: profile,
+				lastUsed: lastUsed
+			});
+
 			// update the credential
 			credential = await credential.update({
 				details: details,
-				profile: profile
+				profile: profile,
+				last_used: lastUsed
 			});
 
 
 			// sync the user's profile
-			if (this.authority.details.sync_profile_to_customer)
+			if (this.authority.details.sync_profile_to_customer) {
+
+				debug('Syncing the user\'s profile.', {
+					userId: credential.user_id,
+					profile: profile
+				});
+
 				user = await User.update(this.conn, credential.user_id, {profile: profile});
-			else
+			} else {
+
+				debug('Fetching the user by ID.', {
+					userId: credential.user_id
+				});
+
 				user = await User.get(this.conn, credential.user_id);
+			}
 
 
 		} catch (err) { if (!(err instanceof errors.NotFoundError)) throw err; }
@@ -245,8 +307,22 @@ export default class InContactStrategy extends Strategy {
 			&& this.authority.details.email_authority_id
 			&& details.email
 		) try {
+
+			debug('Fetching the user by email.', {
+				authorityId: this.authority.details.email_authority_id,
+				email: details.email
+			});
+
 			let email_credential = await Credential.get(this.conn, [this.authority.details.email_authority_id, details.email]);
 			user = await User.get(this.conn, email_credential.user_id);
+
+			debug('Creating a new credential.', {
+				authorityId: this.authority.id,
+				agentId: details.agent_id,
+				userId: email_credential.user_id,
+				details: details,
+				profile: profile
+			});
 
 			// create a new credential
 			credential = await Credential.create(this.conn, {
@@ -262,25 +338,51 @@ export default class InContactStrategy extends Strategy {
 		// create a brand-new user
 		if (!credential) {
 
+			debug('Creating a new user.', {
+				type: 'human',
+				profile: without(profile, 'id')
+			});
+
 			// create a new user account
 			user = await User.create(this.conn, {
 				type: 'human',
 				profile: without(profile, 'id')
 			});
 
+			debug('Creating a new credential.', {
+				authorityId: this.authority.id,
+				agentId: details.agent_id,
+				userId: user.id,
+				lastUsed: lastUsed,
+				details: details,
+				profile: profile
+			});
+
 			// create a new credential
 			credential = await Credential.create(this.conn, {
 				id: [this.authority.id, details.agent_id.toString()],
 				user_id: user.id,
+				last_used: lastUsed,
 				details: details,
 				profile: profile
 			});
 
 			// create a new email credential
 			if (this.authority.details.email_authority_id) {
+
+				debug('Creating a new email credential.', {
+					authorityId: this.authority.details.email_authority_id,
+					email: details.email,
+					userId: user.id,
+					lastUsed: lastUsed,
+					details: details,
+					profile: profile
+				});
+
 				await Credential.create(this.conn, {
 					id: [this.authority.details.email_authority_id, details.email],
 					user_id: user.id,
+					last_used: lastUsed,
 					profile: null
 				});
 			}
@@ -288,6 +390,11 @@ export default class InContactStrategy extends Strategy {
 
 		// assign the user to all configured roles
 		try {
+
+			debug('Assigning the user to configured roles.', {
+				roleIds: this.authority.details.teams[details.team_id].role_ids
+			});
+
 			let assignments = {}; assignments[user.id] = true;
 			await Promise.all(this.authority.details.teams[details.team_id].role_ids.map(id => Role.update(this.conn, id, {
 				assignments: assignments

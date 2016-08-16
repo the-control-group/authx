@@ -170,7 +170,8 @@ export default class OAuth2Strategy extends Strategy {
 			try {
 				credential = await Credential.update(this.conn, [this.authority.id, details.sub], {
 					details: details,
-					profile: profile
+					profile: profile,
+					last_used: Date.now()
 				});
 				user = await User.get(this.conn, credential.user_id);
 			} catch (err) { if (!(err instanceof errors.NotFoundError)) throw err; }
@@ -190,6 +191,7 @@ export default class OAuth2Strategy extends Strategy {
 				credential = await Credential.create(this.conn, {
 					id: [this.authority.id, details.sub],
 					user_id: email_credential.user_id,
+					last_used: Date.now(),
 					details: details,
 					profile: profile
 				});
@@ -217,6 +219,7 @@ export default class OAuth2Strategy extends Strategy {
 				credential = await Credential.create(this.conn, {
 					id: [this.authority.id, details.sub],
 					user_id: user.id,
+					last_used: Date.now(),
 					details: details,
 					profile: profile
 				});
@@ -226,6 +229,7 @@ export default class OAuth2Strategy extends Strategy {
 					await Credential.create(this.conn, {
 						id: [this.authority.details.email_authority_id, details.email],
 						user_id: user.id,
+						last_used: Date.now(),
 						profile: null
 					});
 				}

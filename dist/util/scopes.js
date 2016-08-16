@@ -61,10 +61,12 @@ function combine(a, b) {
 
 	// ...the scopes are thus mutually exclusive (because they cannot be mutually inclusive without being equal)
 
+
 	// if there are no wildcard sequences, then there is no possibility of a combination
 	if (!a.includes('*') || !b.includes('*')) return null;
 
 	// ...substitute the wildcard matches from A into the the wildcards of B
+
 
 	// loop through each domain
 	var substitution = [];

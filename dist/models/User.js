@@ -200,6 +200,7 @@ class User extends _Model2.default {
 				case 5:
 					user = _context4.sent;
 
+
 					// attach the deleted credentials
 					user[CREDENTIALS] = Promise.resolve(credentials);
 
@@ -310,6 +311,7 @@ class User extends _Model2.default {
 					scopes = roles.map(function (role) {
 						return role.scopes;
 					});
+
 
 					this[SCOPES] = scopes.reduce(function (a, b) {
 						return a.concat(b);

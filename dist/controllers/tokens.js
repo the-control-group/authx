@@ -213,6 +213,7 @@ exports.default = function _callee(ctx) {
 			case 56:
 				grant = _context.sent;
 
+
 				// redirect the user back to the client with an authorization code.
 				ctx.redirect(ctx.query.redirect_uri + (ctx.query.redirect_uri.includes('?') ? '&' : '?') + 'code=' + code + '&state=' + ctx.query.state);
 				ctx.body = { code: code };
@@ -386,6 +387,7 @@ exports.default = function _callee(ctx) {
 			case 123:
 				user = _context.sent;
 
+
 				// scopes globally authorized to the client
 				globallyAuthorizedScopes = client.scopes;
 
@@ -403,6 +405,7 @@ exports.default = function _callee(ctx) {
 			case 130:
 				_context.t6 = _context.sent;
 				totalScopes = _context.t4.combineCollections.call(_context.t4, _context.t5, _context.t6);
+
 
 				// generate the access token
 				access_token = _jsonwebtoken2.default.sign({
@@ -438,7 +441,7 @@ exports.default = function _callee(ctx) {
 			case 'end':
 				return _context.stop();
 		}
-	}, null, this, [[22, 30], [37, 45], [85, 92], [103, 110]]);
+	}, null, undefined, [[22, 30], [37, 45], [85, 92], [103, 110]]);
 };
 
 function requestApproval(ctx) {

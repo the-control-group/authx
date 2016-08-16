@@ -3,6 +3,6 @@ export default async (ctx, next) => {
 	try {
 		await next();
 	} finally {
-		if (ctx.conn) ctx.conn.release();
+		ctx.conn.release();
 	}
 };
