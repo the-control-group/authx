@@ -14,7 +14,12 @@ module.exports = {
 			expiresIn: 3600,
 			subject: 'Reset your password',
 			text: '{{{token}}}',
-			html: '<a href="{{url}}">reset</a>'
+			html: '<a href="{{url}}">reset</a>',
+			mailer: {
+				transport: null,
+				auth: {},
+				defaults: {}
+			}
 		},
 		last_updated: Date.now() / 1000,
 		created: Date.now() / 1000

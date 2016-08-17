@@ -3,12 +3,12 @@ if (!global._babelPolyfill)
 	require('babel-polyfill');
 
 import * as errors from './errors';
-import * as route from './util/route';
 import * as scopes from './util/scopes';
-import Koa from 'koa';
-import mailer from './util/mailer';
+import Router from 'koa-router';
+import { can } from './util/protect';
 import Pool from './util/pool';
-import {can} from './util/protect';
+import x from './namespace';
+
 
 
 // strategies
@@ -17,6 +17,18 @@ import GoogleStrategy from './strategies/google';
 import PasswordStrategy from './strategies/password';
 import SecretStrategy from './strategies/secret';
 import InContactStrategy from './strategies/incontact';
+export { EmailStrategy, GoogleStrategy, PasswordStrategy, SecretStrategy, InContactStrategy };
+
+
+
+// models
+import Authority from './models/Authority';
+import Client from './models/Client';
+import Credential from './models/Credential';
+import Grant from './models/Grant';
+import Role from './models/Role';
+import User from './models/User';
+export { Authority, Client, Credential, Grant, Role, User };
 
 
 
@@ -35,36 +47,28 @@ import * as clientController from './controllers/clients';
 import * as credentialController from './controllers/credentials';
 import * as grantController from './controllers/grants';
 import * as roleController from './controllers/roles';
-import * as teamController from './controllers/teams';
 import * as userController from './controllers/users';
 import sessionController from './controllers/session';
 import tokensController from './controllers/tokens';
 
 
-export default class AuthX extends Koa {
+
+export default class AuthX extends Router {
 
 	constructor(config, strategies) {
-		super();
+		super(config);
 
 
 		// set the config
 		this.config = config;
-		this.keys = this.config.keys;
-		this.proxy = this.config.proxy;
-
-		this.pool = new Pool(this.config.db, this.config.db.pool.max, this.config.db.pool.min, this.config.db.pool.timeout);
-		this.mail = mailer(this.config.mailer);
-		this.strategies = strategies || {
-			email: EmailStrategy,
-			password: PasswordStrategy,
-			secret: SecretStrategy,
-			google: GoogleStrategy,
-			incontact: InContactStrategy
-		};
 
 
+		// create a database pool
+		this.pool = new Pool(config.db, config.db.pool.max, config.db.pool.min, config.db.pool.timeout);
 
-		var root = this.config.root || '/';
+
+		// attach the strategies
+		this.strategies = strategies;
 
 
 
@@ -72,6 +76,12 @@ export default class AuthX extends Koa {
 
 		// Generic Middleware
 		// ------------------
+
+		// add authx namespace context
+		this.use((ctx, next) => {
+			ctx[x] = { authx: this };
+			return next();
+		});
 
 		// error handling
 		this.use(errorMiddleware);
@@ -102,8 +112,9 @@ export default class AuthX extends Koa {
 		// These endpoints manage the user's active session, including logging in,
 		// logging out, and associating credentials.
 
-		this.use(route.use(root + 'session/:authority_id', sessionController));
-		this.use(route.del(root + 'session'), async function(ctx) {
+		this.get('/session/:authority_id', sessionController);
+		this.post('/session/:authority_id', sessionController);
+		this.del('/session', async (ctx) => {
 			ctx.cookies.set('session');
 			ctx.status = 204;
 		});
@@ -119,7 +130,8 @@ export default class AuthX extends Koa {
 		// a user with AuthX. They implement the OAuth 2.0 flow for "authorization
 		// code" grant types.
 
-		this.use(route.use(root + 'tokens', tokensController));
+		this.get('/tokens', tokensController);
+		this.post('/tokens', tokensController);
 
 
 
@@ -131,7 +143,7 @@ export default class AuthX extends Koa {
 		// This is a convenience endpoint for clients. It validates credentials and
 		// asserts that the token can access to the provided scope.
 
-		this.use(route.get(root + 'can/:scope', async function(ctx) {
+		this.get('/can/:scope', async (ctx) => {
 
 			if (!ctx.params.scope || !scopes.validate(ctx.params.scope))
 				throw new errors.ValidationError();
@@ -143,7 +155,7 @@ export default class AuthX extends Koa {
 				throw new errors.ForbiddenError();
 
 			ctx.status = 204;
-		}));
+		});
 
 
 
@@ -155,9 +167,9 @@ export default class AuthX extends Koa {
 		// This outputs valid public keys and algorithms that can be used to verify
 		// access tokens by resource servers. The first key is always the most recent.
 
-		this.use(route.use(root + 'keys', async function(ctx) {
-			ctx.body = ctx.app.config.access_token.public;
-		}));
+		this.get('/keys', async (ctx) => {
+			ctx.body = this.config.access_token.public;
+		});
 
 
 
@@ -172,91 +184,70 @@ export default class AuthX extends Koa {
 		// Authorities
 		// -----------
 
-		this.use(route.post(root + 'authorities', authorityController.post));
-		this.use(route.get(root + 'authorities', authorityController.query));
-		this.use(route.get(root + 'authorities/:authority_id', authorityController.get));
-		this.use(route.patch(root + 'authorities/:authority_id', authorityController.patch));
-		this.use(route.del(root + 'authorities/:authority_id', authorityController.del));
+		this.post('/authorities', authorityController.post);
+		this.get('/authorities', authorityController.query);
+		this.get('/authorities/:authority_id', authorityController.get);
+		this.patch('/authorities/:authority_id', authorityController.patch);
+		this.del('/authorities/:authority_id', authorityController.del);
 
 
 
 		// Clients
 		// -------
 
-		this.use(route.post(root + 'clients', clientController.post));
-		this.use(route.get(root + 'clients', clientController.query));
-		this.use(route.get(root + 'clients/:client_id', clientController.get));
-		this.use(route.patch(root + 'clients/:client_id', clientController.patch));
-		this.use(route.del(root + 'clients/:client_id', clientController.del));
+		this.post('/clients', clientController.post);
+		this.get('/clients', clientController.query);
+		this.get('/clients/:client_id', clientController.get);
+		this.patch('/clients/:client_id', clientController.patch);
+		this.del('/clients/:client_id', clientController.del);
 
 
 
 		// Credentials
 		// ------------
 
-		this.use(route.post(root + 'credentials', credentialController.post));
-		this.use(route.get(root + 'credentials', credentialController.query));
-		this.use(route.get(root + 'credentials/:credential_id_0/:credential_id_1', credentialController.get));
-		this.use(route.patch(root + 'credentials/:credential_id_0/:credential_id_1', credentialController.patch));
-		this.use(route.del(root + 'credentials/:credential_id_0/:credential_id_1', credentialController.del));
+		this.post('/credentials', credentialController.post);
+		this.get('/credentials', credentialController.query);
+		this.get('/credentials/:credential_id_0/:credential_id_1', credentialController.get);
+		this.patch('/credentials/:credential_id_0/:credential_id_1', credentialController.patch);
+		this.del('/credentials/:credential_id_0/:credential_id_1', credentialController.del);
 
 
 
 		// Grants
 		// ------
 
-		this.use(route.post(root + 'grants', grantController.post));
-		this.use(route.get(root + 'grants', grantController.query));
-		this.use(route.get(root + 'grants/:module_id', grantController.get));
-		this.use(route.patch(root + 'grants/:module_id', grantController.patch));
-		this.use(route.del(root + 'grants/:module_id', grantController.del));
+		this.post('/grants', grantController.post);
+		this.get('/grants', grantController.query);
+		this.get('/grants/:module_id', grantController.get);
+		this.patch('/grants/:module_id', grantController.patch);
+		this.del('/grants/:module_id', grantController.del);
 
 
 
 		// Roles
 		// -----
 
-		this.use(route.post(root + 'roles', roleController.post));
-		this.use(route.get(root + 'roles', roleController.query));
-		this.use(route.get(root + 'roles/:role_id', roleController.get));
-		this.use(route.patch(root + 'roles/:role_id', roleController.patch));
-		this.use(route.del(root + 'roles/:role_id', roleController.del));
-
-
-
-		// Teams
-		// -----
-		// I think that these either don't belong in the auth service at all, or need to be better
-		// thought out. Their purpose isn't exactly clear to me, especially in its relationships to
-		// roles.
-		//
-		// All that said, we have an immediate need to set certain "default" settings on different
-		// "classes" of user, and this is the rushed result. Please avoid getting too attached to the
-		// idea of teams, and if you feel like you're bending to fit into their limitations, then
-		// it's time to stop and re-do this the right way.
-
-		this.use(route.post(root + 'teams', teamController.post));
-		this.use(route.get(root + 'teams', teamController.query));
-		this.use(route.get(root + 'teams/:team_id', teamController.get));
-		this.use(route.patch(root + 'teams/:team_id', teamController.patch));
-		this.use(route.del(root + 'teams/:team_id', teamController.del));
+		this.post('/roles', roleController.post);
+		this.get('/roles', roleController.query);
+		this.get('/roles/:role_id', roleController.get);
+		this.patch('/roles/:role_id', roleController.patch);
+		this.del('/roles/:role_id', roleController.del);
 
 
 
 		// Users
 		// -----
 
-		this.use(route.post(root + 'users', userController.post));
-		this.use(route.get(root + 'users', userController.query));
-		this.use(route.get(root + 'users/:user_id', userController.get));
-		this.use(route.patch(root + 'users/:user_id', userController.patch));
-		this.use(route.del(root + 'users/:user_id', userController.del));
-		this.use(route.get(root + 'me', userController.get));
-		this.use(route.patch(root + 'me', userController.patch));
-		this.use(route.del(root + 'me', userController.del));
-
-
-
+		this.post('/users', userController.post);
+		this.get('/users', userController.query);
+		this.get('/users/:user_id', userController.get);
+		this.patch('/users/:user_id', userController.patch);
+		this.del('/users/:user_id', userController.del);
+		this.get('/me', userController.get);
+		this.patch('/me', userController.patch);
+		this.del('/me', userController.del);
 
 	}
 }
+

@@ -1,7 +1,6 @@
 'use strict';
 
 import chai from 'chai';
-import url from 'url';
 
 var assert = chai.assert;
 require('../../init.js');
@@ -12,8 +11,8 @@ describe('Strategy: Email', () => {
 
 	// stub out the mail function
 	before(() => {
-		mail = app.mail;
-		app.mail = m => messages.unshift(m);
+		mail = authx.strategies.email.prototype.mail;
+		authx.strategies.email.prototype.mail = m => messages.unshift(m);
 	});
 
 	it('should return 400 for an invalid request', done => {
@@ -76,7 +75,7 @@ describe('Strategy: Email', () => {
 
 	// replace original mail function
 	after(() => {
-		app.mail = mail;
+		authx.strategies.email.prototype.mail = mail;
 	});
 
 });

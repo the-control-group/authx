@@ -4,6 +4,7 @@ import json from '../util/json';
 import request from 'request-promise';
 import requestErrors from 'request-promise/errors';
 import * as errors from '../errors';
+import x from '../namespace';
 
 import Strategy from '../Strategy';
 import Credential from '../models/Credential';

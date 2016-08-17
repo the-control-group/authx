@@ -25,7 +25,6 @@
     "koa-router": "^7.0.1",
     "lodash": "^3.10.1",
     "nodemailer": "^1.8.0",
-    "path-match": "^1.2.3",
     "raw-body": "^2.1.5",
     "request-promise": "^1.0.1",
     "rethinkdb": "^2.2.0",

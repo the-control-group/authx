@@ -26,6 +26,7 @@
 	},
 	"globals": {
 		"app": true,
+		"authx": true,
 		"server": true,
 		"agent": true
 	},

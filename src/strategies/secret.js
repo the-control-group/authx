@@ -5,6 +5,7 @@ import json from '../util/json';
 import form from '../util/form';
 import {hash, compare} from '../util/bcrypt';
 import * as errors from '../errors';
+import x from '../namespace';
 
 import Strategy from '../Strategy';
 import Credential from '../models/Credential';
@@ -67,7 +68,7 @@ export default class SecretStrategy extends Strategy {
 
 		// send authenticate headers
 		if (!request) {
-			ctx.set('WWW-Authenticate', 'Basic realm="' + ctx.app.config.realm + '"');
+			ctx.set('WWW-Authenticate', 'Basic realm="' + ctx[x].authx.config.realm + '"');
 			ctx.throw(401, 'HTTP Basic credentials are required.');
 		}
 
@@ -109,12 +110,12 @@ export default class SecretStrategy extends Strategy {
 		var access_token = jwt.sign({
 			type: 'access_token',
 			scopes: await user.scopes()
-		}, ctx.app.config.access_token.private_key, {
-			algorithm: ctx.app.config.access_token.algorithm,
-			expiresIn: ctx.app.config.access_token.expiresIn,
+		}, ctx[x].authx.config.access_token.private_key, {
+			algorithm: ctx[x].authx.config.access_token.algorithm,
+			expiresIn: ctx[x].authx.config.access_token.expiresIn,
 			audience: user.id,
 			subject: user.id,
-			issuer: ctx.app.config.realm
+			issuer: ctx[x].authx.config.realm
 		});
 
 

@@ -3,20 +3,8 @@ export default {
 	// the realm to be used when issuing tokens, requesting HTTP credentials, etc
 	realm: 'AuthX',
 
-	// should AuthX run as a cluster? should be true in production, false in development
-	cluster: false,
-
-	// how long (ms) should a child process have to gracefully shutdown before it is killed
-	gracefulShutdownTimeout: 5000,
-
-	// on what port should we listen
-	port: process.env.PORT || 3000,
-
-	// the HTTP path root
-	root: '/v1/',
-
-	// the Koa proxy setting
-	proxy: true,
+	// prefix applied to all routes
+	prefix: '/v1',
 
 	// rethinkdb settings
 	db: {
@@ -114,14 +102,6 @@ zwIDAQAB
 		}],
 		algorithm: 'RS512',
 		expiresIn: 2592000
-	},
-
-	// nodemailer settings
-	mailer: {
-		transport: null,
-		defaults: {
-			from: 'auth@example.com'
-		}
 	},
 
 	// these routes contain user-facing HTML

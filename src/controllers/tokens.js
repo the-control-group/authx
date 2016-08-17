@@ -6,6 +6,7 @@ import * as scopes from '../util/scopes';
 import * as errors from '../errors';
 import Client from '../models/Client';
 import Grant from '../models/Grant';
+import x from '../namespace';
 
 let scopeRegex = /^(([a-zA-Z0-9_\-]+|(\*(?!\*\*))+)\.)*([a-zA-Z0-9_\-]+|(\*(?!\*\*))+):(([a-zA-Z0-9_\-]+|(\*(?!\*\*))+)\.)*([a-zA-Z0-9_\-]+|(\*(?!\*\*))+):(([a-zA-Z0-9_\-]+|(\*(?!\*\*))+)\.)*([a-zA-Z0-9_\-]+|(\*(?!\*\*))+)$/;
 
@@ -36,7 +37,7 @@ export default async (ctx) => {
 
 
 		// get the client
-		let client = await Client.get(ctx.conn, ctx.query.client_id);
+		let client = await Client.get(ctx[x].conn, ctx.query.client_id);
 
 
 
@@ -45,8 +46,8 @@ export default async (ctx) => {
 
 
 		// If the user does not have an active session, send her to the login page.
-		if (!ctx.session || ctx.session.sub !== ctx.user.id) {
-			ctx.redirect(ctx.app.config.routes.login + (ctx.app.config.routes.login.includes('?') ? '&' : '?') + 'url=' + encodeURIComponent(ctx.url));
+		if (!ctx[x].session || ctx[x].session.sub !== ctx[x].user.id) {
+			ctx.redirect(ctx[x].authx.config.routes.login + (ctx[x].authx.config.routes.login.includes('?') ? '&' : '?') + 'url=' + encodeURIComponent(ctx.url));
 			ctx.body = {url: ctx.url};
 			return;
 		}
@@ -90,7 +91,7 @@ export default async (ctx) => {
 
 			// look for a previous grant issued to this client by the user
 			else try {
-				grant = await Grant.get(ctx.conn, [ctx.user.id, client.id]);
+				grant = await Grant.get(ctx[x].conn, [ctx[x].user.id, client.id]);
 				userAuthorizedScopes = grant.scopes;
 				authorizedScopes = scopes.simplifyCollection(authorizedScopes.concat(userAuthorizedScopes));
 			} catch (err) {
@@ -117,8 +118,8 @@ export default async (ctx) => {
 
 		// generate and store an authorization code.
 		let nonce = uuid.v4();
-		let code = new Buffer(JSON.stringify([ctx.user.id, nonce])).toString('base64');
-		grant = await Grant.save(ctx.conn, [ctx.user.id, client.id], {
+		let code = new Buffer(JSON.stringify([ctx[x].user.id, nonce])).toString('base64');
+		grant = await Grant.save(ctx[x].conn, [ctx[x].user.id, client.id], {
 			nonce: nonce,
 			scopes: userAuthorizedScopes
 		});
@@ -168,7 +169,7 @@ export default async (ctx) => {
 
 
 
-		let client = await Client.get(ctx.conn, data.client_id);
+		let client = await Client.get(ctx[x].conn, data.client_id);
 		if (client.secret !== data.client_secret)
 			throw new errors.ForbiddenError('The client secret was incorrect.');
 
@@ -202,7 +203,7 @@ export default async (ctx) => {
 
 
 			// get the corresponding grant, with the single-use nonce value
-			grant = await Grant.getWithNonce(ctx.conn, [code[0], data.client_id], code[1]);
+			grant = await Grant.getWithNonce(ctx[x].conn, [code[0], data.client_id], code[1]);
 
 		}
 
@@ -229,7 +230,7 @@ export default async (ctx) => {
 
 
 			// get the corresponding grant, with the single-use nonce value
-			grant = await Grant.get(ctx.conn, [refresh_token[0], data.client_id]);
+			grant = await Grant.get(ctx[x].conn, [refresh_token[0], data.client_id]);
 
 
 
@@ -264,12 +265,12 @@ export default async (ctx) => {
 		let access_token = jwt.sign({
 			type: 'access_token',
 			scopes: totalScopes
-		}, ctx.app.config.access_token.private_key, {
-			algorithm: ctx.app.config.access_token.algorithm,
-			expiresIn: ctx.app.config.access_token.expiresIn,
+		}, ctx[x].authx.config.access_token.private_key, {
+			algorithm: ctx[x].authx.config.access_token.algorithm,
+			expiresIn: ctx[x].authx.config.access_token.expiresIn,
 			audience: grant.client_id,
 			subject: grant.user_id,
-			issuer: ctx.app.config.realm
+			issuer: ctx[x].authx.config.realm
 		});
 
 
@@ -287,7 +288,7 @@ export default async (ctx) => {
 
 
 		// convenience, adds the user to the response if the token has access
-		if (scopes.can(totalScopes, 'AuthX:me:read'))
+		if (scopes.can(totalScopes, ctx[x].authx.config.realm + ':me:read'))
 			ctx.body.user = user;
 
 
@@ -303,7 +304,7 @@ export default async (ctx) => {
 function requestApproval (ctx) {
 	var url = encodeURIComponent(ctx.url);
 	var scope = encodeURIComponent(ctx.query.scope);
-	ctx.redirect(ctx.app.config.routes.authorize + (ctx.app.config.routes.authorize.includes('?') ? '&' : '?') + 'url=' + url + '&scope=' + scope);
+	ctx.redirect(ctx[x].authx.config.routes.authorize + (ctx[x].authx.config.routes.authorize.includes('?') ? '&' : '?') + 'url=' + url + '&scope=' + scope);
 	ctx.body = {url: url, scope: scope};
 }
 

@@ -2,6 +2,7 @@ import qs from 'querystring';
 import jwt from 'jsonwebtoken';
 import errors from '../errors';
 import Authority from '../models/Authority';
+import x from '../namespace';
 
 export default async (ctx, next) => {
 	ctx.status = 204;
@@ -9,15 +10,15 @@ export default async (ctx, next) => {
 	try {
 
 		// get the authority
-		var authority = await Authority.get(ctx.conn, ctx.params.authority_id);
+		var authority = await Authority.get(ctx[x].conn, ctx.params.authority_id);
 
 		// get the strategy
-		var Strategy = ctx.app.strategies[authority.strategy];
+		var Strategy = ctx[x].authx.strategies[authority.strategy];
 		if (!Strategy)
 			throw new Error('Strategy "' + authority.strategy + '" not implemented.');
 
 		// instantiate the strategy
-		var strategy = new Strategy(ctx.conn, authority);
+		var strategy = new Strategy(ctx[x].conn, authority);
 
 		// pass the request to the strategy
 		var user = await strategy.authenticate(ctx, next);
@@ -28,12 +29,12 @@ export default async (ctx, next) => {
 				throw new errors.ForbiddenError('Your user account has been disabled.');
 
 			// generate token from user
-			let token = jwt.sign({}, ctx.app.config.session_token.private_key, {
-				algorithm: ctx.app.config.session_token.algorithm,
-				expiresIn: ctx.app.config.session_token.expiresIn,
-				audience: ctx.app.config.realm,
+			let token = jwt.sign({}, ctx[x].authx.config.session_token.private_key, {
+				algorithm: ctx[x].authx.config.session_token.algorithm,
+				expiresIn: ctx[x].authx.config.session_token.expiresIn,
+				audience: ctx[x].authx.config.realm,
 				subject: user.id,
-				issuer: ctx.app.config.realm
+				issuer: ctx[x].authx.config.realm
 			});
 
 			// set the session cookie

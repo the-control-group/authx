@@ -3,7 +3,6 @@ import Model  from '../Model';
 import Role from './Role';
 import Grant from './Grant';
 import Credential from './Credential';
-import Team from './Team';
 import validate from '../util/validator';
 import * as errors from '../errors';
 import uuid from 'uuid';
@@ -132,17 +131,6 @@ export default class User extends Model {
 			this[GRANTS] = Grant.query(this[Model.Symbols.CONN], q => q.getAll(this.id, {index: 'user_id'}));
 
 		return this[GRANTS];
-	}
-
-
-
-	async team(refresh) {
-
-		// query the database for team
-		if (!this[TEAM] || refresh)
-			this[TEAM] = this.team_id ? Team.get(this[Model.Symbols.CONN], this.team_id) : null;
-
-		return this[TEAM];
 	}
 
 

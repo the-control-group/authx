@@ -3,13 +3,15 @@ import jwt from 'jsonwebtoken';
 import Handlebars from 'handlebars';
 import json from '../util/json';
 import form from '../util/form';
+import nodemailer from 'nodemailer';
 import * as errors from '../errors';
+import x from '../namespace';
 
 import Strategy from '../Strategy';
 import Credential from '../models/Credential';
 import User from '../models/User';
 
-var env = jjv();
+const env = jjv();
 
 env.addSchema({
 	id: 'authority',
@@ -33,6 +35,28 @@ env.addSchema({
 			type: ['null', 'string'],
 			title: 'Email HTML Body',
 			description: 'Handlebars template used to generate the email HTML body. Provided `token`, `credential`, and `url`.'
+		},
+		mailer: {
+			type: 'object',
+			default: {
+				transport: null,
+				auth: {},
+				defaults: {}
+			},
+			properties: {
+				transport: {
+					type: ['null', 'string'],
+					default: null
+				},
+				auth: {
+					type: 'object',
+					default: {}
+				},
+				defaults: {
+					type: 'object',
+					default: {}
+				}
+			}
 		}
 	}
 });
@@ -42,6 +66,7 @@ env.addSchema({
 	type: 'object',
 	properties: {}
 });
+
 
 export default class EmailStrategy extends Strategy {
 
@@ -54,7 +79,6 @@ export default class EmailStrategy extends Strategy {
 		if (ctx.method === 'POST' && ctx.is('application/json'))
 			request = await json(ctx.req);
 
-
 		// HTTP POST (form)
 		else if (ctx.method === 'POST' && ctx.is('application/x-www-form-urlencoded'))
 			request = await form(ctx.req);
@@ -66,12 +90,12 @@ export default class EmailStrategy extends Strategy {
 		if (request.token) {
 			let token;
 
-			ctx.app.config.session_token.public.some(pub => {
+			ctx[x].authx.config.session_token.public.some(pub => {
 				try {
 					return token = jwt.verify(request.token, pub.key, {
 						algorithms: [pub.algorithm],
-						audience: ctx.app.config.realm + ':session.' + this.authority.id,
-						issuer: ctx.app.config.realm + ':session.' + this.authority.id
+						audience: ctx[x].authx.config.realm + ':session.' + this.authority.id,
+						issuer: ctx[x].authx.config.realm + ':session.' + this.authority.id
 					});
 				} catch (err) { return; }
 			});
@@ -82,14 +106,14 @@ export default class EmailStrategy extends Strategy {
 
 
 			// get the credential
-			var credential = await Credential.get(this.conn, token.sub);
+			const credential = await Credential.get(this.conn, token.sub);
 
 
 			if(new Date(credential.last_used) > new Date(token.iat))
 				throw new errors.AuthenticationError('This credential has been used since the token was issued.');
 
 
-			var [user] = await Promise.all([
+			const [user] = await Promise.all([
 
 				// get the user
 				User.get(this.conn, credential.user_id),
@@ -110,12 +134,12 @@ export default class EmailStrategy extends Strategy {
 
 
 			// generate token from user
-			let token = jwt.sign({}, ctx.app.config.session_token.private_key, {
-				algorithm: ctx.app.config.session_token.algorithm,
+			let token = jwt.sign({}, ctx[x].authx.config.session_token.private_key, {
+				algorithm: ctx[x].authx.config.session_token.algorithm,
 				expiresIn: this.authority.expiresIn,
-				audience: ctx.app.config.realm + ':session.' + this.authority.id,
+				audience: ctx[x].authx.config.realm + ':session.' + this.authority.id,
 				subject: credential.id,
-				issuer: ctx.app.config.realm + ':session.' + this.authority.id
+				issuer: ctx[x].authx.config.realm + ':session.' + this.authority.id
 			});
 
 			let templateContext = {
@@ -126,7 +150,7 @@ export default class EmailStrategy extends Strategy {
 
 
 			// send the token in an email
-			await ctx.app.mail({
+			await this.mail({
 				to: request.email,
 				subject: Handlebars.compile(this.authority.details.subject || 'Authenticate by email')(templateContext),
 				text: Handlebars.compile(this.authority.details.text || 'Please authenticate at the following URL: {{{url}}}')(templateContext),
@@ -147,6 +171,29 @@ export default class EmailStrategy extends Strategy {
 
 
 
+	async mail(message) {
+		const config = this.authority.details.mailer;
+
+		// stub out a transporter if none is specified
+		const transport = config.transport ?
+			nodemailer.createTransport(config.transport)
+			: { sendMail: (message, cb) => {
+				console.warn('Email transport is not set up; message not sent:', message);
+				cb(null, message);
+			}};
+
+		// wrap nodemailer in a promise
+		return new Promise( (resolve, reject) => {
+			message = Object.assign({}, config.defaults, message);
+			transport.sendMail(message, (err, res) => {
+				if(err) return reject(err);
+				return resolve(res);
+			});
+		});
+	}
+
+
+
 	// Authority Methods
 	// -----------------
 
@@ -154,7 +201,7 @@ export default class EmailStrategy extends Strategy {
 		data.details = data.details || {};
 
 		// validate data
-		var err = env.validate('authority', data, {useDefault: true});
+		const err = env.validate('authority', data, {useDefault: true});
 		if(err) throw new errors.ValidationError('The authority details were invalid.', err.validation);
 
 		return Strategy.createAuthority.call(this, conn, data);
@@ -166,7 +213,7 @@ export default class EmailStrategy extends Strategy {
 		delta.details = delta.details || {};
 
 		// validate data
-		var err = env.validate('authority', delta, {useDefault: true});
+		const err = env.validate('authority', delta, {useDefault: true});
 		if(err) throw new errors.ValidationError('The authority details were invalid.', err.validation);
 
 		return Strategy.updateAuthority.call(this, authority, delta);
@@ -181,7 +228,7 @@ export default class EmailStrategy extends Strategy {
 		data.details = data.details || {};
 
 		// validate data
-		var err = env.validate('credential', data, {useDefault: true});
+		const err = env.validate('credential', data, {useDefault: true});
 		if (err) throw new errors.ValidationError('The credential details were invalid.', err.validation);
 
 		return Strategy.prototype.createCredential.call(this, data);
@@ -193,7 +240,7 @@ export default class EmailStrategy extends Strategy {
 		delta.details = delta.details || {};
 
 		// validate data
-		var err = env.validate('credential', delta, {useDefault: true});
+		const err = env.validate('credential', delta, {useDefault: true});
 		if (err) throw new errors.ValidationError('The credential details were invalid.', err.validation);
 
 		return Strategy.prototype.updateCredential.call(this, credential, delta);

@@ -1,8 +1,10 @@
+import x from '../namespace';
+
 export default async (ctx, next) => {
-	ctx.conn = await ctx.app.pool.acquire();
+	ctx[x].conn = await ctx[x].authx.pool.acquire();
 	try {
 		await next();
 	} finally {
-		if (ctx.conn) ctx.conn.release();
+		if (ctx[x].conn) ctx[x].conn.release();
 	}
 };

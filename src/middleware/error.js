@@ -1,3 +1,5 @@
+import x from '../namespace';
+
 export default async (ctx, next) => {
 	try {
 		await next();

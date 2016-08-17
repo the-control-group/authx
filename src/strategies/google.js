@@ -5,6 +5,7 @@ import crypto from 'crypto';
 import request from 'request-promise';
 import * as errors from '../errors';
 import profileSchema from '../../schema/profile';
+import x from '../namespace';
 
 import Strategy from '../Strategy';
 import Credential from '../models/Credential';

@@ -4,6 +4,7 @@ import json from '../util/json';
 import form from '../util/form';
 import {hash, compare} from '../util/bcrypt';
 import * as errors from '../errors';
+import x from '../namespace';
 
 import Strategy from '../Strategy';
 import Credential from '../models/Credential';
@@ -69,7 +70,7 @@ export default class PasswordStrategy extends Strategy {
 
 		// send authenticate headers
 		if (!request) {
-			ctx.set('WWW-Authenticate', 'Basic realm="' + ctx.app.config.realm + '"');
+			ctx.set('WWW-Authenticate', 'Basic realm="' + ctx[x].config.realm + '"');
 			ctx.throw(401, 'HTTP Basic credentials are required.');
 		}
 
