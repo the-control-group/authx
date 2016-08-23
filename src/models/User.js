@@ -11,7 +11,6 @@ const ROLES = Symbol('roles');
 const GRANTS = Symbol('grants');
 const CREDENTIALS = Symbol('credentials');
 const SCOPES = Symbol('scopes');
-const TEAM = Symbol('team');
 
 export default class User extends Model {
 
