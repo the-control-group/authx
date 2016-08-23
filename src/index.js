@@ -3,7 +3,7 @@ if (!global._babelPolyfill)
 	require('babel-polyfill');
 
 import * as errors from './errors';
-import * as scopes from './util/scopes';
+import * as scopes from 'scopeutils';
 import Router from 'koa-router';
 import { can } from './util/protect';
 import Pool from './util/pool';

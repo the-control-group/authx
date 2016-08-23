@@ -1,4 +1,4 @@
-import * as scopes from './scopes';
+import * as scopes from 'scopeutils';
 import * as errors from '../errors';
 import x from '../namespace';
 

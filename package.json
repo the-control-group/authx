@@ -28,6 +28,7 @@
     "raw-body": "^2.1.5",
     "request-promise": "^1.0.1",
     "rethinkdb": "^2.2.0",
+    "scopeutils": "^1.0.0",
     "uuid": "^2.0.1"
   },
   "devDependencies": {

@@ -2,7 +2,7 @@ import r from 'rethinkdb';
 import Model from '../Model';
 import User from './User';
 import validate from '../util/validator';
-import * as scopes from '../util/scopes';
+import * as scopes from 'scopeutils';
 import * as errors from '../errors';
 
 const USERS = Symbol('users');

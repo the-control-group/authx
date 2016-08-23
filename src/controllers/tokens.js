@@ -2,7 +2,7 @@ import uuid from 'uuid';
 import jwt from 'jsonwebtoken';
 import json from '../util/json';
 import form from '../util/form';
-import * as scopes from '../util/scopes';
+import * as scopes from 'scopeutils';
 import * as errors from '../errors';
 import Client from '../models/Client';
 import Grant from '../models/Grant';
