@@ -28,6 +28,10 @@ var _errors = require('../errors');
 
 var errors = _interopRequireWildcard(_errors);
 
+var _namespace = require('../namespace');
+
+var _namespace2 = _interopRequireDefault(_namespace);
+
 var _Strategy = require('../Strategy');
 
 var _Strategy2 = _interopRequireDefault(_Strategy);
@@ -124,7 +128,7 @@ class PasswordStrategy extends _Strategy2.default {
 
 					// send authenticate headers
 					if (!request) {
-						ctx.set('WWW-Authenticate', 'Basic realm="' + ctx.app.config.realm + '"');
+						ctx.set('WWW-Authenticate', 'Basic realm="' + ctx[_namespace2.default].config.realm + '"');
 						ctx.throw(401, 'HTTP Basic credentials are required.');
 					}
 

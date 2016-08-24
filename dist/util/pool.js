@@ -25,6 +25,9 @@ class Pool {
 			destroy: function (connection) {
 				return connection.close();
 			},
+			validate: function (connection) {
+				return connection.isOpen();
+			},
 			log: false,
 			min: min || 2,
 			max: max || 10,

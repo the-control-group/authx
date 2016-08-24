@@ -14,7 +14,7 @@ var _Credential2 = _interopRequireDefault(_Credential);
 
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
-class EmailStarategy {
+class Starategy {
 	constructor(conn, authority) {
 		this.conn = conn;
 		this.authority = authority;
@@ -127,4 +127,4 @@ class EmailStarategy {
 	}
 
 }
-exports.default = EmailStarategy;
+exports.default = Starategy;

@@ -37,6 +37,10 @@ var _User = require('../models/User');
 
 var _User2 = _interopRequireDefault(_User);
 
+var _namespace = require('../namespace');
+
+var _namespace2 = _interopRequireDefault(_namespace);
+
 function _interopRequireWildcard(obj) { if (obj && obj.__esModule) { return obj; } else { var newObj = {}; if (obj != null) { for (var key in obj) { if (Object.prototype.hasOwnProperty.call(obj, key)) newObj[key] = obj[key]; } } newObj.default = obj; return newObj; } }
 
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
@@ -49,7 +53,7 @@ function post(ctx) {
 		while (1) switch (_context.prev = _context.next) {
 			case 0:
 				_context.next = 2;
-				return regeneratorRuntime.awrap((0, _protect.protect)(ctx, 'AuthX:user:create'));
+				return regeneratorRuntime.awrap((0, _protect.protect)(ctx, ctx[_namespace2.default].authx.config.realm + ':user:create'));
 
 			case 2:
 				includes = (0, _queryParams.parseIncludes)(includable, ctx);
@@ -59,7 +63,7 @@ function post(ctx) {
 			case 5:
 				data = _context.sent;
 				_context.next = 8;
-				return regeneratorRuntime.awrap(_User2.default.create(ctx.conn, data));
+				return regeneratorRuntime.awrap(_User2.default.create(ctx[_namespace2.default].conn, data));
 
 			case 8:
 				user = _context.sent;
@@ -86,7 +90,7 @@ function query(ctx) {
 		while (1) switch (_context3.prev = _context3.next) {
 			case 0:
 				_context3.next = 2;
-				return regeneratorRuntime.awrap((0, _protect.can)(ctx, 'AuthX:me:read'));
+				return regeneratorRuntime.awrap((0, _protect.can)(ctx, ctx[_namespace2.default].authx.config.realm + ':me:read'));
 
 			case 2:
 				_context3.t0 = !_context3.sent;
@@ -97,7 +101,7 @@ function query(ctx) {
 				}
 
 				_context3.next = 6;
-				return regeneratorRuntime.awrap((0, _protect.can)(ctx, 'AuthX:user:read'));
+				return regeneratorRuntime.awrap((0, _protect.can)(ctx, ctx[_namespace2.default].authx.config.realm + ':user:read'));
 
 			case 6:
 				_context3.t0 = !_context3.sent;
@@ -108,11 +112,11 @@ function query(ctx) {
 					break;
 				}
 
-				throw new errors.ForbiddenError('You lack permission for the required scope "AuthX:user:read".');
+				throw new errors.ForbiddenError(`You lack permission for the required scope "${ ctx[_namespace2.default].authx.config.realm }:user:read".`);
 
 			case 9:
 				_context3.next = 11;
-				return regeneratorRuntime.awrap((0, _protect.can)(ctx, 'AuthX:user:read'));
+				return regeneratorRuntime.awrap((0, _protect.can)(ctx, ctx[_namespace2.default].authx.config.realm + ':user:read'));
 
 			case 11:
 				if (_context3.sent) {
@@ -120,7 +124,7 @@ function query(ctx) {
 					break;
 				}
 
-				ids = [ctx.user.id];
+				ids = [ctx[_namespace2.default].user.id];
 
 				// restrict to provided roles
 				_context3.next = 25;
@@ -138,12 +142,12 @@ function query(ctx) {
 
 				_context3.next = 19;
 				return regeneratorRuntime.awrap(_bluebird2.default.map(role_ids, function (id) {
-					return (0, _protect.protect)(ctx, 'AuthX:role.' + id + ':read');
+					return (0, _protect.protect)(ctx, ctx[_namespace2.default].authx.config.realm + ':role.' + id + ':read');
 				}));
 
 			case 19:
 				_context3.next = 21;
-				return regeneratorRuntime.awrap(_Role2.default.query(ctx.conn, function (x) {
+				return regeneratorRuntime.awrap(_Role2.default.query(ctx[_namespace2.default].conn, function (x) {
 					return x.getAll(_rethinkdb2.default.args(role_ids), { index: 'id' });
 				}));
 
@@ -205,7 +209,7 @@ function query(ctx) {
 
 				includes = (0, _queryParams.parseIncludes)(includable, ctx);
 				_context3.next = 29;
-				return regeneratorRuntime.awrap(_User2.default.query(ctx.conn, transformer));
+				return regeneratorRuntime.awrap(_User2.default.query(ctx[_namespace2.default].conn, transformer));
 
 			case 29:
 				users = _context3.sent;
@@ -242,14 +246,14 @@ function get(ctx) {
 	return regeneratorRuntime.async(function get$(_context4) {
 		while (1) switch (_context4.prev = _context4.next) {
 			case 0:
-				user_id = ctx.params.user_id || (ctx.user ? ctx.user.id : null);
+				user_id = ctx.params.user_id || (ctx[_namespace2.default].user ? ctx[_namespace2.default].user.id : null);
 				_context4.next = 3;
-				return regeneratorRuntime.awrap((0, _protect.protect)(ctx, 'AuthX:' + (ctx.user && ctx.user.id === user_id ? 'me' : 'user') + ':read'));
+				return regeneratorRuntime.awrap((0, _protect.protect)(ctx, ctx[_namespace2.default].authx.config.realm + ':' + (ctx[_namespace2.default].user && ctx[_namespace2.default].user.id === user_id ? 'me' : 'user') + ':read'));
 
 			case 3:
 				includes = (0, _queryParams.parseIncludes)(includable, ctx);
 				_context4.next = 6;
-				return regeneratorRuntime.awrap(_User2.default.get(ctx.conn, user_id));
+				return regeneratorRuntime.awrap(_User2.default.get(ctx[_namespace2.default].conn, user_id));
 
 			case 6:
 				user = _context4.sent;
@@ -271,9 +275,9 @@ function patch(ctx) {
 	return regeneratorRuntime.async(function patch$(_context5) {
 		while (1) switch (_context5.prev = _context5.next) {
 			case 0:
-				user_id = ctx.params.user_id || (ctx.user ? ctx.user.id : null);
+				user_id = ctx.params.user_id || (ctx[_namespace2.default].user ? ctx[_namespace2.default].user.id : null);
 				_context5.next = 3;
-				return regeneratorRuntime.awrap((0, _protect.protect)(ctx, 'AuthX:' + (ctx.user && ctx.user.id === user_id ? 'me' : 'user') + ':update'));
+				return regeneratorRuntime.awrap((0, _protect.protect)(ctx, ctx[_namespace2.default].authx.config.realm + ':' + (ctx[_namespace2.default].user && ctx[_namespace2.default].user.id === user_id ? 'me' : 'user') + ':update'));
 
 			case 3:
 				includes = (0, _queryParams.parseIncludes)(includable, ctx);
@@ -283,7 +287,7 @@ function patch(ctx) {
 			case 6:
 				data = _context5.sent;
 				_context5.next = 9;
-				return regeneratorRuntime.awrap(_User2.default.update(ctx.conn, user_id, data));
+				return regeneratorRuntime.awrap(_User2.default.update(ctx[_namespace2.default].conn, user_id, data));
 
 			case 9:
 				user = _context5.sent;
@@ -305,9 +309,9 @@ function del(ctx) {
 	return regeneratorRuntime.async(function del$(_context6) {
 		while (1) switch (_context6.prev = _context6.next) {
 			case 0:
-				user_id = ctx.params.user_id || (ctx.user ? ctx.user.id : null);
+				user_id = ctx.params.user_id || (ctx[_namespace2.default].user ? ctx[_namespace2.default].user.id : null);
 				_context6.next = 3;
-				return regeneratorRuntime.awrap((0, _protect.protect)(ctx, 'AuthX:' + (ctx.user && ctx.user.id === user_id ? 'me' : 'user') + ':delete'));
+				return regeneratorRuntime.awrap((0, _protect.protect)(ctx, ctx[_namespace2.default].authx.config.realm + ':' + (ctx[_namespace2.default].user && ctx[_namespace2.default].user.id === user_id ? 'me' : 'user') + ':delete'));
 
 			case 3:
 				includes = (0, _queryParams.parseIncludes)(includable, ctx);
@@ -318,7 +322,7 @@ function del(ctx) {
 				if (includes.indexOf('credentials') === -1) includes.push('credentials');
 
 				_context6.next = 8;
-				return regeneratorRuntime.awrap(_User2.default.delete(ctx.conn, user_id));
+				return regeneratorRuntime.awrap(_User2.default.delete(ctx[_namespace2.default].conn, user_id));
 
 			case 8:
 				user = _context6.sent;
@@ -369,7 +373,7 @@ function include(user, includes, ctx) {
 
 								_context7.next = 6;
 								return regeneratorRuntime.awrap(_bluebird2.default.filter(result, function (c) {
-									return (0, _protect.can)(ctx, 'AuthX:credential.' + c.authority_id + '.' + (ctx.user && ctx.user.id === user.id ? 'me' : 'user') + ':read');
+									return (0, _protect.can)(ctx, ctx[_namespace2.default].authx.config.realm + ':credential.' + c.authority_id + '.' + (ctx[_namespace2.default].user && ctx[_namespace2.default].user.id === user.id ? 'me' : 'user') + ':read');
 								}));
 
 							case 6:
@@ -383,7 +387,7 @@ function include(user, includes, ctx) {
 
 								_context7.next = 10;
 								return regeneratorRuntime.awrap(_bluebird2.default.filter(result, function (g) {
-									return (0, _protect.can)(ctx, 'AuthX:grant.' + g.client_id + '.' + (ctx.user && ctx.user.id === user.id ? 'me' : 'user') + ':read');
+									return (0, _protect.can)(ctx, ctx[_namespace2.default].authx.config.realm + ':grant.' + g.client_id + '.' + (ctx[_namespace2.default].user && ctx[_namespace2.default].user.id === user.id ? 'me' : 'user') + ':read');
 								}));
 
 							case 10:
@@ -397,7 +401,7 @@ function include(user, includes, ctx) {
 
 								_context7.next = 14;
 								return regeneratorRuntime.awrap(_bluebird2.default.filter(result, function (r) {
-									return (0, _protect.can)(ctx, 'AuthX:role.' + r.id + ':read');
+									return (0, _protect.can)(ctx, ctx[_namespace2.default].authx.config.realm + ':role.' + r.id + ':read');
 								}));
 
 							case 14:

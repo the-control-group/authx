@@ -27,6 +27,10 @@ var _Authority = require('../models/Authority');
 
 var _Authority2 = _interopRequireDefault(_Authority);
 
+var _namespace = require('../namespace');
+
+var _namespace2 = _interopRequireDefault(_namespace);
+
 function _interopRequireWildcard(obj) { if (obj && obj.__esModule) { return obj; } else { var newObj = {}; if (obj != null) { for (var key in obj) { if (Object.prototype.hasOwnProperty.call(obj, key)) newObj[key] = obj[key]; } } newObj.default = obj; return newObj; } }
 
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
@@ -37,7 +41,7 @@ function post(ctx) {
 		while (1) switch (_context.prev = _context.next) {
 			case 0:
 				_context.next = 2;
-				return regeneratorRuntime.awrap((0, _protect.protect)(ctx, 'AuthX:authority:create'));
+				return regeneratorRuntime.awrap((0, _protect.protect)(ctx, ctx[_namespace2.default].authx.config.realm + ':authority:create'));
 
 			case 2:
 				_context.next = 4;
@@ -56,18 +60,18 @@ function post(ctx) {
 			case 7:
 
 				// get the strategy
-				Strategy = ctx.app.strategies[data.strategy];
+				Strategy = ctx[_namespace2.default].authx.strategies[data.strategy];
 
 				if (Strategy) {
 					_context.next = 10;
 					break;
 				}
 
-				throw new errors.ValidationError('Strategy "' + data.strategy + '" not implemented.', { strategy: { enum: Object.keys(ctx.app.strategies) } });
+				throw new errors.ValidationError('Strategy "' + data.strategy + '" not implemented.', { strategy: { enum: Object.keys(ctx[_namespace2.default].authx.strategies) } });
 
 			case 10:
 				_context.next = 12;
-				return regeneratorRuntime.awrap(Strategy.createAuthority(ctx.conn, data));
+				return regeneratorRuntime.awrap(Strategy.createAuthority(ctx[_namespace2.default].conn, data));
 
 			case 12:
 				ctx.body = _context.sent;
@@ -87,17 +91,17 @@ function query(ctx) {
 		while (1) switch (_context2.prev = _context2.next) {
 			case 0:
 				_context2.next = 2;
-				return regeneratorRuntime.awrap((0, _protect.protect)(ctx, 'AuthX:authority.*:read', false));
+				return regeneratorRuntime.awrap((0, _protect.protect)(ctx, ctx[_namespace2.default].authx.config.realm + ':authority.*:read', false));
 
 			case 2:
 				_context2.next = 4;
-				return regeneratorRuntime.awrap(_Authority2.default.query(ctx.conn));
+				return regeneratorRuntime.awrap(_Authority2.default.query(ctx[_namespace2.default].conn));
 
 			case 4:
 				authorities = _context2.sent;
 				_context2.next = 7;
 				return regeneratorRuntime.awrap(_bluebird2.default.filter(authorities, function (a) {
-					return (0, _protect.can)(ctx, 'AuthX:authority.' + a.id + ':read');
+					return (0, _protect.can)(ctx, ctx[_namespace2.default].authx.config.realm + ':authority.' + a.id + ':read');
 				}));
 
 			case 7:
@@ -115,11 +119,11 @@ function get(ctx) {
 		while (1) switch (_context3.prev = _context3.next) {
 			case 0:
 				_context3.next = 2;
-				return regeneratorRuntime.awrap((0, _protect.protect)(ctx, 'AuthX:authority.' + ctx.params.authority_id + ':read'));
+				return regeneratorRuntime.awrap((0, _protect.protect)(ctx, ctx[_namespace2.default].authx.config.realm + ':authority.' + ctx.params.authority_id + ':read'));
 
 			case 2:
 				_context3.next = 4;
-				return regeneratorRuntime.awrap(_Authority2.default.get(ctx.conn, ctx.params.authority_id));
+				return regeneratorRuntime.awrap(_Authority2.default.get(ctx[_namespace2.default].conn, ctx.params.authority_id));
 
 			case 4:
 				ctx.body = _context3.sent;
@@ -137,7 +141,7 @@ function patch(ctx) {
 		while (1) switch (_context4.prev = _context4.next) {
 			case 0:
 				_context4.next = 2;
-				return regeneratorRuntime.awrap((0, _protect.protect)(ctx, 'AuthX:authority.' + ctx.params.authority_id + ':update'));
+				return regeneratorRuntime.awrap((0, _protect.protect)(ctx, ctx[_namespace2.default].authx.config.realm + ':authority.' + ctx.params.authority_id + ':update'));
 
 			case 2:
 				_context4.next = 4;
@@ -146,7 +150,7 @@ function patch(ctx) {
 			case 4:
 				data = _context4.sent;
 				_context4.next = 7;
-				return regeneratorRuntime.awrap(_Authority2.default.get(ctx.conn, ctx.params.authority_id));
+				return regeneratorRuntime.awrap(_Authority2.default.get(ctx[_namespace2.default].conn, ctx.params.authority_id));
 
 			case 7:
 				authority = _context4.sent;
@@ -161,7 +165,7 @@ function patch(ctx) {
 			case 10:
 
 				// get the strategy
-				Strategy = ctx.app.strategies[authority.strategy];
+				Strategy = ctx[_namespace2.default].authx.strategies[authority.strategy];
 
 				if (Strategy) {
 					_context4.next = 13;
@@ -190,18 +194,18 @@ function del(ctx) {
 		while (1) switch (_context5.prev = _context5.next) {
 			case 0:
 				_context5.next = 2;
-				return regeneratorRuntime.awrap((0, _protect.protect)(ctx, 'AuthX:authority.' + ctx.params.authority_id + ':delete'));
+				return regeneratorRuntime.awrap((0, _protect.protect)(ctx, ctx[_namespace2.default].authx.config.realm + ':authority.' + ctx.params.authority_id + ':delete'));
 
 			case 2:
 				_context5.next = 4;
-				return regeneratorRuntime.awrap(_Authority2.default.get(ctx.conn, ctx.params.authority_id));
+				return regeneratorRuntime.awrap(_Authority2.default.get(ctx[_namespace2.default].conn, ctx.params.authority_id));
 
 			case 4:
 				authority = _context5.sent;
 
 
 				// get the strategy
-				Strategy = ctx.app.strategies[authority.strategy];
+				Strategy = ctx[_namespace2.default].authx.strategies[authority.strategy];
 
 				if (Strategy) {
 					_context5.next = 8;

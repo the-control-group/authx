@@ -23,6 +23,10 @@ var _Role = require('../models/Role');
 
 var _Role2 = _interopRequireDefault(_Role);
 
+var _namespace = require('../namespace');
+
+var _namespace2 = _interopRequireDefault(_namespace);
+
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
 function post(ctx) {
@@ -31,7 +35,7 @@ function post(ctx) {
 		while (1) switch (_context.prev = _context.next) {
 			case 0:
 				_context.next = 2;
-				return regeneratorRuntime.awrap((0, _protect.protect)(ctx, 'AuthX:role:create'));
+				return regeneratorRuntime.awrap((0, _protect.protect)(ctx, ctx[_namespace2.default].authx.config.realm + ':role:create'));
 
 			case 2:
 				_context.next = 4;
@@ -40,7 +44,7 @@ function post(ctx) {
 			case 4:
 				data = _context.sent;
 				_context.next = 7;
-				return regeneratorRuntime.awrap(_Role2.default.create(ctx.conn, data));
+				return regeneratorRuntime.awrap(_Role2.default.create(ctx[_namespace2.default].conn, data));
 
 			case 7:
 				ctx.body = _context.sent;
@@ -60,17 +64,17 @@ function query(ctx) {
 		while (1) switch (_context2.prev = _context2.next) {
 			case 0:
 				_context2.next = 2;
-				return regeneratorRuntime.awrap((0, _protect.protect)(ctx, 'AuthX:role.*:read', false));
+				return regeneratorRuntime.awrap((0, _protect.protect)(ctx, ctx[_namespace2.default].authx.config.realm + ':role.*:read', false));
 
 			case 2:
 				_context2.next = 4;
-				return regeneratorRuntime.awrap(_Role2.default.query(ctx.conn));
+				return regeneratorRuntime.awrap(_Role2.default.query(ctx[_namespace2.default].conn));
 
 			case 4:
 				roles = _context2.sent;
 				_context2.next = 7;
 				return regeneratorRuntime.awrap(_bluebird2.default.filter(roles, function (r) {
-					return (0, _protect.can)(ctx, 'AuthX:role.' + r.id + ':get');
+					return (0, _protect.can)(ctx, ctx[_namespace2.default].authx.config.realm + ':role.' + r.id + ':get');
 				}));
 
 			case 7:
@@ -88,11 +92,11 @@ function get(ctx) {
 		while (1) switch (_context3.prev = _context3.next) {
 			case 0:
 				_context3.next = 2;
-				return regeneratorRuntime.awrap((0, _protect.protect)(ctx, 'AuthX:role.' + ctx.params.role_id + ':read'));
+				return regeneratorRuntime.awrap((0, _protect.protect)(ctx, ctx[_namespace2.default].authx.config.realm + ':role.' + ctx.params.role_id + ':read'));
 
 			case 2:
 				_context3.next = 4;
-				return regeneratorRuntime.awrap(_Role2.default.get(ctx.conn, ctx.params.role_id));
+				return regeneratorRuntime.awrap(_Role2.default.get(ctx[_namespace2.default].conn, ctx.params.role_id));
 
 			case 4:
 				ctx.body = _context3.sent;
@@ -110,7 +114,7 @@ function patch(ctx) {
 		while (1) switch (_context4.prev = _context4.next) {
 			case 0:
 				_context4.next = 2;
-				return regeneratorRuntime.awrap((0, _protect.protect)(ctx, 'AuthX:role.' + ctx.params.role_id + ':update'));
+				return regeneratorRuntime.awrap((0, _protect.protect)(ctx, ctx[_namespace2.default].authx.config.realm + ':role.' + ctx.params.role_id + ':update'));
 
 			case 2:
 				_context4.next = 4;
@@ -125,7 +129,7 @@ function patch(ctx) {
 				}
 
 				_context4.next = 8;
-				return regeneratorRuntime.awrap((0, _protect.protect)(ctx, 'AuthX:role.' + ctx.params.role_id + ':update.assignments'));
+				return regeneratorRuntime.awrap((0, _protect.protect)(ctx, ctx[_namespace2.default].authx.config.realm + ':role.' + ctx.params.role_id + ':update.assignments'));
 
 			case 8:
 				if (!(typeof data.scopes !== 'undefined')) {
@@ -134,11 +138,11 @@ function patch(ctx) {
 				}
 
 				_context4.next = 11;
-				return regeneratorRuntime.awrap((0, _protect.protect)(ctx, 'AuthX:role.' + ctx.params.role_id + ':update.scopes'));
+				return regeneratorRuntime.awrap((0, _protect.protect)(ctx, ctx[_namespace2.default].authx.config.realm + ':role.' + ctx.params.role_id + ':update.scopes'));
 
 			case 11:
 				_context4.next = 13;
-				return regeneratorRuntime.awrap(_Role2.default.update(ctx.conn, ctx.params.role_id, data));
+				return regeneratorRuntime.awrap(_Role2.default.update(ctx[_namespace2.default].conn, ctx.params.role_id, data));
 
 			case 13:
 				ctx.body = _context4.sent;
@@ -155,11 +159,11 @@ function del(ctx) {
 		while (1) switch (_context5.prev = _context5.next) {
 			case 0:
 				_context5.next = 2;
-				return regeneratorRuntime.awrap((0, _protect.protect)(ctx, 'AuthX:role.' + ctx.params.role_id + ':delete'));
+				return regeneratorRuntime.awrap((0, _protect.protect)(ctx, ctx[_namespace2.default].authx.config.realm + ':role.' + ctx.params.role_id + ':delete'));
 
 			case 2:
 				_context5.next = 4;
-				return regeneratorRuntime.awrap(_Role2.default.delete(ctx.conn, ctx.params.role_id));
+				return regeneratorRuntime.awrap(_Role2.default.delete(ctx[_namespace2.default].conn, ctx.params.role_id));
 
 			case 4:
 				ctx.body = _context5.sent;

@@ -20,6 +20,10 @@ var _Authority = require('../models/Authority');
 
 var _Authority2 = _interopRequireDefault(_Authority);
 
+var _namespace = require('../namespace');
+
+var _namespace2 = _interopRequireDefault(_namespace);
+
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
 exports.default = function _callee(ctx, next) {
@@ -43,14 +47,14 @@ exports.default = function _callee(ctx, next) {
 
 				_context.prev = 2;
 				_context.next = 5;
-				return regeneratorRuntime.awrap(_Authority2.default.get(ctx.conn, ctx.params.authority_id));
+				return regeneratorRuntime.awrap(_Authority2.default.get(ctx[_namespace2.default].conn, ctx.params.authority_id));
 
 			case 5:
 				authority = _context.sent;
 
 
 				// get the strategy
-				Strategy = ctx.app.strategies[authority.strategy];
+				Strategy = ctx[_namespace2.default].authx.strategies[authority.strategy];
 
 				if (Strategy) {
 					_context.next = 9;
@@ -62,7 +66,7 @@ exports.default = function _callee(ctx, next) {
 			case 9:
 
 				// instantiate the strategy
-				strategy = new Strategy(ctx.conn, authority);
+				strategy = new Strategy(ctx[_namespace2.default].conn, authority);
 
 				// pass the request to the strategy
 
@@ -87,12 +91,12 @@ exports.default = function _callee(ctx, next) {
 			case 16:
 
 				// generate token from user
-				token = _jsonwebtoken2.default.sign({}, ctx.app.config.session_token.private_key, {
-					algorithm: ctx.app.config.session_token.algorithm,
-					expiresIn: ctx.app.config.session_token.expiresIn,
-					audience: ctx.app.config.realm,
+				token = _jsonwebtoken2.default.sign({}, ctx[_namespace2.default].authx.config.session_token.private_key, {
+					algorithm: ctx[_namespace2.default].authx.config.session_token.algorithm,
+					expiresIn: ctx[_namespace2.default].authx.config.session_token.expiresIn,
+					audience: ctx[_namespace2.default].authx.config.realm,
 					subject: user.id,
-					issuer: ctx.app.config.realm
+					issuer: ctx[_namespace2.default].authx.config.realm
 				});
 
 				// set the session cookie

@@ -38,6 +38,10 @@ var _User = require('../models/User');
 
 var _User2 = _interopRequireDefault(_User);
 
+var _namespace = require('../namespace');
+
+var _namespace2 = _interopRequireDefault(_namespace);
+
 function _interopRequireWildcard(obj) { if (obj && obj.__esModule) { return obj; } else { var newObj = {}; if (obj != null) { for (var key in obj) { if (Object.prototype.hasOwnProperty.call(obj, key)) newObj[key] = obj[key]; } } newObj.default = obj; return newObj; } }
 
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
@@ -71,21 +75,21 @@ function post(ctx) {
 
 			case 7:
 				_context.next = 9;
-				return regeneratorRuntime.awrap((0, _protect.protect)(ctx, 'AuthX:credential.' + data.id[0] + '.' + (ctx.user && ctx.user.id === data.user_id ? 'me' : 'user') + ':read'));
+				return regeneratorRuntime.awrap((0, _protect.protect)(ctx, ctx[_namespace2.default].authx.config.realm + ':credential.' + data.id[0] + '.' + (ctx[_namespace2.default].user && ctx[_namespace2.default].user.id === data.user_id ? 'me' : 'user') + ':read'));
 
 			case 9:
 				_context.next = 11;
 				return regeneratorRuntime.awrap(_bluebird2.default.all([
 
 				// fetch the authority
-				_Authority2.default.get(ctx.conn, data.id[0]).catch(function (err) {
+				_Authority2.default.get(ctx[_namespace2.default].conn, data.id[0]).catch(function (err) {
 					if (err instanceof errors.NotFoundError) throw new errors.ValidationError('The authority identified by `id[0]` does not exist.');
 
 					throw err;
 				}),
 
 				// fetch the user
-				_User2.default.get(ctx.conn, data.user_id).catch(function (err) {
+				_User2.default.get(ctx[_namespace2.default].conn, data.user_id).catch(function (err) {
 					if (err instanceof errors.NotFoundError) throw new errors.ValidationError('The user identified by `user_id` does not exist.');
 
 					throw err;
@@ -98,7 +102,7 @@ function post(ctx) {
 
 				// get the strategy
 
-				Strategy = ctx.app.strategies[authority.strategy];
+				Strategy = ctx[_namespace2.default].authx.strategies[authority.strategy];
 
 				if (Strategy) {
 					_context.next = 17;
@@ -110,7 +114,7 @@ function post(ctx) {
 			case 17:
 
 				// instantiate the strategy
-				strategy = new Strategy(ctx.conn, authority);
+				strategy = new Strategy(ctx[_namespace2.default].conn, authority);
 
 				// create the credential
 
@@ -135,14 +139,14 @@ function query(ctx) {
 		while (1) switch (_context2.prev = _context2.next) {
 			case 0:
 				_context2.next = 2;
-				return regeneratorRuntime.awrap((0, _protect.protect)(ctx, 'AuthX:credential.*.*:read', false));
+				return regeneratorRuntime.awrap((0, _protect.protect)(ctx, ctx[_namespace2.default].authx.config.realm + ':credential.*.*:read', false));
 
 			case 2:
 				_context2.t0 = regeneratorRuntime;
 				_context2.t1 = _Credential2.default;
-				_context2.t2 = ctx.conn;
+				_context2.t2 = ctx[_namespace2.default].conn;
 				_context2.next = 7;
-				return regeneratorRuntime.awrap((0, _protect.can)(ctx, 'AuthX:credential.*.user:read', false));
+				return regeneratorRuntime.awrap((0, _protect.can)(ctx, ctx[_namespace2.default].authx.config.realm + ':credential.*.user:read', false));
 
 			case 7:
 				if (!_context2.sent) {
@@ -156,7 +160,7 @@ function query(ctx) {
 
 			case 11:
 				_context2.t3 = function (x) {
-					return x.getAll(ctx.user.id, { index: 'user_id' });
+					return x.getAll(ctx[x].user.id, { index: 'user_id' });
 				};
 
 			case 12:
@@ -169,7 +173,7 @@ function query(ctx) {
 				credentials = _context2.sent;
 				_context2.next = 19;
 				return regeneratorRuntime.awrap(_bluebird2.default.filter(credentials, function (c) {
-					return (0, _protect.can)(ctx, 'AuthX:credential.' + c.authority_id + '.' + (ctx.user && ctx.user.id === c.user_id ? 'me' : 'user') + ':read');
+					return (0, _protect.can)(ctx, ctx[_namespace2.default].authx.config.realm + ':credential.' + c.authority_id + '.' + (ctx[_namespace2.default].user && ctx[_namespace2.default].user.id === c.user_id ? 'me' : 'user') + ':read');
 				}));
 
 			case 19:
@@ -188,12 +192,12 @@ function get(ctx) {
 		while (1) switch (_context3.prev = _context3.next) {
 			case 0:
 				_context3.next = 2;
-				return regeneratorRuntime.awrap(_Credential2.default.get(ctx.conn, [ctx.params.credential_id_0, ctx.params.credential_id_1]));
+				return regeneratorRuntime.awrap(_Credential2.default.get(ctx[_namespace2.default].conn, [ctx.params.credential_id_0, ctx.params.credential_id_1]));
 
 			case 2:
 				credential = _context3.sent;
 				_context3.next = 5;
-				return regeneratorRuntime.awrap((0, _protect.protect)(ctx, 'AuthX:credential.' + credential.authority_id + '.' + (ctx.user && ctx.user.id === credential.user_id ? 'me' : 'user') + ':read'));
+				return regeneratorRuntime.awrap((0, _protect.protect)(ctx, ctx[_namespace2.default].authx.config.realm + ':credential.' + credential.authority_id + '.' + (ctx[_namespace2.default].user && ctx[_namespace2.default].user.id === credential.user_id ? 'me' : 'user') + ':read'));
 
 			case 5:
 				ctx.body = credential;
@@ -216,12 +220,12 @@ function patch(ctx) {
 			case 2:
 				data = _context4.sent;
 				_context4.next = 5;
-				return regeneratorRuntime.awrap(_Credential2.default.get(ctx.conn, [ctx.params.credential_id_0, ctx.params.credential_id_1]));
+				return regeneratorRuntime.awrap(_Credential2.default.get(ctx[_namespace2.default].conn, [ctx.params.credential_id_0, ctx.params.credential_id_1]));
 
 			case 5:
 				credential = _context4.sent;
 				_context4.next = 8;
-				return regeneratorRuntime.awrap((0, _protect.protect)(ctx, 'AuthX:credential.' + credential.authority_id + '.' + (ctx.user && ctx.user.id === credential.user_id ? 'me' : 'user') + ':update'));
+				return regeneratorRuntime.awrap((0, _protect.protect)(ctx, ctx[_namespace2.default].authx.config.realm + ':credential.' + credential.authority_id + '.' + (ctx[_namespace2.default].user && ctx[_namespace2.default].user.id === credential.user_id ? 'me' : 'user') + ':update'));
 
 			case 8:
 				_context4.next = 10;
@@ -232,7 +236,7 @@ function patch(ctx) {
 
 
 				// get the strategy
-				Strategy = ctx.app.strategies[authority.strategy];
+				Strategy = ctx[_namespace2.default].authx.strategies[authority.strategy];
 
 				if (Strategy) {
 					_context4.next = 14;
@@ -244,7 +248,7 @@ function patch(ctx) {
 			case 14:
 
 				// instantiate the strategy
-				strategy = new Strategy(ctx.conn, authority);
+				strategy = new Strategy(ctx[_namespace2.default].conn, authority);
 
 				// update the credential
 
@@ -267,12 +271,12 @@ function del(ctx) {
 		while (1) switch (_context5.prev = _context5.next) {
 			case 0:
 				_context5.next = 2;
-				return regeneratorRuntime.awrap(_Credential2.default.get(ctx.conn, [ctx.params.credential_id_0, ctx.params.credential_id_1]));
+				return regeneratorRuntime.awrap(_Credential2.default.get(ctx[_namespace2.default].conn, [ctx.params.credential_id_0, ctx.params.credential_id_1]));
 
 			case 2:
 				credential = _context5.sent;
 				_context5.next = 5;
-				return regeneratorRuntime.awrap((0, _protect.protect)(ctx, 'AuthX:credential.' + credential.authority_id + '.' + (ctx.user && ctx.user.id === credential.user_id ? 'me' : 'user') + ':delete'));
+				return regeneratorRuntime.awrap((0, _protect.protect)(ctx, ctx[_namespace2.default].authx.config.realm + ':credential.' + credential.authority_id + '.' + (ctx[_namespace2.default].user && ctx[_namespace2.default].user.id === credential.user_id ? 'me' : 'user') + ':delete'));
 
 			case 5:
 				_context5.next = 7;
@@ -283,7 +287,7 @@ function del(ctx) {
 
 
 				// get the strategy
-				Strategy = ctx.app.strategies[authority.strategy];
+				Strategy = ctx[_namespace2.default].authx.strategies[authority.strategy];
 
 				if (Strategy) {
 					_context5.next = 11;
@@ -295,7 +299,7 @@ function del(ctx) {
 			case 11:
 
 				// instantiate the strategy
-				strategy = new Strategy(ctx.conn, authority);
+				strategy = new Strategy(ctx[_namespace2.default].conn, authority);
 
 				// delete the credential
 

@@ -16,6 +16,10 @@ var _User = require('../models/User');
 
 var _User2 = _interopRequireDefault(_User);
 
+var _namespace = require('../namespace');
+
+var _namespace2 = _interopRequireDefault(_namespace);
+
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
 exports.default = function _callee(ctx, next) {
@@ -27,11 +31,11 @@ exports.default = function _callee(ctx, next) {
 				// parse the session cookie for a token
 				cookie = ctx.cookies.get('session');
 
-				if (cookie) ctx.app.config.session_token.public.some(function (pub) {
+				if (cookie) ctx[_namespace2.default].authx.config.session_token.public.some(function (pub) {
 					try {
-						return token = ctx.session = _jsonwebtoken2.default.verify(cookie, pub.key, {
+						return token = ctx[_namespace2.default].session = _jsonwebtoken2.default.verify(cookie, pub.key, {
 							algorithms: [pub.algorithm],
-							issuer: ctx.app.config.realm
+							issuer: ctx[_namespace2.default].authx.config.realm
 						});
 					} catch (err) {
 						return;
@@ -39,7 +43,7 @@ exports.default = function _callee(ctx, next) {
 				});
 
 				// use the bearer token if present
-				if (!token) token = ctx.bearer || null;
+				if (!token) token = ctx[_namespace2.default].bearer || null;
 
 				// get the user
 
@@ -49,13 +53,13 @@ exports.default = function _callee(ctx, next) {
 				}
 
 				_context.next = 6;
-				return regeneratorRuntime.awrap(_User2.default.get(ctx.conn, token.sub));
+				return regeneratorRuntime.awrap(_User2.default.get(ctx[_namespace2.default].conn, token.sub));
 
 			case 6:
-				ctx.user = _context.sent;
+				ctx[_namespace2.default].user = _context.sent;
 
 			case 7:
-				if (!(ctx.user && ctx.user.status !== 'active')) {
+				if (!(ctx[_namespace2.default].user && ctx[_namespace2.default].user.status !== 'active')) {
 					_context.next = 9;
 					break;
 				}

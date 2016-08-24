@@ -23,6 +23,10 @@ var _Grant = require('../models/Grant');
 
 var _Grant2 = _interopRequireDefault(_Grant);
 
+var _namespace = require('../namespace');
+
+var _namespace2 = _interopRequireDefault(_namespace);
+
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
 function post(ctx) {
@@ -31,7 +35,7 @@ function post(ctx) {
 		while (1) switch (_context.prev = _context.next) {
 			case 0:
 				_context.next = 2;
-				return regeneratorRuntime.awrap((0, _protect.protect)(ctx, 'AuthX:grant:create'));
+				return regeneratorRuntime.awrap((0, _protect.protect)(ctx, ctx[_namespace2.default].authx.config.realm + ':grant:create'));
 
 			case 2:
 				_context.next = 4;
@@ -40,7 +44,7 @@ function post(ctx) {
 			case 4:
 				data = _context.sent;
 				_context.next = 7;
-				return regeneratorRuntime.awrap(_Grant2.default.create(ctx.conn, data));
+				return regeneratorRuntime.awrap(_Grant2.default.create(ctx[_namespace2.default].conn, data));
 
 			case 7:
 				ctx.body = _context.sent;
@@ -60,14 +64,14 @@ function query(ctx) {
 		while (1) switch (_context2.prev = _context2.next) {
 			case 0:
 				_context2.next = 2;
-				return regeneratorRuntime.awrap((0, _protect.protect)(ctx, 'AuthX:grant.*.*:read', false));
+				return regeneratorRuntime.awrap((0, _protect.protect)(ctx, ctx[_namespace2.default].authx.config.realm + ':grant.*.*:read', false));
 
 			case 2:
 				_context2.t0 = regeneratorRuntime;
 				_context2.t1 = _Grant2.default;
-				_context2.t2 = ctx.conn;
+				_context2.t2 = ctx[_namespace2.default].conn;
 				_context2.next = 7;
-				return regeneratorRuntime.awrap((0, _protect.can)(ctx, 'AuthX:grant.*.user:read', false));
+				return regeneratorRuntime.awrap((0, _protect.can)(ctx, ctx[_namespace2.default].authx.config.realm + ':grant.*.user:read', false));
 
 			case 7:
 				if (!_context2.sent) {
@@ -94,7 +98,7 @@ function query(ctx) {
 				grants = _context2.sent;
 				_context2.next = 19;
 				return regeneratorRuntime.awrap(_bluebird2.default.filter(grants, function (g) {
-					return (0, _protect.can)(ctx, 'AuthX:grant.' + g.client_id + '.' + (ctx.user && ctx.user.id === g.user_id ? 'me' : 'user') + ':read');
+					return (0, _protect.can)(ctx, ctx[_namespace2.default].authx.config.realm + ':grant.' + g.client_id + '.' + (ctx.user && ctx.user.id === g.user_id ? 'me' : 'user') + ':read');
 				}));
 
 			case 19:
@@ -113,12 +117,12 @@ function get(ctx) {
 		while (1) switch (_context3.prev = _context3.next) {
 			case 0:
 				_context3.next = 2;
-				return regeneratorRuntime.awrap(_Grant2.default.get(ctx.conn, ctx.params.grant_id));
+				return regeneratorRuntime.awrap(_Grant2.default.get(ctx[_namespace2.default].conn, ctx.params.grant_id));
 
 			case 2:
 				grant = _context3.sent;
 				_context3.next = 5;
-				return regeneratorRuntime.awrap((0, _protect.protect)(ctx, 'AuthX:grant.' + grant.client_id + '.' + (ctx.user && ctx.user.id === grant.user_id ? 'me' : 'user') + ':read'));
+				return regeneratorRuntime.awrap((0, _protect.protect)(ctx, ctx[_namespace2.default].authx.config.realm + ':grant.' + grant.client_id + '.' + (ctx.user && ctx.user.id === grant.user_id ? 'me' : 'user') + ':read'));
 
 			case 5:
 				ctx.body = grant;
@@ -141,12 +145,12 @@ function patch(ctx) {
 			case 2:
 				data = _context4.sent;
 				_context4.next = 5;
-				return regeneratorRuntime.awrap(_Grant2.default.get(ctx.conn, ctx.params.grant_id));
+				return regeneratorRuntime.awrap(_Grant2.default.get(ctx[_namespace2.default].conn, ctx.params.grant_id));
 
 			case 5:
 				grant = _context4.sent;
 				_context4.next = 8;
-				return regeneratorRuntime.awrap((0, _protect.protect)(ctx, 'AuthX:grant.' + grant.client_id + '.' + (ctx.user && ctx.user.id === grant.user_id ? 'me' : 'user') + ':update'));
+				return regeneratorRuntime.awrap((0, _protect.protect)(ctx, ctx[_namespace2.default].authx.config.realm + ':grant.' + grant.client_id + '.' + (ctx.user && ctx.user.id === grant.user_id ? 'me' : 'user') + ':update'));
 
 			case 8:
 				_context4.next = 10;
@@ -168,16 +172,16 @@ function del(ctx) {
 		while (1) switch (_context5.prev = _context5.next) {
 			case 0:
 				_context5.next = 2;
-				return regeneratorRuntime.awrap(_Grant2.default.get(ctx.conn, ctx.params.grant_id));
+				return regeneratorRuntime.awrap(_Grant2.default.get(ctx[_namespace2.default].conn, ctx.params.grant_id));
 
 			case 2:
 				grant = _context5.sent;
 				_context5.next = 5;
-				return regeneratorRuntime.awrap((0, _protect.protect)(ctx, 'AuthX:grant.' + grant.client_id + '.' + (ctx.user && ctx.user.id === grant.user_id ? 'me' : 'user') + ':delete'));
+				return regeneratorRuntime.awrap((0, _protect.protect)(ctx, ctx[_namespace2.default].authx.config.realm + ':grant.' + grant.client_id + '.' + (ctx.user && ctx.user.id === grant.user_id ? 'me' : 'user') + ':delete'));
 
 			case 5:
 				_context5.next = 7;
-				return regeneratorRuntime.awrap(_Grant2.default.delete(ctx.conn, ctx.params.grant_id));
+				return regeneratorRuntime.awrap(_Grant2.default.delete(ctx[_namespace2.default].conn, ctx.params.grant_id));
 
 			case 7:
 				ctx.body = _context5.sent;

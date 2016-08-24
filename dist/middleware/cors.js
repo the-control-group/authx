@@ -8,6 +8,10 @@ var _rethinkdb = require('rethinkdb');
 
 var _rethinkdb2 = _interopRequireDefault(_rethinkdb);
 
+var _namespace = require('../namespace');
+
+var _namespace2 = _interopRequireDefault(_namespace);
+
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
 exports.default = function _callee(ctx, next) {
@@ -22,7 +26,7 @@ exports.default = function _callee(ctx, next) {
 				}
 
 				_context.next = 4;
-				return regeneratorRuntime.awrap(_rethinkdb2.default.table('clients').getAll(ctx.headers.origin, { index: 'base_urls' }).limit(1).count().run(ctx.conn));
+				return regeneratorRuntime.awrap(_rethinkdb2.default.table('clients').getAll(ctx.headers.origin, { index: 'base_urls' }).limit(1).count().run(ctx[_namespace2.default].conn));
 
 			case 4:
 				_context.t1 = _context.sent;

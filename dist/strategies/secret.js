@@ -32,6 +32,10 @@ var _errors = require('../errors');
 
 var errors = _interopRequireWildcard(_errors);
 
+var _namespace = require('../namespace');
+
+var _namespace2 = _interopRequireDefault(_namespace);
+
 var _Strategy = require('../Strategy');
 
 var _Strategy2 = _interopRequireDefault(_Strategy);
@@ -124,7 +128,7 @@ class SecretStrategy extends _Strategy2.default {
 
 					// send authenticate headers
 					if (!request) {
-						ctx.set('WWW-Authenticate', 'Basic realm="' + ctx.app.config.realm + '"');
+						ctx.set('WWW-Authenticate', 'Basic realm="' + ctx[_namespace2.default].authx.config.realm + '"');
 						ctx.throw(401, 'HTTP Basic credentials are required.');
 					}
 
@@ -183,13 +187,13 @@ class SecretStrategy extends _Strategy2.default {
 						type: 'access_token',
 						scopes: _context.t1
 					};
-					_context.t3 = ctx.app.config.access_token.private_key;
+					_context.t3 = ctx[_namespace2.default].authx.config.access_token.private_key;
 					_context.t4 = {
-						algorithm: ctx.app.config.access_token.algorithm,
-						expiresIn: ctx.app.config.access_token.expiresIn,
+						algorithm: ctx[_namespace2.default].authx.config.access_token.algorithm,
+						expiresIn: ctx[_namespace2.default].authx.config.access_token.expiresIn,
 						audience: user.id,
 						subject: user.id,
-						issuer: ctx.app.config.realm
+						issuer: ctx[_namespace2.default].authx.config.realm
 					};
 					access_token = _context.t0.sign.call(_context.t0, _context.t2, _context.t3, _context.t4);
 

@@ -24,10 +24,6 @@ var _Credential = require('./Credential');
 
 var _Credential2 = _interopRequireDefault(_Credential);
 
-var _Team = require('./Team');
-
-var _Team2 = _interopRequireDefault(_Team);
-
 var _validator = require('../util/validator');
 
 var _validator2 = _interopRequireDefault(_validator);
@@ -48,7 +44,6 @@ const ROLES = Symbol('roles');
 const GRANTS = Symbol('grants');
 const CREDENTIALS = Symbol('credentials');
 const SCOPES = Symbol('scopes');
-const TEAM = Symbol('team');
 
 class User extends _Model2.default {
 
@@ -276,38 +271,21 @@ class User extends _Model2.default {
 		}, null, this);
 	}
 
-	team(refresh) {
+	scopes(refresh) {
+		var roles, scopes;
 		return regeneratorRuntime.async(function _callee8$(_context8) {
 			while (1) switch (_context8.prev = _context8.next) {
 				case 0:
-
-					// query the database for team
-					if (!this[TEAM] || refresh) this[TEAM] = this.team_id ? _Team2.default.get(this[_Model2.default.Symbols.CONN], this.team_id) : null;
-
-					return _context8.abrupt('return', this[TEAM]);
-
-				case 2:
-				case 'end':
-					return _context8.stop();
-			}
-		}, null, this);
-	}
-
-	scopes(refresh) {
-		var roles, scopes;
-		return regeneratorRuntime.async(function _callee9$(_context9) {
-			while (1) switch (_context9.prev = _context9.next) {
-				case 0:
 					if (!(!this[SCOPES] || refresh)) {
-						_context9.next = 6;
+						_context8.next = 6;
 						break;
 					}
 
-					_context9.next = 3;
+					_context8.next = 3;
 					return regeneratorRuntime.awrap(this.roles());
 
 				case 3:
-					roles = _context9.sent;
+					roles = _context8.sent;
 					scopes = roles.map(function (role) {
 						return role.scopes;
 					});
@@ -318,32 +296,32 @@ class User extends _Model2.default {
 					}, []);
 
 				case 6:
-					return _context9.abrupt('return', this[SCOPES]);
+					return _context8.abrupt('return', this[SCOPES]);
 
 				case 7:
 				case 'end':
-					return _context9.stop();
+					return _context8.stop();
 			}
 		}, null, this);
 	}
 
 	can(scope, strict) {
 		var roles;
-		return regeneratorRuntime.async(function _callee10$(_context10) {
-			while (1) switch (_context10.prev = _context10.next) {
+		return regeneratorRuntime.async(function _callee9$(_context9) {
+			while (1) switch (_context9.prev = _context9.next) {
 				case 0:
-					_context10.next = 2;
+					_context9.next = 2;
 					return regeneratorRuntime.awrap(this.roles());
 
 				case 2:
-					roles = _context10.sent;
-					return _context10.abrupt('return', roles.some(function (role) {
+					roles = _context9.sent;
+					return _context9.abrupt('return', roles.some(function (role) {
 						return role.can(scope, strict);
 					}));
 
 				case 4:
 				case 'end':
-					return _context10.stop();
+					return _context9.stop();
 			}
 		}, null, this);
 	}

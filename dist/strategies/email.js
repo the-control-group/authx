@@ -26,9 +26,17 @@ var _form = require('../util/form');
 
 var _form2 = _interopRequireDefault(_form);
 
+var _nodemailer = require('nodemailer');
+
+var _nodemailer2 = _interopRequireDefault(_nodemailer);
+
 var _errors = require('../errors');
 
 var errors = _interopRequireWildcard(_errors);
+
+var _namespace = require('../namespace');
+
+var _namespace2 = _interopRequireDefault(_namespace);
 
 var _Strategy = require('../Strategy');
 
@@ -46,7 +54,7 @@ function _interopRequireWildcard(obj) { if (obj && obj.__esModule) { return obj;
 
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
-var env = (0, _jjv2.default)();
+const env = (0, _jjv2.default)();
 
 env.addSchema({
 	id: 'authority',
@@ -70,6 +78,28 @@ env.addSchema({
 			type: ['null', 'string'],
 			title: 'Email HTML Body',
 			description: 'Handlebars template used to generate the email HTML body. Provided `token`, `credential`, and `url`.'
+		},
+		mailer: {
+			type: 'object',
+			default: {
+				transport: null,
+				auth: {},
+				defaults: {}
+			},
+			properties: {
+				transport: {
+					type: ['null', 'string'],
+					default: null
+				},
+				auth: {
+					type: 'object',
+					default: {}
+				},
+				defaults: {
+					type: 'object',
+					default: {}
+				}
+			}
 		}
 	}
 });
@@ -126,12 +156,12 @@ class EmailStrategy extends _Strategy2.default {
 						break;
 					}
 
-					ctx.app.config.session_token.public.some(function (pub) {
+					ctx[_namespace2.default].authx.config.session_token.public.some(function (pub) {
 						try {
 							return token = _jsonwebtoken2.default.verify(request.token, pub.key, {
 								algorithms: [pub.algorithm],
-								audience: ctx.app.config.realm + ':session.' + _this.authority.id,
-								issuer: ctx.app.config.realm + ':session.' + _this.authority.id
+								audience: ctx[_namespace2.default].authx.config.realm + ':session.' + _this.authority.id,
+								issuer: ctx[_namespace2.default].authx.config.realm + ':session.' + _this.authority.id
 							});
 						} catch (err) {
 							return;
@@ -192,12 +222,12 @@ class EmailStrategy extends _Strategy2.default {
 
 
 					// generate token from user
-					token = _jsonwebtoken2.default.sign({}, ctx.app.config.session_token.private_key, {
-						algorithm: ctx.app.config.session_token.algorithm,
+					token = _jsonwebtoken2.default.sign({}, ctx[_namespace2.default].authx.config.session_token.private_key, {
+						algorithm: ctx[_namespace2.default].authx.config.session_token.algorithm,
 						expiresIn: this.authority.expiresIn,
-						audience: ctx.app.config.realm + ':session.' + this.authority.id,
+						audience: ctx[_namespace2.default].authx.config.realm + ':session.' + this.authority.id,
 						subject: credential.id,
-						issuer: ctx.app.config.realm + ':session.' + this.authority.id
+						issuer: ctx[_namespace2.default].authx.config.realm + ':session.' + this.authority.id
 					});
 					templateContext = {
 						token: token,
@@ -208,7 +238,7 @@ class EmailStrategy extends _Strategy2.default {
 					// send the token in an email
 
 					_context.next = 37;
-					return regeneratorRuntime.awrap(ctx.app.mail({
+					return regeneratorRuntime.awrap(this.mail({
 						to: request.email,
 						subject: _handlebars2.default.compile(this.authority.details.subject || 'Authenticate by email')(templateContext),
 						text: _handlebars2.default.compile(this.authority.details.text || 'Please authenticate at the following URL: {{{url}}}')(templateContext),
@@ -233,45 +263,49 @@ class EmailStrategy extends _Strategy2.default {
 		}, null, this);
 	}
 
-	// Authority Methods
-	// -----------------
-
-	static createAuthority(conn, data) {
-		var err;
+	mail(message) {
+		var config, transport;
 		return regeneratorRuntime.async(function _callee2$(_context2) {
 			while (1) switch (_context2.prev = _context2.next) {
 				case 0:
-					data.details = data.details || {};
+					config = this.authority.details.mailer;
 
-					// validate data
-					err = env.validate('authority', data, { useDefault: true });
+					// stub out a transporter if none is specified
 
-					if (!err) {
-						_context2.next = 4;
-						break;
-					}
+					transport = config.transport ? _nodemailer2.default.createTransport(config.transport) : { sendMail: function (message, cb) {
+							console.warn('Email transport is not set up; message not sent:', message);
+							cb(null, message);
+						} };
 
-					throw new errors.ValidationError('The authority details were invalid.', err.validation);
+					// wrap nodemailer in a promise
 
-				case 4:
-					return _context2.abrupt('return', _Strategy2.default.createAuthority.call(this, conn, data));
+					return _context2.abrupt('return', new Promise(function (resolve, reject) {
+						message = Object.assign({}, config.defaults, message);
+						transport.sendMail(message, function (err, res) {
+							if (err) return reject(err);
+							return resolve(res);
+						});
+					}));
 
-				case 5:
+				case 3:
 				case 'end':
 					return _context2.stop();
 			}
 		}, null, this);
 	}
 
-	static updateAuthority(authority, delta) {
+	// Authority Methods
+	// -----------------
+
+	static createAuthority(conn, data) {
 		var err;
 		return regeneratorRuntime.async(function _callee3$(_context3) {
 			while (1) switch (_context3.prev = _context3.next) {
 				case 0:
-					delta.details = delta.details || {};
+					data.details = data.details || {};
 
 					// validate data
-					err = env.validate('authority', delta, { useDefault: true });
+					err = env.validate('authority', data, { useDefault: true });
 
 					if (!err) {
 						_context3.next = 4;
@@ -281,11 +315,38 @@ class EmailStrategy extends _Strategy2.default {
 					throw new errors.ValidationError('The authority details were invalid.', err.validation);
 
 				case 4:
-					return _context3.abrupt('return', _Strategy2.default.updateAuthority.call(this, authority, delta));
+					return _context3.abrupt('return', _Strategy2.default.createAuthority.call(this, conn, data));
 
 				case 5:
 				case 'end':
 					return _context3.stop();
+			}
+		}, null, this);
+	}
+
+	static updateAuthority(authority, delta) {
+		var err;
+		return regeneratorRuntime.async(function _callee4$(_context4) {
+			while (1) switch (_context4.prev = _context4.next) {
+				case 0:
+					delta.details = delta.details || {};
+
+					// validate data
+					err = env.validate('authority', delta, { useDefault: true });
+
+					if (!err) {
+						_context4.next = 4;
+						break;
+					}
+
+					throw new errors.ValidationError('The authority details were invalid.', err.validation);
+
+				case 4:
+					return _context4.abrupt('return', _Strategy2.default.updateAuthority.call(this, authority, delta));
+
+				case 5:
+				case 'end':
+					return _context4.stop();
 			}
 		}, null, this);
 	}
@@ -295,40 +356,13 @@ class EmailStrategy extends _Strategy2.default {
 
 	createCredential(data) {
 		var err;
-		return regeneratorRuntime.async(function _callee4$(_context4) {
-			while (1) switch (_context4.prev = _context4.next) {
+		return regeneratorRuntime.async(function _callee5$(_context5) {
+			while (1) switch (_context5.prev = _context5.next) {
 				case 0:
 					data.details = data.details || {};
 
 					// validate data
 					err = env.validate('credential', data, { useDefault: true });
-
-					if (!err) {
-						_context4.next = 4;
-						break;
-					}
-
-					throw new errors.ValidationError('The credential details were invalid.', err.validation);
-
-				case 4:
-					return _context4.abrupt('return', _Strategy2.default.prototype.createCredential.call(this, data));
-
-				case 5:
-				case 'end':
-					return _context4.stop();
-			}
-		}, null, this);
-	}
-
-	updateCredential(credential, delta) {
-		var err;
-		return regeneratorRuntime.async(function _callee5$(_context5) {
-			while (1) switch (_context5.prev = _context5.next) {
-				case 0:
-					delta.details = delta.details || {};
-
-					// validate data
-					err = env.validate('credential', delta, { useDefault: true });
 
 					if (!err) {
 						_context5.next = 4;
@@ -338,11 +372,38 @@ class EmailStrategy extends _Strategy2.default {
 					throw new errors.ValidationError('The credential details were invalid.', err.validation);
 
 				case 4:
-					return _context5.abrupt('return', _Strategy2.default.prototype.updateCredential.call(this, credential, delta));
+					return _context5.abrupt('return', _Strategy2.default.prototype.createCredential.call(this, data));
 
 				case 5:
 				case 'end':
 					return _context5.stop();
+			}
+		}, null, this);
+	}
+
+	updateCredential(credential, delta) {
+		var err;
+		return regeneratorRuntime.async(function _callee6$(_context6) {
+			while (1) switch (_context6.prev = _context6.next) {
+				case 0:
+					delta.details = delta.details || {};
+
+					// validate data
+					err = env.validate('credential', delta, { useDefault: true });
+
+					if (!err) {
+						_context6.next = 4;
+						break;
+					}
+
+					throw new errors.ValidationError('The credential details were invalid.', err.validation);
+
+				case 4:
+					return _context6.abrupt('return', _Strategy2.default.prototype.updateCredential.call(this, credential, delta));
+
+				case 5:
+				case 'end':
+					return _context6.stop();
 			}
 		}, null, this);
 	}

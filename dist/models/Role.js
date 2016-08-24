@@ -20,9 +20,9 @@ var _validator = require('../util/validator');
 
 var _validator2 = _interopRequireDefault(_validator);
 
-var _scopes = require('../util/scopes');
+var _scopeutils = require('scopeutils');
 
-var scopes = _interopRequireWildcard(_scopes);
+var scopes = _interopRequireWildcard(_scopeutils);
 
 var _errors = require('../errors');
 

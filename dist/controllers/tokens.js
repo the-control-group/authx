@@ -20,9 +20,9 @@ var _form = require('../util/form');
 
 var _form2 = _interopRequireDefault(_form);
 
-var _scopes = require('../util/scopes');
+var _scopeutils = require('scopeutils');
 
-var scopes = _interopRequireWildcard(_scopes);
+var scopes = _interopRequireWildcard(_scopeutils);
 
 var _errors = require('../errors');
 
@@ -35,6 +35,10 @@ var _Client2 = _interopRequireDefault(_Client);
 var _Grant = require('../models/Grant');
 
 var _Grant2 = _interopRequireDefault(_Grant);
+
+var _namespace = require('../namespace');
+
+var _namespace2 = _interopRequireDefault(_namespace);
 
 function _interopRequireWildcard(obj) { if (obj && obj.__esModule) { return obj; } else { var newObj = {}; if (obj != null) { for (var key in obj) { if (Object.prototype.hasOwnProperty.call(obj, key)) newObj[key] = obj[key]; } } newObj.default = obj; return newObj; } }
 
@@ -91,17 +95,17 @@ exports.default = function _callee(ctx) {
 
 			case 10:
 				_context.next = 12;
-				return regeneratorRuntime.awrap(_Client2.default.get(ctx.conn, ctx.query.client_id));
+				return regeneratorRuntime.awrap(_Client2.default.get(ctx[_namespace2.default].conn, ctx.query.client_id));
 
 			case 12:
 				client = _context.sent;
 
-				if (!(!ctx.session || ctx.session.sub !== ctx.user.id)) {
+				if (!(!ctx[_namespace2.default].session || ctx[_namespace2.default].session.sub !== ctx[_namespace2.default].user.id)) {
 					_context.next = 17;
 					break;
 				}
 
-				ctx.redirect(ctx.app.config.routes.login + (ctx.app.config.routes.login.includes('?') ? '&' : '?') + 'url=' + encodeURIComponent(ctx.url));
+				ctx.redirect(ctx[_namespace2.default].authx.config.routes.login + (ctx[_namespace2.default].authx.config.routes.login.includes('?') ? '&' : '?') + 'url=' + encodeURIComponent(ctx.url));
 				ctx.body = { url: ctx.url };
 				return _context.abrupt('return');
 
@@ -163,7 +167,7 @@ exports.default = function _callee(ctx) {
 			case 37:
 				_context.prev = 37;
 				_context.next = 40;
-				return regeneratorRuntime.awrap(_Grant2.default.get(ctx.conn, [ctx.user.id, client.id]));
+				return regeneratorRuntime.awrap(_Grant2.default.get(ctx[_namespace2.default].conn, [ctx[_namespace2.default].user.id, client.id]));
 
 			case 40:
 				grant = _context.sent;
@@ -203,9 +207,9 @@ exports.default = function _callee(ctx) {
 
 				// generate and store an authorization code.
 				nonce = _uuid2.default.v4();
-				code = new Buffer(JSON.stringify([ctx.user.id, nonce])).toString('base64');
+				code = new Buffer(JSON.stringify([ctx[_namespace2.default].user.id, nonce])).toString('base64');
 				_context.next = 56;
-				return regeneratorRuntime.awrap(_Grant2.default.save(ctx.conn, [ctx.user.id, client.id], {
+				return regeneratorRuntime.awrap(_Grant2.default.save(ctx[_namespace2.default].conn, [ctx[_namespace2.default].user.id, client.id], {
 					nonce: nonce,
 					scopes: userAuthorizedScopes
 				}));
@@ -268,7 +272,7 @@ exports.default = function _callee(ctx) {
 
 			case 77:
 				_context.next = 79;
-				return regeneratorRuntime.awrap(_Client2.default.get(ctx.conn, data.client_id));
+				return regeneratorRuntime.awrap(_Client2.default.get(ctx[_namespace2.default].conn, data.client_id));
 
 			case 79:
 				client = _context.sent;
@@ -317,7 +321,7 @@ exports.default = function _callee(ctx) {
 
 			case 95:
 				_context.next = 97;
-				return regeneratorRuntime.awrap(_Grant2.default.getWithNonce(ctx.conn, [code[0], data.client_id], code[1]));
+				return regeneratorRuntime.awrap(_Grant2.default.getWithNonce(ctx[_namespace2.default].conn, [code[0], data.client_id], code[1]));
 
 			case 97:
 				grant = _context.sent;
@@ -361,7 +365,7 @@ exports.default = function _callee(ctx) {
 
 			case 113:
 				_context.next = 115;
-				return regeneratorRuntime.awrap(_Grant2.default.get(ctx.conn, [refresh_token[0], data.client_id]));
+				return regeneratorRuntime.awrap(_Grant2.default.get(ctx[_namespace2.default].conn, [refresh_token[0], data.client_id]));
 
 			case 115:
 				grant = _context.sent;
@@ -411,12 +415,12 @@ exports.default = function _callee(ctx) {
 				access_token = _jsonwebtoken2.default.sign({
 					type: 'access_token',
 					scopes: totalScopes
-				}, ctx.app.config.access_token.private_key, {
-					algorithm: ctx.app.config.access_token.algorithm,
-					expiresIn: ctx.app.config.access_token.expiresIn,
+				}, ctx[_namespace2.default].authx.config.access_token.private_key, {
+					algorithm: ctx[_namespace2.default].authx.config.access_token.algorithm,
+					expiresIn: ctx[_namespace2.default].authx.config.access_token.expiresIn,
 					audience: grant.client_id,
 					subject: grant.user_id,
-					issuer: ctx.app.config.realm
+					issuer: ctx[_namespace2.default].authx.config.realm
 				});
 
 				// respond with tokens
@@ -429,7 +433,7 @@ exports.default = function _callee(ctx) {
 				};
 
 				// convenience, adds the user to the response if the token has access
-				if (scopes.can(totalScopes, 'AuthX:me:read')) ctx.body.user = user;
+				if (scopes.can(totalScopes, ctx[_namespace2.default].authx.config.realm + ':me:read')) ctx.body.user = user;
 
 				_context.next = 139;
 				break;
@@ -447,6 +451,6 @@ exports.default = function _callee(ctx) {
 function requestApproval(ctx) {
 	var url = encodeURIComponent(ctx.url);
 	var scope = encodeURIComponent(ctx.query.scope);
-	ctx.redirect(ctx.app.config.routes.authorize + (ctx.app.config.routes.authorize.includes('?') ? '&' : '?') + 'url=' + url + '&scope=' + scope);
+	ctx.redirect(ctx[_namespace2.default].authx.config.routes.authorize + (ctx[_namespace2.default].authx.config.routes.authorize.includes('?') ? '&' : '?') + 'url=' + url + '&scope=' + scope);
 	ctx.body = { url: url, scope: scope };
 }

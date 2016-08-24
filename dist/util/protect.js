@@ -6,13 +6,19 @@ Object.defineProperty(exports, "__esModule", {
 exports.can = can;
 exports.protect = protect;
 
-var _scopes = require('./scopes');
+var _scopeutils = require('scopeutils');
 
-var scopes = _interopRequireWildcard(_scopes);
+var scopes = _interopRequireWildcard(_scopeutils);
 
 var _errors = require('../errors');
 
 var errors = _interopRequireWildcard(_errors);
+
+var _namespace = require('../namespace');
+
+var _namespace2 = _interopRequireDefault(_namespace);
+
+function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
 function _interopRequireWildcard(obj) { if (obj && obj.__esModule) { return obj; } else { var newObj = {}; if (obj != null) { for (var key in obj) { if (Object.prototype.hasOwnProperty.call(obj, key)) newObj[key] = obj[key]; } } newObj.default = obj; return newObj; } }
 
@@ -20,12 +26,12 @@ function can(ctx, scope, strict) {
 	return regeneratorRuntime.async(function can$(_context) {
 		while (1) switch (_context.prev = _context.next) {
 			case 0:
-				if (!ctx.bearer) {
+				if (!ctx[_namespace2.default].bearer) {
 					_context.next = 5;
 					break;
 				}
 
-				if (!(ctx.bearer.type === 'access_token' && ctx.bearer.scopes && ctx.bearer.scopes.some(function (s) {
+				if (!(ctx[_namespace2.default].bearer.type === 'access_token' && ctx[_namespace2.default].bearer.scopes && ctx[_namespace2.default].bearer.scopes.some(function (s) {
 					return scopes.can(s, scope, strict);
 				}))) {
 					_context.next = 3;
@@ -39,7 +45,7 @@ function can(ctx, scope, strict) {
 				break;
 
 			case 5:
-				_context.t0 = ctx.user;
+				_context.t0 = ctx[_namespace2.default].user;
 
 				if (!_context.t0) {
 					_context.next = 10;
@@ -47,7 +53,7 @@ function can(ctx, scope, strict) {
 				}
 
 				_context.next = 9;
-				return regeneratorRuntime.awrap(ctx.user.can(scope, strict));
+				return regeneratorRuntime.awrap(ctx[_namespace2.default].user.can(scope, strict));
 
 			case 9:
 				_context.t0 = _context.sent;
