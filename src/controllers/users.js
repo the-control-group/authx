@@ -21,7 +21,7 @@ export async function post(ctx) {
 
 export async function query(ctx) {
 	if (!await can(ctx, ctx[x].authx.config.realm + ':me:read') && !await can(ctx, ctx[x].authx.config.realm + ':user:read'))
-		throw new errors.ForbiddenError('You lack permission for the required scope "AuthX:user:read".');
+		throw new errors.ForbiddenError(`You lack permission for the required scope "${ctx[x].authx.config.realm}:user:read".`);
 
 
 	var ids;
