@@ -38,7 +38,7 @@ import corsMiddleware from './middleware/cors';
 import dbMiddleware from './middleware/db';
 import errorMiddleware from './middleware/error';
 import userMiddleware from './middleware/user';
-export { bearerMiddleware, corsMiddleware, dbMiddleware, errorMiddleware, userMiddleware }
+export { bearerMiddleware, corsMiddleware, dbMiddleware, errorMiddleware, userMiddleware };
 
 
 
