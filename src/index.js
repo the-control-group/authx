@@ -38,6 +38,7 @@ import corsMiddleware from './middleware/cors';
 import dbMiddleware from './middleware/db';
 import errorMiddleware from './middleware/error';
 import userMiddleware from './middleware/user';
+export { bearerMiddleware, corsMiddleware, dbMiddleware, errorMiddleware, userMiddleware }
 
 
 
@@ -74,14 +75,19 @@ export default class AuthX extends Router {
 
 
 
-		// Generic Middleware
-		// ------------------
+		// Middleware
+		// ----------
 
-		// add authx namespace context
-		this.use((ctx, next) => {
+		// return a middleware that sets up the namespace
+		this.middleware = (ctx, next) => {
 			ctx[x] = { authx: this };
 			return next();
-		});
+		};
+
+
+		// add authx namespace context
+		this.use(this.middleware);
+
 
 		// error handling
 		this.use(errorMiddleware);
