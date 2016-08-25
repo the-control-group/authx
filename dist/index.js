@@ -3,7 +3,7 @@
 Object.defineProperty(exports, "__esModule", {
 	value: true
 });
-exports.User = exports.Role = exports.Grant = exports.Credential = exports.Client = exports.Authority = exports.InContactStrategy = exports.SecretStrategy = exports.PasswordStrategy = exports.GoogleStrategy = exports.EmailStrategy = undefined;
+exports.userMiddleware = exports.errorMiddleware = exports.dbMiddleware = exports.corsMiddleware = exports.bearerMiddleware = exports.User = exports.Role = exports.Grant = exports.Credential = exports.Client = exports.Authority = exports.InContactStrategy = exports.SecretStrategy = exports.PasswordStrategy = exports.GoogleStrategy = exports.EmailStrategy = undefined;
 
 var _errors = require('./errors');
 
@@ -147,6 +147,11 @@ exports.User = _User2.default;
 
 // middleware
 
+exports.bearerMiddleware = _bearer2.default;
+exports.corsMiddleware = _cors2.default;
+exports.dbMiddleware = _db2.default;
+exports.errorMiddleware = _error2.default;
+exports.userMiddleware = _user2.default;
 
 // controllers
 
@@ -166,14 +171,17 @@ class AuthX extends _koaRouter2.default {
 		// attach the strategies
 		this.strategies = strategies;
 
-		// Generic Middleware
-		// ------------------
+		// Middleware
+		// ----------
 
-		// add authx namespace context
-		this.use(function (ctx, next) {
+		// return a middleware that sets up the namespace
+		this.middleware = function (ctx, next) {
 			ctx[_namespace2.default] = { authx: _this };
 			return next();
-		});
+		};
+
+		// add authx namespace context
+		this.use(this.middleware);
 
 		// error handling
 		this.use(_error2.default);
