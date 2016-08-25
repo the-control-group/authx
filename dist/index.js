@@ -3,7 +3,7 @@
 Object.defineProperty(exports, "__esModule", {
 	value: true
 });
-exports.userMiddleware = exports.errorMiddleware = exports.dbMiddleware = exports.corsMiddleware = exports.bearerMiddleware = exports.User = exports.Role = exports.Grant = exports.Credential = exports.Client = exports.Authority = exports.InContactStrategy = exports.SecretStrategy = exports.PasswordStrategy = exports.GoogleStrategy = exports.EmailStrategy = undefined;
+exports.userMiddleware = exports.errorMiddleware = exports.dbMiddleware = exports.corsMiddleware = exports.bearerMiddleware = exports.User = exports.Role = exports.Grant = exports.Credential = exports.Client = exports.Authority = exports.InContactStrategy = exports.SecretStrategy = exports.PasswordStrategy = exports.GoogleStrategy = exports.EmailStrategy = exports.namespace = undefined;
 
 var _errors = require('./errors');
 
@@ -129,7 +129,10 @@ function _interopRequireWildcard(obj) { if (obj && obj.__esModule) { return obj;
 
 if (!global._babelPolyfill) require('babel-polyfill');
 
+exports.namespace = _namespace2.default;
+
 // strategies
+
 exports.EmailStrategy = _email2.default;
 exports.GoogleStrategy = _google2.default;
 exports.PasswordStrategy = _password2.default;
@@ -355,4 +358,6 @@ class AuthX extends _koaRouter2.default {
 		this.del('/me', userController.del);
 	}
 }
+
 exports.default = AuthX;
+AuthX.namespace = _namespace2.default;

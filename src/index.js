@@ -7,7 +7,10 @@ import * as scopes from 'scopeutils';
 import Router from 'koa-router';
 import { can } from './util/protect';
 import Pool from './util/pool';
+
+
 import x from './namespace';
+export { x as namespace };
 
 
 
@@ -256,4 +259,7 @@ export default class AuthX extends Router {
 
 	}
 }
+
+
+AuthX.namespace = x;
 
