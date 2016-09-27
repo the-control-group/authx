@@ -1,7 +1,7 @@
 import Authority from './models/Authority';
 import Credential from './models/Credential';
 
-export default class Starategy {
+export default class Strategy {
 	constructor(conn, authority) {
 		this.conn = conn;
 		this.authority = authority;
