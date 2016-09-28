@@ -3,7 +3,7 @@
 Object.defineProperty(exports, "__esModule", {
 	value: true
 });
-exports.userMiddleware = exports.errorMiddleware = exports.dbMiddleware = exports.corsMiddleware = exports.bearerMiddleware = exports.User = exports.Role = exports.Grant = exports.Credential = exports.Client = exports.Authority = exports.InContactStrategy = exports.SecretStrategy = exports.PasswordStrategy = exports.GoogleStrategy = exports.EmailStrategy = exports.namespace = undefined;
+exports.userMiddleware = exports.errorMiddleware = exports.dbMiddleware = exports.corsMiddleware = exports.bearerMiddleware = exports.User = exports.Role = exports.Grant = exports.Credential = exports.Client = exports.Authority = exports.CakeStrategy = exports.InContactStrategy = exports.SecretStrategy = exports.PasswordStrategy = exports.GoogleStrategy = exports.EmailStrategy = exports.namespace = undefined;
 
 var _errors = require('./errors');
 
@@ -46,6 +46,10 @@ var _secret2 = _interopRequireDefault(_secret);
 var _incontact = require('./strategies/incontact');
 
 var _incontact2 = _interopRequireDefault(_incontact);
+
+var _cake = require('./strategies/cake');
+
+var _cake2 = _interopRequireDefault(_cake);
 
 var _Authority = require('./models/Authority');
 
@@ -138,6 +142,7 @@ exports.GoogleStrategy = _google2.default;
 exports.PasswordStrategy = _password2.default;
 exports.SecretStrategy = _secret2.default;
 exports.InContactStrategy = _incontact2.default;
+exports.CakeStrategy = _cake2.default;
 
 // models
 

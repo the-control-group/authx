@@ -20,7 +20,8 @@ import GoogleStrategy from './strategies/google';
 import PasswordStrategy from './strategies/password';
 import SecretStrategy from './strategies/secret';
 import InContactStrategy from './strategies/incontact';
-export { EmailStrategy, GoogleStrategy, PasswordStrategy, SecretStrategy, InContactStrategy };
+import CakeStrategy from './strategies/cake';
+export { EmailStrategy, GoogleStrategy, PasswordStrategy, SecretStrategy, InContactStrategy, CakeStrategy };
 
 
 
