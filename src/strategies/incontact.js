@@ -174,14 +174,24 @@ export default class InContactStrategy extends Strategy {
 
 		} catch (err) {
 
-			debug('Token request to inContact failed', err);
-
-			if (err instanceof requestErrors.StatusCodeError) {
-				if (err.statusCode === 401) throw new errors.AuthenticationError('Incorrect username or bad password.');
-				if (err.statusCode === 400) throw new errors.ValidationError('Invalid username or bad password.');
+			// inContact foolishly returns a 409 to indicate a "success" that is associated
+			// with an existing session, rather than a newly created session
+			if (err instanceof requestErrors.StatusCodeError && err.statusCode === 409) {
+				response = JSON.parse(err.response);
+				debug('Token received from inContact', response);
 			}
 
-			throw err;
+			// handle all other error codes as expected
+			else {
+				debug('Token request to inContact failed', err);
+
+				if (err instanceof requestErrors.StatusCodeError) {
+					if (err.statusCode === 401) throw new errors.AuthenticationError('Incorrect username or bad password.');
+					if (err.statusCode === 400) throw new errors.ValidationError('Invalid username or bad password.');
+				}
+
+				throw err;
+			}
 		}
 
 

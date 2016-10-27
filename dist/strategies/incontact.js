@@ -242,40 +242,50 @@ class InContactStrategy extends _Strategy2.default {
 
 					debug('Token received from inContact', response);
 
-					_context.next = 40;
+					_context.next = 45;
 					break;
 
 				case 31:
 					_context.prev = 31;
 					_context.t2 = _context['catch'](21);
 
+					if (!(_context.t2 instanceof _errors2.default.StatusCodeError && _context.t2.statusCode === 409)) {
+						_context.next = 38;
+						break;
+					}
 
+					response = JSON.parse(_context.t2.response);
+					debug('Token received from inContact', response);
+					_context.next = 45;
+					break;
+
+				case 38:
 					debug('Token request to inContact failed', _context.t2);
 
 					if (!(_context.t2 instanceof _errors2.default.StatusCodeError)) {
-						_context.next = 39;
+						_context.next = 44;
 						break;
 					}
 
 					if (!(_context.t2.statusCode === 401)) {
-						_context.next = 37;
+						_context.next = 42;
 						break;
 					}
 
 					throw new errors.AuthenticationError('Incorrect username or bad password.');
 
-				case 37:
+				case 42:
 					if (!(_context.t2.statusCode === 400)) {
-						_context.next = 39;
+						_context.next = 44;
 						break;
 					}
 
 					throw new errors.ValidationError('Invalid username or bad password.');
 
-				case 39:
+				case 44:
 					throw _context.t2;
 
-				case 40:
+				case 45:
 
 					debug('Sending agent request to inContact', {
 						agentId: response.agent_id
@@ -283,7 +293,7 @@ class InContactStrategy extends _Strategy2.default {
 
 					// get the agent
 					_context.t3 = JSON;
-					_context.next = 44;
+					_context.next = 49;
 					return regeneratorRuntime.awrap((0, _requestPromise2.default)({
 						method: 'GET',
 						uri: response.resource_server_base_uri + 'services/v6.0/agents/' + response.agent_id,
@@ -293,7 +303,7 @@ class InContactStrategy extends _Strategy2.default {
 						}
 					}));
 
-				case 44:
+				case 49:
 					_context.t4 = _context.sent;
 					agent = _context.t3.parse.call(_context.t3, _context.t4).agents[0];
 
@@ -326,14 +336,14 @@ class InContactStrategy extends _Strategy2.default {
 					// check that the team has been mapped
 
 					if (this.authority.details.teams[details.team_id]) {
-						_context.next = 51;
+						_context.next = 56;
 						break;
 					}
 
 					throw new errors.AuthenticationError('The team #' + details.team_id + ' is not configured.');
 
-				case 51:
-					_context.prev = 51;
+				case 56:
+					_context.prev = 56;
 
 
 					debug('Checking for an existing credential by ID', {
@@ -341,14 +351,14 @@ class InContactStrategy extends _Strategy2.default {
 						agentId: details.agent_id.toString()
 					});
 
-					_context.next = 55;
+					_context.next = 60;
 					return regeneratorRuntime.awrap(_Credential2.default.get(this.conn, [this.authority.id, details.agent_id.toString()]));
 
-				case 55:
+				case 60:
 					credential = _context.sent;
 
 					if (!(details.team_id !== credential.details.team_id)) {
-						_context.next = 62;
+						_context.next = 67;
 						break;
 					}
 
@@ -362,7 +372,7 @@ class InContactStrategy extends _Strategy2.default {
 					});
 
 					// remove any roles that aren't shared between the old and new teams
-					_context.next = 62;
+					_context.next = 67;
 					return regeneratorRuntime.awrap(oldRoleIds.filter(function (id) {
 						return newRoleIds.indexOf(id) === -1;
 					}).map(function (id) {
@@ -371,7 +381,7 @@ class InContactStrategy extends _Strategy2.default {
 							} });
 					}));
 
-				case 62:
+				case 67:
 
 					debug('Updating the credential.', {
 						details: details,
@@ -380,18 +390,18 @@ class InContactStrategy extends _Strategy2.default {
 					});
 
 					// update the credential
-					_context.next = 65;
+					_context.next = 70;
 					return regeneratorRuntime.awrap(credential.update({
 						details: details,
 						profile: profile,
 						last_used: lastUsed
 					}));
 
-				case 65:
+				case 70:
 					credential = _context.sent;
 
 					if (!this.authority.details.sync_profile_to_customer) {
-						_context.next = 73;
+						_context.next = 78;
 						break;
 					}
 
@@ -400,48 +410,48 @@ class InContactStrategy extends _Strategy2.default {
 						profile: profile
 					});
 
-					_context.next = 70;
+					_context.next = 75;
 					return regeneratorRuntime.awrap(_User2.default.update(this.conn, credential.user_id, { profile: profile }));
 
-				case 70:
+				case 75:
 					user = _context.sent;
-					_context.next = 77;
+					_context.next = 82;
 					break;
 
-				case 73:
+				case 78:
 
 					debug('Fetching the user by ID.', {
 						userId: credential.user_id
 					});
 
-					_context.next = 76;
+					_context.next = 81;
 					return regeneratorRuntime.awrap(_User2.default.get(this.conn, credential.user_id));
 
-				case 76:
+				case 81:
 					user = _context.sent;
 
-				case 77:
-					_context.next = 83;
+				case 82:
+					_context.next = 88;
 					break;
 
-				case 79:
-					_context.prev = 79;
-					_context.t5 = _context['catch'](51);
+				case 84:
+					_context.prev = 84;
+					_context.t5 = _context['catch'](56);
 
 					if (_context.t5 instanceof errors.NotFoundError) {
-						_context.next = 83;
+						_context.next = 88;
 						break;
 					}
 
 					throw _context.t5;
 
-				case 83:
+				case 88:
 					if (!(!credential && this.authority.details.email_authority_id && details.email)) {
-						_context.next = 102;
+						_context.next = 107;
 						break;
 					}
 
-					_context.prev = 84;
+					_context.prev = 89;
 
 
 					debug('Fetching the user by email.', {
@@ -449,15 +459,15 @@ class InContactStrategy extends _Strategy2.default {
 						email: details.email
 					});
 
-					_context.next = 88;
+					_context.next = 93;
 					return regeneratorRuntime.awrap(_Credential2.default.get(this.conn, [this.authority.details.email_authority_id, details.email]));
 
-				case 88:
+				case 93:
 					email_credential = _context.sent;
-					_context.next = 91;
+					_context.next = 96;
 					return regeneratorRuntime.awrap(_User2.default.get(this.conn, email_credential.user_id));
 
-				case 91:
+				case 96:
 					user = _context.sent;
 
 
@@ -470,7 +480,7 @@ class InContactStrategy extends _Strategy2.default {
 					});
 
 					// create a new credential
-					_context.next = 95;
+					_context.next = 100;
 					return regeneratorRuntime.awrap(_Credential2.default.create(this.conn, {
 						id: [this.authority.id, details.agent_id.toString()],
 						user_id: email_credential.user_id,
@@ -478,25 +488,25 @@ class InContactStrategy extends _Strategy2.default {
 						profile: profile
 					}));
 
-				case 95:
+				case 100:
 					credential = _context.sent;
-					_context.next = 102;
+					_context.next = 107;
 					break;
 
-				case 98:
-					_context.prev = 98;
-					_context.t6 = _context['catch'](84);
+				case 103:
+					_context.prev = 103;
+					_context.t6 = _context['catch'](89);
 
 					if (_context.t6 instanceof errors.NotFoundError) {
-						_context.next = 102;
+						_context.next = 107;
 						break;
 					}
 
 					throw _context.t6;
 
-				case 102:
+				case 107:
 					if (credential) {
-						_context.next = 115;
+						_context.next = 120;
 						break;
 					}
 
@@ -506,13 +516,13 @@ class InContactStrategy extends _Strategy2.default {
 					});
 
 					// create a new user account
-					_context.next = 106;
+					_context.next = 111;
 					return regeneratorRuntime.awrap(_User2.default.create(this.conn, {
 						type: 'human',
 						profile: without(profile, 'id')
 					}));
 
-				case 106:
+				case 111:
 					user = _context.sent;
 
 
@@ -526,7 +536,7 @@ class InContactStrategy extends _Strategy2.default {
 					});
 
 					// create a new credential
-					_context.next = 110;
+					_context.next = 115;
 					return regeneratorRuntime.awrap(_Credential2.default.create(this.conn, {
 						id: [this.authority.id, details.agent_id.toString()],
 						user_id: user.id,
@@ -535,11 +545,11 @@ class InContactStrategy extends _Strategy2.default {
 						profile: profile
 					}));
 
-				case 110:
+				case 115:
 					credential = _context.sent;
 
 					if (!this.authority.details.email_authority_id) {
-						_context.next = 115;
+						_context.next = 120;
 						break;
 					}
 
@@ -552,7 +562,7 @@ class InContactStrategy extends _Strategy2.default {
 						profile: profile
 					});
 
-					_context.next = 115;
+					_context.next = 120;
 					return regeneratorRuntime.awrap(_Credential2.default.create(this.conn, {
 						id: [this.authority.details.email_authority_id, details.email],
 						user_id: user.id,
@@ -560,8 +570,8 @@ class InContactStrategy extends _Strategy2.default {
 						profile: null
 					}));
 
-				case 115:
-					_context.prev = 115;
+				case 120:
+					_context.prev = 120;
 
 
 					debug('Assigning the user to configured roles.', {
@@ -570,30 +580,30 @@ class InContactStrategy extends _Strategy2.default {
 
 					assignments = {};
 					assignments[user.id] = true;
-					_context.next = 121;
+					_context.next = 126;
 					return regeneratorRuntime.awrap(Promise.all(this.authority.details.teams[details.team_id].role_ids.map(function (id) {
 						return _Role2.default.update(_this.conn, id, {
 							assignments: assignments
 						});
 					})));
 
-				case 121:
-					_context.next = 126;
+				case 126:
+					_context.next = 131;
 					break;
 
-				case 123:
-					_context.prev = 123;
-					_context.t7 = _context['catch'](115);
+				case 128:
+					_context.prev = 128;
+					_context.t7 = _context['catch'](120);
 					throw new errors.ServerError('Unable to assign roles for team #' + details.team_id + '.');
 
-				case 126:
+				case 131:
 					return _context.abrupt('return', user);
 
-				case 127:
+				case 132:
 				case 'end':
 					return _context.stop();
 			}
-		}, null, this, [[21, 31], [51, 79], [84, 98], [115, 123]]);
+		}, null, this, [[21, 31], [56, 84], [89, 103], [120, 128]]);
 	}
 
 	// Authority Methods
