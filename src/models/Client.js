@@ -1,9 +1,9 @@
-import r from 'rethinkdb';
-import Model from '../Model';
-import validate from '../util/validator';
-import * as errors from '../errors';
+const r = require('rethinkdb');
+const Model = require('../Model');
+const validate = require('../util/validator');
+const errors = require('../errors');
 
-export default class Client extends Model {
+module.exports = class Client extends Model {
 
 	static get table() {
 		return 'clients';
@@ -54,4 +54,4 @@ export default class Client extends Model {
 		return Model.update.call(this, conn, id, data);
 	}
 
-}
+};

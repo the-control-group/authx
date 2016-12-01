@@ -1,16 +1,16 @@
-import uuid from 'uuid';
-import jwt from 'jsonwebtoken';
-import json from '../util/json';
-import form from '../util/form';
-import * as scopes from 'scopeutils';
-import * as errors from '../errors';
-import Client from '../models/Client';
-import Grant from '../models/Grant';
-import x from '../namespace';
+const uuid = require('uuid');
+const jwt = require('jsonwebtoken');
+const json = require('../util/json');
+const form = require('../util/form');
+const scopes = require('scopeutils');
+const errors = require('../errors');
+const Client = require('../models/Client');
+const Grant = require('../models/Grant');
+const x = require('../namespace');
 
 let scopeRegex = /^(([a-zA-Z0-9_\-]+|(\*(?!\*\*))+)\.)*([a-zA-Z0-9_\-]+|(\*(?!\*\*))+):(([a-zA-Z0-9_\-]+|(\*(?!\*\*))+)\.)*([a-zA-Z0-9_\-]+|(\*(?!\*\*))+):(([a-zA-Z0-9_\-]+|(\*(?!\*\*))+)\.)*([a-zA-Z0-9_\-]+|(\*(?!\*\*))+)$/;
 
-export default async (ctx) => {
+module.exports = async (ctx) => {
 
 
 

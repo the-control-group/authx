@@ -1,64 +1,60 @@
+const errors = require('./errors');
+const scopes = require('scopeutils');
+const Router = require('koa-router');
+const { can } = require('./util/protect');
+const Pool = require('./util/pool');
+exports = {};
 
-if (!global._babelPolyfill)
-	require('babel-polyfill');
-
-import * as errors from './errors';
-import * as scopes from 'scopeutils';
-import Router from 'koa-router';
-import { can } from './util/protect';
-import Pool from './util/pool';
-
-
-import x from './namespace';
-export { x as namespace };
+const x = require('./namespace');
+Object.assign(exports, { namespace: x });
 
 
 
 // strategies
-import EmailStrategy from './strategies/email';
-import GoogleStrategy from './strategies/google';
-import PasswordStrategy from './strategies/password';
-import SecretStrategy from './strategies/secret';
-import InContactStrategy from './strategies/incontact';
-import CakeStrategy from './strategies/cake';
-export { EmailStrategy, GoogleStrategy, PasswordStrategy, SecretStrategy, InContactStrategy, CakeStrategy };
+const EmailStrategy = require('./strategies/email');
+const GoogleStrategy = require('./strategies/google');
+const PasswordStrategy = require('./strategies/password');
+const SecretStrategy = require('./strategies/secret');
+const InContactStrategy = require('./strategies/incontact');
+const CakeStrategy = require('./strategies/cake');
+Object.assign(exports, { EmailStrategy, GoogleStrategy, PasswordStrategy, SecretStrategy, InContactStrategy, CakeStrategy });
 
 
 
 // models
-import Authority from './models/Authority';
-import Client from './models/Client';
-import Credential from './models/Credential';
-import Grant from './models/Grant';
-import Role from './models/Role';
-import User from './models/User';
-export { Authority, Client, Credential, Grant, Role, User };
+const Authority = require('./models/Authority');
+const Client = require('./models/Client');
+const Credential = require('./models/Credential');
+const Grant = require('./models/Grant');
+const Role = require('./models/Role');
+const User = require('./models/User');
+Object.assign(exports, { Authority, Client, Credential, Grant, Role, User });
 
 
 
 // middleware
-import bearerMiddleware from './middleware/bearer';
-import corsMiddleware from './middleware/cors';
-import dbMiddleware from './middleware/db';
-import errorMiddleware from './middleware/error';
-import userMiddleware from './middleware/user';
-export { bearerMiddleware, corsMiddleware, dbMiddleware, errorMiddleware, userMiddleware };
+const bearerMiddleware = require('./middleware/bearer');
+const corsMiddleware = require('./middleware/cors');
+const dbMiddleware = require('./middleware/db');
+const errorMiddleware = require('./middleware/error');
+const userMiddleware = require('./middleware/user');
+Object.assign(exports, { bearerMiddleware, corsMiddleware, dbMiddleware, errorMiddleware, userMiddleware });
 
 
 
 // controllers
-import * as authorityController from './controllers/authorities';
-import * as clientController from './controllers/clients';
-import * as credentialController from './controllers/credentials';
-import * as grantController from './controllers/grants';
-import * as roleController from './controllers/roles';
-import * as userController from './controllers/users';
-import sessionController from './controllers/session';
-import tokensController from './controllers/tokens';
+const authorityController = require('./controllers/authorities');
+const clientController = require('./controllers/clients');
+const credentialController = require('./controllers/credentials');
+const grantController = require('./controllers/grants');
+const roleController = require('./controllers/roles');
+const userController = require('./controllers/users');
+const sessionController = require('./controllers/session');
+const tokensController = require('./controllers/tokens');
 
 
 
-export default class AuthX extends Router {
+class AuthX extends Router {
 
 	constructor(config, strategies) {
 		super(config);
@@ -264,3 +260,4 @@ export default class AuthX extends Router {
 
 AuthX.namespace = x;
 
+module.exports = Object.assign(AuthX, exports);

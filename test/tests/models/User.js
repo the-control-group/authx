@@ -1,11 +1,11 @@
 'use strict';
 
-import r from 'rethinkdb';
-import {assert} from 'chai';
-import * as errors from '../../../src/errors';
-import User from '../../../src/models/User';
-import Credential from '../../../src/models/Credential';
-import Role from '../../../src/models/Role';
+const r = require('rethinkdb');
+const {assert} = require('chai');
+const errors = require('../../../src/errors');
+const User = require('../../../src/models/User');
+const Credential = require('../../../src/models/Credential');
+const Role = require('../../../src/models/Role');
 
 require('../../init.js');
 

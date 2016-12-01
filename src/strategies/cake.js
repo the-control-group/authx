@@ -1,14 +1,14 @@
-import jjv from 'jjv';
-import form from '../util/form';
-import json from '../util/json';
-import request from 'request-promise';
-import requestErrors from 'request-promise/errors';
-import * as errors from '../errors';
+const jjv = require('jjv');
+const form = require('../util/form');
+const json = require('../util/json');
+const request = require('request-promise');
+const requestErrors = require('request-promise/errors');
+const errors = require('../errors');
 
-import Strategy from '../Strategy';
-import Credential from '../models/Credential';
-import Role from '../models/Role';
-import User from '../models/User';
+const Strategy = require('../Strategy');
+const Credential = require('../models/Credential');
+const Role = require('../models/Role');
+const User = require('../models/User');
 
 var env = jjv();
 
@@ -79,7 +79,7 @@ function without(o, key) {
 	return o;
 }
 
-export default class CakeStrategy extends Strategy {
+module.exports = class CakeStrategy extends Strategy {
 
 	async authenticate(ctx) {
 		let lastUsed = Date.now();
@@ -371,4 +371,4 @@ export default class CakeStrategy extends Strategy {
 		return Strategy.prototype.updateCredential.call(this, credential, delta);
 	}
 
-}
+};

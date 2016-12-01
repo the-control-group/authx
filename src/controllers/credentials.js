@@ -1,13 +1,13 @@
-import Promise from 'bluebird';
-import json from '../util/json';
-import {protect, can} from '../util/protect';
-import * as errors from '../errors';
-import Authority from '../models/Authority';
-import Credential from '../models/Credential';
-import User from '../models/User';
-import x from '../namespace';
+const Promise = require('bluebird');
+const json = require('../util/json');
+const {protect, can} = require('../util/protect');
+const errors = require('../errors');
+const Authority = require('../models/Authority');
+const Credential = require('../models/Credential');
+const User = require('../models/User');
+const x = require('../namespace');
 
-export async function post(ctx) {
+module.exports.post = async function post(ctx) {
 	var data = await json(ctx.req);
 
 	// make sure we can look up the user
@@ -51,27 +51,27 @@ export async function post(ctx) {
 	// create the credential
 	ctx.body = await strategy.createCredential(data);
 	ctx.status = 201;
-}
+};
 
 
 
-export async function query(ctx) {
+module.exports.query = async function query(ctx) {
 	await protect(ctx, ctx[x].authx.config.realm + ':credential.*.*:read', false);
 	var credentials = await Credential.query(ctx[x].conn, (await can(ctx, ctx[x].authx.config.realm + ':credential.*.user:read', false)) ? undefined : x => x.getAll(ctx[x].user.id, {index: 'user_id'}));
 	ctx.body = await Promise.filter(credentials, c => can(ctx, ctx[x].authx.config.realm + ':credential.' + c.authority_id + '.' +(ctx[x].user && ctx[x].user.id === c.user_id ? 'me' : 'user') +  ':read'));
-}
+};
 
 
 
-export async function get(ctx) {
+module.exports.get = async function get(ctx) {
 	var credential = await Credential.get(ctx[x].conn, [ctx.params.credential_id_0, ctx.params.credential_id_1]);
 	await protect(ctx, ctx[x].authx.config.realm + ':credential.' + credential.authority_id + '.' +(ctx[x].user && ctx[x].user.id === credential.user_id ? 'me' : 'user') + ':read');
 	ctx.body = credential;
-}
+};
 
 
 
-export async function patch(ctx) {
+module.exports.patch = async function patch(ctx) {
 	var data = await json(ctx.req);
 	var credential = await Credential.get(ctx[x].conn, [ctx.params.credential_id_0, ctx.params.credential_id_1]);
 	await protect(ctx, ctx[x].authx.config.realm + ':credential.' + credential.authority_id + '.' +(ctx[x].user && ctx[x].user.id === credential.user_id ? 'me' : 'user') + ':update');
@@ -89,11 +89,11 @@ export async function patch(ctx) {
 
 	// update the credential
 	ctx.body = await strategy.updateCredential(credential, data);
-}
+};
 
 
 
-export async function del(ctx) {
+module.exports.del = async function del(ctx) {
 	var credential = await Credential.get(ctx[x].conn, [ctx.params.credential_id_0, ctx.params.credential_id_1]);
 	await protect(ctx, ctx[x].authx.config.realm + ':credential.' + credential.authority_id + '.' +(ctx[x].user && ctx[x].user.id === credential.user_id ? 'me' : 'user') + ':delete');
 
@@ -110,4 +110,4 @@ export async function del(ctx) {
 
 	// delete the credential
 	ctx.body = await strategy.deleteCredential(credential);
-}
+};

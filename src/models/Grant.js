@@ -1,16 +1,16 @@
-import r from 'rethinkdb';
-import uuid from 'uuid';
-import Model from '../Model';
-import User from './User';
-import Client from './Client';
-import validate from '../util/validator';
-import * as errors from '../errors';
+const r = require('rethinkdb');
+const uuid = require('uuid');
+const Model = require('../Model');
+const validate = require('../util/validator');
+const errors = require('../errors');
 
 const USER = Symbol('user');
 const CLIENT = Symbol('client');
 
+// this is used to get around limitations of circular dependancies in commonjs
+const models = {};
 
-export default class Grant extends Model {
+module.exports = class Grant extends Model {
 
 	static get table() {
 		return 'grants';
@@ -90,7 +90,7 @@ export default class Grant extends Model {
 
 		// query the database for users
 		if (!this[USER] || refresh)
-			this[USER] = User.get(this[Model.Symbols.CONN], this.user_id);
+			this[USER] = models.User.get(this[Model.Symbols.CONN], this.user_id);
 
 		return this[USER];
 	}
@@ -101,7 +101,7 @@ export default class Grant extends Model {
 
 		// query the database for users
 		if (!this[CLIENT] || refresh)
-			this[CLIENT] = Client.get(this[Model.Symbols.CONN], this.client_id);
+			this[CLIENT] = models.Client.get(this[Model.Symbols.CONN], this.client_id);
 
 		return this[CLIENT];
 	}
@@ -117,4 +117,7 @@ export default class Grant extends Model {
 	}
 
 
-}
+};
+
+models.User = require('./User');
+models.Client = require('./Client');

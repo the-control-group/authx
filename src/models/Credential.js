@@ -1,14 +1,15 @@
-import r from 'rethinkdb';
-import Model from '../Model';
-import User from './User';
-import Authority from './Authority';
-import validate from '../util/validator';
-import * as errors from '../errors';
+const r = require('rethinkdb');
+const Model = require('../Model');
+const validate = require('../util/validator');
+const errors = require('../errors');
 
 const USER = Symbol('user');
 const AUTHORITY = Symbol('authority');
 
-export default class Credential extends Model {
+// this is used to get around limitations of circular dependancies in commonjs
+const models = {};
+
+module.exports = class Credential extends Model {
 
 	static get table() {
 		return 'credentials';
@@ -77,7 +78,7 @@ export default class Credential extends Model {
 
 		// get the user from the database
 		if (!this[USER] || refresh)
-			this[USER] = User.get(this[Model.Symbols.CONN], this.user_id);
+			this[USER] = models.User.get(this[Model.Symbols.CONN], this.user_id);
 
 		return this[USER];
 	}
@@ -88,7 +89,7 @@ export default class Credential extends Model {
 
 		// get the user from the database
 		if (!this[AUTHORITY] || refresh)
-			this[AUTHORITY] = Authority.get(this[Model.Symbols.CONN], this.authority_id);
+			this[AUTHORITY] = models.Authority.get(this[Model.Symbols.CONN], this.authority_id);
 
 		return this[AUTHORITY];
 	}
@@ -98,4 +99,7 @@ export default class Credential extends Model {
 		return this.id[0];
 	}
 
-}
+};
+
+models.User = require('./User');
+models.Authority = require('./Authority');

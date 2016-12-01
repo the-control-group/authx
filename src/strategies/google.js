@@ -1,15 +1,15 @@
-import qs from 'querystring';
-import jjv from 'jjv';
-import jwt from 'jsonwebtoken';
-import crypto from 'crypto';
-import request from 'request-promise';
-import * as errors from '../errors';
-import profileSchema from '../../schema/profile';
+const qs = require('querystring');
+const jjv = require('jjv');
+const jwt = require('jsonwebtoken');
+const crypto = require('crypto');
+const request = require('request-promise');
+const errors = require('../errors');
+const profileSchema = require('../../schema/profile');
 
-import Strategy from '../Strategy';
-import Credential from '../models/Credential';
-import Role from '../models/Role';
-import User from '../models/User';
+const Strategy = require('../Strategy');
+const Credential = require('../models/Credential');
+const Role = require('../models/Role');
+const User = require('../models/User');
 
 var env = jjv();
 
@@ -73,7 +73,7 @@ function without(o, key) {
 }
 
 
-export default class OAuth2Strategy extends Strategy {
+module.exports = class OAuth2Strategy extends Strategy {
 
 	async authenticate(ctx) {
 
@@ -326,4 +326,4 @@ export default class OAuth2Strategy extends Strategy {
 		return Strategy.prototype.updateCredential.call(this, credential, delta);
 	}
 
-}
+};

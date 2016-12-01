@@ -1,8 +1,8 @@
 'use strict';
 
-import fs from 'fs';
-import async from 'async';
-import config from './config';
+const fs = require('fs');
+const async = require('async');
+const config = require('./config');
 
 function setup(done){
 

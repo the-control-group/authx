@@ -1,7 +1,7 @@
-import r from 'rethinkdb';
-import x from '../namespace';
+const r = require('rethinkdb');
+const x = require('../namespace');
 
-export default async (ctx, next) => {
+module.exports = async (ctx, next) => {
 	if (
 		ctx.headers.origin
 		&& ctx.headers.origin !== (ctx.request.protocol + '://' + ctx.request.host)

@@ -1,7 +1,7 @@
-import Authority from './models/Authority';
-import Credential from './models/Credential';
+const Authority = require('./models/Authority');
+const Credential = require('./models/Credential');
 
-export default class Strategy {
+module.exports = class Strategy {
 	constructor(conn, authority) {
 		this.conn = conn;
 		this.authority = authority;
@@ -64,4 +64,4 @@ export default class Strategy {
 		return credential.delete();
 	}
 
-}
+};

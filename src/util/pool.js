@@ -1,9 +1,9 @@
 'use strict';
 
-import gp from 'generic-pool';
-import r from 'rethinkdb';
+const gp = require('generic-pool');
+const r = require('rethinkdb');
 
-export default class Pool {
+module.exports = class Pool {
 
 	constructor (options, max, min, idleTimeoutMillis) {
 		this.pool = gp.Pool({
@@ -36,4 +36,4 @@ export default class Pool {
 		});
 	}
 
-}
+};

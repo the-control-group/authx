@@ -1,4 +1,4 @@
-box: nodesource/trusty:6
+box: node:7
 
 services:
   - rethinkdb:2.3

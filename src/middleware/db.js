@@ -1,6 +1,6 @@
-import x from '../namespace';
+const x = require('../namespace');
 
-export default async (ctx, next) => {
+module.exports = async (ctx, next) => {
 	ctx[x].conn = await ctx[x].authx.pool.acquire();
 	try {
 		await next();

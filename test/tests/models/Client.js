@@ -1,9 +1,9 @@
 'use strict';
 
-import r from 'rethinkdb';
-import {assert} from 'chai';
-import * as errors from '../../../src/errors';
-import Client from '../../../src/models/Client';
+const r = require('rethinkdb');
+const {assert} = require('chai');
+const errors = require('../../../src/errors');
+const Client = require('../../../src/models/Client');
 
 require('../../init.js');
 

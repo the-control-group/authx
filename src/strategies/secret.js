@@ -1,15 +1,15 @@
-import jwt from 'jsonwebtoken';
-import jjv from 'jjv';
-import auth from 'basic-auth';
-import json from '../util/json';
-import form from '../util/form';
-import {hash, compare} from '../util/bcrypt';
-import * as errors from '../errors';
-import x from '../namespace';
+const jwt = require('jsonwebtoken');
+const jjv = require('jjv');
+const auth = require('basic-auth');
+const json = require('../util/json');
+const form = require('../util/form');
+const {hash, compare} = require('../util/bcrypt');
+const errors = require('../errors');
+const x = require('../namespace');
 
-import Strategy from '../Strategy';
-import Credential from '../models/Credential';
-import User from '../models/User';
+const Strategy = require('../Strategy');
+const Credential = require('../models/Credential');
+const User = require('../models/User');
 
 var env = jjv();
 
@@ -38,7 +38,7 @@ env.addSchema({
 	}
 });
 
-export default class SecretStrategy extends Strategy {
+module.exports = class SecretStrategy extends Strategy {
 
 	async authenticate(ctx) {
 		ctx.redirect_to = ctx.query.url;
@@ -191,4 +191,4 @@ export default class SecretStrategy extends Strategy {
 		return Strategy.prototype.updateCredential.call(this, credential, delta);
 	}
 
-}
+};

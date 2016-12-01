@@ -1,13 +1,15 @@
-import r from 'rethinkdb';
-import Model from '../Model';
-import User from './User';
-import validate from '../util/validator';
-import * as scopes from 'scopeutils';
-import * as errors from '../errors';
+const r = require('rethinkdb');
+const Model = require('../Model');
+const validate = require('../util/validator');
+const scopes = require('scopeutils');
+const errors = require('../errors');
 
 const USERS = Symbol('users');
 
-export default class Role extends Model {
+// this is used to get around limitations of circular dependancies in commonjs
+const models = {};
+
+module.exports = class Role extends Model {
 
 	static get table() {
 		return 'roles';
@@ -65,7 +67,7 @@ export default class Role extends Model {
 		// query the database for users
 		if (!this[USERS] || refresh) {
 			let assignments = Object.keys(this.assignments).filter(k => this.assignments[k]);
-			this[USERS] = User.query(this[Model.Symbols.CONN], q => q.getAll(r.args(assignments)));
+			this[USERS] = models.User.query(this[Model.Symbols.CONN], q => q.getAll(r.args(assignments)));
 		}
 
 		return this[USERS];
@@ -77,4 +79,7 @@ export default class Role extends Model {
 		return scopes.can(this.scopes, scope, strict);
 	}
 
-}
+};
+
+
+models.User = require('./User');

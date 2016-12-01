@@ -1,10 +1,10 @@
-import qs from 'querystring';
-import jwt from 'jsonwebtoken';
-import errors from '../errors';
-import Authority from '../models/Authority';
-import x from '../namespace';
+const qs = require('querystring');
+const jwt = require('jsonwebtoken');
+const errors = require('../errors');
+const Authority = require('../models/Authority');
+const x = require('../namespace');
 
-export default async (ctx, next) => {
+module.exports = async (ctx, next) => {
 	ctx.status = 204;
 
 	try {
