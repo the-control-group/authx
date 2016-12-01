@@ -1,6 +1,6 @@
 'use strict';
 
-import chai from 'chai';
+const chai = require('chai');
 
 var assert = chai.assert;
 require('../../init.js');

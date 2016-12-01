@@ -1,13 +1,13 @@
-import jjv from 'jjv';
+const jjv = require('jjv');
 
-import authority from '../../schema/authority';
-import client from '../../schema/client';
-import credential from '../../schema/credential';
-import grant from '../../schema/grant';
-import profile from '../../schema/profile';
-import role from '../../schema/role';
-import team from '../../schema/team';
-import user from '../../schema/user';
+const authority = require('../../schema/authority');
+const client = require('../../schema/client');
+const credential = require('../../schema/credential');
+const grant = require('../../schema/grant');
+const profile = require('../../schema/profile');
+const role = require('../../schema/role');
+const team = require('../../schema/team');
+const user = require('../../schema/user');
 
 var env = jjv();
 
@@ -20,4 +20,4 @@ env.addSchema('role', role);
 env.addSchema('team', team);
 env.addSchema('user', user);
 
-export default env.validate.bind(env);
+module.exports = env.validate.bind(env);

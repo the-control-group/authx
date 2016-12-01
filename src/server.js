@@ -1,7 +1,8 @@
-import Koa from 'koa';
-import AuthX, { EmailStrategy, GoogleStrategy, PasswordStrategy, SecretStrategy, InContactStrategy } from './index';
+const Koa = require('koa');
+const AuthX = require('./index');
+const { EmailStrategy, GoogleStrategy, PasswordStrategy, SecretStrategy, InContactStrategy } = AuthX;
 
-const config = require(process.argv[2] || process.env.AUTHX_CONFIG_FILE || '../config').default;
+const config = require(process.argv[2] || process.env.AUTHX_CONFIG_FILE || '../config');
 
 
 // create a Koa app

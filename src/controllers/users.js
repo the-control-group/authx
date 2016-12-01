@@ -1,25 +1,25 @@
-import Promise from 'bluebird';
-import r from 'rethinkdb';
-import json from '../util/json';
-import {protect, can} from '../util/protect';
-import {parseIncludes, parseRoles} from '../util/queryParams';
-import * as errors from '../errors';
-import Role from '../models/Role';
-import User from '../models/User';
-import x from '../namespace';
+const Promise = require('bluebird');
+const r = require('rethinkdb');
+const json = require('../util/json');
+const {protect, can} = require('../util/protect');
+const {parseIncludes, parseRoles} = require('../util/queryParams');
+const errors = require('../errors');
+const Role = require('../models/Role');
+const User = require('../models/User');
+const x = require('../namespace');
 
 let includable = ['credentials', 'grants', 'roles', 'scopes', 'team'];
 
-export async function post(ctx) {
+module.exports.post = async function post(ctx) {
 	await protect(ctx, ctx[x].authx.config.realm + ':user:create');
 	var includes = parseIncludes(includable, ctx);
 	var data = await json(ctx.req);
 	var user = await User.create(ctx[x].conn, data);
 	ctx.body = await include(user, includes, ctx);
 	ctx.status = 201;
-}
+};
 
-export async function query(ctx) {
+module.exports.query = async function query(ctx) {
 	if (!await can(ctx, ctx[x].authx.config.realm + ':me:read') && !await can(ctx, ctx[x].authx.config.realm + ':user:read'))
 		throw new errors.ForbiddenError(`You lack permission for the required scope "${ctx[x].authx.config.realm}:user:read".`);
 
@@ -110,26 +110,26 @@ export async function query(ctx) {
 	var includes = parseIncludes(includable, ctx);
 	var users = await User.query(ctx[x].conn, transformer);
 	ctx.body = await Promise.all(users.map(async u => await include(u, includes, ctx)));
-}
+};
 
-export async function get(ctx) {
+module.exports.get = async function get(ctx) {
 	let user_id = ctx.params.user_id || (ctx[x].user ? ctx[x].user.id : null);
 	await protect(ctx, ctx[x].authx.config.realm + ':' + (ctx[x].user && ctx[x].user.id === user_id ? 'me' : 'user') + ':read');
 	var includes = parseIncludes(includable, ctx);
 	var user = await User.get(ctx[x].conn, user_id);
 	ctx.body = await include(user, includes, ctx);
-}
+};
 
-export async function patch(ctx) {
+module.exports.patch = async function patch(ctx) {
 	let user_id = ctx.params.user_id || (ctx[x].user ? ctx[x].user.id : null);
 	await protect(ctx, ctx[x].authx.config.realm + ':' + (ctx[x].user && ctx[x].user.id === user_id ? 'me' : 'user') + ':update');
 	var includes = parseIncludes(includable, ctx);
 	var data = await json(ctx.req);
 	var user = await User.update(ctx[x].conn, user_id, data);
 	ctx.body = await include(user, includes, ctx);
-}
+};
 
-export async function del(ctx) {
+module.exports.del = async function del(ctx) {
 	let user_id = ctx.params.user_id || (ctx[x].user ? ctx[x].user.id : null);
 	await protect(ctx, ctx[x].authx.config.realm + ':' + (ctx[x].user && ctx[x].user.id === user_id ? 'me' : 'user') + ':delete');
 	var includes = parseIncludes(includable, ctx);
@@ -141,7 +141,7 @@ export async function del(ctx) {
 
 	var user = await User.delete(ctx[x].conn, user_id);
 	ctx.body = await include(user, includes, ctx);
-}
+};
 
 async function include(user, includes, ctx) {
 

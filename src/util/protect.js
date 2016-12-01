@@ -1,8 +1,8 @@
-import * as scopes from 'scopeutils';
-import * as errors from '../errors';
-import x from '../namespace';
+const scopes = require('scopeutils');
+const errors = require('../errors');
+const x = require('../namespace');
 
-export async function can(ctx, scope, strict) {
+async function can(ctx, scope, strict) {
 
 	// ctx[x].bearer request on behalf of a user
 	if (ctx[x].bearer) {
@@ -22,7 +22,10 @@ export async function can(ctx, scope, strict) {
 	return false;
 }
 
-export async function protect(ctx, scope, strict) {
+async function protect(ctx, scope, strict) {
 	if (await can(ctx, scope, strict)) return;
 	throw new errors.ForbiddenError('You lack permission for the required scope "' + scope + '".');
 }
+
+module.exports.can = can;
+module.exports.protect = protect;

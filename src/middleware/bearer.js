@@ -1,10 +1,10 @@
-import jwt from 'jsonwebtoken';
-import * as errors from '../errors';
-import x from '../namespace';
+const jwt = require('jsonwebtoken');
+const errors = require('../errors');
+const x = require('../namespace');
 
 let parser = /^Bearer\s+([^\s]+)\s*$/;
 
-export default async (ctx, next) => {
+module.exports = async (ctx, next) => {
 	ctx[x].bearer = null;
 
 	// parse the authorization header

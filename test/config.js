@@ -1,4 +1,4 @@
-export default {
+module.exports = {
 
 	// the realm to be used when issuing tokens, requesting HTTP credentials, etc
 	realm: 'AuthX',

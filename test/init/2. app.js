@@ -1,13 +1,14 @@
 'use strict';
 
-import Promise from 'bluebird';
-import Test from 'supertest/lib/test';
+const Promise = require('bluebird');
+const Test = require('supertest/lib/test');
 Test.prototype.end = Promise.promisify(Test.prototype.end);
 
-import supertest from 'supertest';
+const supertest = require('supertest');
 
-import Koa from 'koa';
-import AuthX, { EmailStrategy, GoogleStrategy, PasswordStrategy, SecretStrategy, InContactStrategy } from '../../src/index.js';
+const Koa = require('koa');
+const AuthX = require('../../src/index.js');
+const { EmailStrategy, GoogleStrategy, PasswordStrategy, SecretStrategy, InContactStrategy } = AuthX;
 
 
 module.exports = {

@@ -1,1 +1,1 @@
-export default Symbol('AuthX');
+module.exports = Symbol('AuthX');

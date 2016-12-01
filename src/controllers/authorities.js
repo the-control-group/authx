@@ -1,11 +1,11 @@
-import Promise from 'bluebird';
-import json from '../util/json';
-import { protect, can } from '../util/protect';
-import * as errors from '../errors';
-import Authority from '../models/Authority';
-import x from '../namespace';
+const Promise = require('bluebird');
+const json = require('../util/json');
+const { protect, can } = require('../util/protect');
+const errors = require('../errors');
+const Authority = require('../models/Authority');
+const x = require('../namespace');
 
-export async function post(ctx) {
+module.exports.post = async function post(ctx) {
 	await protect(ctx, ctx[x].authx.config.realm + ':authority:create');
 	var data = await json(ctx.req);
 
@@ -21,20 +21,20 @@ export async function post(ctx) {
 	// create the new authority
 	ctx.body = await Strategy.createAuthority(ctx[x].conn, data);
 	ctx.status = 201;
-}
+};
 
-export async function query(ctx) {
+module.exports.query = async function query(ctx) {
 	await protect(ctx, ctx[x].authx.config.realm + ':authority.*:read', false);
 	var authorities = await Authority.query(ctx[x].conn);
 	ctx.body = await Promise.filter(authorities, a => can(ctx, ctx[x].authx.config.realm + ':authority.' + a.id + ':read'));
-}
+};
 
-export async function get(ctx) {
+module.exports.get = async function get(ctx) {
 	await protect(ctx, ctx[x].authx.config.realm + ':authority.' + ctx.params.authority_id + ':read');
 	ctx.body = await Authority.get(ctx[x].conn, ctx.params.authority_id);
-}
+};
 
-export async function patch(ctx) {
+module.exports.patch = async function patch(ctx) {
 	await protect(ctx, ctx[x].authx.config.realm + ':authority.' + ctx.params.authority_id + ':update');
 	var data = await json(ctx.req);
 
@@ -52,9 +52,9 @@ export async function patch(ctx) {
 
 	// update the authority
 	ctx.body = await Strategy.updateAuthority(authority, data);
-}
+};
 
-export async function del(ctx) {
+module.exports.del = async function del(ctx) {
 	await protect(ctx, ctx[x].authx.config.realm + ':authority.' + ctx.params.authority_id + ':delete');
 
 	// get the existing authority
@@ -67,4 +67,4 @@ export async function del(ctx) {
 
 	// delete the authority
 	ctx.body = await Strategy.deleteAuthority(authority);
-}
+};

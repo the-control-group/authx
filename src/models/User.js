@@ -1,18 +1,18 @@
-import r from 'rethinkdb';
-import Model  from '../Model';
-import Role from './Role';
-import Grant from './Grant';
-import Credential from './Credential';
-import validate from '../util/validator';
-import * as errors from '../errors';
-import uuid from 'uuid';
+const r = require('rethinkdb');
+const Model  = require('../Model');
+const validate = require('../util/validator');
+const errors = require('../errors');
+const uuid = require('uuid');
 
 const ROLES = Symbol('roles');
 const GRANTS = Symbol('grants');
 const CREDENTIALS = Symbol('credentials');
 const SCOPES = Symbol('scopes');
 
-export default class User extends Model {
+// this is used to get around limitations of circular dependancies in commonjs
+const models = {};
+
+module.exports = class User extends Model {
 
 	static get table() {
 		return 'users';
@@ -80,7 +80,7 @@ export default class User extends Model {
 	static async delete(conn, id) {
 
 		// first delete all credentials
-		var credentials = await Credential.query(conn, q => q
+		var credentials = await models.Credential.query(conn, q => q
 			.getAll(id, {index: 'user_id'})
 			.delete({returnChanges: 'always'})
 			.do(results => r.branch(
@@ -105,7 +105,7 @@ export default class User extends Model {
 
 		// query the database for credentials
 		if (!this[CREDENTIALS] || refresh)
-			this[CREDENTIALS] = Credential.query(this[Model.Symbols.CONN], q => q.getAll(this.id, {index: 'user_id'}));
+			this[CREDENTIALS] = models.Credential.query(this[Model.Symbols.CONN], q => q.getAll(this.id, {index: 'user_id'}));
 
 		return this[CREDENTIALS];
 	}
@@ -116,7 +116,7 @@ export default class User extends Model {
 
 		// query the database for roles
 		if (!this[ROLES] || refresh)
-			this[ROLES] = Role.query(this[Model.Symbols.CONN], q => q.getAll(this.id, {index: 'assignments'}));
+			this[ROLES] = models.Role.query(this[Model.Symbols.CONN], q => q.getAll(this.id, {index: 'assignments'}));
 
 		return this[ROLES];
 	}
@@ -127,7 +127,7 @@ export default class User extends Model {
 
 		// query the database for roles
 		if (!this[GRANTS] || refresh)
-			this[GRANTS] = Grant.query(this[Model.Symbols.CONN], q => q.getAll(this.id, {index: 'user_id'}));
+			this[GRANTS] = models.Grant.query(this[Model.Symbols.CONN], q => q.getAll(this.id, {index: 'user_id'}));
 
 		return this[GRANTS];
 	}
@@ -153,4 +153,8 @@ export default class User extends Model {
 	}
 
 
-}
+};
+
+models.Role = require('./Role');
+models.Grant = require('./Grant');
+models.Credential = require('./Credential');

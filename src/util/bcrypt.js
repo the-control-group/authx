@@ -1,6 +1,6 @@
-import bcrypt from 'bcrypt';
+const bcrypt = require('bcrypt');
 
-export var genSalt = async (a) => {
+module.exports.genSalt = async (a) => {
 	return new Promise((resolve, reject) => {
 		return bcrypt.genSalt(a, (err, res) => {
 			if(err) return reject(err);
@@ -9,7 +9,7 @@ export var genSalt = async (a) => {
 	});
 };
 
-export var hash = async (plain, rounds) => {
+module.exports.hash = async (plain, rounds) => {
 	return new Promise((resolve, reject) => {
 		return bcrypt.hash(plain, rounds, (err, res) => {
 			if(err) return reject(err);
@@ -18,7 +18,7 @@ export var hash = async (plain, rounds) => {
 	});
 };
 
-export var compare = async (a, b) => {
+module.exports.compare = async (a, b) => {
 	return new Promise((resolve, reject) => {
 		return bcrypt.compare(a, b, (err, res) => {
 			if(err) return reject(err);

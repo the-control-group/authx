@@ -1,12 +1,14 @@
-import r from 'rethinkdb';
-import Model from '../Model';
-import Credential from './Credential';
-import validate from '../util/validator';
-import * as errors from '../errors';
+const r = require('rethinkdb');
+const Model = require('../Model');
+const validate = require('../util/validator');
+const errors = require('../errors');
 
 const CREDENTIALS = Symbol('credentials');
 
-export default class Authority extends Model {
+// this is used to get around limitations of circular dependancies in commonjs
+const models = {};
+
+module.exports = class Authority extends Model {
 
 	static get table() {
 		return 'authorities';
@@ -63,9 +65,11 @@ export default class Authority extends Model {
 
 		// query the database for users
 		if (!this[CREDENTIALS] || refresh)
-			this[CREDENTIALS] = await Credential.query(this[Model.Symbols.CONN], q => q.getAll(this.id, {index: 'authority_id'}));
+			this[CREDENTIALS] = await models.Credential.query(this[Model.Symbols.CONN], q => q.getAll(this.id, {index: 'authority_id'}));
 
 		return this[CREDENTIALS];
 	}
 
-}
+};
+
+models.Credential = require('./Credential');

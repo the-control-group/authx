@@ -1,9 +1,9 @@
-import jwt from 'jsonwebtoken';
-import errors from '../errors';
-import User from '../models/User';
-import x from '../namespace';
+const jwt = require('jsonwebtoken');
+const errors = require('../errors');
+const User = require('../models/User');
+const x = require('../namespace');
 
-export default async (ctx, next) => {
+module.exports = async (ctx, next) => {
 	let token;
 
 

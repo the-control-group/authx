@@ -1,6 +1,6 @@
-import * as errors from '../errors';
+const errors = require('../errors');
 
-export function parseIncludes(includable, ctx) {
+module.exports.parseIncludes = function parseIncludes(includable, ctx) {
 	if (!ctx.query.include)
 		return null;
 
@@ -26,9 +26,9 @@ export function parseIncludes(includable, ctx) {
 
 
 	return includes;
-}
+};
 
-export function parseRoles(ctx) {
+module.exports.parseRoles = function parseRoles(ctx) {
 	if (!ctx.query.role_ids)
 		return null;
 
@@ -51,4 +51,4 @@ export function parseRoles(ctx) {
 
 
 	return role_ids;
-}
+};

@@ -1,33 +1,33 @@
 'use strict';
 
-import jjv from 'jjv';
+const jjv = require('jjv');
 
 var env = jjv();
-import profile from '../../schema/profile';
+const profile = require('../../schema/profile');
 env.addSchema(profile);
 
-import authority from '../../schema/authority';
-import authorities from '../../fixtures/authorities';
+const authority = require('../../schema/authority');
+const authorities = require('../../fixtures/authorities');
 env.addSchema(authority);
 
-import client from '../../schema/client';
-import clients from '../../fixtures/clients';
+const client = require('../../schema/client');
+const clients = require('../../fixtures/clients');
 env.addSchema(client);
 
-import credential from '../../schema/credential';
-import credentials from '../../fixtures/credentials';
+const credential = require('../../schema/credential');
+const credentials = require('../../fixtures/credentials');
 env.addSchema(credential);
 
-import grant from '../../schema/grant';
-import grants from '../../fixtures/grants';
+const grant = require('../../schema/grant');
+const grants = require('../../fixtures/grants');
 env.addSchema(grant);
 
-import role from '../../schema/role';
-import roles from '../../fixtures/roles';
+const role = require('../../schema/role');
+const roles = require('../../fixtures/roles');
 env.addSchema(role);
 
-import user from '../../schema/user';
-import users from '../../fixtures/users';
+const user = require('../../schema/user');
+const users = require('../../fixtures/users');
 env.addSchema(user);
 
 

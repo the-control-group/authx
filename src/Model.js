@@ -1,11 +1,11 @@
-import r from 'rethinkdb';
-import _ from 'lodash';
+const r = require('rethinkdb');
+const _ = require('lodash');
 
-import * as errors from './errors';
+const errors = require('./errors');
 
 const CONN = Symbol('conn');
 
-export default class Model {
+class Model {
 
 
 
@@ -144,3 +144,5 @@ export default class Model {
 Model.Symbols = {
 	CONN: CONN
 };
+
+module.exports = Model;

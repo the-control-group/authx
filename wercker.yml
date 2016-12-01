@@ -1,4 +1,6 @@
-box: nodesource/trusty:6
+box:
+  id: node:7.1.0-alpine
+  cmd: /bin/sh
 
 services:
   - rethinkdb:2.3

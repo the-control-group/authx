@@ -1,15 +1,15 @@
-import jjv from 'jjv';
-import jwt from 'jsonwebtoken';
-import Handlebars from 'handlebars';
-import json from '../util/json';
-import form from '../util/form';
-import nodemailer from 'nodemailer';
-import * as errors from '../errors';
-import x from '../namespace';
+const jjv = require('jjv');
+const jwt = require('jsonwebtoken');
+const Handlebars = require('handlebars');
+const json = require('../util/json');
+const form = require('../util/form');
+const nodemailer = require('nodemailer');
+const errors = require('../errors');
+const x = require('../namespace');
 
-import Strategy from '../Strategy';
-import Credential from '../models/Credential';
-import User from '../models/User';
+const Strategy = require('../Strategy');
+const Credential = require('../models/Credential');
+const User = require('../models/User');
 
 const env = jjv();
 
@@ -68,7 +68,7 @@ env.addSchema({
 });
 
 
-export default class EmailStrategy extends Strategy {
+module.exports = class EmailStrategy extends Strategy {
 
 	async authenticate(ctx) {
 		ctx.redirect_to = ctx.query.url;
@@ -246,4 +246,4 @@ export default class EmailStrategy extends Strategy {
 		return Strategy.prototype.updateCredential.call(this, credential, delta);
 	}
 
-}
+};
