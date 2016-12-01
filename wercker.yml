@@ -1,6 +1,4 @@
-box:
-  id: node:7.1.0-alpine
-  cmd: /bin/sh
+box: node:7
 
 services:
   - rethinkdb:2.3
