@@ -96,6 +96,11 @@ module.exports = class PasswordStrategy extends Strategy {
 			: (await Credential.get(this.conn, credential_id)).user_id;
 
 
+		// make sure this is the correct user
+		if (ctx[x].user && (ctx[x].user.id !== user_id))
+			throw new errors.AuthenticationError('You are already logged in as a different user.');
+
+
 		// get the user's password credential
 		var credential = await Credential.get(this.conn, [this.authority.id, user_id]);
 

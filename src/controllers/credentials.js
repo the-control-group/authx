@@ -76,6 +76,10 @@ module.exports.patch = async function patch(ctx) {
 	var credential = await Credential.get(ctx[x].conn, [ctx.params.credential_id_0, ctx.params.credential_id_1]);
 	await protect(ctx, ctx[x].authx.config.realm + ':credential.' + credential.authority_id + '.' +(ctx[x].user && ctx[x].user.id === credential.user_id ? 'me' : 'user') + ':update');
 
+	// make sure the user_id isn't changed
+	if (data.user_id && data.user_id !== credential.user_id)
+		throw new errors.ValidationError('The `user_id` of a credential cannot be changed.', {user_id: {enum: [credential.user_id]}});
+
 	// fetch the authority
 	var authority = await credential.authority();
 

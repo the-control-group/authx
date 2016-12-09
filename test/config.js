@@ -10,7 +10,7 @@ module.exports = {
 	db: {
 		host: process.env.RETHINKDB_PORT_29015_TCP_ADDR || '127.0.0.1',
 		port: process.env.RETHINKDB_PORT_28015_TCP_PORT || '28015',
-		db: 'AuthX_test',
+		db: 'AuthX',
 		pool: {}
 	},
 

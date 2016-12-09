@@ -16,8 +16,7 @@ const GoogleStrategy = require('./strategies/google');
 const PasswordStrategy = require('./strategies/password');
 const SecretStrategy = require('./strategies/secret');
 const InContactStrategy = require('./strategies/incontact');
-const CakeStrategy = require('./strategies/cake');
-Object.assign(exports, { EmailStrategy, GoogleStrategy, PasswordStrategy, SecretStrategy, InContactStrategy, CakeStrategy });
+Object.assign(exports, { EmailStrategy, GoogleStrategy, PasswordStrategy, SecretStrategy, InContactStrategy });
 
 
 

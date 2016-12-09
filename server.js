@@ -1,8 +1,11 @@
+const path = require('path');
 const Koa = require('koa');
-const AuthX = require('./index');
+const send = require('koa-send');
+const AuthX = require('./src/index');
 const { EmailStrategy, GoogleStrategy, PasswordStrategy, SecretStrategy, InContactStrategy } = AuthX;
 
-const config = require(process.argv[2] || process.env.AUTHX_CONFIG_FILE || '../config');
+const config = require(process.argv[2] || process.env.AUTHX_CONFIG_FILE || './config');
+const root = path.join(__dirname, 'public');
 
 
 // create a Koa app
@@ -22,6 +25,12 @@ const authx = new AuthX(config, {
 
 // apply the AuthX routes to the app
 app.use(authx.routes());
+
+
+// serve reference UI
+app.use(async (ctx) => {
+	await send(ctx, (ctx.path || '/').replace(/^(.*)\/$/, '$1/index.html'), { root });
+});
 
 
 // log errors - everything as JSON makes a happier you

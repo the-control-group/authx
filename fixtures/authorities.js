@@ -12,9 +12,12 @@ module.exports = {
 		strategy: 'email',
 		details: {
 			expiresIn: 3600,
-			subject: 'Reset your password',
-			text: '{{{token}}}',
-			html: '<a href="{{url}}">reset</a>',
+			authentication_email_subject: 'Reset your password',
+			authentication_email_text: '{{{token}}}',
+			authentication_email_html: '<a href="{{url}}">reset</a>',
+			verification_email_subject: 'Verify your email',
+			verification_email_text: '{{{token}}}',
+			verification_email_html: '<a href="{{url}}">verify</a>',
 			mailer: {
 				transport: null,
 				auth: {},

@@ -4,12 +4,15 @@ const jwt = require('jsonwebtoken');
 const crypto = require('crypto');
 const request = require('request-promise');
 const errors = require('../errors');
+const { can } = require('../util/protect');
 const profileSchema = require('../../schema/profile');
 
 const Strategy = require('../Strategy');
 const Credential = require('../models/Credential');
 const Role = require('../models/Role');
 const User = require('../models/User');
+
+const x = require('../namespace');
 
 var env = jjv();
 
@@ -166,6 +169,7 @@ module.exports = class OAuth2Strategy extends Strategy {
 			}
 
 
+
 			// look for an existing credential by ID
 			try {
 				credential = await Credential.update(this.conn, [this.authority.id, details.sub], {
@@ -173,7 +177,13 @@ module.exports = class OAuth2Strategy extends Strategy {
 					profile: profile,
 					last_used: Date.now()
 				});
+
+				// if already logged in, make sure this credential belongs to the logged-in user
+				if (ctx[x].user && ctx[x].user.id !== credential.user_id)
+					throw new errors.ConflictError('This Google account is associated with a different user.');
+
 				user = await User.get(this.conn, credential.user_id);
+
 			} catch (err) { if (!(err instanceof errors.NotFoundError)) throw err; }
 
 
@@ -186,6 +196,10 @@ module.exports = class OAuth2Strategy extends Strategy {
 			) try {
 				let email_credential = await Credential.get(this.conn, [this.authority.details.email_authority_id, details.email]);
 				user = await User.get(this.conn, email_credential.user_id);
+
+				// if already logged in, make sure this credential belongs to the logged-in user
+				if (ctx[x].user && ctx[x].user.id !== user.id)
+					throw new errors.ConflictError('This email address is already associated with a different user.');
 
 				// create a new credential
 				credential = await Credential.create(this.conn, {
@@ -205,12 +219,21 @@ module.exports = class OAuth2Strategy extends Strategy {
 			} catch (err) { if (!(err instanceof errors.NotFoundError)) throw err; }
 
 
-
-			// create a brand-new user
+			// this account is not yet associated with our system
 			if (!credential) {
 
+				// associate with the logged-in user
+				if (ctx[x].user) {
+
+					// make sure the logged-in user is allowed to add credentials
+					if (!can(ctx, ctx[x].authx.config.realm + ':credential.' + this.authority.id + '.me' +  ':create'))
+						throw new errors.ForbiddenError(`You are not permitted to create a new ${this.authority.name} credential for yourself.`);
+
+					user = ctx[x].user;
+				}
+
 				// create a new user account
-				user = await User.create(this.conn, {
+				else user = await User.create(this.conn, {
 					type: 'human',
 					profile: without(profile, 'id')
 				});
