@@ -2,7 +2,7 @@ const path = require('path');
 const Koa = require('koa');
 const send = require('koa-send');
 const AuthX = require('./src/index');
-const { EmailStrategy, GoogleStrategy, PasswordStrategy, SecretStrategy, InContactStrategy } = AuthX;
+const { EmailStrategy, GoogleStrategy, PasswordStrategy, SecretStrategy, InContactStrategy, OneLoginStrategy } = AuthX;
 
 const config = require(process.argv[2] || process.env.AUTHX_CONFIG_FILE || './config');
 const root = path.join(__dirname, 'public');
@@ -19,7 +19,8 @@ const authx = new AuthX(config, {
 	google: GoogleStrategy,
 	password: PasswordStrategy,
 	secret: SecretStrategy,
-	incontact: InContactStrategy
+	incontact: InContactStrategy,
+	onelogin: OneLoginStrategy
 });
 
 

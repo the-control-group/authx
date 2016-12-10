@@ -1,6 +1,6 @@
 [![wercker status](https://app.wercker.com/status/fe30b946cc0ec765b7f89d03ae512793/s/master "wercker status")](https://app.wercker.com/project/bykey/fe30b946cc0ec765b7f89d03ae512793)
 
-This is the TCG auth service. It's named AuthX because it's an "exchange" of sorts, consolidating upstream identities from several authorities into a single identity for downstream clients. AuthX uses the (kinda disgusting) OAuth2 framework in both directions, and adds an *authorization* layer. Authorizations are based on scopes.
+This is the TCG auth service. It's named AuthX because it's an "exchange" of sorts, consolidating upstream identities from several authorities into a single identity for downstream clients. AuthX uses the (kinda disgusting) OAuth2 framework in both directions, and adds an *authorization* layer. Authorizations are based on the [simple scopes spec](https://github.com/the-control-group/scopeutils).
 
 
 Concepts
@@ -16,16 +16,20 @@ An authority is a mechanism for authentication, and provides the configuration f
 1. **email** - use an email address to verify a visitor's identity (most people call this "reset your password")
 2. **password** - verify your identity with a password (which is protected with bcrypt)
 3. **google** - connect to one or more Google and Google Apps accounts
+4. **onelogin** - connect to one or more OneLogin accounts through SAML
 
 
 ### Credential
 Credentials connect users to authorities. A user can typically have multiple authorities of the same authority (multiple emails, for example).
 
 ### Client
+Clients are downstream applications that uses AuthX for authentication/authorization.
 
 ### Grant
+A user gives a client permission to act on her behalf via a grant.
 
 ### Role
+A role bestows its permissions to every user it includes.
 
 
 ```
