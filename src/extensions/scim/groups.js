@@ -1,3 +1,5 @@
+'use strict';
+
 const Promise = require('bluebird');
 const Filter = require('scim-query-filter-parser');
 const json = require('../../util/json');

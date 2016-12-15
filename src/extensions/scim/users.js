@@ -1,3 +1,5 @@
+'use strict';
+
 const Promise = require('bluebird');
 const Filter = require('scim-query-filter-parser');
 const json = require('../../util/json');
@@ -25,11 +27,17 @@ module.exports.post = async function post(ctx) {
 			throw err;
 	}
 
+
 	// create the user
-	var user = await User.create(ctx[x].conn, {
+	var userData = {
 		type: 'human',
-		profile: profile
-	});
+		profile: profile,
+	};
+
+	if (typeof scimData.active === 'boolean')
+		userData.status = scimData.active ? 'active' : 'disabled';
+
+	var user = await User.create(ctx[x].conn, userData);
 
 	// create the credential
 	await Credential.create(ctx[x].conn, {
@@ -109,7 +117,14 @@ module.exports.put = async function put(ctx) {
 		throw new errors.ValidationError('A userName must be supplied.');
 
 	// update the user
-	var user = await User.update(ctx[x].conn, ctx.params.user_id, {profile: profile});
+	var userData = {
+		profile: profile,
+	};
+
+	if (typeof scimData.active === 'boolean')
+		userData.status = scimData.active ? 'active' : 'disabled';
+
+	var user = await User.update(ctx[x].conn, ctx.params.user_id, userData);
 
 	// update the credential
 	await Credential.save(ctx[x].conn, [ctx[e].config.authorityId, scimData.userName], {
@@ -137,11 +152,12 @@ async function mapAuthXUserToSCIMUser (user, ctx) {
 		id: user.id,
 		externalId: null,
 		userName: null,
+		active: user.status === 'active',
+		groups: [],
 		meta: {
 			created: user.created,
 			lastModified: user.last_updated
 		},
-		groups: []
 	};
 
 	const credential = (await user.credentials()).filter((credential) => credential.authority_id === authorityId )[0] || null;

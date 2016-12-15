@@ -1,3 +1,5 @@
+'use strict';
+
 const Router = require('koa-router');
 const users = require('./users');
 const groups = require('./groups');
