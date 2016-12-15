@@ -70,7 +70,7 @@ module.exports = class PasswordStrategy extends Strategy {
 
 		// send authenticate headers
 		if (!request) {
-			ctx.set('WWW-Authenticate', 'Basic realm="' + ctx[x].config.realm + '"');
+			ctx.set('WWW-Authenticate', 'Basic realm="' + ctx[x].authx.config.realm + '"');
 			ctx.throw(401, 'HTTP Basic credentials are required.');
 		}
 

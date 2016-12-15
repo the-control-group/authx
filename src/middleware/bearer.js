@@ -18,7 +18,7 @@ module.exports = async (ctx, next) => {
 				issuer: ctx[x].authx.config.realm
 			});
 		} catch (err) { return; }
-	})) throw errors.AuthenticationError('The supplied bearer token is invalid.');
+	})) throw new errors.AuthenticationError('The supplied bearer token is invalid.');
 
 	return next();
 };

@@ -2,7 +2,7 @@ const path = require('path');
 const Koa = require('koa');
 const send = require('koa-send');
 const AuthX = require('./src/index');
-const { EmailStrategy, GoogleStrategy, PasswordStrategy, SecretStrategy, InContactStrategy, OneLoginStrategy } = AuthX;
+const { EmailStrategy, GoogleStrategy, PasswordStrategy, SecretStrategy, InContactStrategy, OneLoginStrategy, SCIMExtension } = AuthX;
 
 const config = require(process.argv[2] || process.env.AUTHX_CONFIG_FILE || './config');
 const root = path.join(__dirname, 'public');
@@ -22,6 +22,18 @@ const authx = new AuthX(config, {
 	incontact: InContactStrategy,
 	onelogin: OneLoginStrategy
 });
+
+
+// create a new instanciate of the SCIM extension
+const scim = new SCIMExtension({
+	authorityId: 'onelogin',
+	emailAuthorityId: 'email',
+	passwordAuthorityId: 'password',
+});
+
+
+// apply the SCIM extension
+authx.use(scim.routes());
 
 
 // apply the AuthX routes to the app

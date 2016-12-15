@@ -1,5 +1,4 @@
 const jjv = require('jjv');
-const request = require('request-promise');
 const { IdentityProvider, ServiceProvider } = require('saml2-js');
 const errors = require('../errors');
 const form = require('../util/form');
@@ -8,7 +7,6 @@ const profileSchema = require('../../schema/profile');
 
 const Strategy = require('../Strategy');
 const Credential = require('../models/Credential');
-const Role = require('../models/Role');
 const User = require('../models/User');
 
 const x = require('../namespace');
@@ -103,12 +101,6 @@ env.addSchema({
 			type: 'string',
 			title: 'Client Secret',
 			description: 'The OneLogin client secret for API access.'
-		},
-		email_authority_id: {
-			type: ['null', 'string'],
-			title: 'Email Authority ID',
-			description: 'The ID of an email authority with which verified email addresses can be registered.',
-			default: null
 		}
 	},
 	required: [
@@ -178,8 +170,6 @@ module.exports = class OAuth2Strategy extends Strategy {
 			});
 
 
-
-			// TODO: get the user's profile from the OneLogin API
 			let profile = {
 				id: response.user.name_id,
 				displayName: ''
@@ -206,8 +196,6 @@ module.exports = class OAuth2Strategy extends Strategy {
 			} catch (err) { if (!(err instanceof errors.NotFoundError)) throw err; }
 
 
-
-			// TODO: lookup customer by verified email
 
 
 			// this account is not yet associated with our system
@@ -237,11 +225,6 @@ module.exports = class OAuth2Strategy extends Strategy {
 					details: details,
 					profile: profile
 				});
-
-				// TODO: create a new email credential
-
-				// TODO: assign the user to all configured roles
-
 			}
 
 

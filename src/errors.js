@@ -59,3 +59,12 @@ module.exports.ServerError = class ServerError extends Error {
 	}
 };
 
+module.exports.NotImplementedError = class NotImplementedError extends Error {
+	constructor(message, fileName, lineNumber) {
+		super(message, fileName, lineNumber);
+		this.expose = true;
+		this.message = message || 'The requested functionality is not implemented.';
+		this.status = this.statusCode = 501;
+	}
+};
+

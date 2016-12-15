@@ -21,6 +21,12 @@ Object.assign(exports, { EmailStrategy, GoogleStrategy, PasswordStrategy, Secret
 
 
 
+// extensions
+const SCIMExtension = require('./extensions/scim');
+Object.assign(exports, { SCIMExtension });
+
+
+
 // models
 const Authority = require('./models/Authority');
 const Client = require('./models/Client');
@@ -51,7 +57,6 @@ const roleController = require('./controllers/roles');
 const userController = require('./controllers/users');
 const sessionController = require('./controllers/session');
 const tokensController = require('./controllers/tokens');
-
 
 
 class AuthX extends Router {

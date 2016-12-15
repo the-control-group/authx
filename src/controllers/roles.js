@@ -14,7 +14,7 @@ module.exports.post = async function post(ctx) {
 module.exports.query = async function query(ctx) {
 	await protect(ctx, ctx[x].authx.config.realm + ':role.*:read', false);
 	var roles = await Role.query(ctx[x].conn);
-	ctx.body = await Promise.filter(roles, r => can(ctx, ctx[x].authx.config.realm + ':role.' + r.id + ':get'));
+	ctx.body = await Promise.filter(roles, r => can(ctx, ctx[x].authx.config.realm + ':role.' + r.id + ':read'));
 };
 
 module.exports.get = async function get(ctx) {

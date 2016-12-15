@@ -6,7 +6,6 @@
   "repository": "https://github.com/the-control-group/authx",
   "scripts": {
     "bootstrap": "node bin/bootstrap.js",
-    "build": "gulp",
     "lint": "eslint src",
     "start": "nodemon --harmony_async_await server.js",
     "test": "node_modules/mocha/bin/mocha --harmony_async_await test/tests/*"
@@ -28,6 +27,7 @@
     "request-promise": "^1.0.1",
     "rethinkdb": "^2.2.0",
     "saml2-js": "^1.10.0",
+    "scim-query-filter-parser": "^1.1.0",
     "scopeutils": "^1.0.0",
     "uuid": "^2.0.1"
   },
@@ -35,8 +35,6 @@
     "async": "^1.5.0",
     "chai": "^3.3.0",
     "eslint": "^3.11.1",
-    "gulp": "^3.9.0",
-    "gulp-babel": "^6.1.1",
     "koa": "^2.0.0",
     "koa-send": "^3.2.0",
     "mocha": "^2.3.3",
