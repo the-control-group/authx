@@ -91,6 +91,11 @@ env.addSchema({
 				'sso_logout_url',
 				'certificates'
 			]
+		},
+		default_redirect: {
+			type: ['string', 'null'],
+			title: 'Default URL to which users are redirected.',
+			default: null
 		}
 	},
 	required: [
@@ -155,7 +160,7 @@ module.exports = class OneLoginStrategy extends Strategy {
 		if (ctx.method === 'POST') {
 
 			// retrieve the url from the cookie
-			ctx.redirect_to = ctx.cookies.get('AuthX/session/' + this.authority.id + '/url');
+			ctx.redirect_to = ctx.cookies.get('AuthX/session/' + this.authority.id + '/url') || this.authority.details.default_redirect;
 			ctx.cookies.set('AuthX/session/' + this.authority.id + '/url');
 
 
