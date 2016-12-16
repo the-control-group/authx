@@ -1,7 +1,7 @@
 const jjv = require('jjv');
 const { IdentityProvider, ServiceProvider } = require('saml2-js');
 const errors = require('../errors');
-const parse = require('raw-body');
+const form = require('../util/form');
 const { can } = require('../util/protect');
 const profileSchema = require('../../schema/profile');
 
@@ -159,12 +159,12 @@ module.exports = class OneLoginStrategy extends Strategy {
 			ctx.cookies.set('AuthX/session/' + this.authority.id + '/url');
 
 
-			let body = await parse(ctx.req, {encoding: 'utf8'});
+			let body = await form(ctx.req);
 
 			debug('Test OneLogin assertion.', body);
 
 			let response = await new Promise((resolve, reject) => {
-				sp.post_assert(idp, {request_body: {SAMLResponse: body}, ignore_signature: true, allow_unencrypted_assertion: true}, function(err, response) {
+				sp.post_assert(idp, {request_body: body, ignore_signature: true, allow_unencrypted_assertion: true}, function(err, response) {
 					if (err) return reject(err);
 					resolve(response);
 				});
