@@ -1,7 +1,7 @@
 const jjv = require('jjv');
 const { IdentityProvider, ServiceProvider } = require('saml2-js');
 const errors = require('../errors');
-const form = require('../util/form');
+const parse = require('raw-body');
 const { can } = require('../util/protect');
 const profileSchema = require('../../schema/profile');
 
@@ -91,24 +91,11 @@ env.addSchema({
 				'sso_logout_url',
 				'certificates'
 			]
-		},
-		client_id: {
-			type: 'string',
-			title: 'Client Id',
-			description: 'The OneLogin client id for API access.'
-		},
-		client_secret: {
-			type: 'string',
-			title: 'Client Secret',
-			description: 'The OneLogin client secret for API access.'
 		}
 	},
 	required: [
-		'private_key',
-		'certificate',
-		'identity_provider',
-		'client_id',
-		'client_secret'
+		'service_provider',
+		'identity_provider'
 	]
 });
 
@@ -127,9 +114,21 @@ function without(o, key) {
 }
 
 
-module.exports = class OAuth2Strategy extends Strategy {
+module.exports = class OneLoginStrategy extends Strategy {
 
 	async authenticate(ctx) {
+		let lastUsed = Date.now();
+
+
+		function debug(message, data) {
+			ctx.app.emit('debug', {
+				message: message,
+				class: 'OneLoginStrategy',
+				timestamp: Date.now(),
+				type: 'strategy',
+				data: data
+			});
+		}
 
 
 		// instantiate the SAML identity provider
@@ -160,14 +159,18 @@ module.exports = class OAuth2Strategy extends Strategy {
 			ctx.cookies.set('AuthX/session/' + this.authority.id + '/url');
 
 
-			let body = await form(ctx.req);
+			let body = await parse(ctx.req, {encoding: 'utf8'});
+
+			debug('Test OneLogin assertion.', body);
 
 			let response = await new Promise((resolve, reject) => {
-				sp.post_assert(idp, {request_body: body, ignore_signature: true}, function(err, response) {
+				sp.post_assert(idp, {request_body: {SAMLResponse: body}, ignore_signature: true, allow_unencrypted_assertion: true}, function(err, response) {
 					if (err) return reject(err);
 					resolve(response);
 				});
 			});
+
+			debug('Assertion test finished.', response);
 
 
 			let profile = {
@@ -181,10 +184,16 @@ module.exports = class OAuth2Strategy extends Strategy {
 
 			// look for an existing credential by ID
 			try {
+
+				debug('Checking for an existing credential by ID', {
+					authorityId: this.authority.id,
+					userName: response.user.name_id
+				});
+
 				credential = await Credential.update(this.conn, [this.authority.id, response.user.name_id], {
 					details: details,
 					profile: profile,
-					last_used: Date.now()
+					last_used: lastUsed
 				});
 
 				// if already logged in, make sure this credential belongs to the logged-in user
@@ -208,20 +217,41 @@ module.exports = class OAuth2Strategy extends Strategy {
 					if (!can(ctx, ctx[x].authx.config.realm + ':credential.' + this.authority.id + '.me' +  ':create'))
 						throw new errors.ForbiddenError(`You are not permitted to create a new ${this.authority.name} credential for yourself.`);
 
+					debug('Associating with logged-in user', ctx[x].user);
+
 					user = ctx[x].user;
 				}
 
 				// create a new user account
-				else user = await User.create(this.conn, {
-					type: 'human',
-					profile: without(profile, 'id')
+				else {
+
+					debug('Creating new user.', {
+						type: 'human',
+						profile: without(profile, 'id')
+					});
+
+					user = await User.create(this.conn, {
+						type: 'human',
+						profile: without(profile, 'id')
+					});
+				}
+
+				debug('Creating new credential.', {
+					user: user,
+					credential: {
+						id: [this.authority.id, response.user.name_id],
+						user_id: user.id,
+						last_used: lastUsed,
+						details: details,
+						profile: profile
+					}
 				});
 
 				// create a new credential
 				credential = await Credential.create(this.conn, {
 					id: [this.authority.id, response.user.name_id],
 					user_id: user.id,
-					last_used: Date.now(),
+					last_used: lastUsed,
 					details: details,
 					profile: profile
 				});
@@ -251,10 +281,20 @@ module.exports = class OAuth2Strategy extends Strategy {
 			// store the url in a cookie
 			ctx.cookies.set('AuthX/session/' + this.authority.id + '/url', ctx.query.url);
 
+			debug('Creating login request.');
 
 			let url = await new Promise((resolve, reject) => {
-				sp.create_login_request_url(idp, {}, function(err, loginUrl) {
-					if (err) return reject(err);
+				sp.create_login_request_url(idp, {}, function(err, loginUrl, requestId) {
+					if (err) {
+						debug('Error creating login request.', err);
+						return reject(err);
+					}
+
+					debug('Login request received.', {
+						loginUrl: loginUrl,
+						requestId: requestId
+					});
+
 					resolve(loginUrl);
 				});
 			});
