@@ -1,6 +1,6 @@
 {
   "name": "authx",
-  "version": "1.2.3",
+  "version": "1.2.4",
   "description": "",
   "main": "src/index.js",
   "repository": "https://github.com/the-control-group/authx",
