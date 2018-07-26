@@ -21,7 +21,7 @@
     "jjv": "^1.0.2",
     "jsonwebtoken": "^5.4.0",
     "koa-router": "^7.0.1",
-    "lodash": "^3.10.1",
+    "lodash": "^4.17.10",
     "nodemailer": "^1.8.0",
     "raw-body": "^2.1.5",
     "request-promise": "^1.0.1",
