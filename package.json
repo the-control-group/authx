@@ -13,33 +13,33 @@
   "author": "",
   "license": "UNLICENSED",
   "dependencies": {
-    "basic-auth": "^1.0.3",
-    "bcrypt": "^0.8.5",
+    "basic-auth": "^2.0.1",
+    "bcrypt": "^3.0.4",
     "bluebird": "^3.0.6",
-    "generic-pool": "^2.2.0",
+    "generic-pool": "^3.6.1",
     "handlebars": "^4.0.3",
     "jjv": "^1.0.2",
-    "jsonwebtoken": "^5.4.0",
+    "jsonwebtoken": "^8.5.0",
     "koa-router": "^7.0.1",
     "lodash": "^4.17.10",
-    "nodemailer": "^1.8.0",
+    "nodemailer": "^5.1.1",
     "raw-body": "^2.1.5",
-    "request-promise": "^1.0.1",
+    "request-promise": "^4.2.4",
     "rethinkdb": "^2.2.0",
-    "saml2-js": "^1.10.0",
+    "saml2-js": "^2.0.3",
     "scim-query-filter-parser": "^1.1.0",
     "scopeutils": "^1.0.0",
-    "uuid": "^2.0.1"
+    "uuid": "^3.3.2"
   },
   "devDependencies": {
-    "async": "^1.5.0",
-    "chai": "^3.3.0",
-    "eslint": "^3.11.1",
+    "async": "^2.6.2",
+    "chai": "^4.2.0",
+    "eslint": "^5.14.1",
     "koa": "^2.0.0",
-    "koa-send": "^3.2.0",
-    "mocha": "^2.3.3",
+    "koa-send": "^5.0.0",
+    "mocha": "^6.0.0",
     "nodemon": "^1.11.0",
-    "supertest": "^1.1.0"
+    "supertest": "^3.4.2"
   },
   "peerDependencies": {
     "koa": "^2.0.0"
