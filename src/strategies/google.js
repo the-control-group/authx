@@ -31,17 +31,20 @@ env.addSchema({
 		email_authority_id: {
 			type: ['null', 'string'],
 			title: 'Email Authority ID',
-			description: 'The ID of an email authority with which verified email addresses can be registered.',
+			description:
+				'The ID of an email authority with which verified email addresses can be registered.',
 			default: null
 		},
 		email_domains: {
 			type: ['null', 'object'],
 			title: 'Email Domains',
-			description: 'Restrict creation of new users to these domain names. If null, all domains are allowed.',
+			description:
+				'Restrict creation of new users to these domain names. If null, all domains are allowed.',
 			additionalProperties: {
 				type: 'array',
 				title: 'Domain Role IDs',
-				description: 'The IDs of AuthX roles to assign any users verified with this domain.',
+				description:
+					'The IDs of AuthX roles to assign any users verified with this domain.',
 				items: {
 					type: 'string'
 				}
@@ -51,14 +54,12 @@ env.addSchema({
 		role_ids: {
 			type: 'array',
 			title: 'Role IDs',
-			description: 'The IDs of AuthX roles to assign any users verified by this authority.',
+			description:
+				'The IDs of AuthX roles to assign any users verified by this authority.',
 			default: []
 		}
 	},
-	required: [
-		'client_id',
-		'client_secret'
-	]
+	required: ['client_id', 'client_secret']
 });
 
 env.addSchema({
@@ -75,66 +76,68 @@ function without(o, key) {
 	return o;
 }
 
-
 module.exports = class OAuth2Strategy extends Strategy {
-
 	async authenticate(ctx) {
-
-
-
 		// Complete Authorization Request
 		// ------------------------------
 
-
 		if (ctx.query.code) {
-
 			// retrieve the url from the cookie
-			ctx.redirect_to = ctx.cookies.get('AuthX/session/' + this.authority.id + '/url');
+			ctx.redirect_to = ctx.cookies.get(
+				'AuthX/session/' + this.authority.id + '/url'
+			);
 			ctx.cookies.set('AuthX/session/' + this.authority.id + '/url');
 
 			// retreive the state from the cookie
-			let state = ctx.cookies.get('AuthX/session/' + this.authority.id + '/state');
+			let state = ctx.cookies.get(
+				'AuthX/session/' + this.authority.id + '/state'
+			);
 			if (ctx.query.state !== state)
 				throw new errors.ValidationError('Mismatched state parameter.');
 
-
 			// get an oauth access token & details
-			let response = JSON.parse(await request({
-				method: 'POST',
-				uri: 'https://www.googleapis.com/oauth2/v3/token',
-				form: {
-					client_id: this.authority.details.client_id,
-					client_secret: this.authority.details.client_secret,
-					redirect_uri: ctx.request.protocol + '://' + ctx.request.host + ctx.request.path,
-					grant_type: 'authorization_code',
-					code: ctx.query.code,
-					state: state
-				}
-			}));
-
+			let response = JSON.parse(
+				await request({
+					method: 'POST',
+					uri: 'https://www.googleapis.com/oauth2/v3/token',
+					form: {
+						client_id: this.authority.details.client_id,
+						client_secret: this.authority.details.client_secret,
+						redirect_uri:
+							ctx.request.protocol +
+							'://' +
+							ctx.request.host +
+							ctx.request.path,
+						grant_type: 'authorization_code',
+						code: ctx.query.code,
+						state: state
+					}
+				})
+			);
 
 			// get the user's profile from the Google+ API
-			let profile = JSON.parse(await request({
-				method: 'GET',
-				uri: 'https://www.googleapis.com/plus/v1/people/me',
-				headers: {
-					'Authorization': 'Bearer ' + response.access_token
-				}
-			}));
-
-
+			let profile = JSON.parse(
+				await request({
+					method: 'GET',
+					uri: 'https://www.googleapis.com/plus/v1/people/me',
+					headers: {
+						Authorization: 'Bearer ' + response.access_token
+					}
+				})
+			);
 
 			// normalize the profile with our schema
-			if(profile.url && !profile.urls)
-				profile.urls = [{value: profile.url}];
+			if (profile.url && !profile.urls) profile.urls = [{ value: profile.url }];
 
-			if(profile.image && profile.image.url && !profile.photos)
-				profile.photos = [{value: profile.image.url}];
+			if (profile.image && profile.image.url && !profile.photos)
+				profile.photos = [{ value: profile.image.url }];
 
-			var err = env.validate('profile', profile, {removeAdditional: true});
-			if (err) throw new errors.ValidationError('The credential details were invalid.', err.validation);
-
-
+			var err = env.validate('profile', profile, { removeAdditional: true });
+			if (err)
+				throw new errors.ValidationError(
+					'The credential details were invalid.',
+					err.validation
+				);
 
 			// TODO: right now we aren't verifying any of the JWT's assertions! We need to get Google's public
 			// keys from https://www.googleapis.com/oauth2/v1/certs (because they change every day or so) and
@@ -145,18 +148,19 @@ module.exports = class OAuth2Strategy extends Strategy {
 			// decode the JWT
 			let details = jwt.decode(response.id_token);
 
-
-
-			let credential, user, role_ids = this.authority.details.role_ids;
-
+			let credential,
+				user,
+				role_ids = this.authority.details.role_ids;
 
 			// check that the email domain is whitelisted
 			if (this.authority.details.email_domains !== null) {
 				let parts = details.email.split('@');
 				let domain = parts[parts.length - 1];
 
-				if(!Array.isArray(this.authority.details.email_domains[domain]))
-					throw new errors.AuthenticationError('The email domain "' + parts[parts.length - 1] + '" is not allowed.');
+				if (!Array.isArray(this.authority.details.email_domains[domain]))
+					throw new errors.AuthenticationError(
+						'The email domain "' + parts[parts.length - 1] + '" is not allowed.'
+					);
 
 				// add role_ids specific to the email domain
 				role_ids = role_ids
@@ -165,78 +169,104 @@ module.exports = class OAuth2Strategy extends Strategy {
 						if (reduction.indexOf(role_id) < 0) reduction.push(role_id);
 						return reduction;
 					}, []);
-
 			}
-
-
 
 			// look for an existing credential by ID
 			try {
-				credential = await Credential.update(this.conn, [this.authority.id, details.sub], {
-					details: details,
-					profile: profile,
-					last_used: Date.now()
-				});
+				credential = await Credential.update(
+					this.conn,
+					[this.authority.id, details.sub],
+					{
+						details: details,
+						profile: profile,
+						last_used: Date.now()
+					}
+				);
 
 				// if already logged in, make sure this credential belongs to the logged-in user
 				if (ctx[x].user && ctx[x].user.id !== credential.user_id)
-					throw new errors.ConflictError('This Google account is associated with a different user.');
+					throw new errors.ConflictError(
+						'This Google account is associated with a different user.'
+					);
 
 				user = await User.get(this.conn, credential.user_id);
-
-			} catch (err) { if (!(err instanceof errors.NotFoundError)) throw err; }
-
-
+			} catch (err) {
+				if (!(err instanceof errors.NotFoundError)) throw err;
+			}
 
 			// lookup customer by verified email
-			if (!credential
-				&& this.authority.details.email_authority_id
-				&& details.email
-				&& details.email_verified
-			) try {
-				let email_credential = await Credential.get(this.conn, [this.authority.details.email_authority_id, details.email]);
-				user = await User.get(this.conn, email_credential.user_id);
+			if (
+				!credential &&
+				this.authority.details.email_authority_id &&
+				details.email &&
+				details.email_verified
+			)
+				try {
+					let email_credential = await Credential.get(this.conn, [
+						this.authority.details.email_authority_id,
+						details.email
+					]);
+					user = await User.get(this.conn, email_credential.user_id);
 
-				// if already logged in, make sure this credential belongs to the logged-in user
-				if (ctx[x].user && ctx[x].user.id !== user.id)
-					throw new errors.ConflictError('This email address is already associated with a different user.');
+					// if already logged in, make sure this credential belongs to the logged-in user
+					if (ctx[x].user && ctx[x].user.id !== user.id)
+						throw new errors.ConflictError(
+							'This email address is already associated with a different user.'
+						);
 
-				// create a new credential
-				credential = await Credential.create(this.conn, {
-					id: [this.authority.id, details.sub],
-					user_id: email_credential.user_id,
-					last_used: Date.now(),
-					details: details,
-					profile: profile
-				});
+					// create a new credential
+					credential = await Credential.create(this.conn, {
+						id: [this.authority.id, details.sub],
+						user_id: email_credential.user_id,
+						last_used: Date.now(),
+						details: details,
+						profile: profile
+					});
 
-				// assign the user to all configured roles
-				let assignments = {}; assignments[user.id] = true;
-				await Promise.all(role_ids.map(id => Role.update(this.conn, id, {
-					assignments: assignments
-				})));
-
-			} catch (err) { if (!(err instanceof errors.NotFoundError)) throw err; }
-
+					// assign the user to all configured roles
+					let assignments = {};
+					assignments[user.id] = true;
+					await Promise.all(
+						role_ids.map(id =>
+							Role.update(this.conn, id, {
+								assignments: assignments
+							})
+						)
+					);
+				} catch (err) {
+					if (!(err instanceof errors.NotFoundError)) throw err;
+				}
 
 			// this account is not yet associated with our system
 			if (!credential) {
-
 				// associate with the logged-in user
 				if (ctx[x].user) {
-
 					// make sure the logged-in user is allowed to add credentials
-					if (!can(ctx, ctx[x].authx.config.realm + ':credential.' + this.authority.id + '.me' +  ':create'))
-						throw new errors.ForbiddenError(`You are not permitted to create a new ${this.authority.name} credential for yourself.`);
+					if (
+						!can(
+							ctx,
+							ctx[x].authx.config.realm +
+								':credential.' +
+								this.authority.id +
+								'.me' +
+								':create'
+						)
+					)
+						throw new errors.ForbiddenError(
+							`You are not permitted to create a new ${
+								this.authority.name
+							} credential for yourself.`
+						);
 
 					user = ctx[x].user;
 				}
 
 				// create a new user account
-				else user = await User.create(this.conn, {
-					type: 'human',
-					profile: without(profile, 'id')
-				});
+				else
+					user = await User.create(this.conn, {
+						type: 'human',
+						profile: without(profile, 'id')
+					});
 
 				// create a new credential
 				credential = await Credential.create(this.conn, {
@@ -258,44 +288,51 @@ module.exports = class OAuth2Strategy extends Strategy {
 				}
 
 				// assign the user to all configured roles
-				let assignments = {}; assignments[user.id] = true;
-				await Promise.all(role_ids.map(id => Role.update(this.conn, id, {
-					assignments: assignments
-				})));
+				let assignments = {};
+				assignments[user.id] = true;
+				await Promise.all(
+					role_ids.map(id =>
+						Role.update(this.conn, id, {
+							assignments: assignments
+						})
+					)
+				);
 			}
-
 
 			return user;
 		}
 
-
-
 		// New Authorization Request
 		// -------------------------
-
 		else {
-
 			// store the url in a cookie
-			ctx.cookies.set('AuthX/session/' + this.authority.id + '/url', ctx.query.url);
+			ctx.cookies.set(
+				'AuthX/session/' + this.authority.id + '/url',
+				ctx.query.url
+			);
 
 			// store the state in a cookie
 			let state = crypto.randomBytes(32).toString('base64');
 			ctx.cookies.set('AuthX/session/' + this.authority.id + '/state', state);
 
 			// redirect the user to the authorization provider
-			ctx.redirect('https://accounts.google.com/o/oauth2/auth?' + qs.stringify({
-				client_id: this.authority.details.client_id,
-				redirect_uri: ctx.request.protocol + '://' + ctx.request.host + ctx.request.path,
-				response_type: 'code',
-				scope: 'https://www.googleapis.com/auth/userinfo.email https://www.googleapis.com/auth/userinfo.profile',
-				state: state
-			}));
-
+			ctx.redirect(
+				'https://accounts.google.com/o/oauth2/auth?' +
+					qs.stringify({
+						client_id: this.authority.details.client_id,
+						redirect_uri:
+							ctx.request.protocol +
+							'://' +
+							ctx.request.host +
+							ctx.request.path,
+						response_type: 'code',
+						scope:
+							'https://www.googleapis.com/auth/userinfo.email https://www.googleapis.com/auth/userinfo.profile',
+						state: state
+					})
+			);
 		}
-
 	}
-
-
 
 	// Authority Methods
 	// -----------------
@@ -304,25 +341,29 @@ module.exports = class OAuth2Strategy extends Strategy {
 		data.details = data.details || {};
 
 		// validate data
-		var err = env.validate('authority', data.details, {useDefault: true});
-		if(err) throw new errors.ValidationError('The authority details were invalid.', err.validation);
+		var err = env.validate('authority', data.details, { useDefault: true });
+		if (err)
+			throw new errors.ValidationError(
+				'The authority details were invalid.',
+				err.validation
+			);
 
 		return Strategy.createAuthority.call(this, conn, data);
 	}
-
-
 
 	static async updateAuthority(authority, delta) {
 		delta.details = delta.details || {};
 
 		// validate data
-		var err = env.validate('authority', delta.details, {useDefault: true});
-		if(err) throw new errors.ValidationError('The authority details were invalid.', err.validation);
+		var err = env.validate('authority', delta.details, { useDefault: true });
+		if (err)
+			throw new errors.ValidationError(
+				'The authority details were invalid.',
+				err.validation
+			);
 
 		return Strategy.updateAuthority.call(this, authority, delta);
 	}
-
-
 
 	// Credential Methods
 	// ------------------
@@ -331,22 +372,27 @@ module.exports = class OAuth2Strategy extends Strategy {
 		data.details = data.details || {};
 
 		// validate data
-		var err = env.validate('credential', data.details, {useDefault: true});
-		if (err) throw new errors.ValidationError('The credential details were invalid.', err.validation);
+		var err = env.validate('credential', data.details, { useDefault: true });
+		if (err)
+			throw new errors.ValidationError(
+				'The credential details were invalid.',
+				err.validation
+			);
 
 		return Strategy.prototype.createCredential.call(this, data);
 	}
-
-
 
 	async updateCredential(credential, delta) {
 		delta.details = delta.details || {};
 
 		// validate data
-		var err = env.validate('credential', delta.details, {useDefault: true});
-		if (err) throw new errors.ValidationError('The credential details were invalid.', err.validation);
+		var err = env.validate('credential', delta.details, { useDefault: true });
+		if (err)
+			throw new errors.ValidationError(
+				'The credential details were invalid.',
+				err.validation
+			);
 
 		return Strategy.prototype.updateCredential.call(this, credential, delta);
 	}
-
 };

@@ -7,8 +7,6 @@ module.exports = class Strategy {
 		this.authority = authority;
 	}
 
-
-
 	// Authenticate
 	// ------------
 	// The authenticate method is passed a Koa context, and is responsible for interfacing directly with the user. When a user has
@@ -19,10 +17,10 @@ module.exports = class Strategy {
 	// to avoid tightly coupling them.
 
 	async authenticate() {
-		throw new Error('The authenticate method must be implemented in each strategy.');
+		throw new Error(
+			'The authenticate method must be implemented in each strategy.'
+		);
 	}
-
-
 
 	// Authority Methods
 	// -----------------
@@ -31,19 +29,13 @@ module.exports = class Strategy {
 		return Authority.create(conn, data);
 	}
 
-
-
 	static async updateAuthority(authority, delta) {
 		return authority.update(delta);
 	}
 
-
-
 	static async deleteAuthority(authority) {
 		return authority.delete();
 	}
-
-
 
 	// Credential Methods
 	// ------------------
@@ -52,16 +44,11 @@ module.exports = class Strategy {
 		return Credential.create(this.conn, data);
 	}
 
-
-
 	async updateCredential(credential, delta) {
 		return credential.update(delta);
 	}
 
-
-
 	async deleteCredential(credential) {
 		return credential.delete();
 	}
-
 };

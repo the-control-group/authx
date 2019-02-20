@@ -8,7 +8,6 @@ module.exports = async (ctx, next) => {
 	ctx.status = 204;
 
 	try {
-
 		// get the authority
 		var authority = await Authority.get(ctx[x].conn, ctx.params.authority_id);
 
@@ -23,7 +22,6 @@ module.exports = async (ctx, next) => {
 		// pass the request to the strategy
 		var user = await strategy.authenticate(ctx, next);
 		if (user) {
-
 			// make sure the user is active
 			if (user.status !== 'active')
 				throw new errors.ForbiddenError('Your user account has been disabled.');
@@ -41,11 +39,10 @@ module.exports = async (ctx, next) => {
 			ctx.cookies.set('session', token);
 
 			ctx.status = 200;
-			ctx.body = {message: 'You have successfully logged in.'};
+			ctx.body = { message: 'You have successfully logged in.' };
 		}
 
 		respond();
-
 	} catch (err) {
 		ctx.app.emit('error', err, ctx);
 
@@ -53,29 +50,30 @@ module.exports = async (ctx, next) => {
 		ctx.status = err.status || 500;
 
 		// display an error
-		if(typeof err.expose === 'function')
-			ctx.body = err.expose();
+		if (typeof err.expose === 'function') ctx.body = err.expose();
 		else
-			ctx.body = {message: err.expose ? err.message : 'An unknown error has occurred' };
+			ctx.body = {
+				message: err.expose ? err.message : 'An unknown error has occurred'
+			};
 
 		respond();
 	}
-
 
 	// This allows responses to be returned directly, or forwarded via an HTTP redirect. Because
 	// the redirect URL can be specified insecurely, it's absolutely required that the response
 	// body contains NO sensitive information.
 
 	function respond() {
-		if(ctx.redirect_to && (ctx.status < 300 || ctx.status >= 400)) {
+		if (ctx.redirect_to && (ctx.status < 300 || ctx.status >= 400)) {
 			let body = ctx.body;
 			let query = qs.stringify({
 				status: ctx.status,
 				body: JSON.stringify(body)
 			});
-			ctx.redirect(ctx.redirect_to + (ctx.redirect_to.includes('?') ? '&' : '?') + query);
+			ctx.redirect(
+				ctx.redirect_to + (ctx.redirect_to.includes('?') ? '&' : '?') + query
+			);
 			ctx.body = body;
 		}
 	}
-
 };

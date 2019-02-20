@@ -7,8 +7,8 @@
   "scripts": {
     "bootstrap": "node bin/bootstrap.js",
     "lint": "eslint src",
-    "start": "nodemon --harmony_async_await server.js",
-    "test": "node_modules/mocha/bin/mocha --harmony_async_await test/tests/*"
+    "start": "nodemon server.js",
+    "test": "node_modules/mocha/bin/mocha test/tests/*"
   },
   "author": "",
   "license": "UNLICENSED",
@@ -16,6 +16,8 @@
     "basic-auth": "^2.0.1",
     "bcrypt": "^3.0.4",
     "bluebird": "^3.0.6",
+    "eslint-config-prettier": "^4.0.0",
+    "eslint-plugin-prettier": "^3.0.1",
     "generic-pool": "^3.6.1",
     "handlebars": "^4.0.3",
     "jjv": "^1.0.2",
@@ -23,6 +25,7 @@
     "koa-router": "^7.0.1",
     "lodash": "^4.17.10",
     "nodemailer": "^5.1.1",
+    "prettier": "^1.16.4",
     "raw-body": "^2.1.5",
     "request-promise": "^4.2.4",
     "rethinkdb": "^2.2.0",

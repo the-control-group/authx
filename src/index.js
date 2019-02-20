@@ -8,8 +8,6 @@ exports = {};
 const x = require('./namespace');
 Object.assign(exports, { namespace: x });
 
-
-
 // strategies
 const EmailStrategy = require('./strategies/email');
 const GoogleStrategy = require('./strategies/google');
@@ -17,15 +15,18 @@ const PasswordStrategy = require('./strategies/password');
 const SecretStrategy = require('./strategies/secret');
 const InContactStrategy = require('./strategies/incontact');
 const OneLoginStrategy = require('./strategies/onelogin');
-Object.assign(exports, { EmailStrategy, GoogleStrategy, PasswordStrategy, SecretStrategy, InContactStrategy, OneLoginStrategy });
-
-
+Object.assign(exports, {
+	EmailStrategy,
+	GoogleStrategy,
+	PasswordStrategy,
+	SecretStrategy,
+	InContactStrategy,
+	OneLoginStrategy
+});
 
 // extensions
 const SCIMExtension = require('./extensions/scim');
 Object.assign(exports, { SCIMExtension });
-
-
 
 // models
 const Authority = require('./models/Authority');
@@ -36,17 +37,19 @@ const Role = require('./models/Role');
 const User = require('./models/User');
 Object.assign(exports, { Authority, Client, Credential, Grant, Role, User });
 
-
-
 // middleware
 const bearerMiddleware = require('./middleware/bearer');
 const corsMiddleware = require('./middleware/cors');
 const dbMiddleware = require('./middleware/db');
 const errorMiddleware = require('./middleware/error');
 const userMiddleware = require('./middleware/user');
-Object.assign(exports, { bearerMiddleware, corsMiddleware, dbMiddleware, errorMiddleware, userMiddleware });
-
-
+Object.assign(exports, {
+	bearerMiddleware,
+	corsMiddleware,
+	dbMiddleware,
+	errorMiddleware,
+	userMiddleware
+});
 
 // controllers
 const authorityController = require('./controllers/authorities');
@@ -58,27 +61,23 @@ const userController = require('./controllers/users');
 const sessionController = require('./controllers/session');
 const tokensController = require('./controllers/tokens');
 
-
 class AuthX extends Router {
-
 	constructor(config, strategies) {
 		super(config);
-
 
 		// set the config
 		this.config = config;
 
-
 		// create a database pool
-		this.pool = new Pool(config.db, config.db.pool.max, config.db.pool.min, config.db.pool.timeout);
-
+		this.pool = new Pool(
+			config.db,
+			config.db.pool.max,
+			config.db.pool.min,
+			config.db.pool.timeout
+		);
 
 		// attach the strategies
 		this.strategies = strategies;
-
-
-
-
 
 		// Middleware
 		// ----------
@@ -89,34 +88,23 @@ class AuthX extends Router {
 			return next();
 		};
 
-
 		// add authx namespace context
 		this.use(this.middleware);
-
 
 		// error handling
 		this.use(errorMiddleware);
 
-
 		// get a database connection
 		this.use(dbMiddleware);
-
 
 		// add CORS header if necessary
 		this.use(corsMiddleware);
 
-
 		// get the current bearer token
 		this.use(bearerMiddleware);
 
-
 		// get the current user
 		this.use(userMiddleware);
-
-
-
-
-
 
 		// Session
 		// =======
@@ -125,15 +113,10 @@ class AuthX extends Router {
 
 		this.get('/session/:authority_id', sessionController);
 		this.post('/session/:authority_id', sessionController);
-		this.del('/session', async (ctx) => {
+		this.del('/session', async ctx => {
 			ctx.cookies.set('session');
 			ctx.status = 204;
 		});
-
-
-
-
-
 
 		// Tokens
 		// ======
@@ -144,53 +127,34 @@ class AuthX extends Router {
 		this.get('/tokens', tokensController);
 		this.post('/tokens', tokensController);
 
-
-
-
-
-
 		// Can
 		// ===
 		// This is a convenience endpoint for clients. It validates credentials and
 		// asserts that the token can access to the provided scope.
 
-		this.get('/can/:scope', async (ctx) => {
-
+		this.get('/can/:scope', async ctx => {
 			if (!ctx.params.scope || !scopes.validate(ctx.params.scope))
 				throw new errors.ValidationError();
 
-			if (!ctx.user)
-				throw new errors.AuthenticationError();
+			if (!ctx.user) throw new errors.AuthenticationError();
 
-			if (!await can(ctx, ctx.params.scope, ctx.query.strict !== 'false'))
+			if (!(await can(ctx, ctx.params.scope, ctx.query.strict !== 'false')))
 				throw new errors.ForbiddenError();
 
 			ctx.status = 204;
 		});
-
-
-
-
-
 
 		// Keys
 		// ====
 		// This outputs valid public keys and algorithms that can be used to verify
 		// access tokens by resource servers. The first key is always the most recent.
 
-		this.get('/keys', async (ctx) => {
+		this.get('/keys', async ctx => {
 			ctx.body = this.config.access_token.public;
 		});
 
-
-
-
-
-
 		// Resources
 		// =========
-
-
 
 		// Authorities
 		// -----------
@@ -201,8 +165,6 @@ class AuthX extends Router {
 		this.patch('/authorities/:authority_id', authorityController.patch);
 		this.del('/authorities/:authority_id', authorityController.del);
 
-
-
 		// Clients
 		// -------
 
@@ -212,18 +174,23 @@ class AuthX extends Router {
 		this.patch('/clients/:client_id', clientController.patch);
 		this.del('/clients/:client_id', clientController.del);
 
-
-
 		// Credentials
 		// ------------
 
 		this.post('/credentials', credentialController.post);
 		this.get('/credentials', credentialController.query);
-		this.get('/credentials/:credential_id_0/:credential_id_1', credentialController.get);
-		this.patch('/credentials/:credential_id_0/:credential_id_1', credentialController.patch);
-		this.del('/credentials/:credential_id_0/:credential_id_1', credentialController.del);
-
-
+		this.get(
+			'/credentials/:credential_id_0/:credential_id_1',
+			credentialController.get
+		);
+		this.patch(
+			'/credentials/:credential_id_0/:credential_id_1',
+			credentialController.patch
+		);
+		this.del(
+			'/credentials/:credential_id_0/:credential_id_1',
+			credentialController.del
+		);
 
 		// Grants
 		// ------
@@ -234,8 +201,6 @@ class AuthX extends Router {
 		this.patch('/grants/:module_id', grantController.patch);
 		this.del('/grants/:module_id', grantController.del);
 
-
-
 		// Roles
 		// -----
 
@@ -244,8 +209,6 @@ class AuthX extends Router {
 		this.get('/roles/:role_id', roleController.get);
 		this.patch('/roles/:role_id', roleController.patch);
 		this.del('/roles/:role_id', roleController.del);
-
-
 
 		// Users
 		// -----
@@ -258,10 +221,8 @@ class AuthX extends Router {
 		this.get('/me', userController.get);
 		this.patch('/me', userController.patch);
 		this.del('/me', userController.del);
-
 	}
 }
-
 
 AuthX.namespace = x;
 

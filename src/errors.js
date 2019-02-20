@@ -67,4 +67,3 @@ module.exports.NotImplementedError = class NotImplementedError extends Error {
 		this.status = this.statusCode = 501;
 	}
 };
-

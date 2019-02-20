@@ -4,14 +4,13 @@ const gp = require('generic-pool');
 const r = require('rethinkdb');
 
 module.exports = class Pool {
-
-	constructor (options, max, min, idleTimeoutMillis) {
+	constructor(options, max, min, idleTimeoutMillis) {
 		this.pool = gp.Pool({
 			name: 'rethinkdb',
-			create: (callback) => {
+			create: callback => {
 				return r.connect(options, callback);
 			},
-			destroy: (connection) => {
+			destroy: connection => {
 				return connection.close();
 			},
 			validate: function(connection) {
@@ -27,7 +26,7 @@ module.exports = class Pool {
 	acquire() {
 		return new Promise((resolve, reject) => {
 			return this.pool.acquire((err, conn) => {
-				if(err) return reject(err);
+				if (err) return reject(err);
 				conn.release = () => {
 					return this.pool.release(conn);
 				};
@@ -35,5 +34,4 @@ module.exports = class Pool {
 			});
 		});
 	}
-
 };

@@ -7,17 +7,11 @@ const groups = require('./groups');
 const e = require('./namespace');
 
 class SCIMExtension extends Router {
-
 	constructor(config) {
 		super(config);
 
-
 		// set the config
 		this.config = config;
-
-
-
-
 
 		// Middleware
 		// ==========
@@ -28,11 +22,8 @@ class SCIMExtension extends Router {
 			return next();
 		};
 
-
 		// add authx extention namespace context
 		this.use(this.middleware);
-
-
 
 		// Groups
 		// ======
@@ -44,8 +35,6 @@ class SCIMExtension extends Router {
 		this.put('/Groups/:role_id', groups.put);
 		this.del('/Groups/:role_id', groups.del);
 
-
-
 		// Users
 		// =====
 
@@ -55,9 +44,7 @@ class SCIMExtension extends Router {
 		this.patch('/Users/:user_id', users.patch);
 		this.put('/Users/:user_id', users.put);
 		this.del('/Users/:user_id', users.del);
-
 	}
 }
-
 
 module.exports = SCIMExtension;

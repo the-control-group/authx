@@ -1,8 +1,8 @@
 const Promise = require('bluebird');
 const r = require('rethinkdb');
 const json = require('../util/json');
-const {protect, can} = require('../util/protect');
-const {parseIncludes, parseRoles} = require('../util/queryParams');
+const { protect, can } = require('../util/protect');
+const { parseIncludes, parseRoles } = require('../util/queryParams');
 const errors = require('../errors');
 const Role = require('../models/Role');
 const User = require('../models/User');
@@ -20,26 +20,34 @@ module.exports.post = async function post(ctx) {
 };
 
 module.exports.query = async function query(ctx) {
-	if (!await can(ctx, ctx[x].authx.config.realm + ':me:read') && !await can(ctx, ctx[x].authx.config.realm + ':user:read'))
-		throw new errors.ForbiddenError(`You lack permission for the required scope "${ctx[x].authx.config.realm}:user:read".`);
-
+	if (
+		!(await can(ctx, ctx[x].authx.config.realm + ':me:read')) &&
+		!(await can(ctx, ctx[x].authx.config.realm + ':user:read'))
+	)
+		throw new errors.ForbiddenError(
+			`You lack permission for the required scope "${
+				ctx[x].authx.config.realm
+			}:user:read".`
+		);
 
 	var ids;
 
 	// restrict to the current user
-	if (!await can(ctx, ctx[x].authx.config.realm + ':user:read'))
+	if (!(await can(ctx, ctx[x].authx.config.realm + ':user:read')))
 		ids = [ctx[x].user.id];
-
-
 	// restrict to provided roles
 	else if (ctx.query.role_ids) {
 		let role_ids = parseRoles(ctx);
 
 		// make sure we have permission to access these roles
-		await Promise.map(role_ids, id => protect(ctx, ctx[x].authx.config.realm + ':role.' + id + ':read'));
+		await Promise.map(role_ids, id =>
+			protect(ctx, ctx[x].authx.config.realm + ':role.' + id + ':read')
+		);
 
 		// fetch the roles from the database
-		let roles = await Role.query(ctx[x].conn, x => x.getAll(r.args(role_ids), {index: 'id'}));
+		let roles = await Role.query(ctx[x].conn, x =>
+			x.getAll(r.args(role_ids), { index: 'id' })
+		);
 
 		// combine assignments
 		let assignments = {};
@@ -53,51 +61,59 @@ module.exports.query = async function query(ctx) {
 		ids = Object.keys(assignments);
 	}
 
-
 	var transformer = x => {
 		var index;
 
 		// restrict to known ids
 
 		if (ids) {
-			x = x.getAll(r.args(ids), {index: 'id'});
+			x = x.getAll(r.args(ids), { index: 'id' });
 			index = 'id';
 		}
 
-
 		// order
 		if (!index || index === 'created') {
-			x = x.orderBy({index: 'created'});
+			x = x.orderBy({ index: 'created' });
 			index = 'created';
-		} else
-			x = x.orderBy('created');
-
+		} else x = x.orderBy('created');
 
 		// filter by status
 		if (ctx.query.status)
 			if (!index || index === 'status') {
-				x = x.getAll(ctx.query.status, {index: 'status'});
+				x = x.getAll(ctx.query.status, { index: 'status' });
 				index = 'status';
-			} else
-				x = x.filter({status: ctx.query.status});
-
+			} else x = x.filter({ status: ctx.query.status });
 
 		// fuzzy search by name
 		var search = ctx.query.search ? ctx.query.search.toLowerCase() : null;
 		if (ctx.query.search)
-			x = x.filter(row => r.or(
-				row('profile')('displayName').downcase().match(search),
-				row('profile')('nickname').default('').downcase().match(search),
-				row('profile')('name')('familyName').default('').downcase().match(search),
-				row('profile')('name')('givenName').default('').downcase().match(search),
-				row('profile')('name')('middleName').default('').downcase().match(search)
-			));
-
+			x = x.filter(row =>
+				r.or(
+					row('profile')('displayName')
+						.downcase()
+						.match(search),
+					row('profile')('nickname')
+						.default('')
+						.downcase()
+						.match(search),
+					row('profile')('name')('familyName')
+						.default('')
+						.downcase()
+						.match(search),
+					row('profile')('name')('givenName')
+						.default('')
+						.downcase()
+						.match(search),
+					row('profile')('name')('middleName')
+						.default('')
+						.downcase()
+						.match(search)
+				)
+			);
 
 		// skip
 		var skip = parseInt(ctx.query.skip);
 		if (skip) x = x.skip(skip);
-
 
 		// limit
 		var limit = parseInt(ctx.query.limit);
@@ -106,15 +122,22 @@ module.exports.query = async function query(ctx) {
 		return x;
 	};
 
-
 	var includes = parseIncludes(includable, ctx);
 	var users = await User.query(ctx[x].conn, transformer);
-	ctx.body = await Promise.all(users.map(async u => await include(u, includes, ctx)));
+	ctx.body = await Promise.all(
+		users.map(async u => await include(u, includes, ctx))
+	);
 };
 
 module.exports.get = async function get(ctx) {
 	let user_id = ctx.params.user_id || (ctx[x].user ? ctx[x].user.id : null);
-	await protect(ctx, ctx[x].authx.config.realm + ':' + (ctx[x].user && ctx[x].user.id === user_id ? 'me' : 'user') + ':read');
+	await protect(
+		ctx,
+		ctx[x].authx.config.realm +
+			':' +
+			(ctx[x].user && ctx[x].user.id === user_id ? 'me' : 'user') +
+			':read'
+	);
 	var includes = parseIncludes(includable, ctx);
 	var user = await User.get(ctx[x].conn, user_id);
 	ctx.body = await include(user, includes, ctx);
@@ -122,7 +145,13 @@ module.exports.get = async function get(ctx) {
 
 module.exports.patch = async function patch(ctx) {
 	let user_id = ctx.params.user_id || (ctx[x].user ? ctx[x].user.id : null);
-	await protect(ctx, ctx[x].authx.config.realm + ':' + (ctx[x].user && ctx[x].user.id === user_id ? 'me' : 'user') + ':update');
+	await protect(
+		ctx,
+		ctx[x].authx.config.realm +
+			':' +
+			(ctx[x].user && ctx[x].user.id === user_id ? 'me' : 'user') +
+			':update'
+	);
 	var includes = parseIncludes(includable, ctx);
 	var data = await json(ctx.req);
 	var user = await User.update(ctx[x].conn, user_id, data);
@@ -131,52 +160,71 @@ module.exports.patch = async function patch(ctx) {
 
 module.exports.del = async function del(ctx) {
 	let user_id = ctx.params.user_id || (ctx[x].user ? ctx[x].user.id : null);
-	await protect(ctx, ctx[x].authx.config.realm + ':' + (ctx[x].user && ctx[x].user.id === user_id ? 'me' : 'user') + ':delete');
+	await protect(
+		ctx,
+		ctx[x].authx.config.realm +
+			':' +
+			(ctx[x].user && ctx[x].user.id === user_id ? 'me' : 'user') +
+			':delete'
+	);
 	var includes = parseIncludes(includable, ctx);
 
 	// make sure to include credentials, which are automatically deleted with the user
 	includes = includes || [];
-	if (includes.indexOf('credentials') === -1)
-		includes.push('credentials');
+	if (includes.indexOf('credentials') === -1) includes.push('credentials');
 
 	var user = await User.delete(ctx[x].conn, user_id);
 	ctx.body = await include(user, includes, ctx);
 };
 
 async function include(user, includes, ctx) {
-
-	if (!includes || !includes.length)
-		return user;
-
+	if (!includes || !includes.length) return user;
 
 	// call the included functions in parallel
 	var results = await Promise.map(includes, async i => {
-
 		// get the results
 		var result = await user[i]();
 
-
 		// filter out unauthorized credentials
 		if (i === 'credentials')
-			result = await Promise.filter(result, c => can(ctx, ctx[x].authx.config.realm + ':credential.' + c.authority_id + '.' + (ctx[x].user && ctx[x].user.id === user.id ? 'me' : 'user') + ':read'));
-
+			result = await Promise.filter(result, c =>
+				can(
+					ctx,
+					ctx[x].authx.config.realm +
+						':credential.' +
+						c.authority_id +
+						'.' +
+						(ctx[x].user && ctx[x].user.id === user.id ? 'me' : 'user') +
+						':read'
+				)
+			);
 
 		// filter out unauthorized grants
 		if (i === 'grants')
-			result = await Promise.filter(result, g => can(ctx, ctx[x].authx.config.realm + ':grant.' + g.client_id + '.' + (ctx[x].user && ctx[x].user.id === user.id ? 'me' : 'user') + ':read'));
-
+			result = await Promise.filter(result, g =>
+				can(
+					ctx,
+					ctx[x].authx.config.realm +
+						':grant.' +
+						g.client_id +
+						'.' +
+						(ctx[x].user && ctx[x].user.id === user.id ? 'me' : 'user') +
+						':read'
+				)
+			);
 
 		// filter out unauthorized roles
 		if (i === 'roles')
-			result = await Promise.filter(result, r => can(ctx, ctx[x].authx.config.realm + ':role.' + r.id + ':read'));
-
+			result = await Promise.filter(result, r =>
+				can(ctx, ctx[x].authx.config.realm + ':role.' + r.id + ':read')
+			);
 
 		return result;
 	});
 
 	// assign the results to a new object
 	var included = Object.assign(Object.create(User.prototype), user);
-	results.forEach((v, i) => included[includes[i]] = v);
+	results.forEach((v, i) => (included[includes[i]] = v));
 
 	// return the user with includes
 	return included;
