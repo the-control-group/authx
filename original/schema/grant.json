@@ -1,0 +1,41 @@
+{
+	"id": "grant",
+	"type": "object",
+	"properties": {
+		"id": {
+			"type": "array",
+			"title": "Grant ID",
+			"additionalItems": false,
+			"items": [
+				{
+					"type": "string",
+					"title": "User ID",
+					"pattern": "^[a-zA-Z0-9_\\-]+$"
+				},
+				{
+					"type": "string",
+					"title": "Client ID",
+					"pattern": "^[a-zA-Z0-9_\\-]+$"
+				}
+			]
+		},
+		"nonce": {
+			"type": ["null", "string"],
+			"title": "Authorization Code",
+			"default": null
+		},
+		"refresh_token": {
+			"type": "string",
+			"title": "Refresh Token"
+		},
+		"scopes": {
+			"type": "array",
+			"items": {
+				"type": "string",
+				"pattern": "^(([a-zA-Z0-9_\\-]+|(\\*(?!\\*\\*))+)\\.)*([a-zA-Z0-9_\\-]+|(\\*(?!\\*\\*))+):(([a-zA-Z0-9_\\-]+|(\\*(?!\\*\\*))+)\\.)*([a-zA-Z0-9_\\-]+|(\\*(?!\\*\\*))+):(([a-zA-Z0-9_\\-]+|(\\*(?!\\*\\*))+)\\.)*([a-zA-Z0-9_\\-]+|(\\*(?!\\*\\*))+)$"
+			},
+			"default": []
+		}
+	},
+	"required": ["id"]
+}

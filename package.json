@@ -1,24 +1,13 @@
 {
-  "name": "authx",
-  "version": "1.2.4",
-  "description": "",
-  "main": "src/index.js",
-  "repository": "https://github.com/the-control-group/authx",
-  "scripts": {
-    "bootstrap": "node bin/bootstrap.js",
-    "lint": "eslint src",
-    "start": "nodemon server.js",
-    "test": "node_modules/mocha/bin/mocha test/tests/*"
+  "author": {
+    "email": "mike.marcacci@thecontrolgroup.com",
+    "name": "Mike Marcacci"
   },
-  "author": "",
-  "license": "UNLICENSED",
+  "bugs": "https://github.com/the-control-group/authx/issues",
   "dependencies": {
     "basic-auth": "^2.0.1",
     "bcrypt": "^3.0.4",
     "bluebird": "^3.0.6",
-    "eslint-config-prettier": "^4.0.0",
-    "eslint-plugin-prettier": "^3.0.1",
-    "generic-pool": "^3.6.1",
     "handlebars": "^4.0.3",
     "jjv": "^1.0.2",
     "jsonwebtoken": "^8.5.0",
@@ -27,24 +16,50 @@
     "nodemailer": "^5.1.1",
     "prettier": "^1.16.4",
     "raw-body": "^2.1.5",
-    "request-promise": "^4.2.4",
-    "rethinkdb": "^2.2.0",
     "saml2-js": "^2.0.3",
     "scim-query-filter-parser": "^1.1.0",
-    "scopeutils": "^1.0.0",
     "uuid": "^3.3.2"
   },
+  "description": "",
   "devDependencies": {
-    "async": "^2.6.2",
-    "chai": "^4.2.0",
+    "@typescript-eslint/eslint-plugin": "^1.4.0",
+    "@typescript-eslint/parser": "^1.4.0",
+    "ava": "^1.2.1",
     "eslint": "^5.14.1",
-    "koa": "^2.0.0",
-    "koa-send": "^5.0.0",
-    "mocha": "^6.0.0",
-    "nodemon": "^1.11.0",
-    "supertest": "^3.4.2"
+    "eslint-config-prettier": "^4.0.0",
+    "eslint-plugin-prettier": "^3.0.0",
+    "husky": "^1.1.2",
+    "prettier": "^1.16.4",
+    "typescript": "^3.3.3333"
   },
+  "engines": {
+    "node": ">=6"
+  },
+  "files": [
+    "lib",
+    "!lib/test.*"
+  ],
+  "keywords": [
+    "oauth",
+    "aim",
+    "acl",
+    "access control",
+    "permissions"
+  ],
+  "license": "UNLICENSED",
+  "main": "lib",
+  "name": "authx",
   "peerDependencies": {
     "koa": "^2.0.0"
-  }
+  },
+  "repository": "https://github.com/the-control-group/authx",
+  "scripts": {
+    "format": "prettier --list-different --write '**/*.{json,yml,md,ts}'",
+    "lint": "prettier -c '**/*.{json,yml,md,ts}' && eslint src --ext ts",
+    "prepare": "rm -rf lib && npx tsc",
+    "test": "npm run prepare && ava --verbose lib/test.js",
+    "watch": "rm -rf lib && npx tsc --watch"
+  },
+  "types": "./lib/index.d.ts",
+  "version": "2.0.0-alpha1"
 }

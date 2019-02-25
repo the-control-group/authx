@@ -1,14 +1,12 @@
 {
-  "extends": ["plugin:prettier/recommended"],
-  "parserOptions": {
-    "ecmaVersion": 2017
-  },
-  "rules": {
-    "no-nested-ternary": [0]
-  },
-  "env": {
-    "browser": true,
-    "node": true,
-    "es6": true
-  }
+  "parser": "@typescript-eslint/parser",
+  "extends": [
+    "plugin:@typescript-eslint/recommended",
+    "prettier",
+    "prettier/@typescript-eslint"
+  ],
+  "plugins": [
+    "@typescript-eslint",
+    "prettier"
+  ]
 }

@@ -1,0 +1,37 @@
+{
+	"id": "client",
+	"type": "object",
+	"properties": {
+		"id": {
+			"type": "string",
+			"title": "Client ID",
+			"pattern": "^[a-zA-Z0-9_\\-]+$"
+		},
+		"name": {
+			"type": "string",
+			"title": "Name",
+			"default": ""
+		},
+		"secret": {
+			"type": "string",
+			"title": "Secret"
+		},
+		"scopes": {
+			"type": "array",
+			"items": {
+				"type": "string",
+				"pattern": "^(([a-zA-Z0-9_\\-]+|(\\*(?!\\*\\*))+)\\.)*([a-zA-Z0-9_\\-]+|(\\*(?!\\*\\*))+):(([a-zA-Z0-9_\\-]+|(\\*(?!\\*\\*))+)\\.)*([a-zA-Z0-9_\\-]+|(\\*(?!\\*\\*))+):(([a-zA-Z0-9_\\-]+|(\\*(?!\\*\\*))+)\\.)*([a-zA-Z0-9_\\-]+|(\\*(?!\\*\\*))+)$"
+			},
+			"default": []
+		},
+		"base_urls": {
+			"type": "array",
+			"items": {
+				"type": "string",
+				"pattern": "[Hh][Tt][Tt][Pp][Ss]?:\\/\\/(-\\.)?([^\\s\\/?\\.#-]+\\.?)+(\\/[^\\s]*)?$"
+			},
+			"default": []
+		}
+	},
+	"required": ["secret"]
+}
