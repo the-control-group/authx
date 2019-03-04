@@ -1,0 +1,107 @@
+enum USERTYPE {
+    HUMAN
+    BOT
+}
+
+type Profile {
+
+}
+
+interface Data {
+    enabled: Boolean!
+}
+
+interface Entity {
+    id: ID!
+    data: Data
+    records: [Record]
+}
+
+interface Record {
+    id: ID!
+    entity: Entity
+    data: Data
+    createdAt: Timestamp
+    createdBy: User
+}
+
+
+
+# User
+# ----
+
+type UserData {
+    type: USERTYPE!
+    profile: Profile
+    enabled: Boolean!
+}
+
+type UserRecord implements Record {
+    id: ID!
+
+    entity: User
+    data: UserData
+
+    createdAt: Timestamp
+    createdBy: User
+}
+
+type User {
+    id: ID!
+    data: UserData
+    records: [UserRecord]
+
+    credentials: [Credential]
+}
+
+
+
+# Credential
+# ----------
+
+type CredentialData {
+    id: ID!
+    authority: Authority!
+    authorityUserId: String!
+    user: User!
+    enabled: Boolean!
+}
+
+type Credential {
+    id: ID!
+    data: CredentialData
+    records: [CredentialRecord]
+}
+
+
+
+# Client
+# ------
+
+
+type ClientData {
+    name: String
+    secret: String
+    scopes: [String]
+    baseUrls: [String]
+    enabled: Boolean!
+}
+
+type ClientRecord implements Record {
+    id: ID!
+    entity: Client
+    createdAt: Timestamp
+    createdBy: User
+
+    data: ClientData
+}
+
+type Client {
+    id: ID!
+    records: [ClientRecord]
+
+    data: ClientData
+}
+
+
+
