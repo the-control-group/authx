@@ -2,11 +2,6 @@ import { PoolClient } from "pg";
 import { test } from "scopeutils";
 import { User } from "./User";
 
-const CREDENTIALS = Symbol("credentials");
-const GRANTS = Symbol("grants");
-const ROLES = Symbol("roles");
-const SCOPES = Symbol("scopes");
-
 export class AssignmentCollection implements Iterable<string> {
   private data: Map<string, null | Promise<User>> = new Map();
   public constructor(from?: Iterable<string>) {

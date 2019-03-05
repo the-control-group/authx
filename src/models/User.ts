@@ -1,5 +1,8 @@
 import { PoolClient } from "pg";
+import { Credential } from "./Credential";
+import { Grant } from "./Grant";
 import { Role } from "./Role";
+import { Profile } from "../Profile";
 
 const CREDENTIALS = Symbol("credentials");
 const GRANTS = Symbol("grants");
@@ -11,65 +14,6 @@ enum UserType {
   "robot"
 }
 
-interface Plural {
-  value: string;
-  type?: string;
-  primary?: boolean;
-}
-
-interface Profile {
-  id: string;
-  displayName: string;
-  name?: {
-    formatted?: string;
-    familyName?: string;
-    givenName?: string;
-    middleName?: string;
-    honorificPrefix?: string;
-    honorificSuffix?: string;
-  };
-  nickname?: string;
-  published?: string;
-  updated?: string;
-  birthday?: string;
-  anniversary?: string;
-  gender?: string;
-  note?: string;
-  preferredUsername?: string;
-  utcOffset?: string;
-  connected: boolean; // default: false
-  emails: Plural[];
-  urls: Plural[];
-  phoneNumbers: Plural[];
-  ims: Plural[];
-  photos: Plural[];
-  tags: Plural[];
-  relationships: Plural[];
-  addresses?: {
-    formatted?: string;
-    streetAddress?: string;
-    locality?: string;
-    region?: string;
-    postalCode?: string;
-    country?: string;
-  }[];
-  organizations?: {
-    name?: string;
-    department?: string;
-    title?: string;
-    type?: string;
-    startDate?: string;
-    endDate?: string;
-    location?: string;
-    description?: string;
-  }[];
-  accounts?: {
-    domain?: string;
-    username?: string;
-    userid?: string;
-  }[];
-}
-
 export class User {
   public id: string;
   public type: UserType;
@@ -79,7 +23,7 @@ export class User {
   private [CREDENTIALS]: null | Promise<Credential[]> = null;
   private [GRANTS]: null | Promise<Grant[]> = null;
   private [ROLES]: null | Promise<Role[]> = null;
-  private [SCOPES]: null | Promise<Scope[]> = null;
+  private [SCOPES]: null | Promise<Set<string>> = null;
 
   public constructor(data: {
     id: string;
@@ -97,86 +41,106 @@ export class User {
     tx: PoolClient,
     refresh: boolean = false
   ): Promise<Credential[]> {
-    // query the database for credentials
-    if (!this[CREDENTIALS] || refresh)
-      this[CREDENTIALS] = (async () =>
-        Credential.read(
-          tx,
-          await tx.query(
-            `
-            SELECT entity_id AS id
-            FROM authx.credential_records
-            WHERE
-              user_id = $1
-              replacement_id IS NULL
-            `,
-            [this.id]
-          )
-        ))();
+    const credentials = this[CREDENTIALS];
+    if (credentials && !refresh) {
+      return credentials;
+    }
 
-    return this[CREDENTIALS];
+    return (this[CREDENTIALS] = (async () =>
+      Credential.read(
+        tx,
+        (await tx.query(
+          `
+          SELECT entity_id AS id
+          FROM authx.credential_records
+          WHERE
+            user_id = $1
+            AND replacement_id IS NULL
+          `,
+          [this.id]
+        )).rows.map(({ id }) => id)
+      ))());
   }
 
   public async roles(
     tx: PoolClient,
     refresh: boolean = false
   ): Promise<Role[]> {
-    // query the database for roles
-    if (!this[ROLES] || refresh)
-      return (this[ROLES] = (async () =>
-        Role.read(
-          tx,
-          await tx.query(
-            `
-            SELECT entity_id AS id
-            FROM authx.role_records
-            WHERE user_id = $1
-            `,
-            [this.id]
-          )
-        ))());
+    const roles = this[ROLES];
+    if (roles && !refresh) {
+      return roles;
+    }
 
-    return this[ROLES];
+    // query the database for roles
+    return (this[ROLES] = (async () =>
+      Role.read(
+        tx,
+        (await tx.query(
+          `
+          SELECT entity_id AS id
+          FROM authx.role_records
+          WHERE
+            user_id = $1
+            AND replacement_id IS NULL
+          `,
+          [this.id]
+        )).rows.map(({ id }) => id)
+      ))());
   }
 
   public async grants(
     tx: PoolClient,
     refresh: boolean = false
   ): Promise<Grant[]> {
-    // query the database for grants
-    if (!this[GRANTS] || refresh)
-      this[GRANTS] = (async () =>
-        Grant.read(
-          tx,
-          await tx.query(
-            `
-            SELECT entity_id AS id
-            FROM authx.grant_records
-            WHERE user_id = $1
-            `,
-            [this.id]
-          )
-        ))();
+    const grants = this[GRANTS];
+    if (grants && !refresh) {
+      return grants;
+    }
 
-    return this[GRANTS];
+    // query the database for grants
+    return (this[GRANTS] = (async () =>
+      Grant.read(
+        tx,
+        (await tx.query(
+          `
+          SELECT entity_id AS id
+          FROM authx.grant_records
+          WHERE
+            user_id = $1
+            AND replacement_id IS NULL
+          `,
+          [this.id]
+        )).rows.map(({ id }) => id)
+      ))());
   }
 
   public async scopes(
     tx: PoolClient,
     refresh: boolean = false
-  ): Promise<Scope[]> {
-    if (!this[SCOPES] || refresh) {
-      let roles = await this.roles(tx, refresh);
-      let scopes = roles.map(role => role.scopes);
-
-      this[SCOPES] = scopes.reduce((a, b) => a.concat(b), []);
+  ): Promise<Set<string>> {
+    const scopes = this[SCOPES];
+    if (scopes && !refresh) {
+      return scopes;
     }
 
-    return this[SCOPES];
+    return (this[SCOPES] = (async () =>
+      (await this.roles(tx, refresh))
+        .map(role => role.scopes)
+        .reduce((a, b) => {
+          for (const s of b) {
+            a.add(s);
+          }
+
+          return a;
+        }, new Set()))());
   }
 
-  public async can(scope: string, strict: boolean = true): Promise<boolean> {
-    var roles = await this.roles();
+  public async can(
+    tx: PoolClient,
+    scope: string,
+    strict: boolean = true
+  ): Promise<boolean> {
+    var roles = await this.roles(tx);
     return roles.some(role => role.can(scope, strict));
   }
 
@@ -188,7 +152,9 @@ export class User {
         type,
         profile
       FROM authx.user_record
-      WHERE entity_id = ANY($1) AND replacement_id IS NULL
+      WHERE
+        entity_id = ANY($1)
+        AND replacement_id IS NULL
       `,
       [id]
     );
@@ -218,7 +184,9 @@ export class User {
       `
       UPDATE authx.user_record
       SET replacement_id = $2
-      WHERE entity_id = $1 AND replacement_id IS NULL
+      WHERE
+        entity_id = $1
+        AND replacement_id IS NULL
       RETURNING id
       `,
       [data.id, metadata.recordId]
