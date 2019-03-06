@@ -51,6 +51,17 @@ export class Authority<T = {}> {
       ))());
   }
 
+  public $write(
+    tx: PoolClient,
+    metadata: {
+      recordId: string;
+      createdByGrantId: string;
+      createdAt: Date;
+    }
+  ): Promise<Authority> {
+    return Authority.write(tx, this, metadata);
+  }
+
   public static async read(
     tx: PoolClient,
     id: string | string[]
@@ -85,7 +96,7 @@ export class Authority<T = {}> {
     data: Authority,
     metadata: {
       recordId: string;
-      createdByAuthorityId: string;
+      createdByGrantId: string;
       createdAt: Date;
     }
   ): Promise<Authority> {
@@ -145,7 +156,7 @@ export class Authority<T = {}> {
       `,
       [
         metadata.recordId,
-        metadata.createdByAuthorityId,
+        metadata.createdByGrantId,
         metadata.createdAt,
         data.id,
         data.enabled,

@@ -10,8 +10,9 @@ export class Credential<T = {}> {
   public id: string;
   public enabled: boolean;
   public authorityId: string;
+  public authorityUserId: string;
   public userId: string;
-  public profile: Profile;
+  public profile: null | Profile;
   public details: T;
 
   private [AUTHORITY]: null | Promise<Authority> = null;
@@ -21,13 +22,15 @@ export class Credential<T = {}> {
     id: string;
     enabled: boolean;
     authorityId: string;
+    authorityUserId: string;
     userId: string;
-    profile: Profile;
+    profile: null | Profile;
     details: T;
   }) {
     this.id = data.id;
     this.enabled = data.enabled;
     this.authorityId = data.authorityId;
+    this.authorityUserId = data.authorityUserId;
     this.userId = data.userId;
     this.profile = data.profile;
     this.details = data.details;
@@ -78,6 +81,7 @@ export class Credential<T = {}> {
         entity_id AS id,
         enabled,
         authority_id,
+        authority_user_id,
         user_id,
         profile,
         details
@@ -94,6 +98,7 @@ export class Credential<T = {}> {
         new Credential({
           ...row,
           authorityId: row.authority_id,
+          authorityUserId: row.authority_user_id,
           userId: row.user_id
         })
     );
@@ -150,16 +155,18 @@ export class Credential<T = {}> {
         entity_id,
         enabled,
         authority_id,
+        authority_user_id,
         user_id,
         profile,
         details
       )
       VALUES
-        ($1, $2, $3, $4, $5, $6, $7, $8, $9)
+        ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10)
       RETURNING
         entity_id AS id,
         enabled,
         authority_id,
+        authority_user_id,
         user_id,
         profile,
         details
@@ -171,6 +178,7 @@ export class Credential<T = {}> {
         data.id,
         data.enabled,
         data.authorityId,
+        data.authorityUserId,
         data.userId,
         data.profile,
         data.details
@@ -185,6 +193,7 @@ export class Credential<T = {}> {
     return new Credential({
       ...row,
       authorityId: row.authority_id,
+      authorityUserId: row.authority_user_id,
       userId: row.user_id
     });
   }

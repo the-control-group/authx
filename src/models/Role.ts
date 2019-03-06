@@ -2,10 +2,16 @@ import { PoolClient } from "pg";
 import { test } from "scopeutils";
 import { User } from "./User";
 
-export class AssignmentCollection implements Iterable<string> {
+export class AssignmentCollection
+  implements Iterable<(tx: PoolClient, refresh: boolean) => Promise<User>> {
   private data: Map<string, null | Promise<User>> = new Map();
-  public constructor(from?: Iterable<string>) {
-    if (from) {
+
+  public constructor(from?: AssignmentCollection | Iterable<string>) {
+    if (from instanceof AssignmentCollection) {
+      for (const id of from.keys()) {
+        this.data.set(id, null);
+      }
+    } else if (from) {
       for (const id of from) {
         this.data.set(id, null);
       }
@@ -29,9 +35,13 @@ export class AssignmentCollection implements Iterable<string> {
     return this.data.has(id);
   }
 
-  public get(
-    tx: PoolClient,
+  public keys(): Iterable<string> {
+    return this.data.keys();
+  }
+
+  private get(
     id: string,
+    tx: PoolClient,
     refresh: boolean = false
   ): Promise<User> {
     const cache = refresh ? null : this.data.get(id);
@@ -56,12 +66,17 @@ export class AssignmentCollection implements Iterable<string> {
     return this.data.size;
   }
 
-  public *[Symbol.iterator](): Iterator<string> {
-    yield* [...this.data.keys()].sort();
+  public *[Symbol.iterator](): Iterator<
+    (tx: PoolClient, refresh: boolean) => Promise<User>
+  > {
+    const ids = [...this.data.keys()].sort();
+    for (const id of ids) {
+      yield this.get.bind(this, id);
+    }
   }
 
   public toJSON(): string[] {
-    return [...this];
+    return [...this.data.keys()].sort();
   }
 }
 
@@ -77,7 +92,7 @@ export class Role {
     enabled: boolean;
     name: string;
     scopes: Iterable<string>;
-    assignments: Iterable<string>;
+    assignments: AssignmentCollection | Iterable<string>;
   }) {
     this.id = data.id;
     this.enabled = data.enabled;
