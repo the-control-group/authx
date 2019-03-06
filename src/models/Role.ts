@@ -67,17 +67,20 @@ export class AssignmentCollection implements Iterable<string> {
 
 export class Role {
   public id: string;
+  public enabled: boolean;
   public name: string;
   public assignments: AssignmentCollection;
   public scopes: Set<string>;
 
   public constructor(data: {
     id: string;
+    enabled: boolean;
     name: string;
     scopes: Iterable<string>;
     assignments: Iterable<string>;
   }) {
     this.id = data.id;
+    this.enabled = data.enabled;
     this.name = data.name;
     this.scopes = new Set(data.scopes);
     this.assignments = new AssignmentCollection(data.assignments);
@@ -95,6 +98,7 @@ export class Role {
       `
       SELECT
         entity_id AS id,
+        enabled,
         name,
         scopes,
         json_agg(role_record_assignment.user_id) AS assignments
@@ -112,7 +116,7 @@ export class Role {
   public static async write(
     tx: PoolClient,
     data: Role,
-    metadata: { recordId: string; createdByRoleId: string; createdAt: string }
+    metadata: { recordId: string; createdByGrantId: string; createdAt: Date }
   ): Promise<Role> {
     // ensure that the entity ID exists
     await tx.query(
@@ -147,19 +151,29 @@ export class Role {
     const next = await tx.query(
       `
       INSERT INTO authx.role_record
-        (id, created_by_role_id, created_at, entity_id, name, scopes)
+      (
+        id,
+        created_by_grant_id,
+        created_at,
+        entity_id,
+        enabled,
+        name,
+        scopes
+      )
       VALUES
-        ($1, $2, $3, $4, $5)
+        ($1, $2, $3, $4, $5, $6, $7)
       RETURNING
         entity_id AS id,
-        type,
-        profile
+        enabled,
+        name,
+        scopes
       `,
       [
         metadata.recordId,
-        metadata.createdByRoleId,
+        metadata.createdByGrantId,
         metadata.createdAt,
         data.id,
+        data.enabled,
         data.name,
         data.scopes
       ]
@@ -174,7 +188,7 @@ export class Role {
       `
       INSERT INTO authx.role_record_assignment
         (role_record_id, user_id)
-      SELECT $1::text AS role_record_id, user_id FROM UNNEST($2::text[]) AS user_id
+      SELECT $1::uuid AS role_record_id, user_id FROM UNNEST($2::uuid[]) AS user_id
       RETURNING user_id
       `,
       [metadata.recordId, [...data.assignments]]

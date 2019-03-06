@@ -1,11 +1,11 @@
 import { PoolClient } from "pg";
-import { test } from "scopeutils";
 import { Credential } from "./Credential";
 
 const CREDENTIALS = Symbol("credentials");
 
 export class Authority<T = {}> {
   public id: string;
+  public enabled: boolean;
   public name: string;
   public strategy: string;
   public details: T;
@@ -14,11 +14,13 @@ export class Authority<T = {}> {
 
   public constructor(data: {
     id: string;
+    enabled: boolean;
     name: string;
     strategy: string;
     details: T;
   }) {
     this.id = data.id;
+    this.enabled = data.enabled;
     this.name = data.name;
     this.strategy = data.strategy;
     this.details = data.details;
@@ -57,6 +59,7 @@ export class Authority<T = {}> {
       `
       SELECT
         entity_id AS id,
+        enabled,
         name,
         strategy,
         details
@@ -83,7 +86,7 @@ export class Authority<T = {}> {
     metadata: {
       recordId: string;
       createdByAuthorityId: string;
-      createdAt: string;
+      createdAt: Date;
     }
   ): Promise<Authority> {
     // ensure that the entity ID exists
@@ -121,11 +124,21 @@ export class Authority<T = {}> {
     const next = await tx.query(
       `
       INSERT INTO authx.authority_record
-        (id, created_by_authority_id, created_at, entity_id, name, strategy, details)
+      (
+        id,
+        created_by_authority_id,
+        created_at,
+        entity_id,
+        enabled,
+        name,
+        strategy,
+        details
+      )
       VALUES
-        ($1, $2, $3, $4, $5, $6, $7)
+        ($1, $2, $3, $4, $5, $6, $7, $8)
       RETURNING
         entity_id AS id,
+        enabled,
         name,
         strategy,
         details
@@ -135,6 +148,7 @@ export class Authority<T = {}> {
         metadata.createdByAuthorityId,
         metadata.createdAt,
         data.id,
+        data.enabled,
         data.name,
         data.strategy,
         data.details

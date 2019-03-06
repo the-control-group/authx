@@ -7,6 +7,7 @@ const USER = Symbol("user");
 
 export class Grant<T = {}> {
   public id: string;
+  public enabled: boolean;
   public clientId: string;
   public userId: string;
   public nonce: null | string;
@@ -18,6 +19,7 @@ export class Grant<T = {}> {
 
   public constructor(data: {
     id: string;
+    enabled: boolean;
     clientId: string;
     userId: string;
     nonce: null | string;
@@ -25,6 +27,7 @@ export class Grant<T = {}> {
     scopes: string[];
   }) {
     this.id = data.id;
+    this.enabled = data.enabled;
     this.clientId = data.clientId;
     this.userId = data.userId;
     this.nonce = data.nonce;
@@ -75,6 +78,7 @@ export class Grant<T = {}> {
       `
       SELECT
         entity_id AS id,
+        enabled,
         client_id,
         user_id,
         nonce,
@@ -105,7 +109,7 @@ export class Grant<T = {}> {
     metadata: {
       recordId: string;
       createdByGrantId: string;
-      createdAt: string;
+      createdAt: Date;
     }
   ): Promise<Grant> {
     // ensure that the entity ID exists
@@ -148,6 +152,7 @@ export class Grant<T = {}> {
         created_by_grant_id,
         created_at,
         entity_id,
+        enabled,
         client_id,
         user_id,
         nonce,
@@ -155,9 +160,10 @@ export class Grant<T = {}> {
         scopes
       )
       VALUES
-        ($1, $2, $3, $4, $5, $6, $7, $8, $9)
+        ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10)
       RETURNING
         entity_id AS id,
+        enabled,
         client_id,
         user_id,
         nonce,
@@ -169,6 +175,7 @@ export class Grant<T = {}> {
         metadata.createdByGrantId,
         metadata.createdAt,
         data.id,
+        data.enabled,
         data.clientId,
         data.userId,
         data.nonce,

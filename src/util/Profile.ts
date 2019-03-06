@@ -25,13 +25,13 @@ export interface Profile {
   preferredUsername?: string;
   utcOffset?: string;
   connected: boolean; // default: false
-  emails: Plural[];
-  urls: Plural[];
-  phoneNumbers: Plural[];
-  ims: Plural[];
-  photos: Plural[];
-  tags: Plural[];
-  relationships: Plural[];
+  emails?: Plural[];
+  urls?: Plural[];
+  phoneNumbers?: Plural[];
+  ims?: Plural[];
+  photos?: Plural[];
+  tags?: Plural[];
+  relationships?: Plural[];
   addresses?: {
     formatted?: string;
     streetAddress?: string;

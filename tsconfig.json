@@ -1,4 +1,5 @@
 {
+  "exclude": ["./original/**/*", "./original/*"],
   "compilerOptions": {
     "lib": ["ES2018", "DOM"],
     "target": "ES2018",

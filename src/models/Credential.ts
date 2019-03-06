@@ -1,13 +1,14 @@
 import { PoolClient } from "pg";
 import { Authority } from "./Authority";
 import { User } from "./User";
-import { Profile } from "../Profile";
+import { Profile } from "../util/Profile";
 
 const AUTHORITY = Symbol("authority");
 const USER = Symbol("user");
 
 export class Credential<T = {}> {
   public id: string;
+  public enabled: boolean;
   public authorityId: string;
   public userId: string;
   public profile: Profile;
@@ -18,12 +19,14 @@ export class Credential<T = {}> {
 
   public constructor(data: {
     id: string;
+    enabled: boolean;
     authorityId: string;
     userId: string;
     profile: Profile;
     details: T;
   }) {
     this.id = data.id;
+    this.enabled = data.enabled;
     this.authorityId = data.authorityId;
     this.userId = data.userId;
     this.profile = data.profile;
@@ -73,6 +76,7 @@ export class Credential<T = {}> {
       `
       SELECT
         entity_id AS id,
+        enabled,
         authority_id,
         user_id,
         profile,
@@ -101,7 +105,7 @@ export class Credential<T = {}> {
     metadata: {
       recordId: string;
       createdByCredentialId: string;
-      createdAt: string;
+      createdAt: Date;
     }
   ): Promise<Credential> {
     // ensure that the entity ID exists
@@ -139,11 +143,22 @@ export class Credential<T = {}> {
     const next = await tx.query(
       `
       INSERT INTO authx.credential_record
-        (id, created_by_credential_id, created_at, entity_id, authority_id, user_id, profile, details)
+      (
+        id,
+        created_by_credential_id,
+        created_at,
+        entity_id,
+        enabled,
+        authority_id,
+        user_id,
+        profile,
+        details
+      )
       VALUES
-        ($1, $2, $3, $4, $5, $6, $7, $8)
+        ($1, $2, $3, $4, $5, $6, $7, $8, $9)
       RETURNING
         entity_id AS id,
+        enabled,
         authority_id,
         user_id,
         profile,
@@ -154,6 +169,7 @@ export class Credential<T = {}> {
         metadata.createdByCredentialId,
         metadata.createdAt,
         data.id,
+        data.enabled,
         data.authorityId,
         data.userId,
         data.profile,

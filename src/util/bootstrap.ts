@@ -1,14 +1,15 @@
 import { PoolClient } from "pg";
+import path from "path";
 import fs from "fs";
 
 import { User, Client, Grant, Role } from "../models";
 
-const sql = fs.readFileSync("../schema.sql", "utf8");
+const sql = fs.readFileSync(path.resolve(__dirname, "../../schema.sql"));
 
 interface Metadata {
   recordId: string;
-  createdByClientId: string;
-  createdAt: string;
+  createdByGrantId: string;
+  createdAt: Date;
 }
 
 export default async (
@@ -26,14 +27,14 @@ export default async (
   }
 ) => {
   // set up the schema
-  await tx.query(sql);
+  await tx.query(sql.toString("utf8"));
 
   // add entities to satisfy foreign key constraints
   await Promise.all([
-    tx.query("INSERT INTO authx.user (id) VALUES $0", [user.data.id]),
-    tx.query("INSERT INTO authx.client (id) VALUES $0", [client.data.id]),
-    tx.query("INSERT INTO authx.grant (id) VALUES $0", [grant.data.id]),
-    tx.query("INSERT INTO authx.role (id) VALUES $0", [role.data.id])
+    tx.query("INSERT INTO authx.user (id) VALUES ($1)", [user.data.id]),
+    tx.query("INSERT INTO authx.client (id) VALUES ($1)", [client.data.id]),
+    tx.query("INSERT INTO authx.grant (id) VALUES ($1)", [grant.data.id]),
+    tx.query("INSERT INTO authx.role (id) VALUES ($1)", [role.data.id])
   ]);
 
   // insert the records

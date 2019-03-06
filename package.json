@@ -17,6 +17,7 @@
     "koa-router": "^7.0.1",
     "lodash": "^4.17.10",
     "nodemailer": "^5.1.1",
+    "pg": "^7.8.1",
     "prettier": "^1.16.4",
     "raw-body": "^2.1.5",
     "saml2-js": "^2.0.3",

@@ -5,6 +5,7 @@ const GRANTS = Symbol("grants");
 
 export class Client {
   public id: string;
+  public enabled: boolean;
   public name: string;
   public secret: string;
   public scopes: Set<string>;
@@ -14,12 +15,14 @@ export class Client {
 
   public constructor(data: {
     id: string;
+    enabled: boolean;
     name: string;
     secret: string;
     scopes: Iterable<string>;
     baseUrls: Iterable<string>;
   }) {
     this.id = data.id;
+    this.enabled = data.enabled;
     this.name = data.name;
     this.secret = data.secret;
     this.scopes = new Set(data.scopes);
@@ -60,6 +63,7 @@ export class Client {
       `
       SELECT
         entity_id AS id,
+        enabled,
         name,
         secret,
         scopes,
@@ -84,7 +88,7 @@ export class Client {
   public static async write(
     tx: PoolClient,
     data: Client,
-    metadata: { recordId: string; createdByClientId: string; createdAt: string }
+    metadata: { recordId: string; createdByGrantId: string; createdAt: Date }
   ): Promise<Client> {
     // ensure that the entity ID exists
     await tx.query(
@@ -119,11 +123,22 @@ export class Client {
     const next = await tx.query(
       `
       INSERT INTO authx.client_record
-        (id, created_by_client_id, created_at, entity_id, name, secret, scopes, base_urls)
+      (
+        id,
+        created_by_grant_id,
+        created_at,
+        entity_id,
+        enabled,
+        name,
+        secret,
+        scopes,
+        base_urls
+      )
       VALUES
-        ($1, $2, $3, $4, $5, $6, $7, $8)
+        ($1, $2, $3, $4, $5, $6, $7, $8, $9)
       RETURNING
         entity_id AS id,
+        enabled,
         name,
         secret,
         scopes,
@@ -131,9 +146,10 @@ export class Client {
       `,
       [
         metadata.recordId,
-        metadata.createdByClientId,
+        metadata.createdByGrantId,
         metadata.createdAt,
         data.id,
+        data.enabled,
         data.name,
         data.secret,
         data.scopes,

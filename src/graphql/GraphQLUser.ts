@@ -4,6 +4,7 @@ import {
   GraphQLFloat,
   GraphQLID,
   GraphQLInt,
+  GraphQLString,
   GraphQLList,
   GraphQLNonNull,
   GraphQLObjectType
@@ -17,7 +18,7 @@ export const GraphQLUser: GraphQLObjectType = new GraphQLObjectType({
   interfaces: () => [],
   fields: () => ({
     id: { type: new GraphQLNonNull(GraphQLID) },
-    type: { type: GraphQLUser },
+    type: { type: GraphQLString },
     profile: { type: GraphQLJSON },
     credentials: { type: new GraphQLList(GraphQLCredential) }
   })

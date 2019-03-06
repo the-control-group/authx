@@ -1,3 +1,7 @@
+CREATE SCHEMA authx;
+
+
+
 CREATE TABLE authx.authority ( id UUID PRIMARY KEY );
 CREATE TABLE authx.client ( id UUID PRIMARY KEY );
 CREATE TABLE authx.credential ( id UUID PRIMARY KEY );
@@ -62,7 +66,7 @@ CREATE TABLE authx.credential_record (
 );
 
 CREATE UNIQUE INDEX ON authx.credential_record USING BTREE (entity_id) WHERE replacement_id IS NULL;
-CREATE UNIQUE INDEX ON authx.credential_record USING BTREE (authority_id, authority_user_id) WHERE enabled = TRUE;
+CREATE UNIQUE INDEX ON authx.credential_record USING BTREE (authority_id, authority_user_id) WHERE replacement_id IS NULL AND enabled = TRUE;
 
 
 
@@ -77,12 +81,14 @@ CREATE TABLE authx.grant_record (
 
   user_id UUID NOT NULL REFERENCES authx.user,
   client_id UUID NOT NULL REFERENCES authx.client,
+  nonce TEXT DEFAULT NULL,
+  refresh_token TEXT NOT NULL,
   scopes TEXT[] NOT NULL,
   enabled BOOLEAN NOT NULL
 );
 
 CREATE UNIQUE INDEX ON authx.grant_record USING BTREE (entity_id) WHERE replacement_id IS NULL;
-CREATE UNIQUE INDEX ON authx.grant_record USING BTREE (user_id, client_id) WHERE enabled = TRUE;
+CREATE UNIQUE INDEX ON authx.grant_record USING BTREE (user_id, client_id) WHERE replacement_id IS NULL AND enabled = TRUE;
 
 
 

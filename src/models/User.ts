@@ -2,23 +2,20 @@ import { PoolClient } from "pg";
 import { Credential } from "./Credential";
 import { Grant } from "./Grant";
 import { Role } from "./Role";
-import { Profile } from "../Profile";
+import { Profile } from "../util/Profile";
 
 const CREDENTIALS = Symbol("credentials");
 const GRANTS = Symbol("grants");
 const ROLES = Symbol("roles");
 const SCOPES = Symbol("scopes");
 
-enum UserType {
-  "human",
-  "robot"
-}
+type UserType = "human" | "bot";
 
 export class User {
   public id: string;
+  public enabled: boolean;
   public type: UserType;
   public profile: Profile;
-  public recordId: null | string;
 
   private [CREDENTIALS]: null | Promise<Credential[]> = null;
   private [GRANTS]: null | Promise<Grant[]> = null;
@@ -27,14 +24,14 @@ export class User {
 
   public constructor(data: {
     id: string;
+    enabled: boolean;
     type: UserType;
     profile: Profile;
-    recordId?: null | string;
   }) {
     this.id = data.id;
+    this.enabled = data.enabled;
     this.type = data.type;
     this.profile = data.profile;
-    this.recordId = data.recordId || null;
   }
 
   public async credentials(
@@ -149,6 +146,7 @@ export class User {
       `
       SELECT
         entity_id AS id,
+        enabled,
         type,
         profile
       FROM authx.user_record
@@ -165,7 +163,7 @@ export class User {
   public static async write(
     tx: PoolClient,
     data: User,
-    metadata: { recordId: string; createdByRoleId: string; createdAt: string }
+    metadata: { recordId: string; createdByGrantId: string; createdAt: Date }
   ): Promise<User> {
     // ensure that the entity ID exists
     await tx.query(
@@ -202,19 +200,29 @@ export class User {
     const next = await tx.query(
       `
       INSERT INTO authx.user_record
-        (id, created_by_role_id, created_at, entity_id, type, profile)
+      (
+        id,
+        created_by_grant_id,
+        created_at,
+        entity_id,
+        enabled,
+        type,
+        profile
+      )
       VALUES
-        ($1, $2, $3, $4, $5)
+        ($1, $2, $3, $4, $5, $6, $7)
       RETURNING
         entity_id AS id,
+        enabled,
         type,
         profile
       `,
       [
         metadata.recordId,
-        metadata.createdByRoleId,
+        metadata.createdByGrantId,
         metadata.createdAt,
         data.id,
+        data.enabled,
         data.type,
         data.profile
       ]
