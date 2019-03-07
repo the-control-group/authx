@@ -62,6 +62,8 @@ CREATE TABLE authx.credential_record (
   authority_id UUID NOT NULL REFERENCES authx.authority,
   authority_user_id TEXT NOT NULL,
   user_id UUID NOT NULL REFERENCES authx.user,
+  details JSONB NOT NULL,
+  profile JSONB DEFAULT NULL,
   enabled BOOLEAN NOT NULL
 );
 

@@ -7,13 +7,13 @@ const AUTHORITY = Symbol("authority");
 const USER = Symbol("user");
 
 export class Credential<T = {}> {
-  public id: string;
-  public enabled: boolean;
-  public authorityId: string;
-  public authorityUserId: string;
-  public userId: string;
-  public profile: null | Profile;
-  public details: T;
+  public readonly id: string;
+  public readonly enabled: boolean;
+  public readonly authorityId: string;
+  public readonly authorityUserId: string;
+  public readonly userId: string;
+  public readonly profile: null | Profile;
+  public readonly details: T;
 
   private [AUTHORITY]: null | Promise<Authority> = null;
   private [USER]: null | Promise<User> = null;
@@ -109,7 +109,7 @@ export class Credential<T = {}> {
     data: Credential,
     metadata: {
       recordId: string;
-      createdByCredentialId: string;
+      createdByGrantId: string;
       createdAt: Date;
     }
   ): Promise<Credential> {
@@ -150,7 +150,7 @@ export class Credential<T = {}> {
       INSERT INTO authx.credential_record
       (
         id,
-        created_by_credential_id,
+        created_by_grant_id,
         created_at,
         entity_id,
         enabled,
@@ -173,7 +173,7 @@ export class Credential<T = {}> {
       `,
       [
         metadata.recordId,
-        metadata.createdByCredentialId,
+        metadata.createdByGrantId,
         metadata.createdAt,
         data.id,
         data.enabled,

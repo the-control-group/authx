@@ -6,13 +6,13 @@ const CLIENT = Symbol("client");
 const USER = Symbol("user");
 
 export class Grant<T = {}> {
-  public id: string;
-  public enabled: boolean;
-  public clientId: string;
-  public userId: string;
-  public nonce: null | string;
-  public refreshToken: string;
-  public scopes: string[];
+  public readonly id: string;
+  public readonly enabled: boolean;
+  public readonly clientId: string;
+  public readonly userId: string;
+  public readonly nonce: null | string;
+  public readonly refreshToken: string;
+  public readonly scopes: string[];
 
   private [CLIENT]: null | Promise<Client> = null;
   private [USER]: null | Promise<User> = null;

@@ -5,7 +5,12 @@ interface Plural {
 }
 
 export interface Profile {
+  // fixed
   id: string;
+  connected: boolean; // default: false
+  published?: string;
+
+  // user configurable
   displayName: string;
   name?: {
     formatted?: string;
@@ -16,7 +21,6 @@ export interface Profile {
     honorificSuffix?: string;
   };
   nickname?: string;
-  published?: string;
   updated?: string;
   birthday?: string;
   anniversary?: string;
@@ -24,7 +28,8 @@ export interface Profile {
   note?: string;
   preferredUsername?: string;
   utcOffset?: string;
-  connected: boolean; // default: false
+
+  // populated by credentials
   emails?: Plural[];
   urls?: Plural[];
   phoneNumbers?: Plural[];

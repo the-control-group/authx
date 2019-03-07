@@ -4,12 +4,12 @@ import { Grant } from "./Grant";
 const GRANTS = Symbol("grants");
 
 export class Client {
-  public id: string;
-  public enabled: boolean;
-  public name: string;
-  public secret: string;
-  public scopes: Set<string>;
-  public baseUrls: Set<string>;
+  public readonly id: string;
+  public readonly enabled: boolean;
+  public readonly name: string;
+  public readonly secret: string;
+  public readonly scopes: Set<string>;
+  public readonly baseUrls: Set<string>;
 
   private [GRANTS]: null | Promise<Grant[]> = null;
 

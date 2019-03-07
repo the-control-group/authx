@@ -12,10 +12,10 @@ const SCOPES = Symbol("scopes");
 type UserType = "human" | "bot";
 
 export class User {
-  public id: string;
-  public enabled: boolean;
-  public type: UserType;
-  public profile: Profile;
+  public readonly id: string;
+  public readonly enabled: boolean;
+  public readonly type: UserType;
+  public readonly profile: Profile;
 
   private [CREDENTIALS]: null | Promise<Credential[]> = null;
   private [GRANTS]: null | Promise<Grant[]> = null;

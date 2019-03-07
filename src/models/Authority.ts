@@ -4,11 +4,11 @@ import { Credential } from "./Credential";
 const CREDENTIALS = Symbol("credentials");
 
 export class Authority<T = {}> {
-  public id: string;
-  public enabled: boolean;
-  public name: string;
-  public strategy: string;
-  public details: T;
+  public readonly id: string;
+  public readonly enabled: boolean;
+  public readonly name: string;
+  public readonly strategy: string;
+  public readonly details: T;
 
   private [CREDENTIALS]: null | Promise<Credential[]> = null;
 
@@ -137,7 +137,7 @@ export class Authority<T = {}> {
       INSERT INTO authx.authority_record
       (
         id,
-        created_by_authority_id,
+        created_by_grant_id,
         created_at,
         entity_id,
         enabled,

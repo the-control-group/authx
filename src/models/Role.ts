@@ -18,27 +18,6 @@ export class AssignmentCollection
     }
   }
 
-  public add(
-    id: string,
-    cache: null | Promise<User> = null
-  ): AssignmentCollection {
-    this.data.set(id, cache);
-    return this;
-  }
-
-  public delete(id: string): AssignmentCollection {
-    this.data.delete(id);
-    return this;
-  }
-
-  public has(id: string): boolean {
-    return this.data.has(id);
-  }
-
-  public keys(): Iterable<string> {
-    return this.data.keys();
-  }
-
   private get(
     id: string,
     tx: PoolClient,
@@ -66,10 +45,18 @@ export class AssignmentCollection
     return this.data.size;
   }
 
+  public has(id: string): boolean {
+    return this.data.has(id);
+  }
+
+  public keys(): Iterable<string> {
+    return [...this.data.keys()].sort();
+  }
+
   public *[Symbol.iterator](): Iterator<
     (tx: PoolClient, refresh: boolean) => Promise<User>
   > {
-    const ids = [...this.data.keys()].sort();
+    const ids = this.keys();
     for (const id of ids) {
       yield this.get.bind(this, id);
     }
@@ -81,11 +68,11 @@ export class AssignmentCollection
 }
 
 export class Role {
-  public id: string;
-  public enabled: boolean;
-  public name: string;
-  public assignments: AssignmentCollection;
-  public scopes: Set<string>;
+  public readonly id: string;
+  public readonly enabled: boolean;
+  public readonly name: string;
+  public readonly assignments: AssignmentCollection;
+  public readonly scopes: Set<string>;
 
   public constructor(data: {
     id: string;
@@ -206,7 +193,7 @@ export class Role {
       SELECT $1::uuid AS role_record_id, user_id FROM UNNEST($2::uuid[]) AS user_id
       RETURNING user_id
       `,
-      [metadata.recordId, [...data.assignments]]
+      [metadata.recordId, data.assignments.keys()]
     );
 
     if (assignments.rows.length !== data.assignments.size) {
