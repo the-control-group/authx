@@ -7,9 +7,9 @@ export class Client {
   public readonly id: string;
   public readonly enabled: boolean;
   public readonly name: string;
-  public readonly secret: string;
   public readonly scopes: Set<string>;
-  public readonly baseUrls: Set<string>;
+  public readonly oauthSecret: string;
+  public readonly oauthUrls: Set<string>;
 
   private [GRANTS]: null | Promise<Grant[]> = null;
 
@@ -17,16 +17,16 @@ export class Client {
     id: string;
     enabled: boolean;
     name: string;
-    secret: string;
     scopes: Iterable<string>;
-    baseUrls: Iterable<string>;
+    oauthSecret: string;
+    oauthUrls: Iterable<string>;
   }) {
     this.id = data.id;
     this.enabled = data.enabled;
     this.name = data.name;
-    this.secret = data.secret;
     this.scopes = new Set(data.scopes);
-    this.baseUrls = new Set(data.baseUrls);
+    this.oauthSecret = data.oauthSecret;
+    this.oauthUrls = new Set(data.oauthUrls);
   }
 
   public async grants(
@@ -65,9 +65,9 @@ export class Client {
         entity_id AS id,
         enabled,
         name,
-        secret,
         scopes,
-        base_urls
+        oauth_secret,
+        oauth_urls
       FROM authx.client_record
       WHERE
         entity_id = ANY($1)
@@ -80,7 +80,7 @@ export class Client {
       row =>
         new Client({
           ...row,
-          baseUrls: row.base_urls
+          oauthUrls: row.oauth_urls
         })
     );
   }
@@ -88,7 +88,7 @@ export class Client {
   public static async write(
     tx: PoolClient,
     data: Client,
-    metadata: { recordId: string; createdByGrantId: string; createdAt: Date }
+    metadata: { recordId: string; createdBySessionId: string; createdAt: Date }
   ): Promise<Client> {
     // ensure that the entity ID exists
     await tx.query(
@@ -125,14 +125,14 @@ export class Client {
       INSERT INTO authx.client_record
       (
         record_id,
-        created_by_grant_id,
+        created_by_session_id,
         created_at,
         entity_id,
         enabled,
         name,
-        secret,
         scopes,
-        base_urls
+        oauth_secret,
+        oauth_urls
       )
       VALUES
         ($1, $2, $3, $4, $5, $6, $7, $8, $9)
@@ -140,20 +140,20 @@ export class Client {
         entity_id AS id,
         enabled,
         name,
-        secret,
         scopes,
-        base_urls
+        oauth_secret,
+        oauth_urls
       `,
       [
         metadata.recordId,
-        metadata.createdByGrantId,
+        metadata.createdBySessionId,
         metadata.createdAt,
         data.id,
         data.enabled,
         data.name,
-        data.secret,
         data.scopes,
-        data.baseUrls
+        data.oauthSecret,
+        data.oauthUrls
       ]
     );
 
@@ -164,7 +164,7 @@ export class Client {
     const row = next.rows[0];
     return new Client({
       ...row,
-      baseUrls: row.base_urls
+      oauthUrls: row.oauth_urls
     });
   }
 }

@@ -163,7 +163,7 @@ export class User {
   public static async write(
     tx: PoolClient,
     data: User,
-    metadata: { recordId: string; createdByGrantId: string; createdAt: Date }
+    metadata: { recordId: string; createdBySessionId: string; createdAt: Date }
   ): Promise<User> {
     // ensure that the entity ID exists
     await tx.query(
@@ -202,7 +202,7 @@ export class User {
       INSERT INTO authx.user_record
       (
         record_id,
-        created_by_grant_id,
+        created_by_session_id,
         created_at,
         entity_id,
         enabled,
@@ -219,7 +219,7 @@ export class User {
       `,
       [
         metadata.recordId,
-        metadata.createdByGrantId,
+        metadata.createdBySessionId,
         metadata.createdAt,
         data.id,
         data.enabled,

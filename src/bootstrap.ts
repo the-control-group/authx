@@ -20,9 +20,9 @@ const client = new Client({
   id: v4(),
   enabled: true,
   name: "AuthX Bootstrap",
-  secret: crypto.randomBytes(32).toString("hex"),
   scopes: [],
-  baseUrls: []
+  oauthSecret: crypto.randomBytes(32).toString("hex"),
+  oauthUrls: []
 });
 
 const grant = new Grant({
@@ -55,7 +55,7 @@ const role = new Role({
         data: user,
         metadata: {
           recordId: v4(),
-          createdByGrantId: grant.id,
+          createdBySessionId: grant.id,
           createdAt: new Date()
         }
       },
@@ -63,7 +63,7 @@ const role = new Role({
         data: client,
         metadata: {
           recordId: v4(),
-          createdByGrantId: grant.id,
+          createdBySessionId: grant.id,
           createdAt: new Date()
         }
       },
@@ -71,7 +71,7 @@ const role = new Role({
         data: grant,
         metadata: {
           recordId: v4(),
-          createdByGrantId: grant.id,
+          createdBySessionId: grant.id,
           createdAt: new Date()
         }
       },
@@ -79,7 +79,7 @@ const role = new Role({
         data: role,
         metadata: {
           recordId: v4(),
-          createdByGrantId: grant.id,
+          createdBySessionId: grant.id,
           createdAt: new Date()
         }
       }

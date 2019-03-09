@@ -109,7 +109,7 @@ export class Credential<T = {}> {
     data: Credential,
     metadata: {
       recordId: string;
-      createdByGrantId: string;
+      createdBySessionId: string;
       createdAt: Date;
     }
   ): Promise<Credential> {
@@ -150,7 +150,7 @@ export class Credential<T = {}> {
       INSERT INTO authx.credential_record
       (
         record_id,
-        created_by_grant_id,
+        created_by_session_id,
         created_at,
         entity_id,
         enabled,
@@ -173,7 +173,7 @@ export class Credential<T = {}> {
       `,
       [
         metadata.recordId,
-        metadata.createdByGrantId,
+        metadata.createdBySessionId,
         metadata.createdAt,
         data.id,
         data.enabled,

@@ -47,7 +47,7 @@ export class Grant<T = {}> {
     return (this[CLIENT] = (async () => {
       const authorities = await Client.read(tx, [this.clientId]);
       if (authorities.length !== 1) {
-        throw new Error("INVARIANT: Exactly one user must be returned.");
+        throw new Error("INVARIANT: Exactly one client must be returned.");
       }
 
       return authorities[0];
@@ -108,7 +108,7 @@ export class Grant<T = {}> {
     data: Grant,
     metadata: {
       recordId: string;
-      createdByGrantId: string;
+      createdBySessionId: string;
       createdAt: Date;
     }
   ): Promise<Grant> {
@@ -149,7 +149,7 @@ export class Grant<T = {}> {
       INSERT INTO authx.grant_record
       (
         record_id,
-        created_by_grant_id,
+        created_by_session_id,
         created_at,
         entity_id,
         enabled,
@@ -172,7 +172,7 @@ export class Grant<T = {}> {
       `,
       [
         metadata.recordId,
-        metadata.createdByGrantId,
+        metadata.createdBySessionId,
         metadata.createdAt,
         data.id,
         data.enabled,

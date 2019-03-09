@@ -1,80 +1,57 @@
 import { PoolClient } from "pg";
-import { Credential } from "./Credential";
+import { Client } from "./Client";
+import { Grant } from "./Grant";
 
-const CREDENTIALS = Symbol("credentials");
+const GRANT = Symbol("GRANT");
 
-export class Authority<T = {}> {
+export class Session {
   public readonly id: string;
   public readonly enabled: boolean;
-  public readonly name: string;
-  public readonly strategy: string;
-  public readonly details: T;
+  public readonly grantId: string;
+  public readonly scopes: string[];
 
-  private [CREDENTIALS]: null | Promise<Credential[]> = null;
+  private [GRANT]: null | Promise<Grant> = null;
 
   public constructor(data: {
     id: string;
     enabled: boolean;
-    name: string;
-    strategy: string;
-    details: T;
+    grantId: string;
+    scopes: string[];
   }) {
     this.id = data.id;
     this.enabled = data.enabled;
-    this.name = data.name;
-    this.strategy = data.strategy;
-    this.details = data.details;
+    this.grantId = data.grantId;
+    this.scopes = data.scopes;
   }
 
-  public async credentials(
-    tx: PoolClient,
-    refresh: boolean = false
-  ): Promise<Credential[]> {
-    const credentials = this[CREDENTIALS];
-    if (credentials && !refresh) {
-      return credentials;
+  public async grant(tx: PoolClient, refresh: boolean = false): Promise<Grant> {
+    const grant = this[GRANT];
+    if (grant && !refresh) {
+      return grant;
     }
 
-    return (this[CREDENTIALS] = (async () =>
-      Credential.read(
-        tx,
-        (await tx.query(
-          `
-          SELECT entity_id AS id
-          FROM authx.credential_records
-          WHERE
-            authority_id = $1
-            AND replacement_record_id IS NULL
-          `,
-          [this.id]
-        )).rows.map(({ id }) => id)
-      ))());
-  }
+    return (this[GRANT] = (async () => {
+      const grants = await Grant.read(tx, [this.grantId]);
+      if (grants.length !== 1) {
+        throw new Error("INVARIANT: Exactly one grant must be returned.");
+      }
 
-  public $write(
-    tx: PoolClient,
-    metadata: {
-      recordId: string;
-      createdBySessionId: string;
-      createdAt: Date;
-    }
-  ): Promise<Authority> {
-    return Authority.write(tx, this, metadata);
+      return grants[0];
+    })());
   }
 
   public static async read(
     tx: PoolClient,
     id: string | string[]
-  ): Promise<Authority[]> {
+  ): Promise<Session[]> {
     const result = await tx.query(
       `
       SELECT
         entity_id AS id,
         enabled,
-        name,
-        strategy,
-        details
-      FROM authx.authority_record
+        grant_id,
+        scopes
+      FROM authx.session_record
       WHERE
         entity_id = ANY($1)
         AND replacement_record_id IS NULL
@@ -84,26 +61,28 @@ export class Authority<T = {}> {
 
     return result.rows.map(
       row =>
-        new Authority({
+        new Session({
           ...row,
-          baseUrls: row.base_urls
+          clientId: row.client_id,
+          userId: row.user_id,
+          refreshToken: row.refresh_token
         })
     );
   }
 
   public static async write(
     tx: PoolClient,
-    data: Authority,
+    data: Session,
     metadata: {
       recordId: string;
       createdBySessionId: string;
       createdAt: Date;
     }
-  ): Promise<Authority> {
+  ): Promise<Session> {
     // ensure that the entity ID exists
     await tx.query(
       `
-      INSERT INTO authx.authority
+      INSERT INTO authx.session
         (id)
       VALUES
         ($1)
@@ -115,7 +94,7 @@ export class Authority<T = {}> {
     // replace the previous record
     const previous = await tx.query(
       `
-      UPDATE authx.authority_record
+      UPDATE authx.session_record
       SET replacement_record_id = $2
       WHERE
         entity_id = $1
@@ -134,25 +113,23 @@ export class Authority<T = {}> {
     // insert the new record
     const next = await tx.query(
       `
-      INSERT INTO authx.authority_record
+      INSERT INTO authx.session_record
       (
         record_id,
         created_by_session_id,
         created_at,
         entity_id,
         enabled,
-        name,
-        strategy,
-        details
+        grant_id,
+        scopes
       )
       VALUES
-        ($1, $2, $3, $4, $5, $6, $7, $8)
+        ($1, $2, $3, $4, $5, $6, $7)
       RETURNING
         entity_id AS id,
         enabled,
-        name,
-        strategy,
-        details
+        grant_id,
+        scopes
       `,
       [
         metadata.recordId,
@@ -160,9 +137,8 @@ export class Authority<T = {}> {
         metadata.createdAt,
         data.id,
         data.enabled,
-        data.name,
-        data.strategy,
-        data.details
+        data.grantId,
+        data.scopes
       ]
     );
 
@@ -171,9 +147,11 @@ export class Authority<T = {}> {
     }
 
     const row = next.rows[0];
-    return new Authority({
+    return new Session({
       ...row,
-      baseUrls: row.base_urls
+      clientId: row.client_id,
+      userId: row.user_id,
+      refreshToken: row.refresh_token
     });
   }
 }

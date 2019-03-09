@@ -2,14 +2,30 @@ import { Pool, PoolClient } from "pg";
 import path from "path";
 import fs from "fs";
 
-import { Authority, Client, Credential, Grant, Role, User } from "./models";
-import { authority, client, credential, grant, role, user } from "./fixtures";
+import {
+  Authority,
+  Client,
+  Credential,
+  Grant,
+  Role,
+  Session,
+  User
+} from "./models";
+import {
+  authority,
+  client,
+  credential,
+  grant,
+  role,
+  session,
+  user
+} from "./fixtures";
 
 const sql = fs.readFileSync(path.resolve(__dirname, "../schema.sql"));
 
 interface Metadata {
   recordId: string;
-  createdByGrantId: string;
+  createdBySessionId: string;
   createdAt: Date;
 }
 
@@ -40,6 +56,10 @@ const fixture = async (tx: PoolClient): Promise<void> => {
       [role.map(({ data: { id } }) => id)]
     ),
     tx.query(
+      "INSERT INTO authx.session (id) SELECT id FROM UNNEST($1::uuid[]) AS id",
+      [session.map(({ data: { id } }) => id)]
+    ),
+    tx.query(
       "INSERT INTO authx.user (id) SELECT id FROM UNNEST($1::uuid[]) AS id",
       [user.map(({ data: { id } }) => id)]
     )
@@ -63,6 +83,9 @@ const fixture = async (tx: PoolClient): Promise<void> => {
     ),
     Promise.all(
       role.map(({ data, metadata }) => Role.write(tx, data, metadata))
+    ),
+    Promise.all(
+      session.map(({ data, metadata }) => Session.write(tx, data, metadata))
     ),
     Promise.all(
       user.map(({ data, metadata }) => User.write(tx, data, metadata))

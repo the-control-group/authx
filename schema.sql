@@ -7,6 +7,7 @@ CREATE TABLE authx.client ( id UUID PRIMARY KEY );
 CREATE TABLE authx.credential ( id UUID PRIMARY KEY );
 CREATE TABLE authx.grant ( id UUID PRIMARY KEY );
 CREATE TABLE authx.role ( id UUID PRIMARY KEY );
+CREATE TABLE authx.session ( id UUID PRIMARY KEY );
 CREATE TABLE authx.user ( id UUID PRIMARY KEY );
 
 
@@ -19,7 +20,7 @@ CREATE TABLE authx.authority_record (
   entity_id UUID NOT NULL REFERENCES authx.authority,
 
   created_at TIMESTAMP WITHOUT TIME ZONE NOT NULL DEFAULT CURRENT_TIMESTAMP,
-  created_by_grant_id UUID NOT NULL REFERENCES authx.grant,
+  created_by_session_id UUID NOT NULL REFERENCES authx.session,
 
   strategy TEXT NOT NULL,
   name TEXT NOT NULL,
@@ -39,12 +40,12 @@ CREATE TABLE authx.client_record (
   entity_id UUID NOT NULL REFERENCES authx.client,
 
   created_at TIMESTAMP WITHOUT TIME ZONE NOT NULL DEFAULT CURRENT_TIMESTAMP,
-  created_by_grant_id UUID NOT NULL REFERENCES authx.grant,
+  created_by_session_id UUID NOT NULL REFERENCES authx.session,
 
   name TEXT NOT NULL,
-  secret TEXT NOT NULL,
   scopes TEXT[] NOT NULL,
-  base_urls TEXT[] NOT NULL,
+  oauth_secret TEXT NOT NULL,
+  oauth_urls TEXT[] NOT NULL,
   enabled BOOLEAN NOT NULL
 );
 
@@ -60,7 +61,7 @@ CREATE TABLE authx.credential_record (
   entity_id UUID NOT NULL REFERENCES authx.credential,
 
   created_at TIMESTAMP WITHOUT TIME ZONE NOT NULL DEFAULT CURRENT_TIMESTAMP,
-  created_by_grant_id UUID NOT NULL REFERENCES authx.grant,
+  created_by_session_id UUID NOT NULL REFERENCES authx.session,
 
   authority_id UUID NOT NULL REFERENCES authx.authority,
   authority_user_id TEXT NOT NULL,
@@ -83,7 +84,7 @@ CREATE TABLE authx.grant_record (
   entity_id UUID NOT NULL REFERENCES authx.grant,
 
   created_at TIMESTAMP WITHOUT TIME ZONE NOT NULL DEFAULT CURRENT_TIMESTAMP,
-  created_by_grant_id UUID NOT NULL REFERENCES authx.grant,
+  created_by_session_id UUID NOT NULL REFERENCES authx.session,
 
   user_id UUID NOT NULL REFERENCES authx.user,
   client_id UUID NOT NULL REFERENCES authx.client,
@@ -106,7 +107,7 @@ CREATE TABLE authx.role_record (
   entity_id UUID NOT NULL REFERENCES authx.role,
 
   created_at TIMESTAMP WITHOUT TIME ZONE NOT NULL DEFAULT CURRENT_TIMESTAMP,
-  created_by_grant_id UUID NOT NULL REFERENCES authx.grant,
+  created_by_session_id UUID NOT NULL REFERENCES authx.session,
 
   name TEXT NOT NULL,
   scopes TEXT[] NOT NULL,
@@ -124,6 +125,27 @@ CREATE TABLE authx.role_record_assignment (
 
 
 
+CREATE TABLE authx.session_record (
+  record_id UUID PRIMARY KEY,
+  replacement_record_id UUID DEFAULT NULL REFERENCES authx.session_record DEFERRABLE INITIALLY DEFERRED,
+
+  entity_id UUID NOT NULL REFERENCES authx.session,
+
+  created_at TIMESTAMP WITHOUT TIME ZONE NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  created_by_session_id UUID NOT NULL REFERENCES authx.session,
+
+  grant_id UUID NOT NULL REFERENCES authx.grant,
+  scopes TEXT[] NOT NULL,
+  -- remote_id TEXT NOT NULL,
+  enabled BOOLEAN NOT NULL
+);
+
+CREATE UNIQUE INDEX ON authx.session_record USING BTREE (entity_id) WHERE replacement_record_id IS NULL;
+-- CREATE UNIQUE INDEX ON authx.session_record USING BTREE (remote_id) WHERE replacement_record_id IS NULL AND enabled = TRUE;
+
+
+
+
 CREATE TABLE authx.user_record (
   record_id UUID PRIMARY KEY,
   replacement_record_id UUID DEFAULT NULL REFERENCES authx.user_record DEFERRABLE INITIALLY DEFERRED,
@@ -131,7 +153,7 @@ CREATE TABLE authx.user_record (
   entity_id UUID NOT NULL REFERENCES authx.user,
 
   created_at TIMESTAMP WITHOUT TIME ZONE NOT NULL DEFAULT CURRENT_TIMESTAMP,
-  created_by_grant_id UUID NOT NULL REFERENCES authx.grant,
+  created_by_session_id UUID NOT NULL REFERENCES authx.session,
 
   type TEXT NOT NULL,
   profile JSONB NOT NULL,
