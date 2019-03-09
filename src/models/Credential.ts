@@ -88,7 +88,7 @@ export class Credential<T = {}> {
       FROM authx.credential_record
       WHERE
         entity_id = ANY($1)
-        AND replacement_id IS NULL
+        AND replacement_record_id IS NULL
       `,
       [id]
     );
@@ -129,11 +129,11 @@ export class Credential<T = {}> {
     const previous = await tx.query(
       `
       UPDATE authx.credential_record
-      SET replacement_id = $2
+      SET replacement_record_id = $2
       WHERE
         entity_id = $1
-        AND replacement_id IS NULL
-      RETURNING id
+        AND replacement_record_id IS NULL
+      RETURNING entity_id AS id, record_id
       `,
       [data.id, metadata.recordId]
     );
@@ -149,7 +149,7 @@ export class Credential<T = {}> {
       `
       INSERT INTO authx.credential_record
       (
-        id,
+        record_id,
         created_by_grant_id,
         created_at,
         entity_id,

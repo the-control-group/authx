@@ -44,7 +44,7 @@ export class Authority<T = {}> {
           FROM authx.credential_records
           WHERE
             authority_id = $1
-            AND replacement_id IS NULL
+            AND replacement_record_id IS NULL
           `,
           [this.id]
         )).rows.map(({ id }) => id)
@@ -77,7 +77,7 @@ export class Authority<T = {}> {
       FROM authx.authority_record
       WHERE
         entity_id = ANY($1)
-        AND replacement_id IS NULL
+        AND replacement_record_id IS NULL
       `,
       [id]
     );
@@ -116,11 +116,11 @@ export class Authority<T = {}> {
     const previous = await tx.query(
       `
       UPDATE authx.authority_record
-      SET replacement_id = $2
+      SET replacement_record_id = $2
       WHERE
         entity_id = $1
-        AND replacement_id IS NULL
-      RETURNING id
+        AND replacement_record_id IS NULL
+      RETURNING entity_id AS id, record_id
       `,
       [data.id, metadata.recordId]
     );
@@ -136,7 +136,7 @@ export class Authority<T = {}> {
       `
       INSERT INTO authx.authority_record
       (
-        id,
+        record_id,
         created_by_grant_id,
         created_at,
         entity_id,

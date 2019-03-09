@@ -48,7 +48,7 @@ export class Client {
           FROM authx.grant_records
           WHERE
             client_id = $1
-            AND replacement_id IS NULL
+            AND replacement_record_id IS NULL
           `,
           [this.id]
         )).rows.map(({ id }) => id)
@@ -71,7 +71,7 @@ export class Client {
       FROM authx.client_record
       WHERE
         entity_id = ANY($1)
-        AND replacement_id IS NULL
+        AND replacement_record_id IS NULL
       `,
       [id]
     );
@@ -106,9 +106,9 @@ export class Client {
     const previous = await tx.query(
       `
       UPDATE authx.client_record
-      SET replacement_id = $2
-      WHERE entity_id = $1 AND replacement_id IS NULL
-      RETURNING id
+      SET replacement_record_id = $2
+      WHERE entity_id = $1 AND replacement_record_id IS NULL
+      RETURNING entity_id AS id, record_id
       `,
       [data.id, metadata.recordId]
     );
@@ -124,7 +124,7 @@ export class Client {
       `
       INSERT INTO authx.client_record
       (
-        id,
+        record_id,
         created_by_grant_id,
         created_at,
         entity_id,

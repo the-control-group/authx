@@ -107,7 +107,7 @@ export class Role {
       FROM authx.role_record
       LEFT JOIN role_record_assignment
         ON role_record_assignment.role_record_id = role_record.record_id
-      WHERE entity_id = ANY($1) AND replacement_id IS NULL
+      WHERE entity_id = ANY($1) AND replacement_record_id IS NULL
       `,
       [id]
     );
@@ -136,9 +136,9 @@ export class Role {
     const previous = await tx.query(
       `
       UPDATE authx.role_record
-      SET replacement_id = $2
-      WHERE entity_id = $1 AND replacement_id IS NULL
-      RETURNING id
+      SET replacement_record_id = $2
+      WHERE entity_id = $1 AND replacement_record_id IS NULL
+      RETURNING entity_id AS id, record_id
       `,
       [data.id, metadata.recordId]
     );
@@ -154,7 +154,7 @@ export class Role {
       `
       INSERT INTO authx.role_record
       (
-        id,
+        record_id,
         created_by_grant_id,
         created_at,
         entity_id,
