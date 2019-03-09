@@ -7,14 +7,13 @@ import {
   GraphQLList,
   GraphQLNonNull,
   GraphQLString,
-  GraphQLObjectType
+  GraphQLInterfaceType
 } from "graphql";
 
 import GraphQLJSON from "graphql-type-json";
 
-export const GraphQLAuthority = new GraphQLObjectType({
+export const GraphQLAuthority = new GraphQLInterfaceType({
   name: "Authority",
-  interfaces: () => [],
   fields: () => ({
     id: { type: new GraphQLNonNull(GraphQLID) },
     strategy: { type: GraphQLString },

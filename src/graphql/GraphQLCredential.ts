@@ -7,16 +7,15 @@ import {
   GraphQLList,
   GraphQLNonNull,
   GraphQLString,
-  GraphQLObjectType
+  GraphQLInterfaceType
 } from "graphql";
 
 import GraphQLJSON from "graphql-type-json";
 import { GraphQLAuthority } from "./GraphQLAuthority";
 import { GraphQLUser } from "./GraphQLUser";
 
-export const GraphQLCredential = new GraphQLObjectType({
+export const GraphQLCredential = new GraphQLInterfaceType({
   name: "Credential",
-  interfaces: () => [],
   fields: () => ({
     id: { type: new GraphQLNonNull(GraphQLID) },
     user: { type: GraphQLUser },
