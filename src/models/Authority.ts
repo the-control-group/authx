@@ -1,24 +1,22 @@
 import { PoolClient } from "pg";
 import { Credential } from "./Credential";
 
-const CREDENTIALS = Symbol("credentials");
+export interface AuthorityData<A> {
+  readonly id: string;
+  readonly enabled: boolean;
+  readonly name: string;
+  readonly strategy: string;
+  readonly details: A;
+}
 
-export class Authority<T = {}> {
+export abstract class Authority<A> implements AuthorityData<A> {
   public readonly id: string;
   public readonly enabled: boolean;
   public readonly name: string;
   public readonly strategy: string;
-  public readonly details: T;
+  public readonly details: A;
 
-  private [CREDENTIALS]: null | Promise<Credential[]> = null;
-
-  public constructor(data: {
-    id: string;
-    enabled: boolean;
-    name: string;
-    strategy: string;
-    details: T;
-  }) {
+  public constructor(data: AuthorityData<A>) {
     this.id = data.id;
     this.enabled = data.enabled;
     this.name = data.name;
@@ -26,48 +24,42 @@ export class Authority<T = {}> {
     this.details = data.details;
   }
 
-  public async credentials(
-    tx: PoolClient,
-    refresh: boolean = false
-  ): Promise<Credential[]> {
-    const credentials = this[CREDENTIALS];
-    if (credentials && !refresh) {
-      return credentials;
-    }
+  // public async credentials(
+  //   tx: PoolClient,
+  //   refresh: boolean = false
+  // ): Promise<Credential[]> {
+  //   return Credential.read(
+  //     tx,
+  //     (await tx.query(
+  //       `
+  //         SELECT entity_id AS id
+  //         FROM authx.credential_records
+  //         WHERE
+  //           authority_id = $1
+  //           AND replacement_record_id IS NULL
+  //         `,
+  //       [this.id]
+  //     )).rows.map(({ id }) => id)
+  //   );
+  // }
 
-    return (this[CREDENTIALS] = (async () =>
-      Credential.read(
-        tx,
-        (await tx.query(
-          `
-          SELECT entity_id AS id
-          FROM authx.credential_records
-          WHERE
-            authority_id = $1
-            AND replacement_record_id IS NULL
-          `,
-          [this.id]
-        )).rows.map(({ id }) => id)
-      ))());
-  }
-
-  public $write(
+  public static read<M extends { [key: string]: any }, K extends keyof M>(
     tx: PoolClient,
-    metadata: {
-      recordId: string;
-      createdBySessionId: string;
-      createdAt: Date;
-    }
-  ): Promise<Authority> {
-    return Authority.write(tx, this, metadata);
-  }
+    id: string,
+    map: M
+  ): Promise<M[K]>;
 
-  public static read(tx: PoolClient, id: string): Promise<Authority>;
-  public static read(tx: PoolClient, id: string[]): Promise<Authority[]>;
-  public static async read(
+  public static read<M extends { [key: string]: any }, K extends keyof M>(
     tx: PoolClient,
-    id: string[] | string
-  ): Promise<Authority[] | Authority> {
+    id: string[],
+    map: M
+  ): Promise<M[K][]>;
+
+  public static async read<M extends { [key: string]: any }, K extends keyof M>(
+    tx: PoolClient,
+    id: string[] | string,
+    map: M
+  ): Promise<M[K][] | M[K]> {
     if (typeof id !== "string" && !id.length) {
       return [];
     }
@@ -94,17 +86,22 @@ export class Authority<T = {}> {
       );
     }
 
-    const authorities = result.rows.map(
-      row =>
-        new Authority({
-          ...row,
-          baseUrls: row.base_urls
-        })
-    );
+    const authorities = result.rows.map(row => {
+      const Class = map[row.strategy];
+      if (!Class) {
+        throw new Error(`The strategy "${row.strategy}" is not registered.`);
+      }
+
+      return new Class({
+        ...row,
+        baseUrls: row.base_urls
+      });
+    });
 
     return typeof id === "string" ? authorities[0] : authorities;
   }
 
+  /*
   public static async write(
     tx: PoolClient,
     data: Authority,
@@ -190,4 +187,5 @@ export class Authority<T = {}> {
       baseUrls: row.base_urls
     });
   }
+  */
 }

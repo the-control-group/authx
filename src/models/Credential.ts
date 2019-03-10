@@ -3,30 +3,26 @@ import { Authority } from "./Authority";
 import { User } from "./User";
 import { Profile } from "../util/Profile";
 
-const AUTHORITY = Symbol("authority");
-const USER = Symbol("user");
+export interface CredentialData<C> {
+  readonly id: string;
+  readonly enabled: boolean;
+  readonly authorityId: string;
+  readonly authorityUserId: string;
+  readonly userId: string;
+  readonly profile: null | Profile;
+  readonly details: C;
+}
 
-export class Credential<T = {}> {
+export abstract class Credential<C> implements CredentialData<C> {
   public readonly id: string;
   public readonly enabled: boolean;
   public readonly authorityId: string;
   public readonly authorityUserId: string;
   public readonly userId: string;
   public readonly profile: null | Profile;
-  public readonly details: T;
+  public readonly details: C;
 
-  private [AUTHORITY]: null | Promise<Authority> = null;
-  private [USER]: null | Promise<User> = null;
-
-  public constructor(data: {
-    id: string;
-    enabled: boolean;
-    authorityId: string;
-    authorityUserId: string;
-    userId: string;
-    profile: null | Profile;
-    details: T;
-  }) {
+  public constructor(data: CredentialData<C>) {
     this.id = data.id;
     this.enabled = data.enabled;
     this.authorityId = data.authorityId;
@@ -36,33 +32,33 @@ export class Credential<T = {}> {
     this.details = data.details;
   }
 
-  public async authority(
-    tx: PoolClient,
-    refresh: boolean = false
-  ): Promise<Authority> {
-    const authority = this[AUTHORITY];
-    if (authority && !refresh) {
-      return authority;
-    }
+  // public async authority(
+  //   tx: PoolClient
+  // ): Promise<Authority> {
+  //   return Authority.read(tx, this.authorityId)
+  // }
 
-    return (this[AUTHORITY] = Authority.read(tx, this.authorityId));
+  public user(tx: PoolClient): Promise<User> {
+    return User.read(tx, this.userId);
   }
 
-  public async user(tx: PoolClient, refresh: boolean = false): Promise<User> {
-    const user = this[USER];
-    if (user && !refresh) {
-      return user;
-    }
-
-    return (this[USER] = User.read(tx, this.userId));
-  }
-
-  public static read(tx: PoolClient, id: string): Promise<Credential>;
-  public static read(tx: PoolClient, id: string[]): Promise<Credential[]>;
-  public static async read(
+  public static read<M extends { [key: string]: any }, K extends keyof M>(
     tx: PoolClient,
-    id: string[] | string
-  ): Promise<Credential[] | Credential> {
+    id: string,
+    map: M
+  ): Promise<M[K]>;
+
+  public static read<M extends { [key: string]: any }, K extends keyof M>(
+    tx: PoolClient,
+    id: string[],
+    map: M
+  ): Promise<M[K][]>;
+
+  public static async read<M extends { [key: string]: any }, K extends keyof M>(
+    tx: PoolClient,
+    id: string[] | string,
+    map: M
+  ): Promise<M[K][] | M[K]> {
     if (typeof id !== "string" && !id.length) {
       return [];
     }
@@ -91,19 +87,24 @@ export class Credential<T = {}> {
       );
     }
 
-    const credentials = result.rows.map(
-      row =>
-        new Credential({
-          ...row,
-          authorityId: row.authority_id,
-          authorityUserId: row.authority_user_id,
-          userId: row.user_id
-        })
-    );
+    const credentials = result.rows.map(row => {
+      const Class = map[row.strategy];
+      if (!Class) {
+        throw new Error(`The strategy "${row.strategy}" is not registered.`);
+      }
+
+      return new Class({
+        ...row,
+        authorityId: row.authority_id,
+        authorityUserId: row.authority_user_id,
+        userId: row.user_id
+      });
+    });
 
     return typeof id === "string" ? credentials[0] : credentials;
   }
 
+  /*
   public static async write(
     tx: PoolClient,
     data: Credential,
@@ -197,4 +198,5 @@ export class Credential<T = {}> {
       userId: row.user_id
     });
   }
+  */
 }

@@ -36,8 +36,6 @@ export class Role {
       return users;
     }
 
-    console.log([...this.userIds]);
-
     return (this[USERS] = User.read(tx, [...this.userIds]));
   }
 
