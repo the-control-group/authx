@@ -1,13 +1,15 @@
-import Koa, { Middleware } from "koa";
-import Router, { IRouterParamContext } from "koa-router";
+import { Middleware } from "koa";
+import { Pool } from "pg";
+import Router from "koa-router";
 import body from "koa-body";
 import { errorHandler, execute } from "graphql-api-koa";
-import { Pool } from "pg";
+import x from "./x";
 
-import { schema } from "./graphql";
+import schema from "./graphql";
+export * from "./graphql";
 
-class AuthX<StateT = any, CustomT = {}> extends Router<StateT, CustomT> {
-  // private middleware: () => Middleware<StateT, IRouterParamContext<StateT, CustomT>>;
+export class AuthX<StateT = any, CustomT = {}> extends Router<StateT, CustomT> {
+  private pool: Pool;
 
   constructor(config: any, strategies: any) {
     super(config);
@@ -15,34 +17,36 @@ class AuthX<StateT = any, CustomT = {}> extends Router<StateT, CustomT> {
     // // set the config
     // this.config = config;
 
-    // // create a database pool
-    // this.pool = new Pool(
-    //   config.db,
-    //   config.db.pool.max,
-    //   config.db.pool.min,
-    //   config.db.pool.timeout
-    // );
+    // create a database pool
+    this.pool = new Pool();
 
     // // attach the strategies
     // this.strategies = strategies;
 
-    // // Middleware
-    // // ----------
-
-    // // add authx namespace context
-    // this.use((ctx, next) => {
-    //   ctx[x] = { authx: this };
-    //   return next();
-    // });
+    // Middleware
+    // ----------
 
     // // error handling
     // this.use(errorMiddleware);
 
-    // // get a database connection
-    // this.use(dbMiddleware);
-
     // // add CORS header if necessary
     // this.use(corsMiddleware);
+
+    // add authx namespace context
+    this.use(async (ctx: any, next) => {
+      const tx = await this.pool.connect();
+
+      ctx[x] = {
+        authx: this,
+        tx
+      };
+
+      try {
+        await next();
+      } finally {
+        tx.release();
+      }
+    });
 
     // // get the current bearer token
     // this.use(bearerMiddleware);
@@ -83,10 +87,14 @@ class AuthX<StateT = any, CustomT = {}> extends Router<StateT, CustomT> {
         schema,
         override: (ctx: any) => {
           return {
-            contextValue: {}
+            contextValue: {
+              tx: ctx[x].tx
+            }
           };
         }
       })
     );
   }
 }
+
+export default AuthX;

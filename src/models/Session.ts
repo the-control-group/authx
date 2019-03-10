@@ -30,20 +30,15 @@ export class Session {
       return grant;
     }
 
-    return (this[GRANT] = (async () => {
-      const grants = await Grant.read(tx, [this.grantId]);
-      if (grants.length !== 1) {
-        throw new Error("INVARIANT: Exactly one grant must be returned.");
-      }
-
-      return grants[0];
-    })());
+    return (this[GRANT] = Grant.read(tx, this.grantId));
   }
 
+  public static read(tx: PoolClient, id: string): Promise<Session>;
+  public static read(tx: PoolClient, id: string[]): Promise<Session[]>;
   public static async read(
     tx: PoolClient,
-    id: string | string[]
-  ): Promise<Session[]> {
+    id: string[] | string
+  ): Promise<Session[] | Session> {
     const result = await tx.query(
       `
       SELECT
@@ -56,10 +51,16 @@ export class Session {
         entity_id = ANY($1)
         AND replacement_record_id IS NULL
       `,
-      [id]
+      [typeof id === "string" ? [id] : id]
     );
 
-    return result.rows.map(
+    if (result.rows.length !== (typeof id === "string" ? 1 : id.length)) {
+      throw new Error(
+        "INVARIANT: Read must return the same number of records as requested."
+      );
+    }
+
+    const sessions = result.rows.map(
       row =>
         new Session({
           ...row,
@@ -68,6 +69,8 @@ export class Session {
           refreshToken: row.refresh_token
         })
     );
+
+    return typeof id === "string" ? sessions[0] : sessions;
   }
 
   public static async write(

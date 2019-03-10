@@ -10,8 +10,11 @@ import {
   GraphQLObjectType
 } from "graphql";
 
-import GraphQLJSON from "graphql-type-json";
+import { PoolClient } from "pg";
+
+import { GraphQLProfile } from "./GraphQLProfile";
 import { GraphQLCredential } from "./GraphQLCredential";
+import { GraphQLRole } from "./GraphQLRole";
 
 export const GraphQLUser: GraphQLObjectType = new GraphQLObjectType({
   name: "User",
@@ -19,7 +22,18 @@ export const GraphQLUser: GraphQLObjectType = new GraphQLObjectType({
   fields: () => ({
     id: { type: new GraphQLNonNull(GraphQLID) },
     type: { type: GraphQLString },
-    profile: { type: GraphQLJSON },
-    credentials: { type: new GraphQLList(GraphQLCredential) }
+    profile: { type: GraphQLProfile },
+    credentials: {
+      type: new GraphQLList(GraphQLCredential),
+      resolve(user, args, context: { tx: PoolClient }, info) {
+        return user.credentials(context.tx);
+      }
+    },
+    roles: {
+      type: new GraphQLList(GraphQLRole),
+      resolve(user, args, context: { tx: PoolClient }, info) {
+        return user.roles(context.tx);
+      }
+    }
   })
 });

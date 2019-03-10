@@ -45,14 +45,7 @@ export class Credential<T = {}> {
       return authority;
     }
 
-    return (this[AUTHORITY] = (async () => {
-      const authorities = await Authority.read(tx, [this.authorityId]);
-      if (authorities.length !== 1) {
-        throw new Error("INVARIANT: Exactly one user must be returned.");
-      }
-
-      return authorities[0];
-    })());
+    return (this[AUTHORITY] = Authority.read(tx, this.authorityId));
   }
 
   public async user(tx: PoolClient, refresh: boolean = false): Promise<User> {
@@ -61,20 +54,15 @@ export class Credential<T = {}> {
       return user;
     }
 
-    return (this[USER] = (async () => {
-      const users = await User.read(tx, [this.userId]);
-      if (users.length !== 1) {
-        throw new Error("INVARIANT: Exactly one user must be returned.");
-      }
-
-      return users[0];
-    })());
+    return (this[USER] = User.read(tx, this.userId));
   }
 
+  public static read(tx: PoolClient, id: string): Promise<Credential>;
+  public static read(tx: PoolClient, id: string[]): Promise<Credential[]>;
   public static async read(
     tx: PoolClient,
-    id: string | string[]
-  ): Promise<Credential[]> {
+    id: string[] | string
+  ): Promise<Credential[] | Credential> {
     const result = await tx.query(
       `
       SELECT
@@ -90,10 +78,16 @@ export class Credential<T = {}> {
         entity_id = ANY($1)
         AND replacement_record_id IS NULL
       `,
-      [id]
+      [typeof id === "string" ? [id] : id]
     );
 
-    return result.rows.map(
+    if (result.rows.length !== (typeof id === "string" ? 1 : id.length)) {
+      throw new Error(
+        "INVARIANT: Read must return the same number of records as requested."
+      );
+    }
+
+    const credentials = result.rows.map(
       row =>
         new Credential({
           ...row,
@@ -102,6 +96,8 @@ export class Credential<T = {}> {
           userId: row.user_id
         })
     );
+
+    return typeof id === "string" ? credentials[0] : credentials;
   }
 
   public static async write(

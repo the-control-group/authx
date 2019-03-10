@@ -1,9 +1,14 @@
 import {
+  GraphQLFieldConfig,
+  GraphQLID,
+  GraphQLNamedType,
+  GraphQLNonNull,
   GraphQLObjectType,
+  GraphQLResolveInfo,
   GraphQLSchema,
   isNamedType,
-  GraphQLNamedType,
-  GraphQLFieldConfig
+  GraphQLObjectTypeConfig,
+  GraphQLFieldResolver
 } from "graphql";
 
 import { PoolClient } from "pg";
@@ -15,8 +20,24 @@ import { GraphQLGrant } from "./GraphQLGrant";
 import { GraphQLRole } from "./GraphQLRole";
 import { GraphQLTimestamp } from "./GraphQLTimestamp";
 import { GraphQLUser } from "./GraphQLUser";
+import {
+  GraphQLProfileName,
+  GraphQLProfileAddress,
+  GraphQLProfileOrganization,
+  GraphQLProfileAccount,
+  GraphQLProfileEmail,
+  GraphQLProfileUrl,
+  GraphQLProfilePhoneNumber,
+  GraphQLProfileIm,
+  GraphQLProfilePhoto,
+  GraphQLProfileTag,
+  GraphQLProfileRelationship,
+  GraphQLProfile
+} from "./GraphQLProfile";
 
-export const schema = new GraphQLSchema({
+import { User } from "../models";
+
+export default new GraphQLSchema({
   types: [
     GraphQLAuthority,
     GraphQLClient,
@@ -24,20 +45,50 @@ export const schema = new GraphQLSchema({
     GraphQLGrant,
     GraphQLRole,
     GraphQLTimestamp,
-    GraphQLUser
+    GraphQLUser,
+    GraphQLProfileName,
+    GraphQLProfileAddress,
+    GraphQLProfileOrganization,
+    GraphQLProfileAccount,
+    GraphQLProfileEmail,
+    GraphQLProfileUrl,
+    GraphQLProfilePhoneNumber,
+    GraphQLProfileIm,
+    GraphQLProfilePhoto,
+    GraphQLProfileTag,
+    GraphQLProfileRelationship,
+    GraphQLProfile
   ],
 
   // mutation: new GraphQLObjectType({
   //   name: "Mutation",
-  //   description: "The mutation root of boltline's GraphQL interface.",
+  //   description: "The mutation root of AuthX's GraphQL interface.",
   //   fields: () => mutationFields
   // }),
 
   query: new GraphQLObjectType({
     name: "Query",
-    description: "The query root of boltline's GraphQL interface.",
+    description: "The query root of AuthX's GraphQL interface.",
     fields: () => {
-      return {};
+      return {
+        user: {
+          type: GraphQLUser,
+          description: "Fetch a user by ID.",
+          args: {
+            id: {
+              type: new GraphQLNonNull(GraphQLID)
+            }
+          },
+          async resolve(
+            source,
+            args: { id: string },
+            context: { tx: PoolClient; session: any },
+            info
+          ) {
+            return User.read(context.tx, args.id);
+          }
+        }
+      };
     }
   })
 });

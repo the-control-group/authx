@@ -55,10 +55,12 @@ export class Client {
       ))());
   }
 
+  public static read(tx: PoolClient, id: string): Promise<Client>;
+  public static read(tx: PoolClient, id: string[]): Promise<Client[]>;
   public static async read(
     tx: PoolClient,
-    id: string | string[]
-  ): Promise<Client[]> {
+    id: string[] | string
+  ): Promise<Client[] | Client> {
     const result = await tx.query(
       `
       SELECT
@@ -73,16 +75,24 @@ export class Client {
         entity_id = ANY($1)
         AND replacement_record_id IS NULL
       `,
-      [id]
+      [typeof id === "string" ? [id] : id]
     );
 
-    return result.rows.map(
+    if (result.rows.length !== (typeof id === "string" ? 1 : id.length)) {
+      throw new Error(
+        "INVARIANT: Read must return the same number of records as requested."
+      );
+    }
+
+    const clients = result.rows.map(
       row =>
         new Client({
           ...row,
           oauthUrls: row.oauth_urls
         })
     );
+
+    return typeof id === "string" ? clients[0] : clients;
   }
 
   public static async write(

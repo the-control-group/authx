@@ -49,7 +49,7 @@ export class User {
         (await tx.query(
           `
           SELECT entity_id AS id
-          FROM authx.credential_records
+          FROM authx.credential_record
           WHERE
             user_id = $1
             AND replacement_record_id IS NULL
@@ -69,20 +69,23 @@ export class User {
     }
 
     // query the database for roles
-    return (this[ROLES] = (async () =>
-      Role.read(
-        tx,
-        (await tx.query(
-          `
+    return (this[ROLES] = (async () => {
+      const ids = (await tx.query(
+        `
           SELECT entity_id AS id
-          FROM authx.role_records
+          FROM authx.role_record
+          JOIN authx.role_record_assignment
+            ON authx.role_record_assignment.role_record_id = authx.role_record.record_id
           WHERE
-            user_id = $1
-            AND replacement_record_id IS NULL
+            authx.role_record_assignment.user_id = $1
+            AND authx.role_record.replacement_record_id IS NULL
           `,
-          [this.id]
-        )).rows.map(({ id }) => id)
-      ))());
+        [this.id]
+      )).rows.map(({ id }) => id);
+
+      console.log(ids);
+      return Role.read(tx, ids);
+    })());
   }
 
   public async grants(
@@ -141,7 +144,12 @@ export class User {
     return roles.some(role => role.can(scope, strict));
   }
 
-  public static async read(tx: PoolClient, id: string[]): Promise<User[]> {
+  public static read(tx: PoolClient, id: string): Promise<User>;
+  public static read(tx: PoolClient, id: string[]): Promise<User[]>;
+  public static async read(
+    tx: PoolClient,
+    id: string[] | string
+  ): Promise<User[] | User> {
     const result = await tx.query(
       `
       SELECT
@@ -154,10 +162,18 @@ export class User {
         entity_id = ANY($1)
         AND replacement_record_id IS NULL
       `,
-      [id]
+      [typeof id === "string" ? [id] : id]
     );
 
-    return result.rows.map(row => new User(row));
+    if (result.rows.length !== (typeof id === "string" ? 1 : id.length)) {
+      throw new Error(
+        "INVARIANT: Read must return the same number of records as requested."
+      );
+    }
+
+    const users = result.rows.map(row => new User(row));
+
+    return typeof id === "string" ? users[0] : users;
   }
 
   public static async write(

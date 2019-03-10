@@ -44,14 +44,7 @@ export class Grant<T = {}> {
       return client;
     }
 
-    return (this[CLIENT] = (async () => {
-      const authorities = await Client.read(tx, [this.clientId]);
-      if (authorities.length !== 1) {
-        throw new Error("INVARIANT: Exactly one client must be returned.");
-      }
-
-      return authorities[0];
-    })());
+    return (this[CLIENT] = Client.read(tx, this.clientId));
   }
 
   public async user(tx: PoolClient, refresh: boolean = false): Promise<User> {
@@ -60,20 +53,15 @@ export class Grant<T = {}> {
       return user;
     }
 
-    return (this[USER] = (async () => {
-      const users = await User.read(tx, [this.userId]);
-      if (users.length !== 1) {
-        throw new Error("INVARIANT: Exactly one user must be returned.");
-      }
-
-      return users[0];
-    })());
+    return (this[USER] = User.read(tx, this.userId));
   }
 
+  public static read(tx: PoolClient, id: string): Promise<Grant>;
+  public static read(tx: PoolClient, id: string[]): Promise<Grant[]>;
   public static async read(
     tx: PoolClient,
-    id: string | string[]
-  ): Promise<Grant[]> {
+    id: string[] | string
+  ): Promise<Grant[] | Grant> {
     const result = await tx.query(
       `
       SELECT
@@ -89,10 +77,16 @@ export class Grant<T = {}> {
         entity_id = ANY($1)
         AND replacement_record_id IS NULL
       `,
-      [id]
+      [typeof id === "string" ? [id] : id]
     );
 
-    return result.rows.map(
+    if (result.rows.length !== (typeof id === "string" ? 1 : id.length)) {
+      throw new Error(
+        "INVARIANT: Read must return the same number of records as requested."
+      );
+    }
+
+    const grants = result.rows.map(
       row =>
         new Grant({
           ...row,
@@ -101,6 +95,8 @@ export class Grant<T = {}> {
           refreshToken: row.refresh_token
         })
     );
+
+    return typeof id === "string" ? grants[0] : grants;
   }
 
   public static async write(

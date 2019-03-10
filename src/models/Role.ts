@@ -29,12 +29,7 @@ export class AssignmentCollection
     }
 
     const promise = (async () => {
-      const users = await User.read(tx, [id]);
-      if (users.length !== 1) {
-        throw new Error("INVARIANT: Exactly one user must be returned.");
-      }
-
-      return users[0];
+      return User.read(tx, id);
     })();
 
     this.data.set(id, promise);
@@ -92,10 +87,12 @@ export class Role {
     return test([...this.scopes], scope, strict);
   }
 
+  public static read(tx: PoolClient, id: string): Promise<Role>;
+  public static read(tx: PoolClient, id: string[]): Promise<Role[]>;
   public static async read(
     tx: PoolClient,
-    id: string | string[]
-  ): Promise<Role[]> {
+    id: string[] | string
+  ): Promise<Role[] | Role> {
     const result = await tx.query(
       `
       SELECT
@@ -103,16 +100,31 @@ export class Role {
         enabled,
         name,
         scopes,
-        json_agg(role_record_assignment.user_id) AS assignments
+        json_agg(authx.role_record_assignment.user_id) AS assignments
       FROM authx.role_record
-      LEFT JOIN role_record_assignment
-        ON role_record_assignment.role_record_id = role_record.record_id
-      WHERE entity_id = ANY($1) AND replacement_record_id IS NULL
+      LEFT JOIN authx.role_record_assignment
+        ON authx.role_record_assignment.role_record_id = authx.role_record.record_id
+      WHERE
+        authx.role_record.entity_id = ANY($1)
+        AND authx.role_record.replacement_record_id IS NULL
+      GROUP BY
+        authx.role_record.entity_id,
+        authx.role_record.enabled,
+        authx.role_record.name,
+        authx.role_record.scopes
       `,
-      [id]
+      [typeof id === "string" ? [id] : id]
     );
 
-    return result.rows.map(row => new Role(row));
+    if (result.rows.length !== (typeof id === "string" ? 1 : id.length)) {
+      throw new Error(
+        "INVARIANT: Read must return the same number of records as requested."
+      );
+    }
+
+    const roles = result.rows.map(row => new Role(row));
+
+    return typeof id === "string" ? roles[0] : roles;
   }
 
   public static async write(

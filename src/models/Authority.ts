@@ -62,10 +62,12 @@ export class Authority<T = {}> {
     return Authority.write(tx, this, metadata);
   }
 
+  public static read(tx: PoolClient, id: string): Promise<Authority>;
+  public static read(tx: PoolClient, id: string[]): Promise<Authority[]>;
   public static async read(
     tx: PoolClient,
-    id: string | string[]
-  ): Promise<Authority[]> {
+    id: string[] | string
+  ): Promise<Authority[] | Authority> {
     const result = await tx.query(
       `
       SELECT
@@ -79,16 +81,24 @@ export class Authority<T = {}> {
         entity_id = ANY($1)
         AND replacement_record_id IS NULL
       `,
-      [id]
+      [typeof id === "string" ? [id] : id]
     );
 
-    return result.rows.map(
+    if (result.rows.length !== (typeof id === "string" ? 1 : id.length)) {
+      throw new Error(
+        "INVARIANT: Read must return the same number of records as requested."
+      );
+    }
+
+    const authorities = result.rows.map(
       row =>
         new Authority({
           ...row,
           baseUrls: row.base_urls
         })
     );
+
+    return typeof id === "string" ? authorities[0] : authorities;
   }
 
   public static async write(
