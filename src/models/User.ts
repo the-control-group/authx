@@ -70,21 +70,21 @@ export class User {
 
     // query the database for roles
     return (this[ROLES] = (async () => {
-      const ids = (await tx.query(
-        `
+      return Role.read(
+        tx,
+        (await tx.query(
+          `
           SELECT entity_id AS id
           FROM authx.role_record
-          JOIN authx.role_record_assignment
-            ON authx.role_record_assignment.role_record_id = authx.role_record.record_id
+          JOIN authx.role_record_user
+            ON authx.role_record_user.role_record_id = authx.role_record.record_id
           WHERE
-            authx.role_record_assignment.user_id = $1
+            authx.role_record_user.user_id = $1
             AND authx.role_record.replacement_record_id IS NULL
           `,
-        [this.id]
-      )).rows.map(({ id }) => id);
-
-      console.log(ids);
-      return Role.read(tx, ids);
+          [this.id]
+        )).rows.map(({ id }) => id)
+      );
     })());
   }
 
@@ -150,6 +150,10 @@ export class User {
     tx: PoolClient,
     id: string[] | string
   ): Promise<User[] | User> {
+    if (typeof id !== "string" && !id.length) {
+      return [];
+    }
+
     const result = await tx.query(
       `
       SELECT

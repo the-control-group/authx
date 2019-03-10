@@ -10,7 +10,7 @@ import {
   GraphQLObjectType
 } from "graphql";
 
-import { PoolQuery } from "pg";
+import { PoolClient } from "pg";
 
 import GraphQLJSON from "graphql-type-json";
 import { GraphQLClient } from "./GraphQLClient";
@@ -24,8 +24,8 @@ export const GraphQLRole = new GraphQLObjectType({
     name: { type: GraphQLString },
     users: {
       type: new GraphQLList(GraphQLUser),
-      resolve(role, args, context: { tx: PoolQuery }) {
-        return [...role.assignments].map(a => a(context.tx));
+      resolve(role, args, context: { tx: PoolClient }) {
+        return role.users(context.tx);
       }
     },
     scopes: { type: new GraphQLList(GraphQLString) }

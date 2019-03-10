@@ -40,7 +40,7 @@ const role = new Role({
   enabled: true,
   name: "AuthX Administrator",
   scopes: ["AuthX:**:**"],
-  assignments: [user.id]
+  userIds: [user.id]
 });
 
 (async () => {

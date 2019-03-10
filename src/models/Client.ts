@@ -61,6 +61,10 @@ export class Client {
     tx: PoolClient,
     id: string[] | string
   ): Promise<Client[] | Client> {
+    if (typeof id !== "string" && !id.length) {
+      return [];
+    }
+
     const result = await tx.query(
       `
       SELECT
@@ -161,9 +165,9 @@ export class Client {
         data.id,
         data.enabled,
         data.name,
-        data.scopes,
+        [...data.scopes],
         data.oauthSecret,
-        data.oauthUrls
+        [...data.oauthUrls]
       ]
     );
 

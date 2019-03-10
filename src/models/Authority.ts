@@ -68,6 +68,10 @@ export class Authority<T = {}> {
     tx: PoolClient,
     id: string[] | string
   ): Promise<Authority[] | Authority> {
+    if (typeof id !== "string" && !id.length) {
+      return [];
+    }
+
     const result = await tx.query(
       `
       SELECT

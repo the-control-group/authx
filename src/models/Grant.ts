@@ -62,6 +62,10 @@ export class Grant<T = {}> {
     tx: PoolClient,
     id: string[] | string
   ): Promise<Grant[] | Grant> {
+    if (typeof id !== "string" && !id.length) {
+      return [];
+    }
+
     const result = await tx.query(
       `
       SELECT
@@ -176,7 +180,7 @@ export class Grant<T = {}> {
         data.userId,
         data.nonce,
         data.refreshToken,
-        data.scopes
+        [...data.scopes]
       ]
     );
 

@@ -63,6 +63,10 @@ export class Credential<T = {}> {
     tx: PoolClient,
     id: string[] | string
   ): Promise<Credential[] | Credential> {
+    if (typeof id !== "string" && !id.length) {
+      return [];
+    }
+
     const result = await tx.query(
       `
       SELECT
