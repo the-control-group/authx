@@ -9,7 +9,7 @@ export interface AuthorityData<A> {
   readonly details: A;
 }
 
-export abstract class Authority<A> implements AuthorityData<A> {
+export class Authority<A> implements AuthorityData<A> {
   public readonly id: string;
   public readonly enabled: boolean;
   public readonly name: string;
@@ -43,82 +43,42 @@ export abstract class Authority<A> implements AuthorityData<A> {
   //   );
   // }
 
-  // public static read<M extends { [key: string]: any }, K extends keyof M>(
-  //   tx: PoolClient,
-  //   id: string,
-  //   map: M
-  // ): Promise<M[K]>;
-
-  // public static read<M extends { [key: string]: any }, K extends keyof M>(
-  //   tx: PoolClient,
-  //   id: string[],
-  //   map: M
-  // ): Promise<M[K][]>;
-
-  // public static async read<M extends { [key: string]: any }, K extends keyof M>(
-  //   tx: PoolClient,
-  //   id: string[] | string,
-  //   map: M
-  // ): Promise<M[K][] | M[K]> {
-  //   const data = await this.readData(tx, typeof id === "string" ? [id] : id);
-
-  //   const authorities = data.map(data => {
-  //     const Class = map[data.strategy];
-
-  //     if (!Class) {
-  //       throw new Error(`The strategy "${data.strategy}" is not registered.`);
-  //     }
-
-  //     return new Class(data);
-  //   });
-
-  //   return typeof id === "string" ? authorities[0] : authorities;
-  // }
-
-  public static async read<M extends { [key: string]: any }, K extends keyof M>(
+  public static read<T extends Authority<any>>(
+    this: new (data: AuthorityData<any>) => T,
     tx: PoolClient,
-    id: string[] | string,
-    map: M
-  ): Promise<InstanceType<M[K]>[] | InstanceType<M[K]>> {
-    const data = await this.readData(tx, typeof id === "string" ? [id] : id);
-    const instances = data.map(data => {
-      const Class = map[data.strategy];
-
-      if (!Class) {
-        throw new Error(`The strategy "${data.strategy}" is not registered.`);
-      }
-
-      return new Class(data);
-    });
-
-    return typeof id === "string" ? instances[0] : instances;
-  }
-
-  public static readAs<T extends Authority<any>>(
-    tx: PoolClient,
-    id: string,
-    ctor: new (data: AuthorityData<any>) => T
+    id: string
   ): Promise<T>;
 
-  public static readAs<T extends Authority<any>>(
-    tx: PoolClient,
-    id: string[],
-    ctor: new (data: AuthorityData<any>) => T
-  ): Promise<T[]>;
-
-  public static async readAs<T extends Authority<any>>(
-    tx: PoolClient,
-    id: string[] | string,
-    ctor: new (data: AuthorityData<any>) => T
-  ): Promise<T[] | T> {
-    const data = await this.readData(tx, typeof id === "string" ? [id] : id);
-    return data.map(data => new ctor(data));
-  }
-
-  public static async readData<A>(
+  public static read<T extends Authority<any>>(
+    this: new (data: AuthorityData<any>) => T,
     tx: PoolClient,
     id: string[]
-  ): Promise<AuthorityData<A>[]> {
+  ): Promise<T[]>;
+
+  public static read<M extends { [key: string]: any }, K extends keyof M>(
+    tx: PoolClient,
+    id: string,
+    map: M
+  ): Promise<InstanceType<M[K]>>;
+
+  public static read<M extends { [key: string]: any }, K extends keyof M>(
+    tx: PoolClient,
+    id: string[],
+    map: M
+  ): Promise<InstanceType<M[K]>[]>;
+
+  public static async read<
+    T,
+    M extends { [key: string]: any },
+    K extends keyof M
+  >(
+    this: {
+      new (data: AuthorityData<any>): T;
+    },
+    tx: PoolClient,
+    id: string[] | string,
+    map?: M
+  ): Promise<InstanceType<M[K]>[] | InstanceType<M[K]> | T | T[]> {
     if (!id.length) {
       return [];
     }
@@ -136,7 +96,7 @@ export abstract class Authority<A> implements AuthorityData<A> {
         entity_id = ANY($1)
         AND replacement_record_id IS NULL
       `,
-      [id]
+      [typeof id === "string" ? [id] : id]
     );
 
     if (result.rows.length !== id.length) {
@@ -145,24 +105,45 @@ export abstract class Authority<A> implements AuthorityData<A> {
       );
     }
 
-    return result.rows.map(row => {
-      return new {
+    const data = result.rows.map(row => {
+      return {
         ...row,
         baseUrls: row.base_urls
-      }();
+      };
     });
+
+    // No map is provided: instantiate all returned records with this class
+    if (!map) {
+      const instances = data.map(data => new this(data));
+      return typeof id === "string" ? instances[0] : instances;
+    }
+
+    // A map is provided: use the constructor for the corresponding strategy
+    const instances = data.map(data => {
+      const Class = map[data.strategy];
+
+      if (!Class) {
+        throw new Error(`The strategy "${data.strategy}" is not registered.`);
+      }
+
+      return new Class(data);
+    });
+
+    return typeof id === "string" ? instances[0] : instances;
   }
 
-  /*
-  public static async write(
+  public static async write<T extends Authority>(
+    this: {
+      new (data: AuthorityData<any>): T;
+    },
     tx: PoolClient,
-    data: Authority,
+    data: AuthorityData<any>,
     metadata: {
       recordId: string;
       createdBySessionId: string;
       createdAt: Date;
     }
-  ): Promise<Authority> {
+  ): Promise<T> {
     // ensure that the entity ID exists
     await tx.query(
       `
@@ -234,10 +215,9 @@ export abstract class Authority<A> implements AuthorityData<A> {
     }
 
     const row = next.rows[0];
-    return new Authority({
+    return new this({
       ...row,
       baseUrls: row.base_urls
     });
   }
-  */
 }

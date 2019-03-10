@@ -23,23 +23,22 @@ export class PasswordAuthority extends Authority<PasswordAuthorityDetails> {
   //     { password: PasswordCredential }
   //   );
   // }
-
-  public static write(
-    tx: PoolClient,
-    data: AuthorityData<PasswordAuthorityDetails>,
-    metadata: {
-      recordId: string;
-      createdBySessionId: string;
-      createdAt: Date;
-    }
-  ): Promise<PasswordAuthority>;
+  // public static write(
+  //   tx: PoolClient,
+  //   data: AuthorityData<PasswordAuthorityDetails>,
+  //   metadata: {
+  //     recordId: string;
+  //     createdBySessionId: string;
+  //     createdAt: Date;
+  //   }
+  // ): Promise<PasswordAuthority>;
 }
 
 interface PasswordCredentialDetails {}
 
 export class PasswordCredential extends Credential<PasswordCredentialDetails> {
   public authority(tx: PoolClient): Promise<PasswordAuthority> {
-    return PasswordAuthority.readAs(tx, this.authorityId, PasswordAuthority);
+    return PasswordAuthority.read(tx, this.authorityId);
   }
 
   public static write(
