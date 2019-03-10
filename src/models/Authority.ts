@@ -43,24 +43,83 @@ export abstract class Authority<A> implements AuthorityData<A> {
   //   );
   // }
 
-  public static read<M extends { [key: string]: any }, K extends keyof M>(
-    tx: PoolClient,
-    id: string,
-    map: M
-  ): Promise<M[K]>;
+  // public static read<M extends { [key: string]: any }, K extends keyof M>(
+  //   tx: PoolClient,
+  //   id: string,
+  //   map: M
+  // ): Promise<M[K]>;
 
-  public static read<M extends { [key: string]: any }, K extends keyof M>(
-    tx: PoolClient,
-    id: string[],
-    map: M
-  ): Promise<M[K][]>;
+  // public static read<M extends { [key: string]: any }, K extends keyof M>(
+  //   tx: PoolClient,
+  //   id: string[],
+  //   map: M
+  // ): Promise<M[K][]>;
+
+  // public static async read<M extends { [key: string]: any }, K extends keyof M>(
+  //   tx: PoolClient,
+  //   id: string[] | string,
+  //   map: M
+  // ): Promise<M[K][] | M[K]> {
+  //   const data = await this.readData(tx, typeof id === "string" ? [id] : id);
+
+  //   const authorities = data.map(data => {
+  //     const Class = map[data.strategy];
+
+  //     if (!Class) {
+  //       throw new Error(`The strategy "${data.strategy}" is not registered.`);
+  //     }
+
+  //     return new Class(data);
+  //   });
+
+  //   return typeof id === "string" ? authorities[0] : authorities;
+  // }
 
   public static async read<M extends { [key: string]: any }, K extends keyof M>(
     tx: PoolClient,
     id: string[] | string,
     map: M
-  ): Promise<M[K][] | M[K]> {
-    if (typeof id !== "string" && !id.length) {
+  ): Promise<InstanceType<M[K]>[] | InstanceType<M[K]>> {
+    const data = await this.readData(tx, typeof id === "string" ? [id] : id);
+    const instances = data.map(data => {
+      const Class = map[data.strategy];
+
+      if (!Class) {
+        throw new Error(`The strategy "${data.strategy}" is not registered.`);
+      }
+
+      return new Class(data);
+    });
+
+    return typeof id === "string" ? instances[0] : instances;
+  }
+
+  public static readAs<T extends Authority<any>>(
+    tx: PoolClient,
+    id: string,
+    ctor: new (data: AuthorityData<any>) => T
+  ): Promise<T>;
+
+  public static readAs<T extends Authority<any>>(
+    tx: PoolClient,
+    id: string[],
+    ctor: new (data: AuthorityData<any>) => T
+  ): Promise<T[]>;
+
+  public static async readAs<T extends Authority<any>>(
+    tx: PoolClient,
+    id: string[] | string,
+    ctor: new (data: AuthorityData<any>) => T
+  ): Promise<T[] | T> {
+    const data = await this.readData(tx, typeof id === "string" ? [id] : id);
+    return data.map(data => new ctor(data));
+  }
+
+  public static async readData<A>(
+    tx: PoolClient,
+    id: string[]
+  ): Promise<AuthorityData<A>[]> {
+    if (!id.length) {
       return [];
     }
 
@@ -77,28 +136,21 @@ export abstract class Authority<A> implements AuthorityData<A> {
         entity_id = ANY($1)
         AND replacement_record_id IS NULL
       `,
-      [typeof id === "string" ? [id] : id]
+      [id]
     );
 
-    if (result.rows.length !== (typeof id === "string" ? 1 : id.length)) {
+    if (result.rows.length !== id.length) {
       throw new Error(
         "INVARIANT: Read must return the same number of records as requested."
       );
     }
 
-    const authorities = result.rows.map(row => {
-      const Class = map[row.strategy];
-      if (!Class) {
-        throw new Error(`The strategy "${row.strategy}" is not registered.`);
-      }
-
-      return new Class({
+    return result.rows.map(row => {
+      return new {
         ...row,
         baseUrls: row.base_urls
-      });
+      }();
     });
-
-    return typeof id === "string" ? authorities[0] : authorities;
   }
 
   /*
