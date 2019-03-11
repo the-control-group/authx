@@ -28,13 +28,13 @@ export function authenticate(ctx: any) {}
 // Authority
 // ---------
 
-export interface PasswordAuthorityDetails {
+export interface EmailAuthorityDetails {
   rounds: number;
 }
 
-export class PasswordAuthority extends Authority<PasswordAuthorityDetails> {
-  public async credentials(tx: PoolClient): Promise<PasswordCredential[]> {
-    return PasswordCredential.read(
+export class EmailAuthority extends Authority<EmailAuthorityDetails> {
+  public async credentials(tx: PoolClient): Promise<EmailCredential[]> {
+    return EmailCredential.read(
       tx,
       (await tx.query(
         `
@@ -50,57 +50,57 @@ export class PasswordAuthority extends Authority<PasswordAuthorityDetails> {
   }
 }
 
-export const GraphQLPasswordAuthorityDetails = new GraphQLObjectType({
-  name: "PasswordAuthorityDetails",
+export const GraphQLEmailAuthorityDetails = new GraphQLObjectType({
+  name: "EmailAuthorityDetails",
   fields: () => ({
     rounds: { type: GraphQLInt }
   })
 });
 
-export const GraphQLPasswordAuthority = new GraphQLObjectType({
-  name: "PasswordAuthority",
+export const GraphQLEmailAuthority = new GraphQLObjectType({
+  name: "EmailAuthority",
   interfaces: () => [GraphQLAuthority],
   fields: () => ({
     id: { type: new GraphQLNonNull(GraphQLID) },
     strategy: { type: GraphQLString },
     name: { type: GraphQLString },
-    details: { type: GraphQLPasswordAuthorityDetails }
+    details: { type: GraphQLEmailAuthorityDetails }
   })
 });
 
 // Credential
 // ----------
 
-export interface PasswordCredentialDetails {
-  password: string;
+export interface EmailCredentialDetails {
+  email: string;
 }
 
-export class PasswordCredential extends Credential<PasswordCredentialDetails> {
-  public authority(tx: PoolClient): Promise<PasswordAuthority> {
-    return PasswordAuthority.read(tx, this.authorityId);
+export class EmailCredential extends Credential<EmailCredentialDetails> {
+  public authority(tx: PoolClient): Promise<EmailAuthority> {
+    return EmailAuthority.read(tx, this.authorityId);
   }
 }
 
-export const GraphQLPasswordCredentialDetails = new GraphQLObjectType({
-  name: "PasswordCredentialDetails",
+export const GraphQLEmailCredentialDetails = new GraphQLObjectType({
+  name: "EmailCredentialDetails",
   fields: () => ({
-    password: { type: GraphQLString }
+    email: { type: GraphQLString }
   })
 });
 
-export const GraphQLPasswordCredential = new GraphQLObjectType({
-  name: "PasswordCredential",
+export const GraphQLEmailCredential = new GraphQLObjectType({
+  name: "EmailCredential",
   interfaces: () => [GraphQLAuthority],
   fields: () => ({
     id: { type: new GraphQLNonNull(GraphQLID) },
     user: { type: GraphQLUser },
     authority: { type: GraphQLAuthority },
     authorityUserId: { type: GraphQLString },
-    details: { type: GraphQLPasswordCredentialDetails },
+    details: { type: GraphQLEmailCredentialDetails },
     profile: { type: GraphQLProfile }
   })
 });
 
 const a = Credential.read("" as any, "asdf", {
-  password: PasswordCredential
+  email: EmailCredential
 });

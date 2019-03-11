@@ -2,43 +2,36 @@ import { PoolClient } from "pg";
 import { Client } from "./Client";
 import { Grant } from "./Grant";
 
-const GRANT = Symbol("GRANT");
+export interface TokenData {
+  readonly id: string;
+  readonly enabled: boolean;
+  readonly grantId: string;
+  readonly scopes: Iterable<string>;
+}
 
-export class Session {
+export class Token implements TokenData {
   public readonly id: string;
   public readonly enabled: boolean;
   public readonly grantId: string;
-  public readonly scopes: string[];
+  public readonly scopes: Set<string>;
 
-  private [GRANT]: null | Promise<Grant> = null;
-
-  public constructor(data: {
-    id: string;
-    enabled: boolean;
-    grantId: string;
-    scopes: string[];
-  }) {
+  public constructor(data: TokenData) {
     this.id = data.id;
     this.enabled = data.enabled;
     this.grantId = data.grantId;
-    this.scopes = data.scopes;
+    this.scopes = new Set(data.scopes);
   }
 
-  public async grant(tx: PoolClient, refresh: boolean = false): Promise<Grant> {
-    const grant = this[GRANT];
-    if (grant && !refresh) {
-      return grant;
-    }
-
-    return (this[GRANT] = Grant.read(tx, this.grantId));
+  public async grant(tx: PoolClient): Promise<Grant> {
+    return Grant.read(tx, this.grantId);
   }
 
-  public static read(tx: PoolClient, id: string): Promise<Session>;
-  public static read(tx: PoolClient, id: string[]): Promise<Session[]>;
+  public static read(tx: PoolClient, id: string): Promise<Token>;
+  public static read(tx: PoolClient, id: string[]): Promise<Token[]>;
   public static async read(
     tx: PoolClient,
     id: string[] | string
-  ): Promise<Session[] | Session> {
+  ): Promise<Token[] | Token> {
     if (typeof id !== "string" && !id.length) {
       return [];
     }
@@ -50,7 +43,7 @@ export class Session {
         enabled,
         grant_id,
         scopes
-      FROM authx.session_record
+      FROM authx.token_record
       WHERE
         entity_id = ANY($1)
         AND replacement_record_id IS NULL
@@ -64,9 +57,9 @@ export class Session {
       );
     }
 
-    const sessions = result.rows.map(
+    const tokens = result.rows.map(
       row =>
-        new Session({
+        new Token({
           ...row,
           clientId: row.client_id,
           userId: row.user_id,
@@ -74,22 +67,22 @@ export class Session {
         })
     );
 
-    return typeof id === "string" ? sessions[0] : sessions;
+    return typeof id === "string" ? tokens[0] : tokens;
   }
 
   public static async write(
     tx: PoolClient,
-    data: Session,
+    data: TokenData,
     metadata: {
       recordId: string;
-      createdBySessionId: string;
+      createdByTokenId: string;
       createdAt: Date;
     }
-  ): Promise<Session> {
+  ): Promise<Token> {
     // ensure that the entity ID exists
     await tx.query(
       `
-      INSERT INTO authx.session
+      INSERT INTO authx.token
         (id)
       VALUES
         ($1)
@@ -101,7 +94,7 @@ export class Session {
     // replace the previous record
     const previous = await tx.query(
       `
-      UPDATE authx.session_record
+      UPDATE authx.token_record
       SET replacement_record_id = $2
       WHERE
         entity_id = $1
@@ -120,10 +113,10 @@ export class Session {
     // insert the new record
     const next = await tx.query(
       `
-      INSERT INTO authx.session_record
+      INSERT INTO authx.token_record
       (
         record_id,
-        created_by_session_id,
+        created_by_token_id,
         created_at,
         entity_id,
         enabled,
@@ -140,7 +133,7 @@ export class Session {
       `,
       [
         metadata.recordId,
-        metadata.createdBySessionId,
+        metadata.createdByTokenId,
         metadata.createdAt,
         data.id,
         data.enabled,
@@ -154,7 +147,7 @@ export class Session {
     }
 
     const row = next.rows[0];
-    return new Session({
+    return new Token({
       ...row,
       clientId: row.client_id,
       userId: row.user_id,

@@ -2,24 +2,22 @@ import { PoolClient } from "pg";
 import { test } from "scopeutils";
 import { User } from "./User";
 
-const USERS = Symbol("users");
+export interface RoleData {
+  readonly id: string;
+  readonly enabled: boolean;
+  readonly name: string;
+  readonly scopes: Iterable<string>;
+  readonly userIds: Iterable<string>;
+}
 
-export class Role {
+export class Role implements RoleData {
   public readonly id: string;
   public readonly enabled: boolean;
   public readonly name: string;
   public readonly scopes: Set<string>;
   public readonly userIds: Set<string>;
 
-  private [USERS]: null | Promise<User[]>;
-
-  public constructor(data: {
-    id: string;
-    enabled: boolean;
-    name: string;
-    scopes: Iterable<string>;
-    userIds: Iterable<string>;
-  }) {
+  public constructor(data: RoleData) {
     this.id = data.id;
     this.enabled = data.enabled;
     this.name = data.name;
@@ -27,16 +25,8 @@ export class Role {
     this.userIds = new Set(data.userIds);
   }
 
-  public async users(
-    tx: PoolClient,
-    refresh: boolean = false
-  ): Promise<User[]> {
-    const users = this[USERS];
-    if (users && !refresh) {
-      return users;
-    }
-
-    return (this[USERS] = User.read(tx, [...this.userIds]));
+  public async users(tx: PoolClient): Promise<User[]> {
+    return User.read(tx, [...this.userIds]);
   }
 
   public can(scope: string, strict: boolean = true): boolean {
@@ -95,7 +85,7 @@ export class Role {
 
   public static async write(
     tx: PoolClient,
-    data: Role,
+    data: RoleData,
     metadata: { recordId: string; createdBySessionId: string; createdAt: Date }
   ): Promise<Role> {
     // ensure that the entity ID exists
@@ -164,17 +154,18 @@ export class Role {
     }
 
     // insert the new record's users
-    const userIds = await tx.query(
+    const userIds = [...data.userIds];
+    const users = await tx.query(
       `
       INSERT INTO authx.role_record_user
         (role_record_id, user_id)
       SELECT $1::uuid AS role_record_id, user_id FROM UNNEST($2::uuid[]) AS user_id
       RETURNING user_id
       `,
-      [metadata.recordId, [...data.userIds]]
+      [metadata.recordId, userIds]
     );
 
-    if (userIds.rows.length !== data.userIds.size) {
+    if (users.rows.length !== userIds.length) {
       throw new Error(
         "INVARIANT: Insert or user IDs must return the same number of rows as input."
       );
@@ -182,7 +173,7 @@ export class Role {
 
     return new Role({
       ...next.rows[0],
-      userIds: userIds.rows.map(({ user_id: userId }) => userId)
+      userIds: users.rows.map(({ user_id: userId }) => userId)
     });
   }
 }

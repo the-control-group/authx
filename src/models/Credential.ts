@@ -32,34 +32,53 @@ export abstract class Credential<C> implements CredentialData<C> {
     this.details = data.details;
   }
 
-  // public async authority(
-  //   tx: PoolClient
-  // ): Promise<Authority> {
-  //   return Authority.read(tx, this.authorityId)
-  // }
+  public abstract authority(tx: PoolClient): Promise<Authority<any>>;
 
   public user(tx: PoolClient): Promise<User> {
     return User.read(tx, this.userId);
   }
 
-  public static read<M extends { [key: string]: any }, K extends keyof M>(
+  public static read<T extends Credential<any>>(
+    this: new (data: CredentialData<any>) => T,
     tx: PoolClient,
-    id: string,
-    map: M
-  ): Promise<M[K]>;
+    id: string
+  ): Promise<T>;
 
-  public static read<M extends { [key: string]: any }, K extends keyof M>(
+  public static read<T extends Credential<any>>(
+    this: new (data: CredentialData<any>) => T,
     tx: PoolClient,
-    id: string[],
-    map: M
-  ): Promise<M[K][]>;
+    id: string[]
+  ): Promise<T[]>;
 
-  public static async read<M extends { [key: string]: any }, K extends keyof M>(
+  public static read<
+    M extends {
+      [key: string]: { new (data: CredentialData<any>): Credential<any> };
+    },
+    K extends keyof M
+  >(tx: PoolClient, id: string, map: M): Promise<InstanceType<M[K]>>;
+
+  public static read<
+    M extends {
+      [key: string]: { new (data: CredentialData<any>): Credential<any> };
+    },
+    K extends keyof M
+  >(tx: PoolClient, id: string[], map: M): Promise<InstanceType<M[K]>[]>;
+
+  public static async read<
+    T,
+    M extends {
+      [key: string]: any;
+    },
+    K extends keyof M
+  >(
+    this: {
+      new (data: CredentialData<any>): T;
+    },
     tx: PoolClient,
     id: string[] | string,
-    map: M
-  ): Promise<M[K][] | M[K]> {
-    if (typeof id !== "string" && !id.length) {
+    map?: M
+  ): Promise<InstanceType<M[K]>[] | InstanceType<M[K]> | T | T[]> {
+    if (!id.length) {
       return [];
     }
 
@@ -87,33 +106,47 @@ export abstract class Credential<C> implements CredentialData<C> {
       );
     }
 
-    const credentials = result.rows.map(row => {
-      const Class = map[row.strategy];
-      if (!Class) {
-        throw new Error(`The strategy "${row.strategy}" is not registered.`);
-      }
-
-      return new Class({
+    const data = result.rows.map(row => {
+      return {
         ...row,
         authorityId: row.authority_id,
         authorityUserId: row.authority_user_id,
         userId: row.user_id
-      });
+      };
     });
 
-    return typeof id === "string" ? credentials[0] : credentials;
+    // No map is provided: instantiate all returned records with this class
+    if (!map) {
+      const instances = data.map(data => new this(data));
+      return typeof id === "string" ? instances[0] : instances;
+    }
+
+    // A map is provided: use the constructor for the corresponding strategy
+    const instances = data.map(data => {
+      const Class = map[data.strategy];
+
+      if (!Class) {
+        throw new Error(`The strategy "${data.strategy}" is not registered.`);
+      }
+
+      return new Class(data);
+    });
+
+    return typeof id === "string" ? instances[0] : instances;
   }
 
-  /*
-  public static async write(
+  public static async write<T extends Credential<any>>(
+    this: {
+      new (data: CredentialData<any>): T;
+    },
     tx: PoolClient,
-    data: Credential,
+    data: CredentialData<any>,
     metadata: {
       recordId: string;
       createdBySessionId: string;
       createdAt: Date;
     }
-  ): Promise<Credential> {
+  ): Promise<T> {
     // ensure that the entity ID exists
     await tx.query(
       `
@@ -191,12 +224,11 @@ export abstract class Credential<C> implements CredentialData<C> {
     }
 
     const row = next.rows[0];
-    return new Credential({
+    return new this({
       ...row,
       authorityId: row.authority_id,
       authorityUserId: row.authority_user_id,
       userId: row.user_id
     });
   }
-  */
 }

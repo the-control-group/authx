@@ -1,5 +1,3 @@
-// @flow
-
 import {
   GraphQLFloat,
   GraphQLID,
@@ -21,5 +19,3 @@ export const GraphQLAuthority = new GraphQLInterfaceType({
     details: { type: GraphQLJSON }
   })
 });
-
-

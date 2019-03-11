@@ -2,13 +2,14 @@ import { Role } from "../models";
 
 export const role = [
   {
-    data: new Role({
+    class: Role,
+    data: {
       id: "ee37605c-5834-40c9-bd80-bac16d9e62a4",
       enabled: true,
       name: "AuthX Administrator",
       userIds: ["a6a0946d-eeb4-45cd-83c6-c7920f2272eb"],
       scopes: ["AuthX:**:**"]
-    }),
+    },
     metadata: {
       recordId: "cde64a26-8371-498c-a613-018bf1393790",
       createdBySessionId: "f0e54748-c7bb-4724-ad8b-7dabb66aafa9",
@@ -16,7 +17,8 @@ export const role = [
     }
   },
   {
-    data: new Role({
+    class: Role,
+    data: {
       id: "e833c8b8-acf1-42a1-9809-2bedab7d58c7",
       enabled: true,
       name: "Default User",
@@ -37,7 +39,7 @@ export const role = [
         "AuthX:credential.*.me:*",
         "AuthX:grant.*.me:*"
       ]
-    }),
+    },
     metadata: {
       recordId: "3657a9b7-f617-446f-8003-a06631c79a88",
       createdBySessionId: "f0e54748-c7bb-4724-ad8b-7dabb66aafa9",
@@ -45,7 +47,8 @@ export const role = [
     }
   },
   {
-    data: new Role({
+    class: Role,
+    data: {
       id: "2ec2118e-9c49-474f-9f44-da35c4420ef6",
       enabled: true,
       name: "Sales Team",
@@ -55,7 +58,7 @@ export const role = [
         "eaa9fa5e-088a-4ae2-a6ab-f120006b20a9"
       ],
       scopes: ["website:sales:**"]
-    }),
+    },
     metadata: {
       recordId: "c7270f9c-51d7-4a23-8d55-d48779e56181",
       createdBySessionId: "f0e54748-c7bb-4724-ad8b-7dabb66aafa9",
@@ -63,7 +66,8 @@ export const role = [
     }
   },
   {
-    data: new Role({
+    class: Role,
+    data: {
       id: "e3e67ba0-626a-4fb6-ad86-6520d4acfaf6",
       enabled: true,
       name: "Warehouse Staff",
@@ -72,7 +76,7 @@ export const role = [
         "9ad4b34b-781d-44fe-ac39-9b7ac43dde21"
       ],
       scopes: ["website:shippments:**"]
-    }),
+    },
     metadata: {
       recordId: "f53acc48-e95e-48fa-911e-59fd9f59e972",
       createdBySessionId: "f0e54748-c7bb-4724-ad8b-7dabb66aafa9",
@@ -80,13 +84,14 @@ export const role = [
     }
   },
   {
-    data: new Role({
+    class: Role,
+    data: {
       id: "08e2b39e-ba9f-4de2-8dca-aef460793566",
       enabled: true,
       name: "HR",
       userIds: ["306eabbb-cc2b-4f88-be19-4bb6ec98e5c3"],
       scopes: ["AuthX:user:**", "AuthX:credential.*.user:**"]
-    }),
+    },
     metadata: {
       recordId: "f94c5316-ce81-46e6-932a-0ac2c8fc886b",
       createdBySessionId: "f0e54748-c7bb-4724-ad8b-7dabb66aafa9",

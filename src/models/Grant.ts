@@ -2,58 +2,41 @@ import { PoolClient } from "pg";
 import { Client } from "./Client";
 import { User } from "./User";
 
-const CLIENT = Symbol("client");
-const USER = Symbol("user");
+export interface GrantData {
+  readonly id: string;
+  readonly enabled: boolean;
+  readonly clientId: string;
+  readonly userId: string;
+  readonly nonce: null | string;
+  readonly refreshToken: string;
+  readonly scopes: Iterable<string>;
+}
 
-export class Grant<T = {}> {
+export class Grant implements GrantData {
   public readonly id: string;
   public readonly enabled: boolean;
   public readonly clientId: string;
   public readonly userId: string;
   public readonly nonce: null | string;
   public readonly refreshToken: string;
-  public readonly scopes: string[];
+  public readonly scopes: Set<string>;
 
-  private [CLIENT]: null | Promise<Client> = null;
-  private [USER]: null | Promise<User> = null;
-
-  public constructor(data: {
-    id: string;
-    enabled: boolean;
-    clientId: string;
-    userId: string;
-    nonce: null | string;
-    refreshToken: string;
-    scopes: string[];
-  }) {
+  public constructor(data: GrantData) {
     this.id = data.id;
     this.enabled = data.enabled;
     this.clientId = data.clientId;
     this.userId = data.userId;
     this.nonce = data.nonce;
     this.refreshToken = data.refreshToken;
-    this.scopes = data.scopes;
+    this.scopes = new Set(data.scopes);
   }
 
-  public async client(
-    tx: PoolClient,
-    refresh: boolean = false
-  ): Promise<Client> {
-    const client = this[CLIENT];
-    if (client && !refresh) {
-      return client;
-    }
-
-    return (this[CLIENT] = Client.read(tx, this.clientId));
+  public client(tx: PoolClient, refresh: boolean = false): Promise<Client> {
+    return Client.read(tx, this.clientId);
   }
 
-  public async user(tx: PoolClient, refresh: boolean = false): Promise<User> {
-    const user = this[USER];
-    if (user && !refresh) {
-      return user;
-    }
-
-    return (this[USER] = User.read(tx, this.userId));
+  public user(tx: PoolClient, refresh: boolean = false): Promise<User> {
+    return User.read(tx, this.userId);
   }
 
   public static read(tx: PoolClient, id: string): Promise<Grant>;
@@ -105,7 +88,7 @@ export class Grant<T = {}> {
 
   public static async write(
     tx: PoolClient,
-    data: Grant,
+    data: GrantData,
     metadata: {
       recordId: string;
       createdBySessionId: string;

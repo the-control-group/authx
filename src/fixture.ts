@@ -3,21 +3,12 @@ import path from "path";
 import fs from "fs";
 
 import {
-  Authority,
-  Client,
-  Credential,
-  Grant,
-  Role,
-  Session,
-  User
-} from "./models";
-import {
   authority,
   client,
   credential,
   grant,
   role,
-  session,
+  token,
   user
 } from "./fixtures";
 
@@ -25,7 +16,7 @@ const sql = fs.readFileSync(path.resolve(__dirname, "../schema.sql"));
 
 interface Metadata {
   recordId: string;
-  createdBySessionId: string;
+  createdByTokenId: string;
   createdAt: Date;
 }
 
@@ -56,8 +47,8 @@ const fixture = async (tx: PoolClient): Promise<void> => {
       [role.map(({ data: { id } }) => id)]
     ),
     tx.query(
-      "INSERT INTO authx.session (id) SELECT id FROM UNNEST($1::uuid[]) AS id",
-      [session.map(({ data: { id } }) => id)]
+      "INSERT INTO authx.token (id) SELECT id FROM UNNEST($1::uuid[]) AS id",
+      [token.map(({ data: { id } }) => id)]
     ),
     tx.query(
       "INSERT INTO authx.user (id) SELECT id FROM UNNEST($1::uuid[]) AS id",
@@ -68,27 +59,39 @@ const fixture = async (tx: PoolClient): Promise<void> => {
   // insert the records
   await Promise.all([
     Promise.all(
-      authority.map(({ data, metadata }) => Authority.write(tx, data, metadata))
+      authority.map(({ class: Authority, data, metadata }) =>
+        Authority.write(tx, data, metadata)
+      )
     ),
     Promise.all(
-      client.map(({ data, metadata }) => Client.write(tx, data, metadata))
+      client.map(({ class: Client, data, metadata }) =>
+        Client.write(tx, data, metadata)
+      )
     ),
     Promise.all(
-      credential.map(({ data, metadata }) =>
+      credential.map(({ class: Credential, data, metadata }) =>
         Credential.write(tx, data, metadata)
       )
     ),
     Promise.all(
-      grant.map(({ data, metadata }) => Grant.write(tx, data, metadata))
+      grant.map(({ class: Grant, data, metadata }) =>
+        Grant.write(tx, data, metadata)
+      )
     ),
     Promise.all(
-      role.map(({ data, metadata }) => Role.write(tx, data, metadata))
+      role.map(({ class: Role, data, metadata }) =>
+        Role.write(tx, data, metadata)
+      )
     ),
     Promise.all(
-      session.map(({ data, metadata }) => Session.write(tx, data, metadata))
+      token.map(({ class: Token, data, metadata }) =>
+        Token.write(tx, data, metadata)
+      )
     ),
     Promise.all(
-      user.map(({ data, metadata }) => User.write(tx, data, metadata))
+      user.map(({ class: User, data, metadata }) =>
+        User.write(tx, data, metadata)
+      )
     )
   ]);
 };

@@ -9,7 +9,7 @@ export interface AuthorityData<A> {
   readonly details: A;
 }
 
-export class Authority<A> implements AuthorityData<A> {
+export abstract class Authority<A> implements AuthorityData<A> {
   public readonly id: string;
   public readonly enabled: boolean;
   public readonly name: string;
@@ -24,24 +24,7 @@ export class Authority<A> implements AuthorityData<A> {
     this.details = data.details;
   }
 
-  // public async credentials(
-  //   tx: PoolClient,
-  //   refresh: boolean = false
-  // ): Promise<Credential[]> {
-  //   return Credential.read(
-  //     tx,
-  //     (await tx.query(
-  //       `
-  //         SELECT entity_id AS id
-  //         FROM authx.credential_records
-  //         WHERE
-  //           authority_id = $1
-  //           AND replacement_record_id IS NULL
-  //         `,
-  //       [this.id]
-  //     )).rows.map(({ id }) => id)
-  //   );
-  // }
+  public abstract credentials(tx: PoolClient): Promise<Credential<any>[]>;
 
   public static read<T extends Authority<any>>(
     this: new (data: AuthorityData<any>) => T,
@@ -55,21 +38,25 @@ export class Authority<A> implements AuthorityData<A> {
     id: string[]
   ): Promise<T[]>;
 
-  public static read<M extends { [key: string]: any }, K extends keyof M>(
-    tx: PoolClient,
-    id: string,
-    map: M
-  ): Promise<InstanceType<M[K]>>;
+  public static read<
+    M extends {
+      [key: string]: { new (data: AuthorityData<any>): Authority<any> };
+    },
+    K extends keyof M
+  >(tx: PoolClient, id: string, map: M): Promise<InstanceType<M[K]>>;
 
-  public static read<M extends { [key: string]: any }, K extends keyof M>(
-    tx: PoolClient,
-    id: string[],
-    map: M
-  ): Promise<InstanceType<M[K]>[]>;
+  public static read<
+    M extends {
+      [key: string]: { new (data: AuthorityData<any>): Authority<any> };
+    },
+    K extends keyof M
+  >(tx: PoolClient, id: string[], map: M): Promise<InstanceType<M[K]>[]>;
 
   public static async read<
     T,
-    M extends { [key: string]: any },
+    M extends {
+      [key: string]: any;
+    },
     K extends keyof M
   >(
     this: {
@@ -132,7 +119,7 @@ export class Authority<A> implements AuthorityData<A> {
     return typeof id === "string" ? instances[0] : instances;
   }
 
-  public static async write<T extends Authority>(
+  public static async write<T extends Authority<any>>(
     this: {
       new (data: AuthorityData<any>): T;
     },

@@ -1,33 +1,25 @@
 import { PoolClient } from "pg";
-import { Credential } from "./Credential";
+import { Credential, CredentialData } from "./Credential";
 import { Grant } from "./Grant";
 import { Role } from "./Role";
 import { Profile } from "../util/Profile";
 
-const CREDENTIALS = Symbol("credentials");
-const GRANTS = Symbol("grants");
-const ROLES = Symbol("roles");
-const SCOPES = Symbol("scopes");
+export type UserType = "human" | "bot";
 
-type UserType = "human" | "bot";
+export interface UserData {
+  readonly id: string;
+  readonly enabled: boolean;
+  readonly type: UserType;
+  readonly profile: Profile;
+}
 
-export class User {
+export class User implements UserData {
   public readonly id: string;
   public readonly enabled: boolean;
   public readonly type: UserType;
   public readonly profile: Profile;
 
-  private [CREDENTIALS]: null | Promise<Credential[]> = null;
-  private [GRANTS]: null | Promise<Grant[]> = null;
-  private [ROLES]: null | Promise<Role[]> = null;
-  private [SCOPES]: null | Promise<Set<string>> = null;
-
-  public constructor(data: {
-    id: string;
-    enabled: boolean;
-    type: UserType;
-    profile: Profile;
-  }) {
+  public constructor(data: UserData) {
     this.id = data.id;
     this.enabled = data.enabled;
     this.type = data.type;
@@ -36,103 +28,70 @@ export class User {
 
   public async credentials(
     tx: PoolClient,
-    refresh: boolean = false
-  ): Promise<Credential[]> {
-    const credentials = this[CREDENTIALS];
-    if (credentials && !refresh) {
-      return credentials;
+    map: {
+      [key: string]: { new (data: CredentialData<any>): Credential<any> };
     }
-
-    return (this[CREDENTIALS] = (async () =>
-      Credential.read(
-        tx,
-        (await tx.query(
-          `
+  ): Promise<Credential<any>[]> {
+    return Credential.read(
+      tx,
+      (await tx.query(
+        `
           SELECT entity_id AS id
           FROM authx.credential_record
           WHERE
             user_id = $1
             AND replacement_record_id IS NULL
           `,
-          [this.id]
-        )).rows.map(({ id }) => id)
-      ))());
+        [this.id]
+      )).rows.map(({ id }) => id),
+      map
+    );
   }
 
-  public async roles(
-    tx: PoolClient,
-    refresh: boolean = false
-  ): Promise<Role[]> {
-    const roles = this[ROLES];
-    if (roles && !refresh) {
-      return roles;
-    }
-
-    // query the database for roles
-    return (this[ROLES] = (async () => {
-      return Role.read(
-        tx,
-        (await tx.query(
-          `
-          SELECT entity_id AS id
-          FROM authx.role_record
-          JOIN authx.role_record_user
-            ON authx.role_record_user.role_record_id = authx.role_record.record_id
-          WHERE
-            authx.role_record_user.user_id = $1
-            AND authx.role_record.replacement_record_id IS NULL
-          `,
-          [this.id]
-        )).rows.map(({ id }) => id)
-      );
-    })());
+  public async roles(tx: PoolClient): Promise<Role[]> {
+    return Role.read(
+      tx,
+      (await tx.query(
+        `
+        SELECT entity_id AS id
+        FROM authx.role_record
+        JOIN authx.role_record_user
+          ON authx.role_record_user.role_record_id = authx.role_record.record_id
+        WHERE
+          authx.role_record_user.user_id = $1
+          AND authx.role_record.replacement_record_id IS NULL
+        `,
+        [this.id]
+      )).rows.map(({ id }) => id)
+    );
   }
 
-  public async grants(
-    tx: PoolClient,
-    refresh: boolean = false
-  ): Promise<Grant[]> {
-    const grants = this[GRANTS];
-    if (grants && !refresh) {
-      return grants;
-    }
-
-    // query the database for grants
-    return (this[GRANTS] = (async () =>
-      Grant.read(
-        tx,
-        (await tx.query(
-          `
+  public async grants(tx: PoolClient): Promise<Grant[]> {
+    return Grant.read(
+      tx,
+      (await tx.query(
+        `
           SELECT entity_id AS id
           FROM authx.grant_records
           WHERE
             user_id = $1
             AND replacement_record_id IS NULL
           `,
-          [this.id]
-        )).rows.map(({ id }) => id)
-      ))());
+        [this.id]
+      )).rows.map(({ id }) => id)
+    );
   }
 
-  public async scopes(
-    tx: PoolClient,
-    refresh: boolean = false
-  ): Promise<Set<string>> {
-    const scopes = this[SCOPES];
-    if (scopes && !refresh) {
-      return scopes;
-    }
+  public async scopes(tx: PoolClient): Promise<Set<string>> {
+    return (await this.roles(tx))
+      .map(role => role.scopes)
+      .reduce((a, b) => {
+        for (const s of b) {
+          a.add(s);
+        }
 
-    return (this[SCOPES] = (async () =>
-      (await this.roles(tx, refresh))
-        .map(role => role.scopes)
-        .reduce((a, b) => {
-          for (const s of b) {
-            a.add(s);
-          }
-
-          return a;
-        }, new Set()))());
+        return a;
+      }, new Set());
   }
 
   public async can(
@@ -182,7 +141,7 @@ export class User {
 
   public static async write(
     tx: PoolClient,
-    data: User,
+    data: UserData,
     metadata: { recordId: string; createdBySessionId: string; createdAt: Date }
   ): Promise<User> {
     // ensure that the entity ID exists

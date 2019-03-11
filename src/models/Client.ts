@@ -1,9 +1,16 @@
 import { PoolClient } from "pg";
 import { Grant } from "./Grant";
 
-const GRANTS = Symbol("grants");
+export interface ClientData {
+  readonly id: string;
+  readonly enabled: boolean;
+  readonly name: string;
+  readonly scopes: Iterable<string>;
+  readonly oauthSecret: string;
+  readonly oauthUrls: Iterable<string>;
+}
 
-export class Client {
+export class Client implements ClientData {
   public readonly id: string;
   public readonly enabled: boolean;
   public readonly name: string;
@@ -11,16 +18,7 @@ export class Client {
   public readonly oauthSecret: string;
   public readonly oauthUrls: Set<string>;
 
-  private [GRANTS]: null | Promise<Grant[]> = null;
-
-  public constructor(data: {
-    id: string;
-    enabled: boolean;
-    name: string;
-    scopes: Iterable<string>;
-    oauthSecret: string;
-    oauthUrls: Iterable<string>;
-  }) {
+  public constructor(data: ClientData) {
     this.id = data.id;
     this.enabled = data.enabled;
     this.name = data.name;
@@ -29,30 +27,20 @@ export class Client {
     this.oauthUrls = new Set(data.oauthUrls);
   }
 
-  public async grants(
-    tx: PoolClient,
-    refresh: boolean = false
-  ): Promise<Grant[]> {
-    const grants = this[GRANTS];
-    if (grants && !refresh) {
-      return grants;
-    }
-
-    // query the database for grants
-    return (this[GRANTS] = (async () =>
-      Grant.read(
-        tx,
-        (await tx.query(
-          `
-          SELECT entity_id AS id
-          FROM authx.grant_records
-          WHERE
-            client_id = $1
-            AND replacement_record_id IS NULL
-          `,
-          [this.id]
-        )).rows.map(({ id }) => id)
-      ))());
+  public async grants(tx: PoolClient): Promise<Grant[]> {
+    return Grant.read(
+      tx,
+      (await tx.query(
+        `
+        SELECT entity_id AS id
+        FROM authx.grant_records
+        WHERE
+          client_id = $1
+          AND replacement_record_id IS NULL
+        `,
+        [this.id]
+      )).rows.map(({ id }) => id)
+    );
   }
 
   public static read(tx: PoolClient, id: string): Promise<Client>;
@@ -101,7 +89,7 @@ export class Client {
 
   public static async write(
     tx: PoolClient,
-    data: Client,
+    data: ClientData,
     metadata: { recordId: string; createdBySessionId: string; createdAt: Date }
   ): Promise<Client> {
     // ensure that the entity ID exists

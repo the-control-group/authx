@@ -2,7 +2,8 @@ import { Grant } from "../models";
 
 export const grant = [
   {
-    data: new Grant({
+    class: Grant,
+    data: {
       id: "d8dcaf12-b744-4d2d-b223-09e7e5eaa922",
       enabled: true,
       clientId: "1fcb730e-f134-463a-b224-cab7e61c5ce0",
@@ -11,7 +12,7 @@ export const grant = [
       refreshToken:
         "82bf9680e63b087c60fa18ce93a19f4764dce60fc2370460148201e7715bc048",
       scopes: ["AuthX:**:**"]
-    }),
+    },
     metadata: {
       recordId: "b741401e-fb12-4964-bbc7-0d32e3a35781",
       createdBySessionId: "f0e54748-c7bb-4724-ad8b-7dabb66aafa9",
@@ -19,7 +20,8 @@ export const grant = [
     }
   },
   {
-    data: new Grant({
+    class: Grant,
+    data: {
       id: "e4670762-beb7-435c-94af-055b951f97e6",
       enabled: true,
       clientId: "17436d83-6022-4101-bf9f-997f1550f57c",
@@ -28,7 +30,7 @@ export const grant = [
       refreshToken:
         "24254c0d927f5c7d7b36a968f66d5f2b9433157e06f5e34237fa73c108736b7a",
       scopes: ["**:**:**"]
-    }),
+    },
     metadata: {
       recordId: "ce1a45cd-af9c-42fb-9879-aec6bc8b12a1",
       createdBySessionId: "f0e54748-c7bb-4724-ad8b-7dabb66aafa9",
@@ -36,7 +38,8 @@ export const grant = [
     }
   },
   {
-    data: new Grant({
+    class: Grant,
+    data: {
       id: "4e76cb13-ab24-4dc1-ad96-abcbb89f5529",
       enabled: true,
       clientId: "17436d83-6022-4101-bf9f-997f1550f57c",
@@ -45,7 +48,7 @@ export const grant = [
       refreshToken:
         "031adee275513f902344a75ff8a97e37773f6ae0ca6d8779323d1033291d527b",
       scopes: ["**:**:**"]
-    }),
+    },
     metadata: {
       recordId: "b1f8e470-4b3e-4470-a99b-f8bc235c71dd",
       createdBySessionId: "f0e54748-c7bb-4724-ad8b-7dabb66aafa9",

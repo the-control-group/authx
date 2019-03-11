@@ -37,6 +37,15 @@ import {
 
 import { User } from "../models";
 
+export * from "./GraphQLAuthority";
+export * from "./GraphQLClient";
+export * from "./GraphQLCredential";
+export * from "./GraphQLGrant";
+export * from "./GraphQLRole";
+export * from "./GraphQLTimestamp";
+export * from "./GraphQLUser";
+export * from "./GraphQLProfile";
+
 export default new GraphQLSchema({
   types: [
     GraphQLAuthority,
@@ -66,7 +75,7 @@ export default new GraphQLSchema({
   //   fields: () => mutationFields
   // }),
 
-  query: new GraphQLObjectType({
+  query: new GraphQLObjectType<any, any, any>({
     name: "Query",
     description: "The query root of AuthX's GraphQL interface.",
     fields: () => {
