@@ -8,9 +8,9 @@ import {
   GraphQLInterfaceType
 } from "graphql";
 
-import GraphQLJSON from "graphql-type-json";
 import { GraphQLAuthority } from "./GraphQLAuthority";
 import { GraphQLUser } from "./GraphQLUser";
+import { GraphQLProfile } from "./GraphQLProfile";
 
 export const GraphQLCredential = new GraphQLInterfaceType({
   name: "Credential",
@@ -19,7 +19,6 @@ export const GraphQLCredential = new GraphQLInterfaceType({
     user: { type: GraphQLUser },
     authority: { type: GraphQLAuthority },
     authorityUserId: { type: GraphQLString },
-    details: { type: GraphQLJSON },
-    profile: { type: GraphQLJSON }
+    profile: { type: GraphQLProfile }
   })
 });

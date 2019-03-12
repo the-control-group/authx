@@ -1,9 +1,8 @@
-import { Credential } from "../models";
 import { PasswordCredential } from "../strategies/password";
 
 export const credential = [
   {
-    class: Credential,
+    class: PasswordCredential,
     data: {
       id: "540128ad-7a55-423e-a85c-103677df333c",
       enabled: true,
@@ -17,12 +16,12 @@ export const credential = [
     },
     metadata: {
       recordId: "43f7df35-4c00-4baf-b175-1914869897d5",
-      createdBySessionId: "f0e54748-c7bb-4724-ad8b-7dabb66aafa9",
+      createdByTokenId: "f0e54748-c7bb-4724-ad8b-7dabb66aafa9",
       createdAt: new Date("2019-03-06T21:07:59.814Z")
     }
   },
   {
-    class: Credential,
+    class: PasswordCredential,
     data: {
       id: "d92a642f-70ca-465c-9130-c25fdad16a6d",
       enabled: true,
@@ -36,12 +35,12 @@ export const credential = [
     },
     metadata: {
       recordId: "a773bff0-ada1-43b9-b724-85b85dfcd2e3",
-      createdBySessionId: "f0e54748-c7bb-4724-ad8b-7dabb66aafa9",
+      createdByTokenId: "f0e54748-c7bb-4724-ad8b-7dabb66aafa9",
       createdAt: new Date("2019-03-06T21:07:59.814Z")
     }
   },
   {
-    class: Credential,
+    class: PasswordCredential,
     data: {
       id: "42b27b88-672c-4649-9afa-77e114e6ad98",
       enabled: true,
@@ -55,12 +54,12 @@ export const credential = [
     },
     metadata: {
       recordId: "d6e44a92-8841-48f1-8d9b-0f1d54ee1262",
-      createdBySessionId: "f0e54748-c7bb-4724-ad8b-7dabb66aafa9",
+      createdByTokenId: "f0e54748-c7bb-4724-ad8b-7dabb66aafa9",
       createdAt: new Date("2019-03-06T21:07:59.814Z")
     }
   },
   {
-    class: Credential,
+    class: PasswordCredential,
     data: {
       id: "2caedd2e-fff6-4df9-952e-34d807f21cab",
       enabled: true,
@@ -74,12 +73,12 @@ export const credential = [
     },
     metadata: {
       recordId: "80a5449b-c08e-4ee5-8f4f-bd6f16b716af",
-      createdBySessionId: "f0e54748-c7bb-4724-ad8b-7dabb66aafa9",
+      createdByTokenId: "f0e54748-c7bb-4724-ad8b-7dabb66aafa9",
       createdAt: new Date("2019-03-06T21:07:59.814Z")
     }
   },
   {
-    class: Credential,
+    class: PasswordCredential,
     data: {
       id: "02e588b0-60a7-4af5-a0c7-b78ed43957b4",
       enabled: true,
@@ -93,12 +92,12 @@ export const credential = [
     },
     metadata: {
       recordId: "4c33b324-6b53-4163-8e25-d3ebaa863913",
-      createdBySessionId: "f0e54748-c7bb-4724-ad8b-7dabb66aafa9",
+      createdByTokenId: "f0e54748-c7bb-4724-ad8b-7dabb66aafa9",
       createdAt: new Date("2019-03-06T21:07:59.814Z")
     }
   },
   {
-    class: Credential,
+    class: PasswordCredential,
     data: {
       id: "d08302e7-6b48-4eb9-83a3-4f49ef4b6647",
       enabled: true,
@@ -112,12 +111,12 @@ export const credential = [
     },
     metadata: {
       recordId: "f3601f1e-2af0-4454-b30c-4658746d1be4",
-      createdBySessionId: "f0e54748-c7bb-4724-ad8b-7dabb66aafa9",
+      createdByTokenId: "f0e54748-c7bb-4724-ad8b-7dabb66aafa9",
       createdAt: new Date("2019-03-06T21:07:59.814Z")
     }
   },
   {
-    class: Credential,
+    class: PasswordCredential,
     data: {
       id: "74501d3e-b319-4c84-b5a6-4135fc595fb1",
       enabled: true,
@@ -131,12 +130,12 @@ export const credential = [
     },
     metadata: {
       recordId: "8579853d-db37-4212-8cac-3fe42f1e8c42",
-      createdBySessionId: "f0e54748-c7bb-4724-ad8b-7dabb66aafa9",
+      createdByTokenId: "f0e54748-c7bb-4724-ad8b-7dabb66aafa9",
       createdAt: new Date("2019-03-06T21:07:59.814Z")
     }
   },
   {
-    class: Credential,
+    class: PasswordCredential,
     data: {
       id: "fee2e658-ddca-46d8-a75c-114b36325e35",
       enabled: true,
@@ -150,7 +149,7 @@ export const credential = [
     },
     metadata: {
       recordId: "af713259-e3a6-4a66-96a7-284cb3bac2cb",
-      createdBySessionId: "f0e54748-c7bb-4724-ad8b-7dabb66aafa9",
+      createdByTokenId: "f0e54748-c7bb-4724-ad8b-7dabb66aafa9",
       createdAt: new Date("2019-03-06T21:07:59.814Z")
     }
   },
@@ -169,7 +168,7 @@ export const credential = [
     },
     metadata: {
       recordId: "f160eda8-aa01-4fd3-b66c-8a06352e3dd1",
-      createdBySessionId: "f0e54748-c7bb-4724-ad8b-7dabb66aafa9",
+      createdByTokenId: "f0e54748-c7bb-4724-ad8b-7dabb66aafa9",
       createdAt: new Date("2019-03-06T21:07:59.814Z")
     }
   },
@@ -188,7 +187,7 @@ export const credential = [
     },
     metadata: {
       recordId: "5a389b50-c2df-4361-a1de-235a3505f43c",
-      createdBySessionId: "f0e54748-c7bb-4724-ad8b-7dabb66aafa9",
+      createdByTokenId: "f0e54748-c7bb-4724-ad8b-7dabb66aafa9",
       createdAt: new Date("2019-03-06T21:07:59.814Z")
     }
   },
@@ -207,7 +206,7 @@ export const credential = [
     },
     metadata: {
       recordId: "3f589ed1-5e09-4e74-919d-318bb7935fcd",
-      createdBySessionId: "f0e54748-c7bb-4724-ad8b-7dabb66aafa9",
+      createdByTokenId: "f0e54748-c7bb-4724-ad8b-7dabb66aafa9",
       createdAt: new Date("2019-03-06T21:07:59.814Z")
     }
   },
@@ -226,7 +225,7 @@ export const credential = [
     },
     metadata: {
       recordId: "f2971365-2428-455c-984d-e454fc89d6b3",
-      createdBySessionId: "f0e54748-c7bb-4724-ad8b-7dabb66aafa9",
+      createdByTokenId: "f0e54748-c7bb-4724-ad8b-7dabb66aafa9",
       createdAt: new Date("2019-03-06T21:07:59.814Z")
     }
   },
@@ -245,7 +244,7 @@ export const credential = [
     },
     metadata: {
       recordId: "5cb8a994-5c76-4551-891e-f9720a4be423",
-      createdBySessionId: "f0e54748-c7bb-4724-ad8b-7dabb66aafa9",
+      createdByTokenId: "f0e54748-c7bb-4724-ad8b-7dabb66aafa9",
       createdAt: new Date("2019-03-06T21:07:59.814Z")
     }
   },
@@ -264,7 +263,7 @@ export const credential = [
     },
     metadata: {
       recordId: "d9d6e7dc-640e-492a-9f87-1bd80be2fe6d",
-      createdBySessionId: "f0e54748-c7bb-4724-ad8b-7dabb66aafa9",
+      createdByTokenId: "f0e54748-c7bb-4724-ad8b-7dabb66aafa9",
       createdAt: new Date("2019-03-06T21:07:59.814Z")
     }
   },
@@ -283,7 +282,7 @@ export const credential = [
     },
     metadata: {
       recordId: "c0692098-9909-4771-a79d-3702814c9f92",
-      createdBySessionId: "f0e54748-c7bb-4724-ad8b-7dabb66aafa9",
+      createdByTokenId: "f0e54748-c7bb-4724-ad8b-7dabb66aafa9",
       createdAt: new Date("2019-03-06T21:07:59.814Z")
     }
   },
@@ -302,12 +301,12 @@ export const credential = [
     },
     metadata: {
       recordId: "a7a9153b-48f7-4082-9abc-ae90e5719fde",
-      createdBySessionId: "f0e54748-c7bb-4724-ad8b-7dabb66aafa9",
+      createdByTokenId: "f0e54748-c7bb-4724-ad8b-7dabb66aafa9",
       createdAt: new Date("2019-03-06T21:07:59.814Z")
     }
   },
   {
-    class: Credential,
+    class: PasswordCredential,
     data: {
       id: "e1381b64-b0df-4e81-9b31-38ae2f1325fc",
       enabled: true,
@@ -321,7 +320,7 @@ export const credential = [
     },
     metadata: {
       recordId: "de790793-ac98-43b7-8ac6-1ddcf0cd5898",
-      createdBySessionId: "f0e54748-c7bb-4724-ad8b-7dabb66aafa9",
+      createdByTokenId: "f0e54748-c7bb-4724-ad8b-7dabb66aafa9",
       createdAt: new Date("2019-03-06T21:07:59.814Z")
     }
   }

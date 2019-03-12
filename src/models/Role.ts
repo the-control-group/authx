@@ -101,7 +101,7 @@ export class Role implements RoleData {
   public static async write(
     tx: PoolClient,
     data: RoleData,
-    metadata: { recordId: string; createdBySessionId: string; createdAt: Date }
+    metadata: { recordId: string; createdByTokenId: string; createdAt: Date }
   ): Promise<Role> {
     // ensure that the entity ID exists
     await tx.query(
@@ -138,7 +138,7 @@ export class Role implements RoleData {
       INSERT INTO authx.role_record
       (
         record_id,
-        created_by_session_id,
+        created_by_token_id,
         created_at,
         entity_id,
         enabled,
@@ -155,7 +155,7 @@ export class Role implements RoleData {
       `,
       [
         metadata.recordId,
-        metadata.createdBySessionId,
+        metadata.createdByTokenId,
         metadata.createdAt,
         data.id,
         data.enabled,

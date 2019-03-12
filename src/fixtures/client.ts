@@ -14,7 +14,7 @@ export const client = [
     },
     metadata: {
       recordId: "cbed41a3-e43f-42d4-9800-415ff8fb8d23",
-      createdBySessionId: "f0e54748-c7bb-4724-ad8b-7dabb66aafa9",
+      createdByTokenId: "f0e54748-c7bb-4724-ad8b-7dabb66aafa9",
       createdAt: new Date("2019-03-06T21:07:59.814Z")
     }
   },
@@ -31,7 +31,7 @@ export const client = [
     },
     metadata: {
       recordId: "7a229ad6-66e6-45a7-a2d1-909c8612cea2",
-      createdBySessionId: "f0e54748-c7bb-4724-ad8b-7dabb66aafa9",
+      createdByTokenId: "f0e54748-c7bb-4724-ad8b-7dabb66aafa9",
       createdAt: new Date("2019-03-06T21:07:59.814Z")
     }
   },
@@ -51,7 +51,7 @@ export const client = [
     },
     metadata: {
       recordId: "c6104e78-dc43-4f19-adce-bec12e777b49",
-      createdBySessionId: "f0e54748-c7bb-4724-ad8b-7dabb66aafa9",
+      createdByTokenId: "f0e54748-c7bb-4724-ad8b-7dabb66aafa9",
       createdAt: new Date("2019-03-06T21:07:59.814Z")
     }
   }

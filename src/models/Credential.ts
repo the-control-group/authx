@@ -87,7 +87,7 @@ export abstract class Credential<C> implements CredentialData<C> {
     id: string[] | string,
     map?: M
   ): Promise<InstanceType<M[K]>[] | InstanceType<M[K]> | T | T[]> {
-    if (!id.length) {
+    if (typeof id !== "string" && !id.length) {
       return [];
     }
 
@@ -152,7 +152,7 @@ export abstract class Credential<C> implements CredentialData<C> {
     data: CredentialData<any>,
     metadata: {
       recordId: string;
-      createdBySessionId: string;
+      createdByTokenId: string;
       createdAt: Date;
     }
   ): Promise<T> {
@@ -193,7 +193,7 @@ export abstract class Credential<C> implements CredentialData<C> {
       INSERT INTO authx.credential_record
       (
         record_id,
-        created_by_session_id,
+        created_by_token_id,
         created_at,
         entity_id,
         enabled,
@@ -216,7 +216,7 @@ export abstract class Credential<C> implements CredentialData<C> {
       `,
       [
         metadata.recordId,
-        metadata.createdBySessionId,
+        metadata.createdByTokenId,
         metadata.createdAt,
         data.id,
         data.enabled,

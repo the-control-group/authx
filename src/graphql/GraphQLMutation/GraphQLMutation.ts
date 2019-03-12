@@ -32,7 +32,8 @@ export const GraphQLMutation = new GraphQLObjectType<any, Context>({
   fields: () => ({
     createAuthority: {
       type: GraphQLAuthority
-    },
+    }
+    /*
     updateAuthority: {
       type: GraphQLAuthority
     },
@@ -114,5 +115,6 @@ export const GraphQLMutation = new GraphQLObjectType<any, Context>({
         profile: { type: GraphQLProfileInput }
       }
     }
+    */
   })
 });

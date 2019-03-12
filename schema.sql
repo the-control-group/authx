@@ -135,20 +135,6 @@ CREATE TABLE authx.role_record_user (
 
 
 
-CREATE TABLE authx.session_record (
-  credential_id UUID NOT NULL REFERENCES authx.credential,
-
-  PRIMARY KEY (record_id),
-  FOREIGN KEY (replacement_record_id) REFERENCES authx.session_record DEFERRABLE INITIALLY DEFERRED,
-  FOREIGN KEY (entity_id) REFERENCES authx.session,
-  FOREIGN KEY (created_by_token_id) REFERENCES authx.session
-) INHERITS (authx.record);
-
-CREATE UNIQUE INDEX ON authx.session_record USING BTREE (entity_id) WHERE replacement_record_id IS NULL;
-
-
-
-
 CREATE TABLE authx.token_record (
   grant_id UUID NOT NULL REFERENCES authx.grant,
   scopes TEXT[] NOT NULL,

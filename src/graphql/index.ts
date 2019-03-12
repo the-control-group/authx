@@ -1,4 +1,4 @@
-import { GraphQLSchema } from "graphql";
+import { GraphQLSchema, GraphQLNamedType } from "graphql";
 
 import GraphQLMutation from "./GraphQLMutation";
 import GraphQLQuery from "./GraphQLQuery";
@@ -12,8 +12,6 @@ import { GraphQLTimestamp } from "./GraphQLTimestamp";
 import { GraphQLToken } from "./GraphQLToken";
 import { GraphQLUser } from "./GraphQLUser";
 import { GraphQLUserType } from "./GraphQLUserType";
-import { GraphQLProfileInput } from "./GraphQLProfileInput";
-
 import {
   GraphQLProfileName,
   GraphQLProfileAddress,
@@ -29,14 +27,24 @@ import {
   GraphQLProfile
 } from "./GraphQLProfile";
 
-import { Strategy } from "../Strategy";
+import { GraphQLProfileInput } from "./GraphQLProfileInput";
 
 export * from "./GraphQLAuthority";
 export * from "./GraphQLCredential";
+export * from "./GraphQLAuthority";
+export * from "./GraphQLClient";
+export * from "./GraphQLCredential";
+export * from "./GraphQLGrant";
+export * from "./GraphQLRole";
+export * from "./GraphQLTimestamp";
+export * from "./GraphQLToken";
+export * from "./GraphQLUser";
+export * from "./GraphQLUserType";
+export * from "./GraphQLProfile";
+export * from "./GraphQLProfileInput";
 
-export default () =>
+export default (types: GraphQLNamedType[]) =>
   new GraphQLSchema({
-    // TODO: add schema types
     types: [
       GraphQLAuthority,
       GraphQLClient,
@@ -44,7 +52,9 @@ export default () =>
       GraphQLGrant,
       GraphQLRole,
       GraphQLTimestamp,
+      GraphQLToken,
       GraphQLUser,
+      GraphQLUserType,
       GraphQLProfileName,
       GraphQLProfileAddress,
       GraphQLProfileOrganization,
@@ -56,7 +66,9 @@ export default () =>
       GraphQLProfilePhoto,
       GraphQLProfileTag,
       GraphQLProfileRelationship,
-      GraphQLProfile
+      GraphQLProfile,
+
+      ...types
     ],
     mutation: GraphQLMutation,
     query: GraphQLQuery

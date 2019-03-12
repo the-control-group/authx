@@ -1,23 +1,15 @@
 import { PoolClient } from "pg";
 import bcrypt from "bcrypt";
 import {
-  GraphQLFloat,
   GraphQLID,
   GraphQLInt,
-  GraphQLList,
   GraphQLNonNull,
   GraphQLString,
   GraphQLObjectType,
   GraphQLInputObjectType
 } from "graphql";
 
-import {
-  Authority,
-  AuthorityData,
-  Credential,
-  CredentialData
-} from "../models";
-
+import { Authority, Credential } from "../models";
 import {
   GraphQLAuthority,
   GraphQLCredential,
@@ -98,6 +90,7 @@ export const GraphQLPasswordAuthorityDetails = new GraphQLObjectType({
 export const GraphQLPasswordAuthority = new GraphQLObjectType({
   name: "PasswordAuthority",
   interfaces: () => [GraphQLAuthority],
+  isTypeOf: (value: any): boolean => value instanceof PasswordAuthority,
   fields: () => ({
     id: { type: new GraphQLNonNull(GraphQLID) },
     strategy: { type: GraphQLString },
@@ -137,7 +130,8 @@ export const GraphQLPasswordCredentialDetails = new GraphQLObjectType({
 
 export const GraphQLPasswordCredential = new GraphQLObjectType({
   name: "PasswordCredential",
-  interfaces: () => [GraphQLAuthority],
+  interfaces: () => [GraphQLCredential],
+  isTypeOf: (value: any): boolean => value instanceof PasswordCredential,
   fields: () => ({
     id: { type: new GraphQLNonNull(GraphQLID) },
     user: { type: GraphQLUser },

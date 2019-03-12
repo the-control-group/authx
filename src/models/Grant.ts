@@ -121,7 +121,7 @@ export class Grant implements GrantData {
     data: GrantData,
     metadata: {
       recordId: string;
-      createdBySessionId: string;
+      createdByTokenId: string;
       createdAt: Date;
     }
   ): Promise<Grant> {
@@ -162,7 +162,7 @@ export class Grant implements GrantData {
       INSERT INTO authx.grant_record
       (
         record_id,
-        created_by_session_id,
+        created_by_token_id,
         created_at,
         entity_id,
         enabled,
@@ -185,7 +185,7 @@ export class Grant implements GrantData {
       `,
       [
         metadata.recordId,
-        metadata.createdBySessionId,
+        metadata.createdByTokenId,
         metadata.createdAt,
         data.id,
         data.enabled,

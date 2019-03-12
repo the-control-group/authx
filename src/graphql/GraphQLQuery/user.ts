@@ -1,9 +1,4 @@
-import {
-  GraphQLFieldConfig,
-  GraphQLID,
-  GraphQLNonNull,
-  GraphQLString
-} from "graphql";
+import { GraphQLFieldConfig, GraphQLID, GraphQLNonNull } from "graphql";
 import { Context } from "../Context";
 import { GraphQLUser } from "../GraphQLUser";
 import { User } from "../../models";
@@ -22,11 +17,11 @@ export const user: GraphQLFieldConfig<
       type: new GraphQLNonNull(GraphQLID)
     }
   },
-  async resolve(source, args, context, info) {
+  async resolve(source, args, context) {
     const { tx, token, realm } = context;
 
     // can view all users
-    if (token && (await token.can(tx, `${realm}:user:read`))) {
+    if (token && (await token.can(tx, `${realm}:user.*:read`))) {
       return User.read(tx, args.id);
     }
 

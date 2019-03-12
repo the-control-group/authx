@@ -1,8 +1,6 @@
 import {
-  GraphQLFloat,
   GraphQLBoolean,
   GraphQLID,
-  GraphQLInt,
   GraphQLString,
   GraphQLList,
   GraphQLNonNull,
@@ -79,11 +77,11 @@ export const GraphQLProfileAccount: GraphQLObjectType<
   })
 });
 
-const plural = () => ({
+const plural = {
   value: { type: new GraphQLNonNull(GraphQLString) },
   type: { type: GraphQLString },
   primary: { type: GraphQLBoolean }
-});
+};
 
 export const GraphQLProfileEmail: GraphQLObjectType<
   ProfileEmail

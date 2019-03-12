@@ -15,7 +15,7 @@ export const user = [
     } as UserData,
     metadata: {
       recordId: "eb54b852-223c-443a-8815-69b9aef362d7",
-      createdBySessionId: "f0e54748-c7bb-4724-ad8b-7dabb66aafa9",
+      createdByTokenId: "f0e54748-c7bb-4724-ad8b-7dabb66aafa9",
       createdAt: new Date("2019-03-06T21:07:59.814Z")
     }
   },
@@ -33,7 +33,7 @@ export const user = [
     } as UserData,
     metadata: {
       recordId: "a4937a65-a294-446d-8921-5adf8b900871",
-      createdBySessionId: "f0e54748-c7bb-4724-ad8b-7dabb66aafa9",
+      createdByTokenId: "f0e54748-c7bb-4724-ad8b-7dabb66aafa9",
       createdAt: new Date("2019-03-06T21:07:59.814Z")
     }
   },
@@ -51,7 +51,7 @@ export const user = [
     } as UserData,
     metadata: {
       recordId: "5e42d178-be78-49c6-8879-9d3876b8e2fb",
-      createdBySessionId: "f0e54748-c7bb-4724-ad8b-7dabb66aafa9",
+      createdByTokenId: "f0e54748-c7bb-4724-ad8b-7dabb66aafa9",
       createdAt: new Date("2019-03-06T21:07:59.814Z")
     }
   },
@@ -69,7 +69,7 @@ export const user = [
     } as UserData,
     metadata: {
       recordId: "e1d4f3fd-451a-4610-a580-2cfc55d30796",
-      createdBySessionId: "f0e54748-c7bb-4724-ad8b-7dabb66aafa9",
+      createdByTokenId: "f0e54748-c7bb-4724-ad8b-7dabb66aafa9",
       createdAt: new Date("2019-03-06T21:07:59.814Z")
     }
   },
@@ -87,7 +87,7 @@ export const user = [
     } as UserData,
     metadata: {
       recordId: "60cd702f-8cb5-4aa2-aae6-7fd9778f8d50",
-      createdBySessionId: "f0e54748-c7bb-4724-ad8b-7dabb66aafa9",
+      createdByTokenId: "f0e54748-c7bb-4724-ad8b-7dabb66aafa9",
       createdAt: new Date("2019-03-06T21:07:59.814Z")
     }
   },
@@ -105,7 +105,7 @@ export const user = [
     } as UserData,
     metadata: {
       recordId: "242c13e0-5ce1-44f4-8bec-0eeeac9fc793",
-      createdBySessionId: "f0e54748-c7bb-4724-ad8b-7dabb66aafa9",
+      createdByTokenId: "f0e54748-c7bb-4724-ad8b-7dabb66aafa9",
       createdAt: new Date("2019-03-06T21:07:59.814Z")
     }
   },
@@ -123,7 +123,7 @@ export const user = [
     } as UserData,
     metadata: {
       recordId: "3623d3aa-679a-4317-93c5-ac83555a1157",
-      createdBySessionId: "f0e54748-c7bb-4724-ad8b-7dabb66aafa9",
+      createdByTokenId: "f0e54748-c7bb-4724-ad8b-7dabb66aafa9",
       createdAt: new Date("2019-03-06T21:07:59.814Z")
     }
   },
@@ -141,7 +141,7 @@ export const user = [
     } as UserData,
     metadata: {
       recordId: "394d1984-ce27-43ba-8a2a-6a03a2ff8490",
-      createdBySessionId: "f0e54748-c7bb-4724-ad8b-7dabb66aafa9",
+      createdByTokenId: "f0e54748-c7bb-4724-ad8b-7dabb66aafa9",
       createdAt: new Date("2019-03-06T21:07:59.814Z")
     }
   },
@@ -159,7 +159,7 @@ export const user = [
     } as UserData,
     metadata: {
       recordId: "c44fffb4-101d-4826-932a-c45ddfb7c349",
-      createdBySessionId: "f0e54748-c7bb-4724-ad8b-7dabb66aafa9",
+      createdByTokenId: "f0e54748-c7bb-4724-ad8b-7dabb66aafa9",
       createdAt: new Date("2019-03-06T21:07:59.814Z")
     }
   },
@@ -177,7 +177,7 @@ export const user = [
     } as UserData,
     metadata: {
       recordId: "0e029079-a84e-4b5f-92ee-1e81c4cebc13",
-      createdBySessionId: "f0e54748-c7bb-4724-ad8b-7dabb66aafa9",
+      createdByTokenId: "f0e54748-c7bb-4724-ad8b-7dabb66aafa9",
       createdAt: new Date("2019-03-06T21:07:59.814Z")
     }
   }

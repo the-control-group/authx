@@ -87,9 +87,7 @@ export class Token implements TokenData {
       row =>
         new Token({
           ...row,
-          clientId: row.client_id,
-          userId: row.user_id,
-          refreshToken: row.refresh_token
+          grantId: row.grant_id
         })
     );
 
@@ -175,9 +173,7 @@ export class Token implements TokenData {
     const row = next.rows[0];
     return new Token({
       ...row,
-      clientId: row.client_id,
-      userId: row.user_id,
-      refreshToken: row.refresh_token
+      grantId: row.grant_id
     });
   }
 }

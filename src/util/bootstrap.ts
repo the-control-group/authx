@@ -8,7 +8,7 @@ const sql = fs.readFileSync(path.resolve(__dirname, "../../schema.sql"));
 
 interface Metadata {
   recordId: string;
-  createdBySessionId: string;
+  createdByTokenId: string;
   createdAt: Date;
 }
 

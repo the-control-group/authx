@@ -1,5 +1,6 @@
 import { PoolClient } from "pg";
 import { Credential } from "./Credential";
+import { Token } from "./Token";
 
 export interface AuthorityData<A> {
   readonly id: string;
@@ -22,6 +23,18 @@ export abstract class Authority<A> implements AuthorityData<A> {
     this.name = data.name;
     this.strategy = data.strategy;
     this.details = data.details;
+  }
+
+  public async visible(
+    realm: string,
+    tx: PoolClient,
+    token: Token
+  ): Promise<boolean> {
+    if (await token.can(tx, `${realm}:authority:read`)) {
+      return true;
+    }
+
+    return false;
   }
 
   public abstract credentials(
@@ -74,7 +87,7 @@ export abstract class Authority<A> implements AuthorityData<A> {
     id: string[] | string,
     map?: M
   ): Promise<InstanceType<M[K]>[] | InstanceType<M[K]> | T | T[]> {
-    if (!id.length) {
+    if (typeof id !== "string" && !id.length) {
       return [];
     }
 
@@ -94,7 +107,7 @@ export abstract class Authority<A> implements AuthorityData<A> {
       [typeof id === "string" ? [id] : id]
     );
 
-    if (result.rows.length !== id.length) {
+    if (result.rows.length !== (typeof id === "string" ? 1 : id.length)) {
       throw new Error(
         "INVARIANT: Read must return the same number of records as requested."
       );
@@ -135,7 +148,7 @@ export abstract class Authority<A> implements AuthorityData<A> {
     data: AuthorityData<any>,
     metadata: {
       recordId: string;
-      createdBySessionId: string;
+      createdByTokenId: string;
       createdAt: Date;
     }
   ): Promise<T> {
@@ -178,7 +191,7 @@ export abstract class Authority<A> implements AuthorityData<A> {
       INSERT INTO authx.authority_record
       (
         record_id,
-        created_by_session_id,
+        created_by_token_id,
         created_at,
         entity_id,
         enabled,
@@ -197,7 +210,7 @@ export abstract class Authority<A> implements AuthorityData<A> {
       `,
       [
         metadata.recordId,
-        metadata.createdBySessionId,
+        metadata.createdByTokenId,
         metadata.createdAt,
         data.id,
         data.enabled,

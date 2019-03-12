@@ -55,7 +55,7 @@ const role = new Role({
         data: user,
         metadata: {
           recordId: v4(),
-          createdBySessionId: grant.id,
+          createdByTokenId: grant.id,
           createdAt: new Date()
         }
       },
@@ -63,7 +63,7 @@ const role = new Role({
         data: client,
         metadata: {
           recordId: v4(),
-          createdBySessionId: grant.id,
+          createdByTokenId: grant.id,
           createdAt: new Date()
         }
       },
@@ -71,7 +71,7 @@ const role = new Role({
         data: grant,
         metadata: {
           recordId: v4(),
-          createdBySessionId: grant.id,
+          createdByTokenId: grant.id,
           createdAt: new Date()
         }
       },
@@ -79,7 +79,7 @@ const role = new Role({
         data: role,
         metadata: {
           recordId: v4(),
-          createdBySessionId: grant.id,
+          createdByTokenId: grant.id,
           createdAt: new Date()
         }
       }

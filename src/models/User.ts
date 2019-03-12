@@ -4,6 +4,7 @@ import { Grant } from "./Grant";
 import { Role } from "./Role";
 import { Profile } from "../util/Profile";
 import { simplify, test } from "scopeutils";
+import { Token } from "./Token";
 
 export type UserType = "human" | "bot";
 
@@ -29,6 +30,27 @@ export class User implements UserData {
     this.enabled = data.enabled;
     this.type = data.type;
     this.profile = data.profile;
+  }
+
+  public async visible(
+    realm: string,
+    tx: PoolClient,
+    token: Token
+  ): Promise<boolean> {
+    // all users are visible
+    if (await token.can(tx, `${realm}:user:read`)) {
+      return true;
+    }
+
+    // this user is visible
+    if (
+      (await token.can(tx, `${realm}:user.self:read`)) &&
+      (await token.grant(tx)).userId === this.id
+    ) {
+      return true;
+    }
+
+    return false;
   }
 
   public async credentials(
@@ -168,7 +190,7 @@ export class User implements UserData {
   public static async write(
     tx: PoolClient,
     data: UserData,
-    metadata: { recordId: string; createdBySessionId: string; createdAt: Date }
+    metadata: { recordId: string; createdByTokenId: string; createdAt: Date }
   ): Promise<User> {
     // ensure that the entity ID exists
     await tx.query(
@@ -207,7 +229,7 @@ export class User implements UserData {
       INSERT INTO authx.user_record
       (
         record_id,
-        created_by_session_id,
+        created_by_token_id,
         created_at,
         entity_id,
         enabled,
@@ -224,7 +246,7 @@ export class User implements UserData {
       `,
       [
         metadata.recordId,
-        metadata.createdBySessionId,
+        metadata.createdByTokenId,
         metadata.createdAt,
         data.id,
         data.enabled,

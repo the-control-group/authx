@@ -1,4 +1,3 @@
-import { Middleware } from "koa";
 import { Pool } from "pg";
 import Router from "koa-router";
 import body from "koa-body";
@@ -8,13 +7,23 @@ import x from "./x";
 import createSchema from "./graphql";
 export * from "./graphql";
 
+import { Context } from "./graphql/Context";
 import { Strategy } from "./Strategy";
+import { Token } from "./models";
+import {
+  PasswordAuthority,
+  PasswordCredential,
+  GraphQLPasswordAuthority,
+  GraphQLPasswordCredential
+} from "./strategies/password";
 
 export class AuthX<StateT = any, CustomT = {}> extends Router<StateT, CustomT> {
   private pool: Pool;
+  public readonly realm: string;
 
-  constructor(config: any, strategies: { [K: string]: Strategy<any, any> }) {
+  public constructor(config: any) {
     super(config);
+    this.realm = config.realm || "AuthX";
 
     // // set the config
     // this.config = config;
@@ -37,10 +46,15 @@ export class AuthX<StateT = any, CustomT = {}> extends Router<StateT, CustomT> {
     // add authx namespace context
     this.use(async (ctx: any, next) => {
       const tx = await this.pool.connect();
+      const token = await Token.read(
+        tx,
+        "c70da498-27ed-4c3b-a318-38bb220cef48"
+      );
 
       ctx[x] = {
         authx: this,
-        tx
+        tx,
+        token
       };
 
       try {
@@ -86,12 +100,25 @@ export class AuthX<StateT = any, CustomT = {}> extends Router<StateT, CustomT> {
       body(),
 
       execute({
-        schema: createSchema(),
+        schema: createSchema([
+          GraphQLPasswordAuthority,
+          GraphQLPasswordCredential
+        ]),
         override: (ctx: any) => {
-          return {
-            contextValue: {
-              tx: ctx[x].tx
+          const contextValue: Context = {
+            realm: this.realm,
+            tx: ctx[x].tx,
+            token: ctx[x].token,
+            authorityMap: {
+              password: PasswordAuthority
+            },
+            credentialMap: {
+              password: PasswordCredential
             }
+          };
+
+          return {
+            contextValue
           };
         }
       })
