@@ -1,4 +1,5 @@
 import {
+  GraphQLBoolean,
   GraphQLInt,
   GraphQLList,
   GraphQLNonNull,
@@ -11,6 +12,7 @@ import { Authority } from "../../models";
 export const authorities: GraphQLFieldConfig<
   any,
   {
+    includeDisabled: boolean;
     offset: null | number;
     limit: null | number;
   },
@@ -19,11 +21,18 @@ export const authorities: GraphQLFieldConfig<
   type: new GraphQLList(new GraphQLNonNull(GraphQLAuthority)),
   description: "List all authorities.",
   args: {
+    includeDisabled: {
+      type: GraphQLBoolean,
+      defaultValue: false,
+      description: "Include disabled authorities in results."
+    },
     offset: {
-      type: GraphQLInt
+      type: GraphQLInt,
+      description: "The number of results to skip."
     },
     limit: {
-      type: GraphQLInt
+      type: GraphQLInt,
+      description: "The maximum number of results to return."
     }
   },
   async resolve(source, args, context) {
@@ -37,7 +46,7 @@ export const authorities: GraphQLFieldConfig<
         FROM authx.authority_record
         WHERE
           replacement_record_id IS NULL
-          AND enabled = true
+          ${args.includeDisabled ? "" : "AND enabled = true"}
         `
       );
 

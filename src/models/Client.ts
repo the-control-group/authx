@@ -1,12 +1,10 @@
 import { PoolClient } from "pg";
 import { Grant } from "./Grant";
-import { simplify } from "scopeutils";
 
 export interface ClientData {
   readonly id: string;
   readonly enabled: boolean;
   readonly name: string;
-  readonly scopes: Iterable<string>;
   readonly oauthSecret: string;
   readonly oauthUrls: Iterable<string>;
 }
@@ -15,7 +13,6 @@ export class Client implements ClientData {
   public readonly id: string;
   public readonly enabled: boolean;
   public readonly name: string;
-  public readonly scopes: string[];
   public readonly oauthSecret: string;
   public readonly oauthUrls: string[];
 
@@ -25,7 +22,6 @@ export class Client implements ClientData {
     this.id = data.id;
     this.enabled = data.enabled;
     this.name = data.name;
-    this.scopes = simplify([...data.scopes]);
     this.oauthSecret = data.oauthSecret;
     this.oauthUrls = [...data.oauthUrls];
   }
@@ -67,7 +63,6 @@ export class Client implements ClientData {
         entity_id AS id,
         enabled,
         name,
-        scopes,
         oauth_secret,
         oauth_urls
       FROM authx.client_record
@@ -140,7 +135,6 @@ export class Client implements ClientData {
         entity_id,
         enabled,
         name,
-        scopes,
         oauth_secret,
         oauth_urls
       )
@@ -150,7 +144,6 @@ export class Client implements ClientData {
         entity_id AS id,
         enabled,
         name,
-        scopes,
         oauth_secret,
         oauth_urls
       `,
@@ -161,7 +154,6 @@ export class Client implements ClientData {
         data.id,
         data.enabled,
         data.name,
-        data.scopes,
         data.oauthSecret,
         data.oauthUrls
       ]

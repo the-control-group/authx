@@ -1,8 +1,5 @@
 import {
-  GraphQLFloat,
   GraphQLID,
-  GraphQLInt,
-  GraphQLList,
   GraphQLNonNull,
   GraphQLString,
   GraphQLInterfaceType

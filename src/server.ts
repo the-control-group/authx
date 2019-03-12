@@ -11,7 +11,7 @@ const app = new Koa();
 app.proxy = true;
 
 // create a new instanciate of AuthX
-const authx = new AuthX(config, {});
+const authx = new AuthX(config);
 
 // apply the AuthX routes to the app
 app.use(authx.routes());

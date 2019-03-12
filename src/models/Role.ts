@@ -1,7 +1,6 @@
 import { PoolClient } from "pg";
-import { test } from "scopeutils";
 import { User } from "./User";
-import { simplify } from "scopeutils";
+import { simplify, isSuperset } from "scopeutils";
 
 export interface RoleData {
   readonly id: string;
@@ -40,12 +39,8 @@ export class Role implements RoleData {
     return this.scopes;
   }
 
-  public async can(
-    tx: PoolClient,
-    scope: string,
-    strict: boolean = true
-  ): Promise<boolean> {
-    return test(this.access(), scope, strict);
+  public async can(tx: PoolClient, scope: string[] | string): Promise<boolean> {
+    return isSuperset(this.access(), scope);
   }
 
   public static read(tx: PoolClient, id: string): Promise<Role>;

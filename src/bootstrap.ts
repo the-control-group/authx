@@ -20,7 +20,6 @@ const client = new Client({
   id: v4(),
   enabled: true,
   name: "AuthX Bootstrap",
-  scopes: [],
   oauthSecret: crypto.randomBytes(32).toString("hex"),
   oauthUrls: []
 });

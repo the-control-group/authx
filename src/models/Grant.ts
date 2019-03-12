@@ -1,7 +1,7 @@
 import { PoolClient } from "pg";
 import { Client } from "./Client";
 import { User } from "./User";
-import { simplify, limit, test } from "scopeutils";
+import { simplify, getIntersection, isSuperset } from "scopeutils";
 
 export interface GrantData {
   readonly id: string;
@@ -54,7 +54,7 @@ export class Grant implements GrantData {
     tx: PoolClient,
     refresh: boolean = false
   ): Promise<string[]> {
-    return limit(
+    return getIntersection(
       this.scopes,
       await (await this.user(tx, refresh)).access(tx, refresh)
     );
@@ -63,10 +63,9 @@ export class Grant implements GrantData {
   public async can(
     tx: PoolClient,
     scope: string,
-    strict: boolean = true,
     refresh: boolean = false
   ): Promise<boolean> {
-    return test(await this.access(tx, refresh), scope, strict);
+    return isSuperset(await this.access(tx, refresh), scope);
   }
 
   public static read(tx: PoolClient, id: string): Promise<Grant>;

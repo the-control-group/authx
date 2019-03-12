@@ -94,17 +94,21 @@ export abstract class Credential<C> implements CredentialData<C> {
     const result = await tx.query(
       `
       SELECT
-        entity_id AS id,
-        enabled,
-        authority_id,
-        authority_user_id,
-        user_id,
-        profile,
-        details
+        authx.credential_record.entity_id AS id,
+        authx.credential_record.enabled,
+        authx.credential_record.authority_id,
+        authx.credential_record.authority_user_id,
+        authx.credential_record.user_id,
+        authx.credential_record.profile,
+        authx.credential_record.details,
+        authx.authority_record.strategy
       FROM authx.credential_record
+      JOIN authx.authority_record
+        ON authx.authority_record.entity_id = authx.credential_record.authority_id
+        AND authx.authority_record.replacement_record_id IS NULL
       WHERE
-        entity_id = ANY($1)
-        AND replacement_record_id IS NULL
+        authx.credential_record.entity_id = ANY($1)
+        AND authx.credential_record.replacement_record_id IS NULL
       `,
       [typeof id === "string" ? [id] : id]
     );

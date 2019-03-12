@@ -61,7 +61,6 @@ CREATE UNIQUE INDEX ON authx.authority_record USING BTREE (entity_id) WHERE repl
 
 CREATE TABLE authx.client_record (
   name TEXT NOT NULL,
-  scopes TEXT[] NOT NULL,
   oauth_secret TEXT NOT NULL,
   oauth_urls TEXT[] NOT NULL,
 

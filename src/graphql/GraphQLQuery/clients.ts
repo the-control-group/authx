@@ -5,11 +5,11 @@ import {
   GraphQLNonNull,
   GraphQLFieldConfig
 } from "graphql";
-import { GraphQLUser } from "../GraphQLUser";
+import { GraphQLClient } from "../GraphQLClient";
 import { Context } from "../Context";
-import { User } from "../../models";
+import { Client } from "../../models";
 
-export const users: GraphQLFieldConfig<
+export const clients: GraphQLFieldConfig<
   any,
   {
     includeDisabled: boolean;
@@ -18,13 +18,13 @@ export const users: GraphQLFieldConfig<
   },
   Context
 > = {
-  type: new GraphQLList(new GraphQLNonNull(GraphQLUser)),
-  description: "List all users.",
+  type: new GraphQLList(new GraphQLNonNull(GraphQLClient)),
+  description: "List all clients.",
   args: {
     includeDisabled: {
       type: GraphQLBoolean,
       defaultValue: false,
-      description: "Include disabled users in results."
+      description: "Include disabled clients in results."
     },
     offset: {
       type: GraphQLInt,
@@ -38,12 +38,12 @@ export const users: GraphQLFieldConfig<
   async resolve(source, args, context) {
     const { tx, token, realm } = context;
 
-    // can view all users
-    if (token && (await token.can(tx, `${realm}:user.*:read`))) {
+    // can view all clients
+    if (token && (await token.can(tx, `${realm}:client.*:read`))) {
       const ids = await tx.query(
         `
         SELECT entity_id AS id
-        FROM authx.user_record
+        FROM authx.client_record
         WHERE
           replacement_record_id IS NULL
           ${args.includeDisabled ? "" : "AND enabled = true"}
@@ -54,14 +54,13 @@ export const users: GraphQLFieldConfig<
         return [];
       }
 
-      return User.read(tx, ids.rows.map(({ id }) => id));
+      return Client.read(tx, ids.rows.map(({ id }) => id));
     }
 
-    // can only view self
-    if (token && (await token.can(tx, `${realm}:user.self:read`))) {
-      const grant = await token.grant(tx);
-      const user = await grant.user(tx);
-      return [user];
+    // can only view assigned clients
+    if (token && (await token.can(tx, `${realm}:client.assigned:read`))) {
+      // TODO:
+      throw new Error("UNIMPLEMENTED");
     }
 
     return [];

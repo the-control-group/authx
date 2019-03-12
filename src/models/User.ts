@@ -3,7 +3,7 @@ import { Credential, CredentialData } from "./Credential";
 import { Grant } from "./Grant";
 import { Role } from "./Role";
 import { Profile } from "../util/Profile";
-import { simplify, test } from "scopeutils";
+import { simplify, isSuperset } from "scopeutils";
 import { Token } from "./Token";
 
 export type UserType = "human" | "bot";
@@ -144,11 +144,10 @@ export class User implements UserData {
 
   public async can(
     tx: PoolClient,
-    scope: string,
-    strict: boolean = true,
+    scope: string[] | string,
     refresh: boolean = false
   ): Promise<boolean> {
-    return test(await this.access(tx, refresh), scope, strict);
+    return isSuperset(await this.access(tx, refresh), scope);
   }
 
   public static read(tx: PoolClient, id: string): Promise<User>;
