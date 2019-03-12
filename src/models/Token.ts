@@ -1,6 +1,7 @@
 import { PoolClient } from "pg";
 import { Client } from "./Client";
 import { Grant } from "./Grant";
+import { simplify, limit, test } from "scopeutils";
 
 export interface TokenData {
   readonly id: string;
@@ -13,17 +14,42 @@ export class Token implements TokenData {
   public readonly id: string;
   public readonly enabled: boolean;
   public readonly grantId: string;
-  public readonly scopes: Set<string>;
+  public readonly scopes: string[];
+
+  private _grant: null | Promise<Grant> = null;
 
   public constructor(data: TokenData) {
     this.id = data.id;
     this.enabled = data.enabled;
     this.grantId = data.grantId;
-    this.scopes = new Set(data.scopes);
+    this.scopes = simplify([...data.scopes]);
   }
 
-  public async grant(tx: PoolClient): Promise<Grant> {
-    return Grant.read(tx, this.grantId);
+  public grant(tx: PoolClient, refresh: boolean = false): Promise<Grant> {
+    if (!refresh && this._grant) {
+      return this._grant;
+    }
+
+    return (this._grant = Grant.read(tx, this.grantId));
+  }
+
+  public async access(
+    tx: PoolClient,
+    refresh: boolean = false
+  ): Promise<string[]> {
+    return limit(
+      this.scopes,
+      await (await this.grant(tx, refresh)).access(tx, refresh)
+    );
+  }
+
+  public async can(
+    tx: PoolClient,
+    scope: string,
+    strict: boolean = true,
+    refresh: boolean = false
+  ): Promise<boolean> {
+    return test(await this.access(tx, refresh), scope, strict);
   }
 
   public static read(tx: PoolClient, id: string): Promise<Token>;
@@ -104,7 +130,7 @@ export class Token implements TokenData {
       [data.id, metadata.recordId]
     );
 
-    if (previous.rows.length >= 1) {
+    if (previous.rows.length > 1) {
       throw new Error(
         "INVARIANT: It must be impossible to replace more than one record."
       );

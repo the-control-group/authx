@@ -1,38 +1,38 @@
-const jjv = require('jjv');
-const auth = require('basic-auth');
-const json = require('../util/json');
-const form = require('../util/form');
-const { hash, compare } = require('../util/bcrypt');
-const errors = require('../errors');
-const x = require('../namespace');
+const jjv = require("jjv");
+const auth = require("basic-auth");
+const json = require("../util/json");
+const form = require("../util/form");
+const { hash, compare } = require("../util/bcrypt");
+const errors = require("../errors");
+const x = require("../namespace");
 
-const Strategy = require('../Strategy');
-const Credential = require('../models/Credential');
-const User = require('../models/User');
+const Strategy = require("../Strategy");
+const Credential = require("../models/Credential");
+const User = require("../models/User");
 
 var env = jjv();
 
 env.addSchema({
-	id: 'authority',
-	type: 'object',
+	id: "authority",
+	type: "object",
 	properties: {
 		rounds: {
-			type: 'number',
-			title: 'BCrypt Rounds',
+			type: "number",
+			title: "BCrypt Rounds",
 			description:
-				'BCrypt encryption rounds for new passwords; old passwords will continue to use their original number of rounds.',
+				"BCrypt encryption rounds for new passwords; old passwords will continue to use their original number of rounds.",
 			default: 4
 		}
 	}
 });
 
 env.addSchema({
-	id: 'credential',
-	type: 'object',
+	id: "credential",
+	type: "object",
 	properties: {
 		password: {
-			type: 'string',
-			title: 'Password',
+			type: "string",
+			title: "Password",
 			description:
 				"The user's password, sent as plain text; stored as a bcrypt hash."
 		}
@@ -45,12 +45,12 @@ module.exports = class PasswordStrategy extends Strategy {
 		var request;
 
 		// HTTP POST (json)
-		if (ctx.method === 'POST' && ctx.is('application/json'))
+		if (ctx.method === "POST" && ctx.is("application/json"))
 			request = await json(ctx.req);
 		// HTTP POST (form)
 		else if (
-			ctx.method === 'POST' &&
-			ctx.is('application/x-www-form-urlencoded')
+			ctx.method === "POST" &&
+			ctx.is("application/x-www-form-urlencoded")
 		)
 			request = await form(ctx.req);
 		// HTTP Basic Authentication
@@ -73,10 +73,10 @@ module.exports = class PasswordStrategy extends Strategy {
 		// send authenticate headers
 		if (!request) {
 			ctx.set(
-				'WWW-Authenticate',
+				"WWW-Authenticate",
 				'Basic realm="' + ctx[x].authx.config.realm + '"'
 			);
-			ctx.throw(401, 'HTTP Basic credentials are required.');
+			ctx.throw(401, "HTTP Basic credentials are required.");
 		}
 
 		// validate the credential_id
@@ -84,7 +84,7 @@ module.exports = class PasswordStrategy extends Strategy {
 		if (
 			!Array.isArray(credential_id) ||
 			credential_id.length !== 2 ||
-			!credential_id.every(s => typeof s === 'string')
+			!credential_id.every(s => typeof s === "string")
 		)
 			ctx.throw(
 				400,
@@ -94,7 +94,7 @@ module.exports = class PasswordStrategy extends Strategy {
 		// validate the password
 		var password = request.password;
 		if (!password)
-			ctx.throw(400, 'The HTTP basic `password` must be specified.');
+			ctx.throw(400, "The HTTP basic `password` must be specified.");
 
 		// get the user ID
 		var user_id =
@@ -105,7 +105,7 @@ module.exports = class PasswordStrategy extends Strategy {
 		// make sure this is the correct user
 		if (ctx[x].user && ctx[x].user.id !== user_id)
 			throw new errors.AuthenticationError(
-				'You are already logged in as a different user.'
+				"You are already logged in as a different user."
 			);
 
 		// get the user's password credential
@@ -116,8 +116,8 @@ module.exports = class PasswordStrategy extends Strategy {
 
 		// validate password
 		if (!(await compare(password, credential.details.password))) {
-			ctx.set('WWW-Authenticate', 'Basic realm="authx"');
-			ctx.throw(401, 'Incorrect password.');
+			ctx.set("WWW-Authenticate", 'Basic realm="authx"');
+			ctx.throw(401, "Incorrect password.");
 		}
 
 		var [user] = await Promise.all([
@@ -139,10 +139,10 @@ module.exports = class PasswordStrategy extends Strategy {
 		data.details = data.details || {};
 
 		// validate data
-		var err = env.validate('authority', data.details, { useDefault: true });
+		var err = env.validate("authority", data.details, { useDefault: true });
 		if (err)
 			throw new errors.ValidationError(
-				'The authority details were invalid.',
+				"The authority details were invalid.",
 				err.validation
 			);
 
@@ -153,10 +153,10 @@ module.exports = class PasswordStrategy extends Strategy {
 		delta.details = delta.details || {};
 
 		// validate data
-		var err = env.validate('authority', delta.details, { useDefault: true });
+		var err = env.validate("authority", delta.details, { useDefault: true });
 		if (err)
 			throw new errors.ValidationError(
-				'The authority details were invalid.',
+				"The authority details were invalid.",
 				err.validation
 			);
 
@@ -170,10 +170,10 @@ module.exports = class PasswordStrategy extends Strategy {
 		data.details = data.details || {};
 
 		// validate data
-		var err = env.validate('credential', data.details, { useDefault: true });
+		var err = env.validate("credential", data.details, { useDefault: true });
 		if (err)
 			throw new errors.ValidationError(
-				'The credential details were invalid.',
+				"The credential details were invalid.",
 				err.validation
 			);
 
@@ -190,10 +190,10 @@ module.exports = class PasswordStrategy extends Strategy {
 		delta.details = delta.details || {};
 
 		// validate data
-		var err = env.validate('credential', delta.details, { useDefault: true });
+		var err = env.validate("credential", delta.details, { useDefault: true });
 		if (err)
 			throw new errors.ValidationError(
-				'The credential details were invalid.',
+				"The credential details were invalid.",
 				err.validation
 			);
 

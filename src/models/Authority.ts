@@ -24,7 +24,15 @@ export abstract class Authority<A> implements AuthorityData<A> {
     this.details = data.details;
   }
 
-  public abstract credentials(tx: PoolClient): Promise<Credential<any>[]>;
+  public abstract credentials(
+    tx: PoolClient,
+    refresh?: boolean
+  ): Promise<Credential<any>[]>;
+
+  public abstract credential(
+    tx: PoolClient,
+    authorityUserId: string
+  ): Promise<Credential<any> | null>;
 
   public static read<T extends Authority<any>>(
     this: new (data: AuthorityData<any>) => T,
@@ -151,12 +159,14 @@ export abstract class Authority<A> implements AuthorityData<A> {
       WHERE
         entity_id = $1
         AND replacement_record_id IS NULL
-      RETURNING entity_id AS id, record_id
+      RETURNING
+        entity_id AS id,
+        strategy
       `,
       [data.id, metadata.recordId]
     );
 
-    if (previous.rows.length >= 1) {
+    if (previous.rows.length > 1) {
       throw new Error(
         "INVARIANT: It must be impossible to replace more than one record."
       );

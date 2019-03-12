@@ -1,6 +1,7 @@
 import { PoolClient } from "pg";
 import { Client } from "./Client";
 import { User } from "./User";
+import { simplify, limit, test } from "scopeutils";
 
 export interface GrantData {
   readonly id: string;
@@ -19,7 +20,10 @@ export class Grant implements GrantData {
   public readonly userId: string;
   public readonly nonce: null | string;
   public readonly refreshToken: string;
-  public readonly scopes: Set<string>;
+  public readonly scopes: string[];
+
+  private _client: null | Promise<Client> = null;
+  private _user: null | Promise<User> = null;
 
   public constructor(data: GrantData) {
     this.id = data.id;
@@ -28,15 +32,41 @@ export class Grant implements GrantData {
     this.userId = data.userId;
     this.nonce = data.nonce;
     this.refreshToken = data.refreshToken;
-    this.scopes = new Set(data.scopes);
+    this.scopes = simplify([...data.scopes]);
   }
 
   public client(tx: PoolClient, refresh: boolean = false): Promise<Client> {
-    return Client.read(tx, this.clientId);
+    if (!refresh && this._client) {
+      return this._client;
+    }
+
+    return (this._client = Client.read(tx, this.clientId));
   }
 
   public user(tx: PoolClient, refresh: boolean = false): Promise<User> {
-    return User.read(tx, this.userId);
+    if (!refresh && this._user) {
+      return this._user;
+    }
+    return (this._user = User.read(tx, this.userId));
+  }
+
+  public async access(
+    tx: PoolClient,
+    refresh: boolean = false
+  ): Promise<string[]> {
+    return limit(
+      this.scopes,
+      await (await this.user(tx, refresh)).access(tx, refresh)
+    );
+  }
+
+  public async can(
+    tx: PoolClient,
+    scope: string,
+    strict: boolean = true,
+    refresh: boolean = false
+  ): Promise<boolean> {
+    return test(await this.access(tx, refresh), scope, strict);
   }
 
   public static read(tx: PoolClient, id: string): Promise<Grant>;
@@ -120,7 +150,7 @@ export class Grant implements GrantData {
       [data.id, metadata.recordId]
     );
 
-    if (previous.rows.length >= 1) {
+    if (previous.rows.length > 1) {
       throw new Error(
         "INVARIANT: It must be impossible to replace more than one record."
       );
@@ -163,7 +193,7 @@ export class Grant implements GrantData {
         data.userId,
         data.nonce,
         data.refreshToken,
-        [...data.scopes]
+        data.scopes
       ]
     );
 

@@ -1,6 +1,7 @@
 import { PoolClient } from "pg";
 import { test } from "scopeutils";
 import { User } from "./User";
+import { simplify } from "scopeutils";
 
 export interface RoleData {
   readonly id: string;
@@ -14,23 +15,37 @@ export class Role implements RoleData {
   public readonly id: string;
   public readonly enabled: boolean;
   public readonly name: string;
-  public readonly scopes: Set<string>;
+  public readonly scopes: string[];
   public readonly userIds: Set<string>;
+
+  private _users: null | Promise<User[]> = null;
 
   public constructor(data: RoleData) {
     this.id = data.id;
     this.enabled = data.enabled;
     this.name = data.name;
-    this.scopes = new Set(data.scopes);
+    this.scopes = simplify([...data.scopes]);
     this.userIds = new Set(data.userIds);
   }
 
-  public async users(tx: PoolClient): Promise<User[]> {
-    return User.read(tx, [...this.userIds]);
+  public users(tx: PoolClient, refresh: boolean = false): Promise<User[]> {
+    if (!refresh && this._users) {
+      return this._users;
+    }
+
+    return (this._users = User.read(tx, [...this.userIds]));
   }
 
-  public can(scope: string, strict: boolean = true): boolean {
-    return test([...this.scopes], scope, strict);
+  public access(): string[] {
+    return this.scopes;
+  }
+
+  public async can(
+    tx: PoolClient,
+    scope: string,
+    strict: boolean = true
+  ): Promise<boolean> {
+    return test(this.access(), scope, strict);
   }
 
   public static read(tx: PoolClient, id: string): Promise<Role>;
@@ -111,7 +126,7 @@ export class Role implements RoleData {
       [data.id, metadata.recordId]
     );
 
-    if (previous.rows.length >= 1) {
+    if (previous.rows.length > 1) {
       throw new Error(
         "INVARIANT: It must be impossible to replace more than one record."
       );
@@ -145,7 +160,7 @@ export class Role implements RoleData {
         data.id,
         data.enabled,
         data.name,
-        [...data.scopes]
+        data.scopes
       ]
     );
 

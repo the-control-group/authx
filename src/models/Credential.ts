@@ -22,6 +22,8 @@ export abstract class Credential<C> implements CredentialData<C> {
   public readonly profile: null | Profile;
   public readonly details: C;
 
+  private _user: null | Promise<User> = null;
+
   public constructor(data: CredentialData<C>) {
     this.id = data.id;
     this.enabled = data.enabled;
@@ -32,10 +34,17 @@ export abstract class Credential<C> implements CredentialData<C> {
     this.details = data.details;
   }
 
-  public abstract authority(tx: PoolClient): Promise<Authority<any>>;
+  public abstract authority(
+    tx: PoolClient,
+    refresh?: boolean
+  ): Promise<Authority<any>>;
 
-  public user(tx: PoolClient): Promise<User> {
-    return User.read(tx, this.userId);
+  public user(tx: PoolClient, refresh: boolean = false): Promise<User> {
+    if (!refresh && this._user) {
+      return this._user;
+    }
+
+    return (this._user = User.read(tx, this.userId));
   }
 
   public static read<T extends Credential<any>>(
@@ -172,7 +181,7 @@ export abstract class Credential<C> implements CredentialData<C> {
       [data.id, metadata.recordId]
     );
 
-    if (previous.rows.length >= 1) {
+    if (previous.rows.length > 1) {
       throw new Error(
         "INVARIANT: It must be impossible to replace more than one record."
       );

@@ -1,5 +1,6 @@
 import { PoolClient } from "pg";
 import { Grant } from "./Grant";
+import { simplify } from "scopeutils";
 
 export interface ClientData {
   readonly id: string;
@@ -14,33 +15,40 @@ export class Client implements ClientData {
   public readonly id: string;
   public readonly enabled: boolean;
   public readonly name: string;
-  public readonly scopes: Set<string>;
+  public readonly scopes: string[];
   public readonly oauthSecret: string;
-  public readonly oauthUrls: Set<string>;
+  public readonly oauthUrls: string[];
+
+  private _grants: null | Promise<Grant[]> = null;
 
   public constructor(data: ClientData) {
     this.id = data.id;
     this.enabled = data.enabled;
     this.name = data.name;
-    this.scopes = new Set(data.scopes);
+    this.scopes = simplify([...data.scopes]);
     this.oauthSecret = data.oauthSecret;
-    this.oauthUrls = new Set(data.oauthUrls);
+    this.oauthUrls = [...data.oauthUrls];
   }
 
-  public async grants(tx: PoolClient): Promise<Grant[]> {
-    return Grant.read(
-      tx,
-      (await tx.query(
-        `
-        SELECT entity_id AS id
-        FROM authx.grant_records
-        WHERE
-          client_id = $1
-          AND replacement_record_id IS NULL
-        `,
-        [this.id]
-      )).rows.map(({ id }) => id)
-    );
+  public grants(tx: PoolClient, refresh: boolean = true): Promise<Grant[]> {
+    if (!refresh && this._grants) {
+      return this._grants;
+    }
+
+    return (this._grants = (async () =>
+      Grant.read(
+        tx,
+        (await tx.query(
+          `
+            SELECT entity_id AS id
+            FROM authx.grant_records
+            WHERE
+              client_id = $1
+              AND replacement_record_id IS NULL
+            `,
+          [this.id]
+        )).rows.map(({ id }) => id)
+      ))());
   }
 
   public static read(tx: PoolClient, id: string): Promise<Client>;
@@ -115,7 +123,7 @@ export class Client implements ClientData {
       [data.id, metadata.recordId]
     );
 
-    if (previous.rows.length >= 1) {
+    if (previous.rows.length > 1) {
       throw new Error(
         "INVARIANT: It must be impossible to replace more than one record."
       );
@@ -153,9 +161,9 @@ export class Client implements ClientData {
         data.id,
         data.enabled,
         data.name,
-        [...data.scopes],
+        data.scopes,
         data.oauthSecret,
-        [...data.oauthUrls]
+        data.oauthUrls
       ]
     );
 

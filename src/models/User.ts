@@ -3,6 +3,7 @@ import { Credential, CredentialData } from "./Credential";
 import { Grant } from "./Grant";
 import { Role } from "./Role";
 import { Profile } from "../util/Profile";
+import { simplify, test } from "scopeutils";
 
 export type UserType = "human" | "bot";
 
@@ -19,6 +20,10 @@ export class User implements UserData {
   public readonly type: UserType;
   public readonly profile: Profile;
 
+  private _credentials: null | Promise<Credential<any>[]> = null;
+  private _roles: null | Promise<Role[]> = null;
+  private _grants: null | Promise<Grant[]> = null;
+
   public constructor(data: UserData) {
     this.id = data.id;
     this.enabled = data.enabled;
@@ -30,29 +35,43 @@ export class User implements UserData {
     tx: PoolClient,
     map: {
       [key: string]: { new (data: CredentialData<any>): Credential<any> };
-    }
+    },
+    refresh: boolean = false
   ): Promise<Credential<any>[]> {
-    return Credential.read(
-      tx,
-      (await tx.query(
-        `
+    if (!refresh && this._credentials) {
+      return this._credentials;
+    }
+
+    return (this._credentials = (async () =>
+      Credential.read(
+        tx,
+        (await tx.query(
+          `
           SELECT entity_id AS id
           FROM authx.credential_record
           WHERE
             user_id = $1
             AND replacement_record_id IS NULL
           `,
-        [this.id]
-      )).rows.map(({ id }) => id),
-      map
-    );
+          [this.id]
+        )).rows.map(({ id }) => id),
+        map
+      ))());
   }
 
-  public async roles(tx: PoolClient): Promise<Role[]> {
-    return Role.read(
-      tx,
-      (await tx.query(
-        `
+  public async roles(
+    tx: PoolClient,
+    refresh: boolean = false
+  ): Promise<Role[]> {
+    if (!refresh && this._roles) {
+      return this._roles;
+    }
+
+    return (this._roles = (async () =>
+      Role.read(
+        tx,
+        (await tx.query(
+          `
         SELECT entity_id AS id
         FROM authx.role_record
         JOIN authx.role_record_user
@@ -61,46 +80,53 @@ export class User implements UserData {
           authx.role_record_user.user_id = $1
           AND authx.role_record.replacement_record_id IS NULL
         `,
-        [this.id]
-      )).rows.map(({ id }) => id)
-    );
+          [this.id]
+        )).rows.map(({ id }) => id)
+      ))());
   }
 
-  public async grants(tx: PoolClient): Promise<Grant[]> {
-    return Grant.read(
-      tx,
-      (await tx.query(
-        `
+  public async grants(
+    tx: PoolClient,
+    refresh: boolean = false
+  ): Promise<Grant[]> {
+    if (!refresh && this._grants) {
+      return this._grants;
+    }
+
+    return (this._grants = (async () =>
+      Grant.read(
+        tx,
+        (await tx.query(
+          `
           SELECT entity_id AS id
           FROM authx.grant_records
           WHERE
             user_id = $1
             AND replacement_record_id IS NULL
           `,
-        [this.id]
-      )).rows.map(({ id }) => id)
-    );
+          [this.id]
+        )).rows.map(({ id }) => id)
+      ))());
   }
 
-  public async scopes(tx: PoolClient): Promise<Set<string>> {
-    return (await this.roles(tx))
-      .map(role => role.scopes)
-      .reduce((a, b) => {
-        for (const s of b) {
-          a.add(s);
-        }
-
-        return a;
-      }, new Set());
+  public async access(
+    tx: PoolClient,
+    refresh: boolean = false
+  ): Promise<string[]> {
+    return simplify(
+      (await this.roles(tx, refresh))
+        .map(role => role.scopes)
+        .reduce((a, b) => a.concat(b), [])
+    );
   }
 
   public async can(
     tx: PoolClient,
     scope: string,
-    strict: boolean = true
+    strict: boolean = true,
+    refresh: boolean = false
   ): Promise<boolean> {
-    var roles = await this.roles(tx);
-    return roles.some(role => role.can(scope, strict));
+    return test(await this.access(tx, refresh), scope, strict);
   }
 
   public static read(tx: PoolClient, id: string): Promise<User>;
@@ -169,7 +195,7 @@ export class User implements UserData {
       [data.id, metadata.recordId]
     );
 
-    if (previous.rows.length >= 1) {
+    if (previous.rows.length > 1) {
       throw new Error(
         "INVARIANT: It must be impossible to replace more than one record."
       );

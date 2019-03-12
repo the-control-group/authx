@@ -5,13 +5,15 @@ import body from "koa-body";
 import { errorHandler, execute } from "graphql-api-koa";
 import x from "./x";
 
-import schema from "./graphql";
+import createSchema from "./graphql";
 export * from "./graphql";
+
+import { Strategy } from "./Strategy";
 
 export class AuthX<StateT = any, CustomT = {}> extends Router<StateT, CustomT> {
   private pool: Pool;
 
-  constructor(config: any, strategies: any) {
+  constructor(config: any, strategies: { [K: string]: Strategy<any, any> }) {
     super(config);
 
     // // set the config
@@ -84,7 +86,7 @@ export class AuthX<StateT = any, CustomT = {}> extends Router<StateT, CustomT> {
       body(),
 
       execute({
-        schema,
+        schema: createSchema(),
         override: (ctx: any) => {
           return {
             contextValue: {

@@ -5,7 +5,8 @@ import {
   GraphQLString,
   GraphQLList,
   GraphQLNonNull,
-  GraphQLObjectType
+  GraphQLObjectType,
+  GraphQLEnumType
 } from "graphql";
 
 import { PoolClient } from "pg";
@@ -13,6 +14,7 @@ import { PoolClient } from "pg";
 import { GraphQLProfile } from "./GraphQLProfile";
 import { GraphQLCredential } from "./GraphQLCredential";
 import { GraphQLRole } from "./GraphQLRole";
+import { GraphQLUserType } from "./GraphQLUserType";
 
 export const GraphQLUser: GraphQLObjectType = new GraphQLObjectType({
   name: "User",

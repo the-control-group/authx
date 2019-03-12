@@ -1,6 +1,6 @@
 {
   "exclude": ["./original/**/*", "./original/*"],
-  "types": ["./src/graphql-api-koa", "./src/graphql-upload"],
+  "types": ["./src/graphql-api-koa"],
   "compilerOptions": {
     "lib": ["ES2018", "DOM"],
     "target": "ES2018",
