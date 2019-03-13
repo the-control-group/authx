@@ -21,7 +21,8 @@ const client = new Client({
   enabled: true,
   name: "AuthX Bootstrap",
   oauthSecret: crypto.randomBytes(32).toString("hex"),
-  oauthUrls: []
+  oauthUrls: [],
+  userIds: []
 });
 
 const grant = new Grant({

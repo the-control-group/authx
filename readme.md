@@ -85,27 +85,27 @@ AuthX uses its own authorization system to restrict access to its resources. Bel
 ```
 AuthX:authority.*:{read.basic|read.*|write}
 
-AuthX:client.{assigned|*}:{read.basic|read.*|write|assign|unassign}
+AuthX:client.{assigned|*}:{read.{basic|*}|write.{basic|assignment|*}}
 
-AuthX:credential.equal.assigned:{read.basic|read.*|write}
-AuthX:credential.equal.lesser  :{read.basic|read.*|write}
-AuthX:credential.equal.*       :{read.basic|read.*|write}
-AuthX:credential.*    .*       :{read.basic|read.*|write}
+AuthX:credential.equal.assigned:{read.{basic|*}|write.{basic|*}}
+AuthX:credential.equal.lesser  :{read.{basic|*}|write.{basic|*}}
+AuthX:credential.equal.*       :{read.{basic|*}|write.{basic|*}}
+AuthX:credential.*    .*       :{read.{basic|*}|write.{basic|*}}
 
-AuthX:grant.equal.self  :{read.basic|read.*|write}
-AuthX:grant.equal.lesser:{read.basic|read.*|write}
-AuthX:grant.equal.*     :{read.basic|read.*|write}
-AuthX:grant.*    .*     :{read.basic|read.*|write}
+AuthX:grant.equal.self  :{read.{basic|*}|write.{basic|*}}
+AuthX:grant.equal.lesser:{read.{basic|*}|write.{basic|*}}
+AuthX:grant.equal.*     :{read.{basic|*}|write.{basic|*}}
+AuthX:grant.*    .*     :{read.{basic|*}|write.{basic|*}}
 
-AuthX:role.equal.assigned:{read.basic|read.*|write}
-AuthX:role.equal.lesser  :{read.basic|read.*|write}
-AuthX:role.equal.*       :{read.basic|read.*|write}
-AuthX:role.*    .*       :{read.basic|read.*|write}
+AuthX:role.equal.assigned:{read.basic|write.{basic|assignment|*}}
+AuthX:role.equal.lesser  :{read.basic|write.{basic|assignment|*}}
+AuthX:role.equal.*       :{read.basic|write.{basic|assignment|*}}
+AuthX:role.*    .*       :{read.basic|write.{basic|assignment|*}}
 
-AuthX:token.equal.self  :{read.basic|read.*|write}
-AuthX:token.equal.lesser:{read.basic|read.*|write}
-AuthX:token.equal.*     :{read.basic|read.*|write}
-AuthX:token.*    .*     :{read.basic|read.*|write}
+AuthX:token.equal.self  :{read.basic|read.*|write.{basic|*}}
+AuthX:token.equal.lesser:{read.basic|read.*|write.{basic|*}}
+AuthX:token.equal.*     :{read.basic|read.*|write.{basic|*}}
+AuthX:token.*    .*     :{read.basic|read.*|write.{basic|*}}
 
 AuthX:user.{self|*}:{read.basic|write}
 ```

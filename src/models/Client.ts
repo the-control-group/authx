@@ -1,5 +1,6 @@
 import { PoolClient } from "pg";
 import { Grant } from "./Grant";
+import { User } from "./User";
 
 export interface ClientData {
   readonly id: string;
@@ -7,6 +8,7 @@ export interface ClientData {
   readonly name: string;
   readonly oauthSecret: string;
   readonly oauthUrls: Iterable<string>;
+  readonly userIds: Iterable<string>;
 }
 
 export class Client implements ClientData {
@@ -15,8 +17,10 @@ export class Client implements ClientData {
   public readonly name: string;
   public readonly oauthSecret: string;
   public readonly oauthUrls: string[];
+  public readonly userIds: Set<string>;
 
   private _grants: null | Promise<Grant[]> = null;
+  private _users: null | Promise<User[]> = null;
 
   public constructor(data: ClientData) {
     this.id = data.id;
@@ -24,6 +28,7 @@ export class Client implements ClientData {
     this.name = data.name;
     this.oauthSecret = data.oauthSecret;
     this.oauthUrls = [...data.oauthUrls];
+    this.userIds = new Set(data.userIds);
   }
 
   public grants(tx: PoolClient, refresh: boolean = true): Promise<Grant[]> {
@@ -47,6 +52,14 @@ export class Client implements ClientData {
       ))());
   }
 
+  public users(tx: PoolClient, refresh: boolean = false): Promise<User[]> {
+    if (!refresh && this._users) {
+      return this._users;
+    }
+
+    return (this._users = User.read(tx, [...this.userIds]));
+  }
+
   public static read(tx: PoolClient, id: string): Promise<Client>;
   public static read(tx: PoolClient, id: string[]): Promise<Client[]>;
   public static async read(
@@ -64,11 +77,20 @@ export class Client implements ClientData {
         enabled,
         name,
         oauth_secret,
-        oauth_urls
+        oauth_urls,
+        json_agg(authx.client_record_user.user_id) AS user_ids
       FROM authx.client_record
+      LEFT JOIN authx.role_record_user
+        ON authx.client_record_user.role_record_id = authx.client_record.record_id
       WHERE
         entity_id = ANY($1)
         AND replacement_record_id IS NULL
+      GROUP BY
+        authx.role_record.entity_id,
+        authx.role_record.enabled,
+        authx.role_record.name,
+        authx.role_record.oauth_secret,
+        authx.role_record.oauth_urls
       `,
       [typeof id === "string" ? [id] : id]
     );
@@ -83,7 +105,8 @@ export class Client implements ClientData {
       row =>
         new Client({
           ...row,
-          oauthUrls: row.oauth_urls
+          oauthUrls: row.oauth_urls,
+          userIds: row.user_ids
         })
     );
 
@@ -163,10 +186,29 @@ export class Client implements ClientData {
       throw new Error("INVARIANT: Insert must return exactly one row.");
     }
 
+    // insert the new record's users
+    const userIds = [...data.userIds];
+    const users = await tx.query(
+      `
+      INSERT INTO authx.client_record_user
+        (client_record_id, user_id)
+      SELECT $1::uuid AS client_record_id, user_id FROM UNNEST($2::uuid[]) AS user_id
+      RETURNING user_id
+      `,
+      [metadata.recordId, userIds]
+    );
+
+    if (users.rows.length !== userIds.length) {
+      throw new Error(
+        "INVARIANT: Insert or user IDs must return the same number of rows as input."
+      );
+    }
+
     const row = next.rows[0];
     return new Client({
       ...row,
-      oauthUrls: row.oauth_urls
+      oauthUrls: row.oauth_urls,
+      userIds: users.rows.map(({ user_id: userId }) => userId)
     });
   }
 }
