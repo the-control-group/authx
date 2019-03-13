@@ -27,6 +27,10 @@ const fixture = async (tx: PoolClient): Promise<void> => {
   // add entities to satisfy foreign key constraints
   await Promise.all([
     tx.query(
+      "INSERT INTO authx.grant (id) SELECT id FROM UNNEST($1::uuid[]) AS id",
+      [grant.map(({ data: { id } }) => id)]
+    ),
+    tx.query(
       "INSERT INTO authx.authority (id) SELECT id FROM UNNEST($1::uuid[]) AS id",
       [authority.map(({ data: { id } }) => id)]
     ),
@@ -37,10 +41,6 @@ const fixture = async (tx: PoolClient): Promise<void> => {
     tx.query(
       "INSERT INTO authx.credential (id) SELECT id FROM UNNEST($1::uuid[]) AS id",
       [credential.map(({ data: { id } }) => id)]
-    ),
-    tx.query(
-      "INSERT INTO authx.grant (id) SELECT id FROM UNNEST($1::uuid[]) AS id",
-      [grant.map(({ data: { id } }) => id)]
     ),
     tx.query(
       "INSERT INTO authx.role (id) SELECT id FROM UNNEST($1::uuid[]) AS id",
@@ -55,6 +55,13 @@ const fixture = async (tx: PoolClient): Promise<void> => {
       [user.map(({ data: { id } }) => id)]
     )
   ]);
+
+  // insert grants first
+  await Promise.all(
+    grant.map(({ class: Grant, data, metadata }) =>
+      Grant.write(tx, data, metadata)
+    )
+  );
 
   // insert the records
   await Promise.all([
@@ -71,11 +78,6 @@ const fixture = async (tx: PoolClient): Promise<void> => {
     Promise.all(
       credential.map(({ class: Credential, data, metadata }) =>
         Credential.write(tx, data, metadata)
-      )
-    ),
-    Promise.all(
-      grant.map(({ class: Grant, data, metadata }) =>
-        Grant.write(tx, data, metadata)
       )
     ),
     Promise.all(

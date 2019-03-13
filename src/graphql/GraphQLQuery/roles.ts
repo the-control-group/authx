@@ -72,7 +72,7 @@ export const roles: GraphQLFieldConfig<
         roles.map(async role => {
           return {
             role,
-            access: await (await role.user(tx)).access(tx)
+            access: role.access()
           };
         })
       ))

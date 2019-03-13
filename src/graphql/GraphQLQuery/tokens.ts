@@ -39,7 +39,7 @@ export const tokens: GraphQLFieldConfig<
   async resolve(source, args, context) {
     const { tx, token: t, realm } = context;
 
-    async function fetch(): Promise<Token<any>[]> {
+    async function fetch(): Promise<Token[]> {
       const ids = await tx.query(
         `
         SELECT entity_id AS id
