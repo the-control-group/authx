@@ -6,6 +6,7 @@ export const token = [
     data: {
       id: "5387ece5-37a1-4573-a189-14333ebf8d88",
       enabled: true,
+      userId: "e165cbb0-86b0-4e11-9db7-eb5f742161b8",
       grantId: "d8dcaf12-b744-4d2d-b223-09e7e5eaa922",
       scopes: ["AuthX:**:**"]
     },
@@ -20,6 +21,7 @@ export const token = [
     data: {
       id: "c70da498-27ed-4c3b-a318-38bb220cef48",
       enabled: true,
+      userId: "a6a0946d-eeb4-45cd-83c6-c7920f2272eb",
       grantId: "e4670762-beb7-435c-94af-055b951f97e6",
       scopes: ["**:**:**"]
     },
@@ -34,6 +36,7 @@ export const token = [
     data: {
       id: "f0e54748-c7bb-4724-ad8b-7dabb66aafa9",
       enabled: true,
+      userId: "51192909-3664-44d5-be62-c6b45f0b0ee6",
       grantId: "4e76cb13-ab24-4dc1-ad96-abcbb89f5529",
       scopes: ["**:**:**"]
     },

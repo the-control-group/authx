@@ -83,35 +83,29 @@ role.*
 AuthX uses its own authorization system to restrict access to its resources. Below are the scopes used by AuthX internally:
 
 ```
-AuthX:authority.*:read
-AuthX:authority.*:read.details
-AuthX:authority.*:write
+AuthX:authority.*:{read.basic|read.*|write}
 
-AuthX:client.{assigned|*}:read
-AuthX:client.{assigned|*}:read.secret
-AuthX:client.{assigned|*}:write
-AuthX:client.{assigned|*}:assign
-AuthX:client.{assigned|*}:unassign
+AuthX:client.{assigned|*}:{read.basic|read.*|write|assign|unassign}
 
-AuthX:credential.{self|lesser|equal|greater}:read
-AuthX:credential.{self|lesser|equal|greater}:read.details
-AuthX:credential.self:prove
-AuthX:credential.{self|lesser|equal|greater}:write
+AuthX:credential.equal.assigned:{read.basic|read.*|write}
+AuthX:credential.equal.lesser  :{read.basic|read.*|write}
+AuthX:credential.equal.*       :{read.basic|read.*|write}
+AuthX:credential.*    .*       :{read.basic|read.*|write}
 
-AuthX:grant.{self|lesser|equal|greater}:read
-AuthX:grant.{self|lesser|equal|greater}:read.secret
-AuthX:grant.{self|lesser|equal|greater}:write
+AuthX:grant.equal.self  :{read.basic|read.*|write}
+AuthX:grant.equal.lesser:{read.basic|read.*|write}
+AuthX:grant.equal.*     :{read.basic|read.*|write}
+AuthX:grant.*    .*     :{read.basic|read.*|write}
 
-AuthX:role.{assigned|*}:read
-AuthX:role.{lesser|equal|greater}:write
-AuthX:role.{lesser|equal|greater}:assign
-AuthX:role.{lesser|equal|greater}:unassign
+AuthX:role.equal.assigned:{read.basic|read.*|write}
+AuthX:role.equal.lesser  :{read.basic|read.*|write}
+AuthX:role.equal.*       :{read.basic|read.*|write}
+AuthX:role.*    .*       :{read.basic|read.*|write}
 
-AuthX:token.{self|lesser|equal|greater}:read
-AuthX:token.{self|lesser|equal|greater}:write
+AuthX:token.equal.self  :{read.basic|read.*|write}
+AuthX:token.equal.lesser:{read.basic|read.*|write}
+AuthX:token.equal.*     :{read.basic|read.*|write}
+AuthX:token.*    .*     :{read.basic|read.*|write}
 
-AuthX:user.self:read
-AuthX:user.*:read
-AuthX:user.self:write
-AuthX:user.*:write
+AuthX:user.{self|*}:{read.basic|write}
 ```

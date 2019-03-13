@@ -36,10 +36,10 @@ export const clients: GraphQLFieldConfig<
     }
   },
   async resolve(source, args, context) {
-    const { tx, token, realm } = context;
+    const { tx, token: t, realm } = context;
 
     // can view all clients
-    if (token && (await token.can(tx, `${realm}:client.*:read`))) {
+    if (t && (await t.can(tx, `${realm}:client.*:read.basic`))) {
       const ids = await tx.query(
         `
         SELECT entity_id AS id
@@ -58,7 +58,7 @@ export const clients: GraphQLFieldConfig<
     }
 
     // can only view assigned clients
-    if (token && (await token.can(tx, `${realm}:client.assigned:read`))) {
+    if (t && (await t.can(tx, `${realm}:client.assigned:read.basic`))) {
       // TODO:
       throw new Error("UNIMPLEMENTED");
     }

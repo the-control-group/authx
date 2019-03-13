@@ -37,7 +37,7 @@ export const credentials: GraphQLFieldConfig<
     }
   },
   async resolve(source, args, context) {
-    const { tx, token, realm, credentialMap } = context;
+    const { tx, token: t, realm, credentialMap } = context;
 
     async function fetch(): Promise<Credential<any>[]> {
       const ids = await tx.query(
@@ -57,16 +57,16 @@ export const credentials: GraphQLFieldConfig<
       return Credential.read(tx, ids.rows.map(({ id }) => id), credentialMap);
     }
 
-    // can view the credentials of users with greater access
-    if (token && (await token.can(tx, `${realm}:credential.greater:read`))) {
+    // can view the credentials of all users
+    if (t && (await t.can(tx, `${realm}:credential.*.*:read.basic`))) {
       return fetch();
     }
 
-    // can view the credentials of users with equal access
-    if (token && (await token.can(tx, `${realm}:credential.equal:read`))) {
+    // can view the credentials of users with lesser or equal access
+    if (t && (await t.can(tx, `${realm}:credential.equal.*:read.basic`))) {
       const [credentials, user] = await Promise.all([
         fetch(),
-        (await token.grant(tx)).user(tx)
+        await t.user(tx)
       ]);
 
       const access = await user.access(tx);
@@ -87,13 +87,17 @@ export const credentials: GraphQLFieldConfig<
     }
 
     // can view the credentials of users with lesser access
-    if (token && (await token.can(tx, `${realm}:credential.lesser:read`))) {
+    if (t && (await t.can(tx, `${realm}:credential.equal.lesser:read.basic`))) {
       const [credentials, user] = await Promise.all([
         fetch(),
-        (await token.grant(tx)).user(tx)
+        await t.user(tx)
       ]);
 
       const access = await user.access(tx);
+      const canAccessSelf = await t.can(
+        tx,
+        `${realm}:credential.equal.self:read.basic`
+      );
 
       return (await Promise.all(
         credentials.map(async credential => {
@@ -105,15 +109,15 @@ export const credentials: GraphQLFieldConfig<
       ))
         .filter(
           row =>
-            row.credential.userId === user.id ||
+            (row.credential.userId === user.id && canAccessSelf) ||
             isStrictSuperset(access, row.access)
         )
         .map(({ credential }) => credential);
     }
 
     // can view own credentials
-    if (token && (await token.can(tx, `${realm}:credential.self:read`))) {
-      const grant = await token.grant(tx);
+    if (t && (await t.can(tx, `${realm}:credential.equal.self:read.basic`))) {
+      const user = await t.user(tx);
 
       const ids = await tx.query(
         `
@@ -124,7 +128,7 @@ export const credentials: GraphQLFieldConfig<
           ${args.includeDisabled ? "" : "AND enabled = true"}
           AND user_id = $1
         `,
-        [grant.userId]
+        [user.id]
       );
 
       if (!ids.rows.length) {

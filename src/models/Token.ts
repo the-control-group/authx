@@ -1,30 +1,50 @@
 import { PoolClient } from "pg";
+import { User } from "./User";
 import { Grant } from "./Grant";
 import { simplify, getIntersection, isSuperset } from "scopeutils";
 
 export interface TokenData {
   readonly id: string;
   readonly enabled: boolean;
-  readonly grantId: string;
+  readonly userId: string;
+  readonly grantId: null | string;
   readonly scopes: Iterable<string>;
 }
 
 export class Token implements TokenData {
   public readonly id: string;
   public readonly enabled: boolean;
-  public readonly grantId: string;
+  public readonly userId: string;
+  public readonly grantId: null | string;
   public readonly scopes: string[];
 
+  private _user: null | Promise<User> = null;
   private _grant: null | Promise<Grant> = null;
 
   public constructor(data: TokenData) {
     this.id = data.id;
     this.enabled = data.enabled;
+    this.userId = data.userId;
     this.grantId = data.grantId;
     this.scopes = simplify([...data.scopes]);
   }
 
-  public grant(tx: PoolClient, refresh: boolean = false): Promise<Grant> {
+  public user(tx: PoolClient, refresh: boolean = false): Promise<User> {
+    if (!refresh && this._user) {
+      return this._user;
+    }
+
+    return (this._user = User.read(tx, this.userId));
+  }
+
+  public async grant(
+    tx: PoolClient,
+    refresh: boolean = false
+  ): Promise<null | Grant> {
+    if (!this.grantId) {
+      return null;
+    }
+
     if (!refresh && this._grant) {
       return this._grant;
     }
@@ -38,7 +58,9 @@ export class Token implements TokenData {
   ): Promise<string[]> {
     return getIntersection(
       this.scopes,
-      await (await this.grant(tx, refresh)).access(tx, refresh)
+      await (
+        (await this.grant(tx, refresh)) || (await this.user(tx, refresh))
+      ).access(tx, refresh)
     );
   }
 
@@ -65,6 +87,7 @@ export class Token implements TokenData {
       SELECT
         entity_id AS id,
         enabled,
+        user_id,
         grant_id,
         scopes
       FROM authx.token_record
@@ -85,6 +108,7 @@ export class Token implements TokenData {
       row =>
         new Token({
           ...row,
+          userId: row.user_id,
           grantId: row.grant_id
         })
     );
@@ -101,6 +125,15 @@ export class Token implements TokenData {
       createdAt: Date;
     }
   ): Promise<Token> {
+    if (data.grantId) {
+      const grant = await Grant.read(tx, data.grantId);
+      if (grant.userId !== data.userId) {
+        throw new Error(
+          "If a token references a grant, it must belong to the same user as the token."
+        );
+      }
+    }
+
     // ensure that the entity ID exists
     await tx.query(
       `
@@ -142,14 +175,16 @@ export class Token implements TokenData {
         created_at,
         entity_id,
         enabled,
+        user_id,
         grant_id,
         scopes
       )
       VALUES
-        ($1, $2, $3, $4, $5, $6, $7)
+        ($1, $2, $3, $4, $5, $6, $7, $8)
       RETURNING
         entity_id AS id,
         enabled,
+        user_id,
         grant_id,
         scopes
       `,
@@ -159,6 +194,7 @@ export class Token implements TokenData {
         metadata.createdAt,
         data.id,
         data.enabled,
+        data.userId,
         data.grantId,
         [...data.scopes]
       ]
@@ -171,6 +207,7 @@ export class Token implements TokenData {
     const row = next.rows[0];
     return new Token({
       ...row,
+      userId: row.user_id,
       grantId: row.grant_id
     });
   }

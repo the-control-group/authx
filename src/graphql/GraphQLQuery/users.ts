@@ -36,10 +36,10 @@ export const users: GraphQLFieldConfig<
     }
   },
   async resolve(source, args, context) {
-    const { tx, token, realm } = context;
+    const { tx, token: t, realm } = context;
 
     // can view all users
-    if (token && (await token.can(tx, `${realm}:user.*:read`))) {
+    if (t && (await t.can(tx, `${realm}:user.*:read.basic`))) {
       const ids = await tx.query(
         `
         SELECT entity_id AS id
@@ -58,10 +58,8 @@ export const users: GraphQLFieldConfig<
     }
 
     // can only view self
-    if (token && (await token.can(tx, `${realm}:user.self:read`))) {
-      const grant = await token.grant(tx);
-      const user = await grant.user(tx);
-      return [user];
+    if (t && (await t.can(tx, `${realm}:user.self:read.basic`))) {
+      return [await t.user(tx)];
     }
 
     return [];

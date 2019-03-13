@@ -18,18 +18,18 @@ export const user: GraphQLFieldConfig<
     }
   },
   async resolve(source, args, context) {
-    const { tx, token, realm } = context;
+    const { tx, token: t, realm } = context;
 
     // can view all users
-    if (token && (await token.can(tx, `${realm}:user.*:read`))) {
+    if (t && (await t.can(tx, `${realm}:user.*:read.basic`))) {
       return User.read(tx, args.id);
     }
 
     // can only view self
     if (
-      token &&
-      (await token.can(tx, `${realm}:user.self:read`)) &&
-      (await token.grant(tx)).userId === args.id
+      t &&
+      t.userId === args.id &&
+      (await t.can(tx, `${realm}:user.self:read.basic`))
     ) {
       return User.read(tx, args.id);
     }

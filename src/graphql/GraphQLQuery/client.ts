@@ -18,15 +18,15 @@ export const client: GraphQLFieldConfig<
     }
   },
   async resolve(source, args, context) {
-    const { tx, token, realm } = context;
+    const { tx, token: t, realm } = context;
 
     // can view all clients
-    if (token && (await token.can(tx, `${realm}:client.*:read`))) {
+    if (t && (await t.can(tx, `${realm}:client.*:read.basic`))) {
       return Client.read(tx, args.id);
     }
 
     // can only view assigned
-    if (token && (await token.can(tx, `${realm}:client.assigned:read`))) {
+    if (t && (await t.can(tx, `${realm}:client.assigned:read.basic`))) {
       // TODO:
       throw new Error("UNIMPLEMENTED");
     }

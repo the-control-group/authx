@@ -20,18 +20,18 @@ export const credential: GraphQLFieldConfig<
     }
   },
   async resolve(source, args, context) {
-    const { tx, token, realm, credentialMap } = context;
+    const { tx, token: t, realm, credentialMap } = context;
 
-    // can view the credentials of users with greater access
-    if (token && (await token.can(tx, `${realm}:credential.greater:read`))) {
+    // can view the credentials of all users
+    if (t && (await t.can(tx, `${realm}:credential.*.*:read.basic`))) {
       return Credential.read(tx, args.id, credentialMap);
     }
 
-    // can view the credentials of users with equal access
-    if (token && (await token.can(tx, `${realm}:credential.equal:read`))) {
+    // can view the credentials of users with lesser or equal access
+    if (t && (await t.can(tx, `${realm}:credential.equal.*:read.basic`))) {
       const [credential, user] = await Promise.all([
         Credential.read(tx, args.id, credentialMap),
-        (await token.grant(tx)).user(tx)
+        await t.user(tx)
       ]);
 
       // self credentials are always equal
@@ -53,16 +53,16 @@ export const credential: GraphQLFieldConfig<
     }
 
     // can view the credentials of users with lesser access
-    if (token && (await token.can(tx, `${realm}:credential.lesser:read`))) {
+    if (t && (await t.can(tx, `${realm}:credential.equal.lesser:read.basic`))) {
       const [credential, user] = await Promise.all([
         Credential.read(tx, args.id, credentialMap),
-        (await token.grant(tx)).user(tx)
+        await t.user(tx)
       ]);
 
       // check if it's possible to access self credentials
       if (
         credential.userId === user.id &&
-        (await token.can(tx, `${realm}:credential.self:read`))
+        (await t.can(tx, `${realm}:credential.equal.self:read.basic`))
       ) {
         return credential;
       }
@@ -81,13 +81,13 @@ export const credential: GraphQLFieldConfig<
     }
 
     // can view own credentials
-    if (token && (await token.can(tx, `${realm}:credential.self:read`))) {
-      const [credential, grant] = await Promise.all([
+    if (t && (await t.can(tx, `${realm}:credential.equal.self:read.basic`))) {
+      const [credential, user] = await Promise.all([
         Credential.read(tx, args.id, credentialMap),
-        token.grant(tx)
+        t.user(tx)
       ]);
 
-      if (credential.userId === grant.userId) {
+      if (credential.userId === user.id) {
         return credential;
       }
     }

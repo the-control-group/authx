@@ -45,7 +45,7 @@ export class User implements UserData {
     // this user is visible
     if (
       (await token.can(tx, `${realm}:user.self:read`)) &&
-      (await token.grant(tx)).userId === this.id
+      (await token.user(tx)).id === this.id
     ) {
       return true;
     }
