@@ -187,7 +187,7 @@ export class Client implements ClientData {
     }
 
     // insert the new record's users
-    const userIds = [...data.userIds];
+    const userIds = [...new Set(data.userIds)];
     const users = await tx.query(
       `
       INSERT INTO authx.client_record_user

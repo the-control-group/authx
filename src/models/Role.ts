@@ -164,7 +164,7 @@ export class Role implements RoleData {
     }
 
     // insert the new record's users
-    const userIds = [...data.userIds];
+    const userIds = [...new Set(data.userIds)];
     const users = await tx.query(
       `
       INSERT INTO authx.role_record_user

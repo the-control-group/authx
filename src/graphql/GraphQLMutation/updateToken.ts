@@ -86,12 +86,7 @@ export const updateToken: GraphQLFieldConfig<
           before.userId === t.userId
         )
       ) {
-        await tx.query("ROLLBACK");
-        return {
-          success: false,
-          message: "You do not have permission to update a token.",
-          token: null
-        };
+        throw new Error("You do not have permission to update this token.");
       }
 
       if (
@@ -120,12 +115,9 @@ export const updateToken: GraphQLFieldConfig<
           before.userId === t.userId
         )
       ) {
-        await tx.query("ROLLBACK");
-        return {
-          success: false,
-          message: "You do not have permission to update a token.",
-          token: null
-        };
+        throw new Error(
+          "You do not have permission to update this token's scopes."
+        );
       }
 
       const token = await Token.write(
