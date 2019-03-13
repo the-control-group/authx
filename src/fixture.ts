@@ -103,14 +103,14 @@ const fixture = async (tx: PoolClient): Promise<void> => {
   const tx = await pool.connect();
 
   try {
-    await tx.query("BEGIN DEFERRABLE;");
+    await tx.query("BEGIN DEFERRABLE");
 
     await fixture(tx);
 
     await tx.query("COMMIT");
   } catch (error) {
     console.error(error);
-    tx.query("ABORT");
+    tx.query("ROLLBACK");
   } finally {
     tx.release();
   }

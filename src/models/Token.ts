@@ -196,7 +196,7 @@ export class Token implements TokenData {
         data.enabled,
         data.userId,
         data.grantId,
-        [...data.scopes]
+        simplify([...data.scopes])
       ]
     );
 

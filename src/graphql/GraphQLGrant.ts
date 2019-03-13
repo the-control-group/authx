@@ -17,7 +17,7 @@ export const GraphQLGrant = new GraphQLObjectType({
     user: { type: GraphQLUser },
     client: { type: GraphQLClient },
     nonce: { type: GraphQLString },
-    refreshToken: { type: GraphQLString },
+    oauthRefreshToken: { type: GraphQLString },
     scopes: { type: new GraphQLList(GraphQLString) }
   })
 });

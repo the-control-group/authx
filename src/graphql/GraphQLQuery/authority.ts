@@ -21,7 +21,7 @@ export const authority: GraphQLFieldConfig<
     const { tx, token: t, realm, authorityMap } = context;
 
     // can view all authoritys
-    if (t && (await t.can(tx, `${realm}:authority.*:read.basic`))) {
+    if (t && (await t.can(tx, `${realm}:authority:read.basic`))) {
       return Authority.read(tx, args.id, authorityMap);
     }
 

@@ -1,5 +1,6 @@
 import v4 from "uuid/v4";
 import {
+  GraphQLID,
   GraphQLBoolean,
   GraphQLFieldConfig,
   GraphQLObjectType,
@@ -10,11 +11,10 @@ import {
 import { Context } from "../Context";
 import { GraphQLUser } from "../GraphQLUser";
 import { GraphQLProfileInput } from "../GraphQLProfileInput";
-import { GraphQLUserType } from "../GraphQLUserType";
-import { User, UserType, ProfileInput } from "../../models";
+import { User, ProfileInput } from "../../models";
 
-export const GraphQLCreateUserResult = new GraphQLObjectType({
-  name: "CreateUserResult",
+export const GraphQLUpdateUserResult = new GraphQLObjectType({
+  name: "UpdateUserResult",
   fields: () => ({
     success: { type: new GraphQLNonNull(GraphQLBoolean) },
     message: { type: GraphQLString },
@@ -22,27 +22,26 @@ export const GraphQLCreateUserResult = new GraphQLObjectType({
   })
 });
 
-export const createUser: GraphQLFieldConfig<
+export const updateUser: GraphQLFieldConfig<
   any,
   {
-    enabled: boolean;
-    type: UserType;
-    profile: ProfileInput;
+    id: string;
+    enabled: null | boolean;
+    profile: null | ProfileInput;
   },
   Context
 > = {
-  type: GraphQLCreateUserResult,
-  description: "Create a new user.",
+  type: GraphQLUpdateUserResult,
+  description: "Update a new user.",
   args: {
-    enabled: {
-      type: GraphQLBoolean,
-      defaultValue: true
+    id: {
+      type: new GraphQLNonNull(GraphQLID)
     },
-    type: {
-      type: new GraphQLNonNull(GraphQLUserType)
+    enabled: {
+      type: GraphQLBoolean
     },
     profile: {
-      type: new GraphQLNonNull(GraphQLProfileInput)
+      type: GraphQLProfileInput
     }
   },
   async resolve(source, args, context) {
@@ -51,16 +50,22 @@ export const createUser: GraphQLFieldConfig<
     if (!t) {
       return {
         success: false,
-        message: "You must be authenticated to create a user.",
+        message: "You must be authenticated to update a user.",
         token: null
       };
     }
 
-    // can create a new user
-    if (!(await t.can(tx, `${realm}:user.*:write.*`))) {
+    if (
+      // can update any user
+      !(await t.can(tx, `${realm}:user.*:write.basic`)) &&
+      !(
+        (await t.can(tx, `${realm}:user.self:write.basic`)) &&
+        args.id === t.userId
+      )
+    ) {
       return {
         success: false,
-        message: "You do not have permission to create a user.",
+        message: "You do not have permission to update a user.",
         user: null
       };
     }
@@ -68,17 +73,19 @@ export const createUser: GraphQLFieldConfig<
     await tx.query("BEGIN DEFERRABLE");
 
     try {
-      const id = v4();
+      const before = await User.read(tx, args.id);
       const user = await User.write(
         tx,
         {
-          id,
-          enabled: args.enabled,
-          type: args.type,
-          profile: {
-            ...args.profile,
-            id
-          }
+          ...before,
+          enabled:
+            typeof args.enabled === "boolean" ? args.enabled : before.enabled,
+          profile: args.profile
+            ? {
+                ...args.profile,
+                id: args.id
+              }
+            : before.profile
         },
         {
           recordId: v4(),

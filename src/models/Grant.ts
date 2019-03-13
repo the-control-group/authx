@@ -8,8 +8,8 @@ export interface GrantData {
   readonly enabled: boolean;
   readonly clientId: string;
   readonly userId: string;
-  readonly nonce: null | string;
-  readonly refreshToken: string;
+  readonly oauthNonce: null | string;
+  readonly oauthRefreshToken: string;
   readonly scopes: Iterable<string>;
 }
 
@@ -18,8 +18,8 @@ export class Grant implements GrantData {
   public readonly enabled: boolean;
   public readonly clientId: string;
   public readonly userId: string;
-  public readonly nonce: null | string;
-  public readonly refreshToken: string;
+  public readonly oauthNonce: null | string;
+  public readonly oauthRefreshToken: string;
   public readonly scopes: string[];
 
   private _client: null | Promise<Client> = null;
@@ -30,8 +30,8 @@ export class Grant implements GrantData {
     this.enabled = data.enabled;
     this.clientId = data.clientId;
     this.userId = data.userId;
-    this.nonce = data.nonce;
-    this.refreshToken = data.refreshToken;
+    this.oauthNonce = data.oauthNonce;
+    this.oauthRefreshToken = data.oauthRefreshToken;
     this.scopes = simplify([...data.scopes]);
   }
 
@@ -85,8 +85,8 @@ export class Grant implements GrantData {
         enabled,
         client_id,
         user_id,
-        nonce,
-        refresh_token,
+        oauth_nonce,
+        oauth_refresh_token,
         scopes
       FROM authx.grant_record
       WHERE
@@ -108,7 +108,8 @@ export class Grant implements GrantData {
           ...row,
           clientId: row.client_id,
           userId: row.user_id,
-          refreshToken: row.refresh_token
+          oauthNonce: row.oauth_nonce,
+          oauthRefreshToken: row.oauth_refresh_token
         })
     );
 
@@ -167,8 +168,8 @@ export class Grant implements GrantData {
         enabled,
         client_id,
         user_id,
-        nonce,
-        refresh_token,
+        oauth_nonce,
+        oauth_refresh_token,
         scopes
       )
       VALUES
@@ -178,8 +179,8 @@ export class Grant implements GrantData {
         enabled,
         client_id,
         user_id,
-        nonce,
-        refresh_token,
+        oauth_nonce,
+        oauth_refresh_token,
         scopes
       `,
       [
@@ -190,8 +191,8 @@ export class Grant implements GrantData {
         data.enabled,
         data.clientId,
         data.userId,
-        data.nonce,
-        data.refreshToken,
+        data.oauthNonce,
+        data.oauthRefreshToken,
         data.scopes
       ]
     );
@@ -205,7 +206,8 @@ export class Grant implements GrantData {
       ...row,
       clientId: row.client_id,
       userId: row.user_id,
-      refreshToken: row.refresh_token
+      oauthNonce: row.oauth_nonce,
+      oauthRefreshToken: row.oauth_refresh_token
     });
   }
 }

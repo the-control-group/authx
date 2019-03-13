@@ -155,7 +155,7 @@ export class Role implements RoleData {
         data.id,
         data.enabled,
         data.name,
-        data.scopes
+        simplify([...data.scopes])
       ]
     );
 

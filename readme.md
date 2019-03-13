@@ -83,29 +83,49 @@ role.*
 AuthX uses its own authorization system to restrict access to its resources. Below are the scopes used by AuthX internally:
 
 ```
-AuthX:authority.*:{read.basic|read.*|write}
+AuthX:authority:read.{basic|details}
+AuthX:authority:write.{basic|details|*}
 
-AuthX:client.{assigned|*}:{read.{basic|*}|write.{basic|assignment|*}}
+AuthX:client.{assigned|*}:read.{basic|secrets|assignments}
+AuthX:client.{assigned|*}:write.{basic|secrets|assignments|*}
 
-AuthX:credential.equal.assigned:{read.{basic|*}|write.{basic|*}}
-AuthX:credential.equal.lesser  :{read.{basic|*}|write.{basic|*}}
-AuthX:credential.equal.*       :{read.{basic|*}|write.{basic|*}}
-AuthX:credential.*    .*       :{read.{basic|*}|write.{basic|*}}
+AuthX:credential.equal.assigned:read.{basic|details}
+AuthX:credential.equal.lesser  :read.{basic|details}
+AuthX:credential.equal.*       :read.{basic|details}
+AuthX:credential.*    .*       :read.{basic|details}
+AuthX:credential.equal.assigned:write.{basic|details|*}
+AuthX:credential.equal.lesser  :write.{basic|details|*}
+AuthX:credential.equal.*       :write.{basic|details|*}
+AuthX:credential.*    .*       :write.{basic|details|*}
 
-AuthX:grant.equal.self  :{read.{basic|*}|write.{basic|*}}
-AuthX:grant.equal.lesser:{read.{basic|*}|write.{basic|*}}
-AuthX:grant.equal.*     :{read.{basic|*}|write.{basic|*}}
-AuthX:grant.*    .*     :{read.{basic|*}|write.{basic|*}}
+AuthX:grant.assigned    :read.{basic|scopes|secrets}
+AuthX:grant.equal.self  :read.{basic|scopes|secrets}
+AuthX:grant.equal.lesser:read.{basic|scopes|secrets}
+AuthX:grant.equal.*     :read.{basic|scopes|secrets}
+AuthX:grant.*    .*     :read.{basic|scopes|secrets}
+AuthX:grant.equal.self  :write.{basic|scopes|secrets|*}
+AuthX:grant.equal.lesser:write.{basic|scopes|secrets|*}
+AuthX:grant.equal.*     :write.{basic|scopes|secrets|*}
+AuthX:grant.*    .*     :write.{basic|scopes|secrets|*}
 
-AuthX:role.equal.assigned:{read.basic|write.{basic|assignment|*}}
-AuthX:role.equal.lesser  :{read.basic|write.{basic|assignment|*}}
-AuthX:role.equal.*       :{read.basic|write.{basic|assignment|*}}
-AuthX:role.*    .*       :{read.basic|write.{basic|assignment|*}}
+AuthX:role.equal.assigned:read.{basic|scopes|assignments}
+AuthX:role.equal.lesser  :read.{basic|scopes|assignments}
+AuthX:role.equal.*       :read.{basic|scopes|assignments}
+AuthX:role.*    .*       :read.{basic|scopes|assignments}
+AuthX:role.equal.lesser  :write.{basic|scopes|assignments|*}
+AuthX:role.equal.*       :write.{basic|scopes|assignments|*}
+AuthX:role.*    .*       :write.{basic|scopes|assignments|*}
 
-AuthX:token.equal.self  :{read.basic|read.*|write.{basic|*}}
-AuthX:token.equal.lesser:{read.basic|read.*|write.{basic|*}}
-AuthX:token.equal.*     :{read.basic|read.*|write.{basic|*}}
-AuthX:token.*    .*     :{read.basic|read.*|write.{basic|*}}
+AuthX:token.assigned    :read.{basic|scopes}
+AuthX:token.equal.self  :read.{basic|scopes}
+AuthX:token.equal.lesser:read.{basic|scopes}
+AuthX:token.equal.*     :read.{basic|scopes}
+AuthX:token.*    .*     :read.{basic|scopes}
+AuthX:token.equal.self  :write.{basic|scopes|*}
+AuthX:token.equal.lesser:write.{basic|scopes|*}
+AuthX:token.equal.*     :write.{basic|scopes|*}
+AuthX:token.*    .*     :write.{basic|scopes|*}
 
-AuthX:user.{self|*}:{read.basic|write}
+AuthX:user.{self|*}:read.basic
+AuthX:user.{self|*}:write.{basic|*}
 ```

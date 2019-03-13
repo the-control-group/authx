@@ -31,7 +31,7 @@ const grant = new Grant({
   clientId: client.id,
   userId: user.id,
   nonce: null,
-  refreshToken: crypto.randomBytes(32).toString("hex"),
+  oauthRefreshToken: crypto.randomBytes(32).toString("hex"),
   scopes: ["AuthX:**:**"]
 });
 
@@ -48,7 +48,7 @@ const role = new Role({
   const tx = await pool.connect();
 
   try {
-    await tx.query("BEGIN DEFERRABLE;");
+    await tx.query("BEGIN DEFERRABLE");
 
     await bootstrap(tx, {
       user: {
@@ -88,7 +88,7 @@ const role = new Role({
     await tx.query("COMMIT");
   } catch (error) {
     console.error(error);
-    tx.query("ABORT");
+    tx.query("ROLLBACK");
   } finally {
     tx.release();
   }
