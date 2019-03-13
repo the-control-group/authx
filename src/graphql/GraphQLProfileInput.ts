@@ -1,13 +1,4 @@
-import {
-  GraphQLFloat,
-  GraphQLBoolean,
-  GraphQLID,
-  GraphQLInt,
-  GraphQLString,
-  GraphQLList,
-  GraphQLNonNull,
-  GraphQLInputObjectType
-} from "graphql";
+import { GraphQLString, GraphQLInputObjectType } from "graphql";
 
 export const GraphQLProfileNameInput = new GraphQLInputObjectType({
   name: "ProfileNameInput",

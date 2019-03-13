@@ -2,7 +2,7 @@ import { PoolClient } from "pg";
 import { Credential, CredentialData } from "./Credential";
 import { Grant } from "./Grant";
 import { Role } from "./Role";
-import { Profile } from "../util/Profile";
+import { Profile } from "./Profile";
 import { simplify, isSuperset } from "scopeutils";
 import { Token } from "./Token";
 

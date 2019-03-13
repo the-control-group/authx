@@ -1,7 +1,7 @@
 import { PoolClient } from "pg";
 import { Authority } from "./Authority";
 import { User } from "./User";
-import { Profile } from "../util/Profile";
+import { Profile } from "./Profile";
 
 export interface CredentialData<C> {
   readonly id: string;

@@ -1,16 +1,11 @@
 import {
-  GraphQLFloat,
   GraphQLID,
-  GraphQLInt,
-  GraphQLString,
   GraphQLList,
   GraphQLNonNull,
-  GraphQLObjectType,
-  GraphQLEnumType
+  GraphQLObjectType
 } from "graphql";
 
 import { PoolClient } from "pg";
-
 import { GraphQLProfile } from "./GraphQLProfile";
 import { GraphQLCredential } from "./GraphQLCredential";
 import { GraphQLRole } from "./GraphQLRole";
@@ -21,17 +16,17 @@ export const GraphQLUser: GraphQLObjectType = new GraphQLObjectType({
   interfaces: () => [],
   fields: () => ({
     id: { type: new GraphQLNonNull(GraphQLID) },
-    type: { type: GraphQLString },
+    type: { type: GraphQLUserType },
     profile: { type: GraphQLProfile },
     credentials: {
       type: new GraphQLList(GraphQLCredential),
-      resolve(user, args, context: { tx: PoolClient }, info) {
+      resolve(user, args, context: { tx: PoolClient }) {
         return user.credentials(context.tx);
       }
     },
     roles: {
       type: new GraphQLList(GraphQLRole),
-      resolve(user, args, context: { tx: PoolClient }, info) {
+      resolve(user, args, context: { tx: PoolClient }) {
         return user.roles(context.tx);
       }
     }

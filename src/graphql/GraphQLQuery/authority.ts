@@ -11,7 +11,7 @@ export const authority: GraphQLFieldConfig<
   Context
 > = {
   type: GraphQLAuthority,
-  description: "Fetch a authority by ID.",
+  description: "Fetch an authority by ID.",
   args: {
     id: {
       type: new GraphQLNonNull(GraphQLID)

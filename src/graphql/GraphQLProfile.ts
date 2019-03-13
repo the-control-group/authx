@@ -20,7 +20,7 @@ import {
   ProfileTag,
   ProfileRelationship,
   Profile
-} from "../util/Profile";
+} from "../models";
 
 export const GraphQLProfileName: GraphQLObjectType<
   ProfileName

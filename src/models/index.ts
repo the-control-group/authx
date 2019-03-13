@@ -5,3 +5,5 @@ export * from "./Grant";
 export * from "./Role";
 export * from "./Token";
 export * from "./User";
+export * from "./Profile";
+export * from "./ProfileInput";

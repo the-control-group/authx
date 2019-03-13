@@ -64,7 +64,7 @@ export interface Profile {
   name?: ProfileName;
 
   // contextual
-  connected: boolean; // default: false
+  connected?: boolean; // default: false
   published?: string;
 
   // populated by credentials
