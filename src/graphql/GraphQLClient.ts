@@ -1,14 +1,13 @@
 import {
-  GraphQLFloat,
   GraphQLID,
-  GraphQLInt,
   GraphQLList,
   GraphQLNonNull,
   GraphQLString,
   GraphQLObjectType
 } from "graphql";
 
-import GraphQLJSON from "graphql-type-json";
+import { PoolClient } from "pg";
+import { GraphQLUser } from "./GraphQLUser";
 
 export const GraphQLClient = new GraphQLObjectType({
   name: "Client",
@@ -16,10 +15,13 @@ export const GraphQLClient = new GraphQLObjectType({
   fields: () => ({
     id: { type: new GraphQLNonNull(GraphQLID) },
     name: { type: GraphQLString },
-    secret: { type: GraphQLString },
-    scopes: { type: new GraphQLList(GraphQLString) },
-    baseUrls: { type: new GraphQLList(GraphQLString) }
+    oauthSecret: { type: GraphQLString },
+    oauthUrls: { type: new GraphQLList(GraphQLString) },
+    users: {
+      type: new GraphQLList(GraphQLUser),
+      resolve(role, args, context: { tx: PoolClient }) {
+        return role.users(context.tx);
+      }
+    }
   })
 });
-
-

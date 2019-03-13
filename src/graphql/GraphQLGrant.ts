@@ -1,14 +1,11 @@
 import {
-  GraphQLFloat,
   GraphQLID,
-  GraphQLInt,
   GraphQLList,
   GraphQLNonNull,
   GraphQLString,
   GraphQLObjectType
 } from "graphql";
 
-import GraphQLJSON from "graphql-type-json";
 import { GraphQLClient } from "./GraphQLClient";
 import { GraphQLUser } from "./GraphQLUser";
 

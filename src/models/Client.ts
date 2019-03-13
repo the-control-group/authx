@@ -80,17 +80,17 @@ export class Client implements ClientData {
         oauth_urls,
         json_agg(authx.client_record_user.user_id) AS user_ids
       FROM authx.client_record
-      LEFT JOIN authx.role_record_user
-        ON authx.client_record_user.role_record_id = authx.client_record.record_id
+      LEFT JOIN authx.client_record_user
+        ON authx.client_record_user.client_record_id = authx.client_record.record_id
       WHERE
         entity_id = ANY($1)
         AND replacement_record_id IS NULL
       GROUP BY
-        authx.role_record.entity_id,
-        authx.role_record.enabled,
-        authx.role_record.name,
-        authx.role_record.oauth_secret,
-        authx.role_record.oauth_urls
+        authx.client_record.entity_id,
+        authx.client_record.enabled,
+        authx.client_record.name,
+        authx.client_record.oauth_secret,
+        authx.client_record.oauth_urls
       `,
       [typeof id === "string" ? [id] : id]
     );
