@@ -1,8 +1,8 @@
 import { GraphQLObjectType } from "graphql";
 import { Context } from "../Context";
 
-import { user } from "./user";
-import { users } from "./users";
+import { authority } from "./authority";
+import { authorities } from "./authorities";
 
 import { client } from "./client";
 import { clients } from "./clients";
@@ -10,8 +10,17 @@ import { clients } from "./clients";
 import { credential } from "./credential";
 import { credentials } from "./credentials";
 
-import { authority } from "./authority";
-import { authorities } from "./authorities";
+import { grant } from "./grant";
+import { grants } from "./grants";
+
+import { role } from "./role";
+import { roles } from "./roles";
+
+import { token } from "./token";
+import { tokens } from "./tokens";
+
+import { user } from "./user";
+import { users } from "./users";
 
 export const GraphQLQuery = new GraphQLObjectType<any, Context>({
   name: "Query",
@@ -23,6 +32,12 @@ export const GraphQLQuery = new GraphQLObjectType<any, Context>({
     clients,
     credential,
     credentials,
+    grant,
+    grants,
+    role,
+    roles,
+    token,
+    tokens,
     user,
     users
   })
