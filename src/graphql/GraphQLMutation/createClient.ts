@@ -90,7 +90,7 @@ export const createClient: GraphQLFieldConfig<
           id,
           enabled: args.enabled,
           name: args.name,
-          oauthSecret: randomBytes(32).toString("hex"),
+          oauthSecrets: [randomBytes(32).toString("hex")],
           oauthUrls: args.oauthUrls,
           userIds: args.userIds
         },

@@ -193,7 +193,7 @@ export class Grant implements GrantData {
         data.userId,
         data.oauthNonce,
         data.oauthRefreshToken,
-        data.scopes
+        simplify([...data.scopes])
       ]
     );
 

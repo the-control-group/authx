@@ -1,6 +1,7 @@
 import v4 from "uuid/v4";
 import { isSuperset, isStrictSuperset } from "scopeutils";
 import {
+  GraphQLID,
   GraphQLBoolean,
   GraphQLFieldConfig,
   GraphQLList,
