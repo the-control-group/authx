@@ -50,8 +50,7 @@ export const createRole: GraphQLFieldConfig<
     userIds: {
       type: new GraphQLNonNull(
         new GraphQLList(new GraphQLNonNull(GraphQLString))
-      ),
-      defaultValue: []
+      )
     }
   },
   async resolve(source, args, context) {

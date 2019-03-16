@@ -24,7 +24,7 @@
     "raw-body": "^2.1.5",
     "saml2-js": "^2.0.3",
     "scim-query-filter-parser": "^1.1.0",
-    "scopeutils": "^2.0.0",
+    "scopeutils": "^2.1.0",
     "uuid": "^3.3.2"
   },
   "description": "",
@@ -46,6 +46,7 @@
     "husky": "^1.1.2",
     "koa": "^2.7.0",
     "koa-send": "^5.0.0",
+    "nodemon": "^1.18.10",
     "prettier": "^1.16.4",
     "typescript": "^3.3.3333"
   },
@@ -76,7 +77,9 @@
     "prepare": "rm -rf lib && npx tsc",
     "test": "npm run prepare && ava --verbose lib/test.js",
     "watch": "rm -rf lib && npx tsc --watch",
-    "start": "node lib/server"
+    "start:development": "NODE_ENV=development npx nodemon --inspect lib/server",
+    "start:production": "NODE_ENV=production node lib/server",
+    "start": "npm run start:production"
   },
   "types": "./lib/index.d.ts",
   "version": "2.0.0-alpha1"

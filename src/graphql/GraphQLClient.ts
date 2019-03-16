@@ -15,7 +15,7 @@ export const GraphQLClient = new GraphQLObjectType({
   fields: () => ({
     id: { type: new GraphQLNonNull(GraphQLID) },
     name: { type: GraphQLString },
-    oauthSecrets: { type: GraphQLString },
+    oauthSecrets: { type: new GraphQLList(GraphQLString) },
     oauthUrls: { type: new GraphQLList(GraphQLString) },
     users: {
       type: new GraphQLList(GraphQLUser),

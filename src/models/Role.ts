@@ -86,7 +86,7 @@ export class Role implements RoleData {
       row =>
         new Role({
           ...row,
-          userIds: row.user_ids
+          userIds: row.user_ids.filter((id: null | string) => id)
         })
     );
 

@@ -30,7 +30,7 @@ const grant = new Grant({
   enabled: true,
   clientId: client.id,
   userId: user.id,
-  nonce: null,
+  oauthNonce: null,
   oauthRefreshToken: crypto.randomBytes(32).toString("hex"),
   scopes: ["AuthX:**:**"]
 });

@@ -69,7 +69,7 @@ export const updateGrant: GraphQLFieldConfig<
           (await t.can(tx, `${realm}:grant.equal.*:write.basic`)) &&
           isSuperset(
             await (await t.user(tx)).access(tx),
-            await (await User.read(tx, args.userId)).access(tx)
+            await (await User.read(tx, before.userId)).access(tx)
           )
         ) &&
         // can update grants for users with lesser access

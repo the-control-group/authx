@@ -107,7 +107,7 @@ export class Client implements ClientData {
           ...row,
           oauthSecrets: row.oauth_secrets,
           oauthUrls: row.oauth_urls,
-          userIds: row.user_ids
+          userIds: row.user_ids.filter((id: null | string) => id)
         })
     );
 

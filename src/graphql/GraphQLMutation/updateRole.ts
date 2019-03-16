@@ -12,14 +12,17 @@ import {
 
 import { Context } from "../Context";
 import { GraphQLRole } from "../GraphQLRole";
-import { Role } from "../../models";
+import { GraphQLUser } from "../GraphQLUser";
+import { Role, User } from "../../models";
 
 export const GraphQLUpdateRoleResult = new GraphQLObjectType({
   name: "UpdateRoleResult",
   fields: () => ({
     success: { type: new GraphQLNonNull(GraphQLBoolean) },
     message: { type: GraphQLString },
-    role: { type: GraphQLRole }
+    role: { type: GraphQLRole },
+    assignedUsers: { type: new GraphQLList(GraphQLUser) },
+    unassignedUsers: { type: new GraphQLList(GraphQLUser) }
   })
 });
 
@@ -27,7 +30,7 @@ export const updateRole: GraphQLFieldConfig<
   any,
   {
     id: string;
-    enabled: null | boolean;
+    enabled: boolean;
     name: null | string;
     scopes: null | string[];
     assignUserIds: null | string[];
@@ -74,6 +77,7 @@ export const updateRole: GraphQLFieldConfig<
     try {
       const before = await Role.read(tx, args.id);
 
+      // write.basic -----------------------------------------------------------
       if (
         // can update any roles
         !(await t.can(tx, `${realm}:role.*.*:write.basic`)) &&
@@ -91,6 +95,7 @@ export const updateRole: GraphQLFieldConfig<
         throw new Error("You do not have permission to update this role.");
       }
 
+      // write.scopes ----------------------------------------------------------
       if (
         args.scopes &&
         // can update any roles
@@ -121,6 +126,7 @@ export const updateRole: GraphQLFieldConfig<
         );
       }
 
+      // write.assignments -----------------------------------------------------
       if (
         (args.assignUserIds || args.unassignUserIds) &&
         // can update any roles
@@ -171,11 +177,18 @@ export const updateRole: GraphQLFieldConfig<
         }
       );
 
+      const [assignedUsers, unassignedUsers] = await Promise.all([
+        args.assignUserIds ? User.read(tx, args.assignUserIds) : [],
+        args.unassignUserIds ? User.read(tx, args.unassignUserIds) : []
+      ]);
+
       await tx.query("COMMIT");
       return {
         success: true,
         message: null,
-        role
+        role,
+        assignedUsers,
+        unassignedUsers
       };
     } catch (error) {
       console.error(error);
@@ -183,7 +196,9 @@ export const updateRole: GraphQLFieldConfig<
       return {
         success: false,
         message: error.message,
-        token: null
+        role: null,
+        assignedUsers: null,
+        unassignedUsers: null
       };
     }
   }
