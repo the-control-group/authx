@@ -53,19 +53,19 @@ export interface Profile {
 
   // user configurable
   displayName: string;
+  name?: ProfileName;
   nickname?: string;
-  updated?: string;
   birthday?: string;
   anniversary?: string;
   gender?: string;
   note?: string;
   preferredUsername?: string;
   utcOffset?: string;
-  name?: ProfileName;
 
   // contextual
   connected?: boolean; // default: false
   published?: string;
+  updated?: string;
 
   // populated by credentials
   emails?: ProfileEmail[];

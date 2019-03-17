@@ -97,11 +97,12 @@ export const authenticatePassword: GraphQLFieldConfig<
         }
 
         userId = results.rows.length ? results.rows[0].user_id : null;
-        if (!userId) {
-          throw new AuthenticationError(
-            __DEV__ ? "Unable to find user identity." : undefined
-          );
-        }
+      }
+
+      if (!userId) {
+        throw new AuthenticationError(
+          __DEV__ ? "Unable to find user identity." : undefined
+        );
       }
 
       // get the credential

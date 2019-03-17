@@ -9,11 +9,15 @@ const user = new User({
   id: userId,
   enabled: true,
   type: "bot",
-  profile: {
-    id: userId,
-    displayName: "AuthX System",
-    connected: false
-  }
+  displayName: "AuthX System",
+  name: null,
+  nickname: null,
+  birthday: null,
+  anniversary: null,
+  gender: null,
+  note: null,
+  preferredUsername: null,
+  utcOffset: null
 });
 
 const client = new Client({

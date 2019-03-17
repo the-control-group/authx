@@ -159,7 +159,15 @@ CREATE UNIQUE INDEX ON authx.token_record USING BTREE (entity_id) WHERE replacem
 
 CREATE TABLE authx.user_record (
   type TEXT NOT NULL,
-  profile JSONB NOT NULL,
+  display_name TEXT NOT NULL,
+  name JSONB DEFAULT NULL,
+  nickname TEXT DEFAULT NULL,
+  birthday TEXT DEFAULT NULL,
+  anniversary TEXT DEFAULT NULL,
+  gender TEXT DEFAULT NULL,
+  note TEXT DEFAULT NULL,
+  preferred_username TEXT DEFAULT NULL,
+  utc_offset TEXT DEFAULT NULL,
 
   PRIMARY KEY (record_id),
   FOREIGN KEY (replacement_record_id) REFERENCES authx.user_record DEFERRABLE INITIALLY DEFERRED,

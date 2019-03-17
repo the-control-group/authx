@@ -8,6 +8,8 @@ import password from "./strategies/password";
 const config = {};
 const root = path.join(__dirname, "public");
 
+const __DEV__ = process.env.NODE_ENV !== "production";
+
 // create a Koa app
 const app = new Koa();
 app.proxy = true;
@@ -19,23 +21,30 @@ const authx = new AuthX(config, [password]);
 app.use(authx.routes());
 
 // log errors - everything as JSON makes a happier you
-app.on("error", err => {
-  if (err.status && err.status < 500)
-    console.log(
-      JSON.stringify(
-        Object.assign({ level: "info", message: err.message }, err)
-      )
-    );
-  else
-    console.error(
-      JSON.stringify(
-        Object.assign(
-          { level: "error", message: err.message, stack: err.stack },
-          err
-        )
-      )
-    );
-});
+app.on(
+  "error",
+  __DEV__
+    ? error => {
+        console.error(error);
+      }
+    : error => {
+        if (error.status && error.status < 500)
+          console.log(
+            JSON.stringify(
+              Object.assign({ level: "info", message: error.message }, error)
+            )
+          );
+        else
+          console.error(
+            JSON.stringify(
+              Object.assign(
+                { level: "error", message: error.message, stack: error.stack },
+                error
+              )
+            )
+          );
+      }
+);
 
 // start listening
 app.listen(process.env.PORT || 3000);

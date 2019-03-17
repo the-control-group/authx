@@ -2,7 +2,7 @@ import { PoolClient } from "pg";
 import { Credential, CredentialData } from "./Credential";
 import { Grant } from "./Grant";
 import { Role } from "./Role";
-import { Profile } from "./Profile";
+import { ProfileName } from "./Profile";
 import { simplify, isSuperset } from "scopeutils";
 import { Token } from "./Token";
 import { NotFoundError } from "../errors";
@@ -13,14 +13,50 @@ export interface UserData {
   readonly id: string;
   readonly enabled: boolean;
   readonly type: UserType;
-  readonly profile: Profile;
+
+  // Fields described by the Portable Contact spec:
+  // http://portablecontacts.net/draft-spec.html
+  readonly displayName: string;
+  readonly name: null | {
+    formatted: null | string;
+    familyName: null | string;
+    givenName: null | string;
+    middleName: null | string;
+    honorificPrefix: null | string;
+    honorificSuffix: null | string;
+  };
+  readonly nickname: null | string;
+  readonly birthday: null | string;
+  readonly anniversary: null | string;
+  readonly gender: null | string;
+  readonly note: null | string;
+  readonly preferredUsername: null | string;
+  readonly utcOffset: null | string;
 }
 
 export class User implements UserData {
   public readonly id: string;
   public readonly enabled: boolean;
   public readonly type: UserType;
-  public readonly profile: Profile;
+
+  // Fields described by the Portable Contact spec:
+  // http://portablecontacts.net/draft-spec.html
+  public readonly displayName: string;
+  public readonly name: null | {
+    formatted: null | string;
+    familyName: null | string;
+    givenName: null | string;
+    middleName: null | string;
+    honorificPrefix: null | string;
+    honorificSuffix: null | string;
+  };
+  public readonly nickname: null | string;
+  public readonly birthday: null | string;
+  public readonly anniversary: null | string;
+  public readonly gender: null | string;
+  public readonly note: null | string;
+  public readonly preferredUsername: null | string;
+  public readonly utcOffset: null | string;
 
   private _credentials: null | Promise<Credential<any>[]> = null;
   private _roles: null | Promise<Role[]> = null;
@@ -30,7 +66,18 @@ export class User implements UserData {
     this.id = data.id;
     this.enabled = data.enabled;
     this.type = data.type;
-    this.profile = data.profile;
+
+    // Fields described by the Portable Contact spec:
+    // http://portablecontacts.net/draft-spec.html
+    this.name = data.name;
+    this.displayName = data.displayName;
+    this.nickname = data.nickname;
+    this.birthday = data.birthday;
+    this.anniversary = data.anniversary;
+    this.gender = data.gender;
+    this.note = data.note;
+    this.preferredUsername = data.preferredUsername;
+    this.utcOffset = data.utcOffset;
   }
 
   public async visible(
@@ -167,7 +214,15 @@ export class User implements UserData {
         entity_id AS id,
         enabled,
         type,
-        profile
+        display_name,
+        name,
+        nickname,
+        birthday,
+        anniversary,
+        gender,
+        note,
+        preferred_username,
+        utc_offset
       FROM authx.user_record
       WHERE
         entity_id = ANY($1)
@@ -186,7 +241,15 @@ export class User implements UserData {
       throw new NotFoundError();
     }
 
-    const users = result.rows.map(row => new User(row));
+    const users = result.rows.map(
+      row =>
+        new User({
+          ...row,
+          displayName: row.display_name,
+          preferredUsername: row.preferred_username,
+          utcOffset: row.utc_offset
+        })
+    );
 
     return typeof id === "string" ? users[0] : users;
   }
@@ -238,15 +301,31 @@ export class User implements UserData {
         entity_id,
         enabled,
         type,
-        profile
+        display_name,
+        name,
+        nickname,
+        birthday,
+        anniversary,
+        gender,
+        note,
+        preferred_username,
+        utc_offset
       )
       VALUES
-        ($1, $2, $3, $4, $5, $6, $7)
+        ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15)
       RETURNING
         entity_id AS id,
         enabled,
         type,
-        profile
+        display_name,
+        name,
+        nickname,
+        birthday,
+        anniversary,
+        gender,
+        note,
+        preferred_username,
+        utc_offset
       `,
       [
         metadata.recordId,
@@ -255,7 +334,15 @@ export class User implements UserData {
         data.id,
         data.enabled,
         data.type,
-        data.profile
+        data.displayName,
+        data.name,
+        data.nickname,
+        data.birthday,
+        data.anniversary,
+        data.gender,
+        data.note,
+        data.preferredUsername,
+        data.utcOffset
       ]
     );
 
@@ -263,6 +350,11 @@ export class User implements UserData {
       throw new Error("INVARIANT: Insert must return exactly one row.");
     }
 
-    return new User(next.rows[0]);
+    return new User({
+      ...next.rows[0],
+      displayName: next.rows[0].display_name,
+      preferredUsername: next.rows[0].preferred_username,
+      utcOffset: next.rows[0].utc_offset
+    });
   }
 }
