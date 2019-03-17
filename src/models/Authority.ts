@@ -26,16 +26,14 @@ export abstract class Authority<A> implements AuthorityData<A> {
     this.details = data.details;
   }
 
-  public async visible(
+  public async isAccessibleBy(
     realm: string,
+    t: Token,
     tx: PoolClient,
-    token: Token
+    action: string = "read.basic"
   ): Promise<boolean> {
-    if (await token.can(tx, `${realm}:authority:read`)) {
-      return true;
-    }
-
-    return false;
+    // can view all authorities
+    return await t.can(tx, `${realm}:authority:${action}`);
   }
 
   public abstract credentials(

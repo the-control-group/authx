@@ -76,15 +76,7 @@ export const updateClient: GraphQLFieldConfig<
       const before = await Client.read(tx, args.id);
 
       // write.basic -----------------------------------------------------------
-      if (
-        // can update all clients
-        !(await t.can(tx, `${realm}:client.*:write.basic`)) &&
-        // can update assigned clients
-        !(
-          (await t.can(tx, `${realm}:client.assigned:write.basic`)) &&
-          before.userIds.has(t.userId)
-        )
-      ) {
+      if (!(await before.isAccessibleBy(realm, t, tx, "write.basic"))) {
         throw new ForbiddenError(
           "You do not have permission to update this client."
         );
@@ -104,16 +96,7 @@ export const updateClient: GraphQLFieldConfig<
       }
 
       // write.secrets ---------------------------------------------------------
-      if (
-        (args.generateOauthSecrets || args.removeOauthSecrets) &&
-        // can update all clients
-        !(await t.can(tx, `${realm}:client.*:write.secrets`)) &&
-        // can update assigned clients
-        !(
-          (await t.can(tx, `${realm}:client.assigned:write.secrets`)) &&
-          before.userIds.has(t.userId)
-        )
-      ) {
+      if (!(await before.isAccessibleBy(realm, t, tx, "write.secrets"))) {
         throw new ForbiddenError(
           "You do not have permission to update this client's secrets."
         );
@@ -135,16 +118,7 @@ export const updateClient: GraphQLFieldConfig<
       }
 
       // write.assignments -----------------------------------------------------
-      if (
-        (args.assignUserIds || args.unassignUserIds) &&
-        // can update all clients
-        !(await t.can(tx, `${realm}:client.*:write.assignments`)) &&
-        // can update assigned clients
-        !(
-          (await t.can(tx, `${realm}:client.assigned:write.assignments`)) &&
-          before.userIds.has(t.userId)
-        )
-      ) {
+      if (!(await before.isAccessibleBy(realm, t, tx, "write.assignments"))) {
         throw new ForbiddenError(
           "You do not have permission to update this client's assignments."
         );

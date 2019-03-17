@@ -49,31 +49,7 @@ export const updateToken: GraphQLFieldConfig<
     try {
       const before = await Token.read(tx, args.id);
 
-      if (
-        // can update tokens for all users
-        !(await t.can(tx, `${realm}:token.*.*:write.basic`)) &&
-        // can update tokens for users with equal access
-        !(
-          (await t.can(tx, `${realm}:token.equal.*:write.basic`)) &&
-          isSuperset(
-            await (await t.user(tx)).access(tx),
-            await (await User.read(tx, before.userId)).access(tx)
-          )
-        ) &&
-        // can update tokens for users with lesser access
-        !(
-          (await t.can(tx, `${realm}:token.equal.lesser:write.basic`)) &&
-          isStrictSuperset(
-            await (await t.user(tx)).access(tx),
-            await (await before.user(tx)).access(tx)
-          )
-        ) &&
-        // can update tokens for self
-        !(
-          (await t.can(tx, `${realm}:token.equal.self:write.basic`)) &&
-          before.userId === t.userId
-        )
-      ) {
+      if (!(await before.isAccessibleBy(realm, t, tx, "write.basic"))) {
         throw new ForbiddenError(
           "You do not have permission to update this token."
         );
@@ -81,29 +57,7 @@ export const updateToken: GraphQLFieldConfig<
 
       if (
         args.scopes &&
-        // can update tokens for all users
-        !(await t.can(tx, `${realm}:token.*.*:write.scopes`)) &&
-        // can update tokens for users with equal access
-        !(
-          (await t.can(tx, `${realm}:token.equal.*:write.scopes`)) &&
-          isSuperset(
-            await (await t.user(tx)).access(tx),
-            await (await User.read(tx, before.id)).access(tx)
-          )
-        ) &&
-        // can update tokens for users with lesser access
-        !(
-          (await t.can(tx, `${realm}:token.equal.lesser:write.scopes`)) &&
-          isStrictSuperset(
-            await (await t.user(tx)).access(tx),
-            await (await before.user(tx)).access(tx)
-          )
-        ) &&
-        // can update tokens for self
-        !(
-          (await t.can(tx, `${realm}:token.equal.self:write.scopes`)) &&
-          before.userId === t.userId
-        )
+        !(await before.isAccessibleBy(realm, t, tx, "write.scopes"))
       ) {
         throw new ForbiddenError(
           "You do not have permission to update this token's scopes."

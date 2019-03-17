@@ -14,7 +14,7 @@ import {
   GraphQLAuthority,
   GraphQLCredential,
   GraphQLUser,
-  GraphQLProfile
+  GraphQLContact
 } from "../../graphql";
 
 // Authority
@@ -59,6 +59,6 @@ export const GraphQLPasswordCredential = new GraphQLObjectType({
     authority: { type: GraphQLAuthority },
     authorityUserId: { type: GraphQLString },
     details: { type: GraphQLPasswordCredentialDetails },
-    profile: { type: GraphQLProfile }
+    contact: { type: GraphQLContact }
   })
 });

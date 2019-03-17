@@ -64,20 +64,7 @@ export const updateRole: GraphQLFieldConfig<
       const before = await Role.read(tx, args.id);
 
       // write.basic -----------------------------------------------------------
-      if (
-        // can update any roles
-        !(await t.can(tx, `${realm}:role.*.*:write.basic`)) &&
-        // can update roles with equal access
-        !(
-          (await t.can(tx, `${realm}:role.equal.*:write.basic`)) &&
-          isSuperset(await (await t.user(tx)).access(tx), before.scopes)
-        ) &&
-        // can update roles with lesser access
-        !(
-          (await t.can(tx, `${realm}:role.equal.lesser:write.basic`)) &&
-          isStrictSuperset(await (await t.user(tx)).access(tx), before.scopes)
-        )
-      ) {
+      if (!(await before.isAccessibleBy(realm, t, tx, "write.basic"))) {
         throw new ForbiddenError(
           "You do not have permission to update this role."
         );
@@ -86,18 +73,7 @@ export const updateRole: GraphQLFieldConfig<
       // write.scopes ----------------------------------------------------------
       if (
         args.scopes &&
-        // can update any roles
-        !(await t.can(tx, `${realm}:role.*.*:write.scopes`)) &&
-        // can update roles with equal access
-        !(
-          (await t.can(tx, `${realm}:role.equal.*:write.scopes`)) &&
-          isSuperset(await (await t.user(tx)).access(tx), before.scopes)
-        ) &&
-        // can update roles with lesser access
-        !(
-          (await t.can(tx, `${realm}:role.equal.lesser:write.scopes`)) &&
-          isStrictSuperset(await (await t.user(tx)).access(tx), before.scopes)
-        )
+        !(await before.isAccessibleBy(realm, t, tx, "write.scopes"))
       ) {
         throw new ForbiddenError(
           "You do not have permission to update this role's scopes."
@@ -115,21 +91,7 @@ export const updateRole: GraphQLFieldConfig<
       }
 
       // write.assignments -----------------------------------------------------
-      if (
-        (args.assignUserIds || args.unassignUserIds) &&
-        // can update any roles
-        !(await t.can(tx, `${realm}:role.*.*:write.assignments`)) &&
-        // can update roles with equal access
-        !(
-          (await t.can(tx, `${realm}:role.equal.*:write.assignments`)) &&
-          isSuperset(await (await t.user(tx)).access(tx), before.scopes)
-        ) &&
-        // can update roles with lesser access
-        !(
-          (await t.can(tx, `${realm}:role.equal.lesser:write.assignments`)) &&
-          isStrictSuperset(await (await t.user(tx)).access(tx), before.scopes)
-        )
-      ) {
+      if (!(await before.isAccessibleBy(realm, t, tx, "write.assignments"))) {
         throw new ForbiddenError(
           "You do not have permission to update this role's assignments."
         );

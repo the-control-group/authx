@@ -1,6 +1,7 @@
 import { PoolClient } from "pg";
 import { Grant } from "./Grant";
 import { User } from "./User";
+import { Token } from "./Token";
 import { NotFoundError } from "../errors";
 
 export interface ClientData {
@@ -30,6 +31,24 @@ export class Client implements ClientData {
     this.oauthSecrets = new Set(data.oauthSecrets);
     this.oauthUrls = new Set(data.oauthUrls);
     this.userIds = new Set(data.userIds);
+  }
+
+  public async isAccessibleBy(
+    realm: string,
+    t: Token,
+    tx: PoolClient,
+    action: string = "read.basic"
+  ): Promise<boolean> {
+    // can view all vlients
+    if (await t.can(tx, `${realm}:client.*:${action}`)) {
+      return true;
+    }
+
+    // can view assigned clients
+    return (
+      this.userIds.has(t.userId) &&
+      (await t.can(tx, `${realm}:client.assigned:${action}`))
+    );
   }
 
   public grants(tx: PoolClient, refresh: boolean = true): Promise<Grant[]> {

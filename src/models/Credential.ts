@@ -1,8 +1,11 @@
 import { PoolClient } from "pg";
 import { Authority } from "./Authority";
 import { User } from "./User";
-import { Profile } from "./Profile";
+import { Contact } from "./Contact";
+import { Token } from "./Token";
 import { NotFoundError } from "../errors";
+
+import { isSuperset, isStrictSuperset } from "scopeutils";
 
 export interface CredentialData<C> {
   readonly id: string;
@@ -10,7 +13,7 @@ export interface CredentialData<C> {
   readonly authorityId: string;
   readonly authorityUserId: string;
   readonly userId: string;
-  readonly profile: null | Profile;
+  readonly contact: null | Contact;
   readonly details: C;
 }
 
@@ -20,7 +23,7 @@ export abstract class Credential<C> implements CredentialData<C> {
   public readonly authorityId: string;
   public readonly authorityUserId: string;
   public readonly userId: string;
-  public readonly profile: null | Profile;
+  public readonly contact: null | Contact;
   public readonly details: C;
 
   private _user: null | Promise<User> = null;
@@ -31,8 +34,46 @@ export abstract class Credential<C> implements CredentialData<C> {
     this.authorityId = data.authorityId;
     this.authorityUserId = data.authorityUserId;
     this.userId = data.userId;
-    this.profile = data.profile;
+    this.contact = data.contact;
     this.details = data.details;
+  }
+
+  public async isAccessibleBy(
+    realm: string,
+    t: Token,
+    tx: PoolClient,
+    action: string = "read.basic"
+  ): Promise<boolean> {
+    // can view all credentials
+    if (await t.can(tx, `${realm}:credential.*.*:${action}`)) {
+      return true;
+    }
+
+    // can view own credentials
+    if (
+      this.userId === t.userId &&
+      (await t.can(tx, `${realm}:credential.equal.self:${action}`))
+    ) {
+      return true;
+    }
+
+    // can view the credentials of users with lesser or equal access
+    if (await t.can(tx, `${realm}:credential.equal.*:${action}`)) {
+      return isSuperset(
+        await (await t.user(tx)).access(tx),
+        await (await this.user(tx)).access(tx)
+      );
+    }
+
+    // can view the credentials of users with lesser access
+    if (await t.can(tx, `${realm}:credential.equal.lesser:${action}`)) {
+      return isStrictSuperset(
+        await (await t.user(tx)).access(tx),
+        await (await this.user(tx)).access(tx)
+      );
+    }
+
+    return false;
   }
 
   public abstract authority(
@@ -100,7 +141,7 @@ export abstract class Credential<C> implements CredentialData<C> {
         authx.credential_record.authority_id,
         authx.credential_record.authority_user_id,
         authx.credential_record.user_id,
-        authx.credential_record.profile,
+        authx.credential_record.contact,
         authx.credential_record.details,
         authx.authority_record.strategy
       FROM authx.credential_record
@@ -209,7 +250,7 @@ export abstract class Credential<C> implements CredentialData<C> {
         authority_id,
         authority_user_id,
         user_id,
-        profile,
+        contact,
         details
       )
       VALUES
@@ -220,7 +261,7 @@ export abstract class Credential<C> implements CredentialData<C> {
         authority_id,
         authority_user_id,
         user_id,
-        profile,
+        contact,
         details
       `,
       [
@@ -232,7 +273,7 @@ export abstract class Credential<C> implements CredentialData<C> {
         data.authorityId,
         data.authorityUserId,
         data.userId,
-        data.profile,
+        data.contact,
         data.details
       ]
     );

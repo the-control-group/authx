@@ -19,69 +19,11 @@ export const role: GraphQLFieldConfig<
       type: new GraphQLNonNull(GraphQLID)
     }
   },
-  async resolve(source, args, context) {
+  async resolve(source, args, context): Promise<null | Role> {
     const { tx, token: t, realm } = context;
+    if (!t) return null;
 
-    // can view the roles of all users
-    if (t && (await t.can(tx, `${realm}:role.*.*:read.basic`))) {
-      return Role.read(tx, args.id);
-    }
-
-    // can view the roles of users with lesser or equal access
-    if (t && (await t.can(tx, `${realm}:role.equal.*:read.basic`))) {
-      const [role, user] = await Promise.all([
-        Role.read(tx, args.id),
-        await t.user(tx)
-      ]);
-
-      // assigned roles are always equal
-      if (role.userIds.has(user.id)) {
-        return role;
-      }
-
-      // superset or equal
-      if (isSuperset(await user.access(tx), await role.access())) {
-        return role;
-      }
-
-      return null;
-    }
-
-    // can view the roles of users with lesser access
-    if (t && (await t.can(tx, `${realm}:role.equal.lesser:read.basic`))) {
-      const [role, user] = await Promise.all([
-        Role.read(tx, args.id),
-        await t.user(tx)
-      ]);
-
-      // check if it's possible to access assigned roles
-      if (
-        role.userIds.has(user.id) &&
-        (await t.can(tx, `${realm}:role.equal.assigned:read.basic`))
-      ) {
-        return role;
-      }
-
-      // strict superset
-      if (isStrictSuperset(await user.access(tx), role.access())) {
-        return role;
-      }
-
-      return null;
-    }
-
-    // can view own roles
-    if (t && (await t.can(tx, `${realm}:role.equal.assigned:read.basic`))) {
-      const [role, user] = await Promise.all([
-        Role.read(tx, args.id),
-        t.user(tx)
-      ]);
-
-      if (role.userIds.has(user.id)) {
-        return role;
-      }
-    }
-
-    return null;
+    const role = await Role.read(tx, args.id);
+    return (await role.isAccessibleBy(realm, t, tx)) ? role : null;
   }
 };

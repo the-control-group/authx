@@ -2,8 +2,9 @@ import { PoolClient } from "pg";
 import { Credential, CredentialData } from "./Credential";
 import { Grant } from "./Grant";
 import { Role } from "./Role";
-import { ProfileName } from "./Profile";
-import { simplify, isSuperset } from "scopeutils";
+import { Client } from "./Client";
+import { ContactInitialInput } from "./ContactInput";
+import { simplify, isSuperset, isStrictSuperset } from "scopeutils";
 import { Token } from "./Token";
 import { NotFoundError } from "../errors";
 
@@ -13,89 +14,60 @@ export interface UserData {
   readonly id: string;
   readonly enabled: boolean;
   readonly type: UserType;
-
-  // Fields described by the Portable Contact spec:
-  // http://portablecontacts.net/draft-spec.html
-  readonly displayName: string;
-  readonly name: null | {
-    formatted: null | string;
-    familyName: null | string;
-    givenName: null | string;
-    middleName: null | string;
-    honorificPrefix: null | string;
-    honorificSuffix: null | string;
-  };
-  readonly nickname: null | string;
-  readonly birthday: null | string;
-  readonly anniversary: null | string;
-  readonly gender: null | string;
-  readonly note: null | string;
-  readonly preferredUsername: null | string;
-  readonly utcOffset: null | string;
+  readonly contact: ContactInitialInput;
 }
 
 export class User implements UserData {
   public readonly id: string;
   public readonly enabled: boolean;
   public readonly type: UserType;
-
-  // Fields described by the Portable Contact spec:
-  // http://portablecontacts.net/draft-spec.html
-  public readonly displayName: string;
-  public readonly name: null | {
-    formatted: null | string;
-    familyName: null | string;
-    givenName: null | string;
-    middleName: null | string;
-    honorificPrefix: null | string;
-    honorificSuffix: null | string;
-  };
-  public readonly nickname: null | string;
-  public readonly birthday: null | string;
-  public readonly anniversary: null | string;
-  public readonly gender: null | string;
-  public readonly note: null | string;
-  public readonly preferredUsername: null | string;
-  public readonly utcOffset: null | string;
+  public readonly contact: ContactInitialInput;
 
   private _credentials: null | Promise<Credential<any>[]> = null;
   private _roles: null | Promise<Role[]> = null;
   private _grants: null | Promise<Grant[]> = null;
+  private _clients: null | Promise<Client[]> = null;
 
   public constructor(data: UserData) {
     this.id = data.id;
     this.enabled = data.enabled;
     this.type = data.type;
-
-    // Fields described by the Portable Contact spec:
-    // http://portablecontacts.net/draft-spec.html
-    this.name = data.name;
-    this.displayName = data.displayName;
-    this.nickname = data.nickname;
-    this.birthday = data.birthday;
-    this.anniversary = data.anniversary;
-    this.gender = data.gender;
-    this.note = data.note;
-    this.preferredUsername = data.preferredUsername;
-    this.utcOffset = data.utcOffset;
+    this.contact = data.contact;
   }
 
-  public async visible(
+  public async isAccessibleBy(
     realm: string,
+    t: Token,
     tx: PoolClient,
-    token: Token
+    action: string = "read.basic"
   ): Promise<boolean> {
-    // all users are visible
-    if (await token.can(tx, `${realm}:user:read`)) {
+    // can view all users
+    if (await t.can(tx, `${realm}:user.*.*:${action}`)) {
       return true;
     }
 
-    // this user is visible
+    // can view self
     if (
-      (await token.can(tx, `${realm}:user.self:read`)) &&
-      (await token.user(tx)).id === this.id
+      this.id === t.userId &&
+      (await t.can(tx, `${realm}:user.equal.self:${action}`))
     ) {
       return true;
+    }
+
+    // can view the users of users with lesser or equal access
+    if (await t.can(tx, `${realm}:user.equal.*:${action}`)) {
+      return isSuperset(
+        await (await t.user(tx)).access(tx),
+        await this.access(tx)
+      );
+    }
+
+    // can view the users of users with lesser access
+    if (await t.can(tx, `${realm}:user.equal.lesser:${action}`)) {
+      return isStrictSuperset(
+        await (await t.user(tx)).access(tx),
+        await this.access(tx)
+      );
     }
 
     return false;
@@ -129,6 +101,30 @@ export class User implements UserData {
       ))());
   }
 
+  public async grants(
+    tx: PoolClient,
+    refresh: boolean = false
+  ): Promise<Grant[]> {
+    if (!refresh && this._grants) {
+      return this._grants;
+    }
+
+    return (this._grants = (async () =>
+      Grant.read(
+        tx,
+        (await tx.query(
+          `
+          SELECT entity_id AS id
+          FROM authx.grant_record
+          WHERE
+            user_id = $1
+            AND replacement_record_id IS NULL
+          `,
+          [this.id]
+        )).rows.map(({ id }) => id)
+      ))());
+  }
+
   public async roles(
     tx: PoolClient,
     refresh: boolean = false
@@ -155,25 +151,27 @@ export class User implements UserData {
       ))());
   }
 
-  public async grants(
+  public async clients(
     tx: PoolClient,
     refresh: boolean = false
-  ): Promise<Grant[]> {
-    if (!refresh && this._grants) {
-      return this._grants;
+  ): Promise<Client[]> {
+    if (!refresh && this._clients) {
+      return this._clients;
     }
 
-    return (this._grants = (async () =>
-      Grant.read(
+    return (this._clients = (async () =>
+      Client.read(
         tx,
         (await tx.query(
           `
-          SELECT entity_id AS id
-          FROM authx.grant_records
-          WHERE
-            user_id = $1
-            AND replacement_record_id IS NULL
-          `,
+        SELECT entity_id AS id
+        FROM authx.client_record
+        JOIN authx.client_record_user
+          ON authx.client_record_user.client_record_id = authx.client_record.record_id
+        WHERE
+          authx.client_record_user.user_id = $1
+          AND authx.client_record.replacement_record_id IS NULL
+        `,
           [this.id]
         )).rows.map(({ id }) => id)
       ))());
@@ -214,15 +212,7 @@ export class User implements UserData {
         entity_id AS id,
         enabled,
         type,
-        display_name,
-        name,
-        nickname,
-        birthday,
-        anniversary,
-        gender,
-        note,
-        preferred_username,
-        utc_offset
+        contact
       FROM authx.user_record
       WHERE
         entity_id = ANY($1)
@@ -244,10 +234,7 @@ export class User implements UserData {
     const users = result.rows.map(
       row =>
         new User({
-          ...row,
-          displayName: row.display_name,
-          preferredUsername: row.preferred_username,
-          utcOffset: row.utc_offset
+          ...row
         })
     );
 
@@ -301,31 +288,15 @@ export class User implements UserData {
         entity_id,
         enabled,
         type,
-        display_name,
-        name,
-        nickname,
-        birthday,
-        anniversary,
-        gender,
-        note,
-        preferred_username,
-        utc_offset
+        contact
       )
       VALUES
-        ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15)
+        ($1, $2, $3, $4, $5, $6, $7)
       RETURNING
         entity_id AS id,
         enabled,
         type,
-        display_name,
-        name,
-        nickname,
-        birthday,
-        anniversary,
-        gender,
-        note,
-        preferred_username,
-        utc_offset
+        contact
       `,
       [
         metadata.recordId,
@@ -334,15 +305,7 @@ export class User implements UserData {
         data.id,
         data.enabled,
         data.type,
-        data.displayName,
-        data.name,
-        data.nickname,
-        data.birthday,
-        data.anniversary,
-        data.gender,
-        data.note,
-        data.preferredUsername,
-        data.utcOffset
+        data.contact
       ]
     );
 

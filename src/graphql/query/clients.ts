@@ -8,6 +8,7 @@ import {
 import { GraphQLClient } from "../GraphQLClient";
 import { Context } from "../Context";
 import { Client } from "../../models";
+import { filter } from "../../util/filter";
 
 export const clients: GraphQLFieldConfig<
   any,
@@ -35,34 +36,25 @@ export const clients: GraphQLFieldConfig<
       description: "The maximum number of results to return."
     }
   },
-  async resolve(source, args, context) {
+  async resolve(source, args, context): Promise<Client[]> {
     const { tx, token: t, realm } = context;
+    if (!t) return [];
 
-    // can view all clients
-    if (t && (await t.can(tx, `${realm}:client.*:read.basic`))) {
-      const ids = await tx.query(
-        `
+    const ids = await tx.query(
+      `
         SELECT entity_id AS id
         FROM authx.client_record
         WHERE
           replacement_record_id IS NULL
           ${args.includeDisabled ? "" : "AND enabled = true"}
         `
-      );
+    );
 
-      if (!ids.rows.length) {
-        return [];
-      }
-
-      return Client.read(tx, ids.rows.map(({ id }) => id));
+    if (!ids.rows.length) {
+      return [];
     }
 
-    // can only view assigned clients
-    if (t && (await t.can(tx, `${realm}:client.assigned:read.basic`))) {
-      // TODO:
-      throw new Error("UNIMPLEMENTED");
-    }
-
-    return [];
+    const clients = await Client.read(tx, ids.rows.map(({ id }) => id));
+    return filter(clients, client => client.isAccessibleBy(realm, t, tx));
   }
 };

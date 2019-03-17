@@ -8,24 +8,24 @@ import {
 } from "graphql";
 
 import {
-  ProfileName,
-  ProfileAddress,
-  ProfileOrganization,
-  ProfileAccount,
-  ProfileEmail,
-  ProfileUrl,
-  ProfilePhoneNumber,
-  ProfileIm,
-  ProfilePhoto,
-  ProfileTag,
-  ProfileRelationship,
-  Profile
+  ContactName,
+  ContactAddress,
+  ContactOrganization,
+  ContactAccount,
+  ContactEmail,
+  ContactUrl,
+  ContactPhoneNumber,
+  ContactIm,
+  ContactPhoto,
+  ContactTag,
+  ContactRelationship,
+  Contact
 } from "../models";
 
-export const GraphQLProfileName: GraphQLObjectType<
-  ProfileName
+export const GraphQLContactName: GraphQLObjectType<
+  ContactName
 > = new GraphQLObjectType({
-  name: "ProfileName",
+  name: "ContactName",
   fields: () => ({
     formatted: {
       type: GraphQLString,
@@ -60,10 +60,10 @@ export const GraphQLProfileName: GraphQLObjectType<
   })
 });
 
-export const GraphQLProfileAddress: GraphQLObjectType<
-  ProfileAddress
+export const GraphQLContactAddress: GraphQLObjectType<
+  ContactAddress
 > = new GraphQLObjectType({
-  name: "ProfileAddress",
+  name: "ContactAddress",
   fields: () => ({
     formatted: {
       type: GraphQLString,
@@ -91,10 +91,10 @@ export const GraphQLProfileAddress: GraphQLObjectType<
   })
 });
 
-export const GraphQLProfileOrganization: GraphQLObjectType<
-  ProfileOrganization
+export const GraphQLContactOrganization: GraphQLObjectType<
+  ContactOrganization
 > = new GraphQLObjectType({
-  name: "ProfileOrganization",
+  name: "ContactOrganization",
   fields: () => ({
     name: {
       type: GraphQLString,
@@ -137,10 +137,10 @@ export const GraphQLProfileOrganization: GraphQLObjectType<
   })
 });
 
-export const GraphQLProfileAccount: GraphQLObjectType<
-  ProfileAccount
+export const GraphQLContactAccount: GraphQLObjectType<
+  ContactAccount
 > = new GraphQLObjectType({
-  name: "ProfileAccount",
+  name: "ContactAccount",
   fields: () => ({
     domain: {
       type: GraphQLString,
@@ -166,58 +166,58 @@ const plural = {
   primary: { type: GraphQLBoolean }
 };
 
-export const GraphQLProfileEmail: GraphQLObjectType<
-  ProfileEmail
+export const GraphQLContactEmail: GraphQLObjectType<
+  ContactEmail
 > = new GraphQLObjectType({
-  name: "ProfileEmail",
+  name: "ContactEmail",
   fields: plural
 });
 
-export const GraphQLProfileUrl: GraphQLObjectType<
-  ProfileUrl
+export const GraphQLContactUrl: GraphQLObjectType<
+  ContactUrl
 > = new GraphQLObjectType({
-  name: "ProfileUrl",
+  name: "ContactUrl",
   fields: plural
 });
 
-export const GraphQLProfilePhoneNumber: GraphQLObjectType<
-  ProfilePhoneNumber
+export const GraphQLContactPhoneNumber: GraphQLObjectType<
+  ContactPhoneNumber
 > = new GraphQLObjectType({
-  name: "ProfilePhoneNumber",
+  name: "ContactPhoneNumber",
   fields: plural
 });
 
-export const GraphQLProfileIm: GraphQLObjectType<
-  ProfileIm
+export const GraphQLContactIm: GraphQLObjectType<
+  ContactIm
 > = new GraphQLObjectType({
-  name: "ProfileIm",
+  name: "ContactIm",
   fields: plural
 });
 
-export const GraphQLProfilePhoto: GraphQLObjectType<
-  ProfilePhoto
+export const GraphQLContactPhoto: GraphQLObjectType<
+  ContactPhoto
 > = new GraphQLObjectType({
-  name: "ProfilePhoto",
+  name: "ContactPhoto",
   fields: plural
 });
 
-export const GraphQLProfileTag: GraphQLObjectType<
-  ProfileTag
+export const GraphQLContactTag: GraphQLObjectType<
+  ContactTag
 > = new GraphQLObjectType({
-  name: "ProfileTag",
+  name: "ContactTag",
   fields: plural
 });
 
-export const GraphQLProfileRelationship: GraphQLObjectType<
-  ProfileRelationship
+export const GraphQLContactRelationship: GraphQLObjectType<
+  ContactRelationship
 > = new GraphQLObjectType({
-  name: "ProfileRelationship",
+  name: "ContactRelationship",
   fields: plural
 });
 
-export const GraphQLProfile: GraphQLObjectType<Profile> = new GraphQLObjectType(
+export const GraphQLContact: GraphQLObjectType<Contact> = new GraphQLObjectType(
   {
-    name: "Profile",
+    name: "Contact",
     description:
       "Portable Contact. Schema defined by http://portablecontacts.net/draft-spec.html",
     fields: () => ({
@@ -235,7 +235,7 @@ export const GraphQLProfile: GraphQLObjectType<Profile> = new GraphQLObjectType(
           "The name of this Contact, suitable for display to end-users. Each Contact returned MUST include a non-empty displayName value. The name SHOULD be the full name of the Contact being described if known (e.g. Joseph Smarr or Mr. Joseph Robert Smarr, Esq.), but MAY be a username or handle, if that is all that is available (e.g. jsmarr). The value provided SHOULD be the primary textual label by which this Contact is normally displayed by the Service Provider when presenting it to end-users."
       },
       name: {
-        type: GraphQLProfileName,
+        type: GraphQLContactName,
         description:
           "The components of the contact's real name. Providers MAY return just the full name as a single string in the formatted sub-field, or they MAY return just the individual component fields using the other sub-fields, or they MAY return both. If both variants are returned, they SHOULD be describing the same name, with the formatted name indicating how the component fields should be combined."
       },
@@ -294,54 +294,54 @@ export const GraphQLProfile: GraphQLObjectType<Profile> = new GraphQLObjectType(
 
       // populated by credentials
       emails: {
-        type: new GraphQLList(GraphQLProfileEmail),
+        type: new GraphQLList(GraphQLContactEmail),
         description:
           "E-mail address for this Contact. The value SHOULD be canonicalized by the Service Provider, e.g. joseph@plaxo.com instead of joseph@PLAXO.COM."
       },
       urls: {
-        type: new GraphQLList(GraphQLProfileUrl),
+        type: new GraphQLList(GraphQLContactUrl),
         description:
-          "URL of a web page relating to this Contact. The value SHOULD be canonicalized by the Service Provider, e.g. http://josephsmarr.com/about/ instead of JOSEPHSMARR.COM/about/. In addition to the standard Canonical Values for type, this field also defines the additional Canonical Values blog and profile."
+          "URL of a web page relating to this Contact. The value SHOULD be canonicalized by the Service Provider, e.g. http://josephsmarr.com/about/ instead of JOSEPHSMARR.COM/about/. In addition to the standard Canonical Values for type, this field also defines the additional Canonical Values blog and contact."
       },
       phoneNumbers: {
-        type: new GraphQLList(GraphQLProfilePhoneNumber),
+        type: new GraphQLList(GraphQLContactPhoneNumber),
         description:
           "Phone number for this Contact. No canonical value is assumed here. In addition to the standard Canonical Values for type, this field also defines the additional Canonical Values mobile, fax, and pager."
       },
       ims: {
-        type: new GraphQLList(GraphQLProfileIm),
+        type: new GraphQLList(GraphQLContactIm),
         description:
           "Instant messaging address for this Contact. No official canonicalization rules exist for all instant messaging addresses, but Service Providers SHOULD remove all whitespace and convert the address to lowercase, if this is appropriate for the service this IM address is used for. Instead of the standard Canonical Values for type, this field defines the following Canonical Values to represent currently popular IM services: aim, gtalk, icq, xmpp, msn, skype, qq, and yahoo."
       },
       photos: {
-        type: new GraphQLList(GraphQLProfilePhoto),
+        type: new GraphQLList(GraphQLContactPhoto),
         description:
-          "URL of a photo of this contact. The value SHOULD be a canonicalized URL, and MUST point to an actual image file (e.g. a GIF, JPEG, or PNG image file) rather than to a web page containing an image. Service Providers MAY return the same image at different sizes, though it is recognized that no standard for describing images of various sizes currently exists. Note that this field SHOULD NOT be used to send down arbitrary photos taken by this user, but specifically profile photos of the contact suitable for display when describing the contact."
+          "URL of a photo of this contact. The value SHOULD be a canonicalized URL, and MUST point to an actual image file (e.g. a GIF, JPEG, or PNG image file) rather than to a web page containing an image. Service Providers MAY return the same image at different sizes, though it is recognized that no standard for describing images of various sizes currently exists. Note that this field SHOULD NOT be used to send down arbitrary photos taken by this user, but specifically contact photos of the contact suitable for display when describing the contact."
       },
       tags: {
-        type: new GraphQLList(GraphQLProfileTag),
+        type: new GraphQLList(GraphQLContactTag),
         description:
           'A user-defined category or label for this contact, e.g. "favorite" or "web20". These values SHOULD be case-insensitive, and there SHOULD NOT be multiple tags provided for a given contact that differ only in case. Note that this field is a Simple Field, meaning each instance consists only of a string value.'
       },
       relationships: {
-        type: new GraphQLList(GraphQLProfileRelationship),
+        type: new GraphQLList(GraphQLContactRelationship),
         description:
           "A bi-directionally asserted relationship type that was established between the user and this contact by the Service Provider. The value SHOULD conform to one of the XFN relationship values (e.g. kin, friend, contact, etc.) if appropriate, but MAY be an alternative value if needed. Note this field is a parallel set of category labels to the tags field, but relationships MUST have been bi-directionally confirmed, whereas tags are asserted by the user without acknowledgment by this Contact. Note that this field is a Simple Field, meaning each instance consists only of a string value."
       },
       addresses: {
-        type: new GraphQLList(GraphQLProfileAddress),
+        type: new GraphQLList(GraphQLContactAddress),
         description:
           "The components of a physical mailing address. Service Providers MAY return just the full address as a single string in the formatted sub-field, or they MAY return just the individual component fields using the other sub-fields, or they MAY return both. If both variants are returned, they SHOULD be describing the same address, with the formatted address indicating how the component fields should be combined."
       },
       organizations: {
-        type: new GraphQLList(GraphQLProfileOrganization),
+        type: new GraphQLList(GraphQLContactOrganization),
         description:
           "Describes a current or past organizational affiliation of this contact. Service Providers that support only a single Company Name and Job Title field should represent them with a single organization element with name and title properties, respectively."
       },
       accounts: {
-        type: new GraphQLList(GraphQLProfileAccount),
+        type: new GraphQLList(GraphQLContactAccount),
         description:
-          "Describes an account held by this Contact, which MAY be on the Service Provider's service, or MAY be on a different service. Consumers SHOULD NOT assume that this account has been verified by the Service Provider to actually belong to this Contact. For each account, the domain is the top-most authoritative domain for this account, e.g. yahoo.com or reader.google.com, and MUST be non-empty. Each account must also contain a non-empty value for either username or userid, and MAY contain both, in which case the two values MUST be for the same account. These accounts can be used to determine if a user on one service is also known to be the same person on a different service, to facilitate connecting to people the user already knows on different services. If Consumers want to turn these accounts into profile URLs, they can use an open-source library like [google‑sgnodemapper]."
+          "Describes an account held by this Contact, which MAY be on the Service Provider's service, or MAY be on a different service. Consumers SHOULD NOT assume that this account has been verified by the Service Provider to actually belong to this Contact. For each account, the domain is the top-most authoritative domain for this account, e.g. yahoo.com or reader.google.com, and MUST be non-empty. Each account must also contain a non-empty value for either username or userid, and MAY contain both, in which case the two values MUST be for the same account. These accounts can be used to determine if a user on one service is also known to be the same person on a different service, to facilitate connecting to people the user already knows on different services. If Consumers want to turn these accounts into contact URLs, they can use an open-source library like [google‑sgnodemapper]."
       }
     })
   }

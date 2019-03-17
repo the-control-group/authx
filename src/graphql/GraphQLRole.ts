@@ -6,10 +6,12 @@ import {
   GraphQLObjectType
 } from "graphql";
 
-import { PoolClient } from "pg";
+import { Role } from "../models";
+import { Context } from "./Context";
 import { GraphQLUser } from "./GraphQLUser";
+import { filter } from "../util/filter";
 
-export const GraphQLRole = new GraphQLObjectType({
+export const GraphQLRole = new GraphQLObjectType<Role, Context>({
   name: "Role",
   interfaces: () => [],
   fields: () => ({
@@ -17,10 +19,25 @@ export const GraphQLRole = new GraphQLObjectType({
     name: { type: GraphQLString },
     users: {
       type: new GraphQLList(GraphQLUser),
-      resolve(role, args, context: { tx: PoolClient }) {
-        return role.users(context.tx);
+      async resolve(role, args, { realm, token: t, tx }: Context) {
+        return t
+          ? filter(await role.users(tx), user =>
+              user.isAccessibleBy(realm, t, tx)
+            )
+          : [];
       }
     },
-    scopes: { type: new GraphQLList(GraphQLString) }
+    scopes: {
+      type: new GraphQLList(GraphQLString),
+      async resolve(
+        role,
+        args,
+        { realm, token: t, tx }: Context
+      ): Promise<null | string[]> {
+        return t && (await role.isAccessibleBy(realm, t, tx, "read.scopes"))
+          ? role.scopes
+          : null;
+      }
+    }
   })
 });

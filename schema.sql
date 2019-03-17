@@ -86,7 +86,7 @@ CREATE TABLE authx.credential_record (
   authority_user_id TEXT NOT NULL,
   user_id UUID NOT NULL REFERENCES authx.user,
   details JSONB NOT NULL,
-  profile JSONB DEFAULT NULL,
+  contact JSONB DEFAULT NULL,
 
   PRIMARY KEY (record_id),
   FOREIGN KEY (replacement_record_id) REFERENCES authx.credential_record DEFERRABLE INITIALLY DEFERRED,
@@ -159,15 +159,7 @@ CREATE UNIQUE INDEX ON authx.token_record USING BTREE (entity_id) WHERE replacem
 
 CREATE TABLE authx.user_record (
   type TEXT NOT NULL,
-  display_name TEXT NOT NULL,
-  name JSONB DEFAULT NULL,
-  nickname TEXT DEFAULT NULL,
-  birthday TEXT DEFAULT NULL,
-  anniversary TEXT DEFAULT NULL,
-  gender TEXT DEFAULT NULL,
-  note TEXT DEFAULT NULL,
-  preferred_username TEXT DEFAULT NULL,
-  utc_offset TEXT DEFAULT NULL,
+  contact JSONB DEFAULT NULL,
 
   PRIMARY KEY (record_id),
   FOREIGN KEY (replacement_record_id) REFERENCES authx.user_record DEFERRABLE INITIALLY DEFERRED,

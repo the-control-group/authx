@@ -8,6 +8,7 @@ import {
 import { GraphQLUser } from "../GraphQLUser";
 import { Context } from "../Context";
 import { User } from "../../models";
+import { filter } from "../../util/filter";
 
 export const users: GraphQLFieldConfig<
   any,
@@ -35,33 +36,25 @@ export const users: GraphQLFieldConfig<
       description: "The maximum number of results to return."
     }
   },
-  async resolve(source, args, context) {
+  async resolve(source, args, context): Promise<User[]> {
     const { tx, token: t, realm } = context;
+    if (!t) return [];
 
-    // can view all users
-    if (t && (await t.can(tx, `${realm}:user.*:read.basic`))) {
-      const ids = await tx.query(
-        `
+    const ids = await tx.query(
+      `
         SELECT entity_id AS id
         FROM authx.user_record
         WHERE
           replacement_record_id IS NULL
           ${args.includeDisabled ? "" : "AND enabled = true"}
         `
-      );
+    );
 
-      if (!ids.rows.length) {
-        return [];
-      }
-
-      return User.read(tx, ids.rows.map(({ id }) => id));
+    if (!ids.rows.length) {
+      return [];
     }
 
-    // can only view self
-    if (t && (await t.can(tx, `${realm}:user.self:read.basic`))) {
-      return [await t.user(tx)];
-    }
-
-    return [];
+    const users = await User.read(tx, ids.rows.map(({ id }) => id));
+    return filter(users, user => user.isAccessibleBy(realm, t, tx));
   }
 };

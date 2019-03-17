@@ -89,16 +89,16 @@ AuthX:authority:write.{basic|details|*}
 AuthX:client.{assigned|*}:read.{basic|secrets|assignments}
 AuthX:client.{assigned|*}:write.{basic|secrets|assignments|*}
 
-AuthX:credential.equal.assigned:read.{basic|details}
-AuthX:credential.equal.lesser  :read.{basic|details}
-AuthX:credential.equal.*       :read.{basic|details}
-AuthX:credential.*    .*       :read.{basic|details}
-AuthX:credential.equal.assigned:write.{basic|details|*}
-AuthX:credential.equal.lesser  :write.{basic|details|*}
-AuthX:credential.equal.*       :write.{basic|details|*}
-AuthX:credential.*    .*       :write.{basic|details|*}
+AuthX:credential.equal.self  :read.{basic|details}
+AuthX:credential.equal.lesser:read.{basic|details}
+AuthX:credential.equal.*     :read.{basic|details}
+AuthX:credential.*    .*     :read.{basic|details}
+AuthX:credential.equal.self  :write.{basic|details|*}
+AuthX:credential.equal.lesser:write.{basic|details|*}
+AuthX:credential.equal.*     :write.{basic|details|*}
+AuthX:credential.*    .*     :write.{basic|details|*}
 
-AuthX:grant.assigned    :read.{basic|scopes|secrets}
+// AuthX:grant.assigned    :read.{basic|scopes|secrets}
 AuthX:grant.equal.self  :read.{basic|scopes|secrets}
 AuthX:grant.equal.lesser:read.{basic|scopes|secrets}
 AuthX:grant.equal.*     :read.{basic|scopes|secrets}
@@ -112,11 +112,12 @@ AuthX:role.equal.assigned:read.{basic|scopes|assignments}
 AuthX:role.equal.lesser  :read.{basic|scopes|assignments}
 AuthX:role.equal.*       :read.{basic|scopes|assignments}
 AuthX:role.*    .*       :read.{basic|scopes|assignments}
+AuthX:role.equal.assigned:write.{basic|scopes|assignments|*}
 AuthX:role.equal.lesser  :write.{basic|scopes|assignments|*}
 AuthX:role.equal.*       :write.{basic|scopes|assignments|*}
 AuthX:role.*    .*       :write.{basic|scopes|assignments|*}
 
-AuthX:token.assigned    :read.{basic|scopes|secrets}
+// AuthX:token.assigned    :read.{basic|scopes|secrets}
 AuthX:token.equal.self  :read.{basic|scopes|secrets}
 AuthX:token.equal.lesser:read.{basic|scopes|secrets}
 AuthX:token.equal.*     :read.{basic|scopes|secrets}
@@ -126,6 +127,12 @@ AuthX:token.equal.lesser:write.{basic|scopes|secrets|*}
 AuthX:token.equal.*     :write.{basic|scopes|secrets|*}
 AuthX:token.*    .*     :write.{basic|scopes|secrets|*}
 
-AuthX:user.{self|*}:read.basic
-AuthX:user.{self|*}:write.{basic|*}
+AuthX:user.equal.self  :read.{basic}
+AuthX:user.equal.lesser:read.{basic}
+AuthX:user.equal.*     :read.{basic}
+AuthX:user.*    .*     :read.{basic}
+AuthX:user.equal.self  :write.{basic|*}
+AuthX:user.equal.lesser:write.{basic|*}
+AuthX:user.equal.*     :write.{basic|*}
+AuthX:user.*    .*     :write.{basic|*}
 ```

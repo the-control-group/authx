@@ -1,6 +1,7 @@
 import { PoolClient } from "pg";
 import { User } from "./User";
-import { simplify, isSuperset } from "scopeutils";
+import { Token } from "./Token";
+import { simplify, isSuperset, isStrictSuperset } from "scopeutils";
 import { NotFoundError } from "../errors";
 
 export interface RoleData {
@@ -26,6 +27,41 @@ export class Role implements RoleData {
     this.name = data.name;
     this.scopes = simplify([...data.scopes]);
     this.userIds = new Set(data.userIds);
+  }
+
+  public async isAccessibleBy(
+    realm: string,
+    t: Token,
+    tx: PoolClient,
+    action: string = "read.basic"
+  ): Promise<boolean> {
+    // can view all roles
+    if (await t.can(tx, `${realm}:role.*.*:${action}`)) {
+      return true;
+    }
+
+    // can view assigned roles
+    if (
+      this.userIds.has(t.userId) &&
+      (await t.can(tx, `${realm}:role.equal.assigned:${action}`))
+    ) {
+      return true;
+    }
+
+    // can view roles with lesser or equal access
+    if (await t.can(tx, `${realm}:role.equal.*:${action}`)) {
+      return isSuperset(await (await t.user(tx)).access(tx), this.access());
+    }
+
+    // can view roles with lesser access
+    if (await t.can(tx, `${realm}:role.equal.lesser:${action}`)) {
+      return isStrictSuperset(
+        await (await t.user(tx)).access(tx),
+        this.access()
+      );
+    }
+
+    return false;
   }
 
   public users(tx: PoolClient, refresh: boolean = false): Promise<User[]> {

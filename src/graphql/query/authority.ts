@@ -17,14 +17,11 @@ export const authority: GraphQLFieldConfig<
       type: new GraphQLNonNull(GraphQLID)
     }
   },
-  async resolve(source, args, context) {
+  async resolve(source, args, context): Promise<null | Authority<any>> {
     const { tx, token: t, realm, authorityMap } = context;
+    if (!t) return null;
 
-    // can view all authoritys
-    if (t && (await t.can(tx, `${realm}:authority:read.basic`))) {
-      return Authority.read(tx, args.id, authorityMap);
-    }
-
-    return null;
+    const authority = await Authority.read(tx, args.id, authorityMap);
+    return (await authority.isAccessibleBy(realm, t, tx)) ? authority : null;
   }
 };

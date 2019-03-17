@@ -1,7 +1,13 @@
 import { PoolClient } from "pg";
 import { Client } from "./Client";
 import { User } from "./User";
-import { simplify, getIntersection, isSuperset } from "scopeutils";
+import { Token } from "./Token";
+import {
+  simplify,
+  getIntersection,
+  isSuperset,
+  isStrictSuperset
+} from "scopeutils";
 import { NotFoundError } from "../errors";
 
 export interface GrantData {
@@ -34,6 +40,44 @@ export class Grant implements GrantData {
     this.oauthNonce = data.oauthNonce;
     this.oauthRefreshToken = data.oauthRefreshToken;
     this.scopes = simplify([...data.scopes]);
+  }
+
+  public async isAccessibleBy(
+    realm: string,
+    t: Token,
+    tx: PoolClient,
+    action: string = "read.basic"
+  ): Promise<boolean> {
+    // can view all grants
+    if (await t.can(tx, `${realm}:grant.*.*:${action}`)) {
+      return true;
+    }
+
+    // can view own grants
+    if (
+      this.userId === t.userId &&
+      (await t.can(tx, `${realm}:grant.equal.self:${action}`))
+    ) {
+      return true;
+    }
+
+    // can view the grants of users with lesser or equal access
+    if (await t.can(tx, `${realm}:grant.equal.*:${action}`)) {
+      return isSuperset(
+        await (await t.user(tx)).access(tx),
+        await (await this.user(tx)).access(tx)
+      );
+    }
+
+    // can view the grants of users with lesser access
+    if (await t.can(tx, `${realm}:grant.equal.lesser:${action}`)) {
+      return isStrictSuperset(
+        await (await t.user(tx)).access(tx),
+        await (await this.user(tx)).access(tx)
+      );
+    }
+
+    return false;
   }
 
   public client(tx: PoolClient, refresh: boolean = false): Promise<Client> {

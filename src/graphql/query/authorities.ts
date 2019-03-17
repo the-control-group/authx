@@ -8,6 +8,7 @@ import {
 import { GraphQLAuthority } from "../GraphQLAuthority";
 import { Context } from "../Context";
 import { Authority } from "../../models";
+import { filter } from "../../util/filter";
 
 export const authorities: GraphQLFieldConfig<
   any,
@@ -35,28 +36,31 @@ export const authorities: GraphQLFieldConfig<
       description: "The maximum number of results to return."
     }
   },
-  async resolve(source, args, context) {
+  async resolve(source, args, context): Promise<Authority<any>[]> {
     const { tx, token: t, realm, authorityMap } = context;
+    if (!t) return [];
 
-    // can view all authorities
-    if (t && (await t.can(tx, `${realm}:authority.*:read.basic`))) {
-      const ids = await tx.query(
-        `
+    const ids = await tx.query(
+      `
         SELECT entity_id AS id
         FROM authx.authority_record
         WHERE
           replacement_record_id IS NULL
           ${args.includeDisabled ? "" : "AND enabled = true"}
         `
-      );
+    );
 
-      if (!ids.rows.length) {
-        return [];
-      }
-
-      return Authority.read(tx, ids.rows.map(({ id }) => id), authorityMap);
+    if (!ids.rows.length) {
+      return [];
     }
 
-    return [];
+    const authorities = await Authority.read(
+      tx,
+      ids.rows.map(({ id }) => id),
+      authorityMap
+    );
+    return filter(authorities, authority =>
+      authority.isAccessibleBy(realm, t, tx)
+    );
   }
 };

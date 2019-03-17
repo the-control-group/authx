@@ -17,23 +17,11 @@ export const user: GraphQLFieldConfig<
       type: new GraphQLNonNull(GraphQLID)
     }
   },
-  async resolve(source, args, context) {
+  async resolve(source, args, context): Promise<null | User> {
     const { tx, token: t, realm } = context;
+    if (!t) return null;
 
-    // can view all users
-    if (t && (await t.can(tx, `${realm}:user.*:read.basic`))) {
-      return User.read(tx, args.id);
-    }
-
-    // can only view self
-    if (
-      t &&
-      t.userId === args.id &&
-      (await t.can(tx, `${realm}:user.self:read.basic`))
-    ) {
-      return User.read(tx, args.id);
-    }
-
-    return null;
+    const user = await User.read(tx, args.id);
+    return (await user.isAccessibleBy(realm, t, tx)) ? user : null;
   }
 };

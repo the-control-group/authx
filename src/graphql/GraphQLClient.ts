@@ -6,21 +6,38 @@ import {
   GraphQLObjectType
 } from "graphql";
 
-import { PoolClient } from "pg";
+import { Client } from "../models";
+import { Context } from "./Context";
 import { GraphQLUser } from "./GraphQLUser";
+import { filter } from "../util/filter";
 
-export const GraphQLClient = new GraphQLObjectType({
+export const GraphQLClient = new GraphQLObjectType<Client, Context>({
   name: "Client",
   interfaces: () => [],
   fields: () => ({
     id: { type: new GraphQLNonNull(GraphQLID) },
     name: { type: GraphQLString },
-    oauthSecrets: { type: new GraphQLList(GraphQLString) },
+    oauthSecrets: {
+      type: new GraphQLList(GraphQLString),
+      async resolve(
+        client,
+        args,
+        { realm, token: t, tx }: Context
+      ): Promise<null | string[]> {
+        return t && (await client.isAccessibleBy(realm, t, tx, "read.secrets"))
+          ? [...client.oauthSecrets]
+          : null;
+      }
+    },
     oauthUrls: { type: new GraphQLList(GraphQLString) },
     users: {
       type: new GraphQLList(GraphQLUser),
-      resolve(role, args, context: { tx: PoolClient }) {
-        return role.users(context.tx);
+      async resolve(client, args, { realm, token: t, tx }: Context) {
+        return t
+          ? filter(await client.users(tx), user =>
+              user.isAccessibleBy(realm, t, tx)
+            )
+          : [];
       }
     }
   })

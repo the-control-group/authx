@@ -20,21 +20,24 @@ import { GraphQLToken } from "./GraphQLToken";
 import { GraphQLUser } from "./GraphQLUser";
 import { GraphQLUserType } from "./GraphQLUserType";
 import {
-  GraphQLProfileName,
-  GraphQLProfileAddress,
-  GraphQLProfileOrganization,
-  GraphQLProfileAccount,
-  GraphQLProfileEmail,
-  GraphQLProfileUrl,
-  GraphQLProfilePhoneNumber,
-  GraphQLProfileIm,
-  GraphQLProfilePhoto,
-  GraphQLProfileTag,
-  GraphQLProfileRelationship,
-  GraphQLProfile
-} from "./GraphQLProfile";
+  GraphQLContactName,
+  GraphQLContactAddress,
+  GraphQLContactOrganization,
+  GraphQLContactAccount,
+  GraphQLContactEmail,
+  GraphQLContactUrl,
+  GraphQLContactPhoneNumber,
+  GraphQLContactIm,
+  GraphQLContactPhoto,
+  GraphQLContactTag,
+  GraphQLContactRelationship,
+  GraphQLContact
+} from "./GraphQLContact";
 
-import { GraphQLProfileInput } from "./GraphQLProfileInput";
+import {
+  GraphQLContactInput,
+  GraphQLContactInitialInput
+} from "./GraphQLContactInput";
 
 export * from "./GraphQLAuthority";
 export * from "./GraphQLCredential";
@@ -47,8 +50,8 @@ export * from "./GraphQLTimestamp";
 export * from "./GraphQLToken";
 export * from "./GraphQLUser";
 export * from "./GraphQLUserType";
-export * from "./GraphQLProfile";
-export * from "./GraphQLProfileInput";
+export * from "./GraphQLContact";
+export * from "./GraphQLContactInput";
 
 export default (strategies: Strategy[]) => {
   const query = new GraphQLObjectType<any, Context>({
@@ -114,18 +117,18 @@ export default (strategies: Strategy[]) => {
       GraphQLToken,
       GraphQLUser,
       GraphQLUserType,
-      GraphQLProfileName,
-      GraphQLProfileAddress,
-      GraphQLProfileOrganization,
-      GraphQLProfileAccount,
-      GraphQLProfileEmail,
-      GraphQLProfileUrl,
-      GraphQLProfilePhoneNumber,
-      GraphQLProfileIm,
-      GraphQLProfilePhoto,
-      GraphQLProfileTag,
-      GraphQLProfileRelationship,
-      GraphQLProfile,
+      GraphQLContactName,
+      GraphQLContactAddress,
+      GraphQLContactOrganization,
+      GraphQLContactAccount,
+      GraphQLContactEmail,
+      GraphQLContactUrl,
+      GraphQLContactPhoneNumber,
+      GraphQLContactIm,
+      GraphQLContactPhoto,
+      GraphQLContactTag,
+      GraphQLContactRelationship,
+      GraphQLContact,
 
       ...mutationTypes,
 
