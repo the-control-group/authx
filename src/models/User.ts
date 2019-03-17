@@ -93,6 +93,7 @@ export class User implements UserData {
           FROM authx.credential_record
           WHERE
             user_id = $1
+            AND enabled = TRUE
             AND replacement_record_id IS NULL
           `,
           [this.id]
@@ -118,6 +119,7 @@ export class User implements UserData {
           FROM authx.grant_record
           WHERE
             user_id = $1
+            AND enabled = TRUE
             AND replacement_record_id IS NULL
           `,
           [this.id]
@@ -144,6 +146,7 @@ export class User implements UserData {
           ON authx.role_record_user.role_record_id = authx.role_record.record_id
         WHERE
           authx.role_record_user.user_id = $1
+          AND authx.role_record.enabled = TRUE
           AND authx.role_record.replacement_record_id IS NULL
         `,
           [this.id]
@@ -170,6 +173,7 @@ export class User implements UserData {
           ON authx.client_record_user.client_record_id = authx.client_record.record_id
         WHERE
           authx.client_record_user.user_id = $1
+          AND authx.client_record.enabled = TRUE
           AND authx.client_record.replacement_record_id IS NULL
         `,
           [this.id]
@@ -181,11 +185,13 @@ export class User implements UserData {
     tx: PoolClient,
     refresh: boolean = false
   ): Promise<string[]> {
-    return simplify(
-      (await this.roles(tx, refresh))
-        .map(role => role.scopes)
-        .reduce((a, b) => a.concat(b), [])
-    );
+    return this.enabled
+      ? simplify(
+          (await this.roles(tx, refresh))
+            .map(role => role.scopes)
+            .reduce((a, b) => a.concat(b), [])
+        )
+      : [];
   }
 
   public async can(

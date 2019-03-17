@@ -57,6 +57,19 @@ export class Token implements TokenData {
       return true;
     }
 
+    // can view grants for assigned clients
+    // "assigned" grant scopes only apply for "read" actions
+    if (action.split(".")[0] === "read") {
+      const grant = await this.grant(tx);
+      if (
+        grant &&
+        (await grant.client(tx)).userIds.has(t.userId) &&
+        (await t.can(tx, `${realm}:grant.assigned:${action}`))
+      ) {
+        return true;
+      }
+    }
+
     // can view the tokens of users with lesser or equal access
     if (await t.can(tx, `${realm}:token.equal.*:${action}`)) {
       return isSuperset(
@@ -103,12 +116,17 @@ export class Token implements TokenData {
     tx: PoolClient,
     refresh: boolean = false
   ): Promise<string[]> {
-    return getIntersection(
-      this.scopes,
-      await (
-        (await this.grant(tx, refresh)) || (await this.user(tx, refresh))
-      ).access(tx, refresh)
-    );
+    const grant = await this.grant(tx, refresh);
+    if (grant) {
+      return grant.enabled
+        ? getIntersection(this.scopes, await grant.access(tx, refresh))
+        : [];
+    }
+
+    const user = await this.user(tx, refresh);
+    return user.enabled
+      ? getIntersection(this.scopes, await user.access(tx, refresh))
+      : [];
   }
 
   public async can(

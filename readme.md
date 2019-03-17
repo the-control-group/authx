@@ -98,7 +98,7 @@ AuthX:credential.equal.lesser:write.{basic|details|*}
 AuthX:credential.equal.*     :write.{basic|details|*}
 AuthX:credential.*    .*     :write.{basic|details|*}
 
-// AuthX:grant.assigned    :read.{basic|scopes|secrets}
+AuthX:grant.assigned    :read.{basic|scopes|secrets}
 AuthX:grant.equal.self  :read.{basic|scopes|secrets}
 AuthX:grant.equal.lesser:read.{basic|scopes|secrets}
 AuthX:grant.equal.*     :read.{basic|scopes|secrets}
@@ -117,7 +117,7 @@ AuthX:role.equal.lesser  :write.{basic|scopes|assignments|*}
 AuthX:role.equal.*       :write.{basic|scopes|assignments|*}
 AuthX:role.*    .*       :write.{basic|scopes|assignments|*}
 
-// AuthX:token.assigned    :read.{basic|scopes|secrets}
+AuthX:token.assigned    :read.{basic|scopes|secrets}
 AuthX:token.equal.self  :read.{basic|scopes|secrets}
 AuthX:token.equal.lesser:read.{basic|scopes|secrets}
 AuthX:token.equal.*     :read.{basic|scopes|secrets}

@@ -53,6 +53,17 @@ export default (
   [
     realm,
     {
+      "grant.assigned": "Grants for clients to which {you} are assigned."
+    },
+    {
+      "read.basic": "Read basic grant information.",
+      "read.scopes": "Read the grant scopes.",
+      "read.secrets": "Read the grant secrets."
+    }
+  ],
+  [
+    realm,
+    {
       "grant.equal.self": "Grants {you} own.",
       "grant.equal.lesser": "Grants of users with less access than {you}.",
       "grant.equal.*":
@@ -85,6 +96,17 @@ export default (
       "write.scopes": "Write the role scopes.",
       "write.assignments": "Write the list of users assigned to the role.",
       "write.*": "Write or create roles."
+    }
+  ],
+  [
+    realm,
+    {
+      "token.assigned": "Tokens for clients to which {you} are assigned."
+    },
+    {
+      "read.basic": "Read basic token information.",
+      "read.scopes": "Read the token scopes.",
+      "read.secrets": "Read the token secrets."
     }
   ],
   [

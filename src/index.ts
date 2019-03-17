@@ -1,4 +1,4 @@
-import { Pool, PoolClient } from "pg";
+import { Pool } from "pg";
 import { Middleware, ParameterizedContext } from "koa";
 import Router from "koa-router";
 import body from "koa-body";
@@ -46,7 +46,7 @@ export class AuthX<StateT = any, CustomT = {}> extends Router<StateT, CustomT> {
     const context: Middleware<ParameterizedContext<any, any>> = async (
       ctx,
       next
-    ) => {
+    ): Promise<void> => {
       const tx = await this.pool.connect();
       try {
         let token = null;
@@ -71,10 +71,32 @@ export class AuthX<StateT = any, CustomT = {}> extends Router<StateT, CustomT> {
             );
           }
 
+          if (!token.enabled)
+            throw new AuthenticationError(
+              __DEV__
+                ? "The token specified in HTTP authorization header is disabled."
+                : undefined
+            );
+
           if (token.secret !== secret)
             throw new AuthenticationError(
               __DEV__
                 ? "The secret specified in HTTP authorization header was incorrect."
+                : undefined
+            );
+
+          const grant = await token.user(tx);
+          if (grant && !grant.enabled)
+            throw new AuthenticationError(
+              __DEV__
+                ? "The grant of the token specified in HTTP authorization header is disabled."
+                : undefined
+            );
+
+          if (!(await token.user(tx)).enabled)
+            throw new AuthenticationError(
+              __DEV__
+                ? "The user of the token specified in HTTP authorization header is disabled."
                 : undefined
             );
         }

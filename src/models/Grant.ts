@@ -61,6 +61,16 @@ export class Grant implements GrantData {
       return true;
     }
 
+    // can view grants for assigned clients
+    if (
+      // "assigned" grant scopes only apply for "read" actions
+      action.split(".")[0] === "read" &&
+      (await this.client(tx)).userIds.has(t.userId) &&
+      (await t.can(tx, `${realm}:grant.assigned:${action}`))
+    ) {
+      return true;
+    }
+
     // can view the grants of users with lesser or equal access
     if (await t.can(tx, `${realm}:grant.equal.*:${action}`)) {
       return isSuperset(
@@ -99,10 +109,10 @@ export class Grant implements GrantData {
     tx: PoolClient,
     refresh: boolean = false
   ): Promise<string[]> {
-    return getIntersection(
-      this.scopes,
-      await (await this.user(tx, refresh)).access(tx, refresh)
-    );
+    const user = await this.user(tx, refresh);
+    return user.enabled
+      ? getIntersection(this.scopes, await user.access(tx, refresh))
+      : [];
   }
 
   public async can(
