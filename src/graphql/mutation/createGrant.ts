@@ -92,8 +92,8 @@ export const createGrant: GraphQLFieldConfig<
           enabled: args.enabled,
           userId: args.userId,
           clientId: args.clientId,
-          oauthNonce: null,
-          oauthRefreshToken: randomBytes(16).toString("hex"),
+          oauth2Nonce: null,
+          oauth2RefreshToken: randomBytes(16).toString("hex"),
           scopes: args.scopes
         },
         {

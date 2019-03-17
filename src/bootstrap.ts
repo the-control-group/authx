@@ -26,8 +26,8 @@ const client = new Client({
   id: v4(),
   enabled: true,
   name: "AuthX Bootstrap",
-  oauthSecrets: crypto.randomBytes(16).toString("hex"),
-  oauthUrls: [],
+  oauth2Secrets: crypto.randomBytes(16).toString("hex"),
+  oauth2Urls: [],
   userIds: []
 });
 
@@ -36,8 +36,8 @@ const grant = new Grant({
   enabled: true,
   clientId: client.id,
   userId: user.id,
-  oauthNonce: null,
-  oauthRefreshToken: crypto.randomBytes(16).toString("hex"),
+  oauth2Nonce: null,
+  oauth2RefreshToken: crypto.randomBytes(16).toString("hex"),
   scopes: ["AuthX:**:**"]
 });
 

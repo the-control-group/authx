@@ -19,7 +19,7 @@ export const createClient: GraphQLFieldConfig<
   {
     enabled: boolean;
     name: string;
-    oauthUrls: string[];
+    oauth2Urls: string[];
     userIds: string[];
   },
   Context
@@ -34,7 +34,7 @@ export const createClient: GraphQLFieldConfig<
     name: {
       type: new GraphQLNonNull(GraphQLString)
     },
-    oauthUrls: {
+    oauth2Urls: {
       type: new GraphQLNonNull(
         new GraphQLList(new GraphQLNonNull(GraphQLString))
       )
@@ -76,8 +76,8 @@ export const createClient: GraphQLFieldConfig<
           id,
           enabled: args.enabled,
           name: args.name,
-          oauthSecrets: [randomBytes(16).toString("hex")],
-          oauthUrls: args.oauthUrls,
+          oauth2Secrets: [randomBytes(16).toString("hex")],
+          oauth2Urls: args.oauth2Urls,
           userIds: args.userIds
         },
         {

@@ -40,7 +40,7 @@ export const GraphQLGrant = new GraphQLObjectType<Grant, Context>({
         return client.isAccessibleBy(realm, t, tx) ? client : null;
       }
     },
-    oauthNonce: {
+    oauth2Nonce: {
       type: GraphQLString,
       async resolve(
         grant,
@@ -48,11 +48,11 @@ export const GraphQLGrant = new GraphQLObjectType<Grant, Context>({
         { realm, token: t, tx }: Context
       ): Promise<null | string> {
         return t && (await grant.isAccessibleBy(realm, t, tx, "read.secrets"))
-          ? grant.oauthNonce
+          ? grant.oauth2Nonce
           : null;
       }
     },
-    oauthRefreshToken: {
+    oauth2RefreshToken: {
       type: GraphQLString,
       async resolve(
         grant,
@@ -60,7 +60,7 @@ export const GraphQLGrant = new GraphQLObjectType<Grant, Context>({
         { realm, token: t, tx }: Context
       ): Promise<null | string> {
         return t && (await grant.isAccessibleBy(realm, t, tx, "read.secrets"))
-          ? grant.oauthRefreshToken
+          ? grant.oauth2RefreshToken
           : null;
       }
     },

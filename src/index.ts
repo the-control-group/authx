@@ -103,8 +103,8 @@ export class AuthX<StateT = any, CustomT = {}> extends Router<StateT, CustomT> {
     // AuthX. They implement the OAuth 2.0 flow for "authorization code" grant
     // types.
 
-    // this.get('/oauth', oauthController);
-    // this.post('/oauth', oauthController);
+    // this.get('/oauth2', oauth2Controller);
+    // this.post('/oauth2', oauth2Controller);
 
     // Keys
     // ====

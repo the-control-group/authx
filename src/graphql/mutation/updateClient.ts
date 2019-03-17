@@ -82,17 +82,17 @@ export const updateClient: GraphQLFieldConfig<
         );
       }
 
-      let oauthUrls = [...before.oauthUrls];
+      let oauth2Urls = [...before.oauth2Urls];
 
       // assign users
       if (args.addOauthUrls) {
-        oauthUrls = [...oauthUrls, ...args.addOauthUrls];
+        oauth2Urls = [...oauth2Urls, ...args.addOauthUrls];
       }
 
       // unassign users
       if (args.removeOauthUrls) {
         const removeOauthUrls = new Set(args.removeOauthUrls);
-        oauthUrls = oauthUrls.filter(id => !removeOauthUrls.has(id));
+        oauth2Urls = oauth2Urls.filter(id => !removeOauthUrls.has(id));
       }
 
       // write.secrets ---------------------------------------------------------
@@ -102,19 +102,19 @@ export const updateClient: GraphQLFieldConfig<
         );
       }
 
-      let oauthSecrets = [...before.oauthSecrets];
+      let oauth2Secrets = [...before.oauth2Secrets];
 
       // generate secrets
       if (args.generateOauthSecrets) {
         for (let i = args.generateOauthSecrets; i > 0; i--) {
-          oauthSecrets.push(randomBytes(16).toString("hex"));
+          oauth2Secrets.push(randomBytes(16).toString("hex"));
         }
       }
 
       // remove secrets
       if (args.removeOauthSecrets) {
         const removeOauthSecrets = new Set(args.removeOauthSecrets);
-        oauthSecrets = oauthSecrets.filter(id => !removeOauthSecrets.has(id));
+        oauth2Secrets = oauth2Secrets.filter(id => !removeOauthSecrets.has(id));
       }
 
       // write.assignments -----------------------------------------------------
@@ -144,8 +144,8 @@ export const updateClient: GraphQLFieldConfig<
           enabled:
             typeof args.enabled === "boolean" ? args.enabled : before.enabled,
           name: args.name || before.name,
-          oauthUrls,
-          oauthSecrets,
+          oauth2Urls,
+          oauth2Secrets,
           userIds
         },
         {

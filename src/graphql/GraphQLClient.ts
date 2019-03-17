@@ -17,7 +17,7 @@ export const GraphQLClient = new GraphQLObjectType<Client, Context>({
   fields: () => ({
     id: { type: new GraphQLNonNull(GraphQLID) },
     name: { type: GraphQLString },
-    oauthSecrets: {
+    oauth2Secrets: {
       type: new GraphQLList(GraphQLString),
       async resolve(
         client,
@@ -25,11 +25,11 @@ export const GraphQLClient = new GraphQLObjectType<Client, Context>({
         { realm, token: t, tx }: Context
       ): Promise<null | string[]> {
         return t && (await client.isAccessibleBy(realm, t, tx, "read.secrets"))
-          ? [...client.oauthSecrets]
+          ? [...client.oauth2Secrets]
           : null;
       }
     },
-    oauthUrls: { type: new GraphQLList(GraphQLString) },
+    oauth2Urls: { type: new GraphQLList(GraphQLString) },
     users: {
       type: new GraphQLList(GraphQLUser),
       async resolve(client, args, { realm, token: t, tx }: Context) {
