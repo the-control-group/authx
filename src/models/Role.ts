@@ -1,6 +1,7 @@
 import { PoolClient } from "pg";
 import { User } from "./User";
 import { simplify, isSuperset } from "scopeutils";
+import { NotFoundError } from "../errors";
 
 export interface RoleData {
   readonly id: string;
@@ -76,10 +77,14 @@ export class Role implements RoleData {
       [typeof id === "string" ? [id] : id]
     );
 
-    if (result.rows.length !== (typeof id === "string" ? 1 : id.length)) {
+    if (result.rows.length > (typeof id === "string" ? 1 : id.length)) {
       throw new Error(
-        "INVARIANT: Read must return the same number of records as requested."
+        "INVARIANT: Read must never return more records than requested."
       );
+    }
+
+    if (result.rows.length < (typeof id === "string" ? 1 : id.length)) {
+      throw new NotFoundError();
     }
 
     const roles = result.rows.map(

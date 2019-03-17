@@ -68,9 +68,8 @@ export class PasswordAuthority extends Authority<PasswordAuthorityDetails> {
       );
     }
 
-    const credentialId = results.rows[0];
-
-    return credentialId ? null : PasswordCredential.read(tx, credentialId);
+    const credentialId = results.rows[0].id;
+    return credentialId ? PasswordCredential.read(tx, credentialId) : null;
   }
 }
 

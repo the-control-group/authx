@@ -5,6 +5,7 @@
   },
   "bugs": "https://github.com/the-control-group/authx/issues",
   "dependencies": {
+    "auth-header": "^1.0.0",
     "basic-auth": "^2.0.1",
     "bcrypt": "^3.0.4",
     "bluebird": "^3.0.6",
@@ -28,6 +29,7 @@
   },
   "description": "",
   "devDependencies": {
+    "@types/auth-header": "^1.0.1",
     "@types/bcrypt": "^3.0.0",
     "@types/graphql": "./@types/graphql",
     "@types/graphql-api-koa": "./@types/graphql-api-koa",

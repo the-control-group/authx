@@ -1,4 +1,5 @@
-import { Pool } from "pg";
+import { Pool, PoolClient } from "pg";
+import { Middleware, ParameterizedContext } from "koa";
 import Router from "koa-router";
 import body from "koa-body";
 import { errorHandler, execute } from "graphql-api-koa";
@@ -10,6 +11,10 @@ export * from "./graphql";
 import { Context } from "./graphql/Context";
 import { Strategy } from "./Strategy";
 import { Token, Authority, Credential } from "./models";
+import { parse } from "auth-header";
+import { NotFoundError, AuthenticationError } from "./errors";
+
+const __DEV__ = process.env.NODE_ENV !== "production";
 
 export class AuthX<StateT = any, CustomT = {}> extends Router<StateT, CustomT> {
   private pool: Pool;
@@ -38,25 +43,53 @@ export class AuthX<StateT = any, CustomT = {}> extends Router<StateT, CustomT> {
     // this.use(corsMiddleware);
 
     // add authx namespace context
-    this.use(async (ctx: any, next) => {
+    const context: Middleware<ParameterizedContext<any, any>> = async (
+      ctx,
+      next
+    ) => {
       const tx = await this.pool.connect();
-      const token = await Token.read(
-        tx,
-        "c70da498-27ed-4c3b-a318-38bb220cef48"
-      );
-
-      ctx[x] = {
-        authx: this,
-        tx,
-        token
-      };
-
       try {
+        let token = null;
+
+        const auth = ctx.request.header.authorization
+          ? parse(ctx.request.header.authorization)
+          : null;
+
+        if (auth && auth.scheme === "Basic" && typeof auth.token === "string") {
+          const [id, secret] = new Buffer(auth.token, "base64")
+            .toString()
+            .split(":", 2);
+
+          try {
+            token = await Token.read(tx, id);
+          } catch (error) {
+            if (!(error instanceof NotFoundError)) throw error;
+            throw new AuthenticationError(
+              __DEV__
+                ? "Unable to find the token specified in the HTTP authorization header."
+                : undefined
+            );
+          }
+
+          if (token.secret !== secret)
+            throw new AuthenticationError(
+              __DEV__
+                ? "The secret specified in HTTP authorization header was incorrect."
+                : undefined
+            );
+        }
+
+        ctx[x] = {
+          authx: this,
+          tx,
+          token
+        };
+
         await next();
       } finally {
         tx.release();
       }
-    });
+    };
 
     // // get the current bearer token
     // this.use(bearerMiddleware);
@@ -131,6 +164,8 @@ export class AuthX<StateT = any, CustomT = {}> extends Router<StateT, CustomT> {
       "/graphql",
 
       errorHandler(),
+
+      context,
 
       body(),
 

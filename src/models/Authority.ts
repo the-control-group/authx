@@ -1,6 +1,7 @@
 import { PoolClient } from "pg";
 import { Credential } from "./Credential";
 import { Token } from "./Token";
+import { NotFoundError } from "../errors";
 
 export interface AuthorityData<A> {
   readonly id: string;
@@ -107,10 +108,14 @@ export abstract class Authority<A> implements AuthorityData<A> {
       [typeof id === "string" ? [id] : id]
     );
 
-    if (result.rows.length !== (typeof id === "string" ? 1 : id.length)) {
+    if (result.rows.length > (typeof id === "string" ? 1 : id.length)) {
       throw new Error(
-        "INVARIANT: Read must return the same number of records as requested."
+        "INVARIANT: Read must never return more records than requested."
       );
+    }
+
+    if (result.rows.length < (typeof id === "string" ? 1 : id.length)) {
+      throw new NotFoundError();
     }
 
     const data = result.rows.map(row => {

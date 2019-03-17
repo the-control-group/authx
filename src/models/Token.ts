@@ -2,6 +2,7 @@ import { PoolClient } from "pg";
 import { User } from "./User";
 import { Grant } from "./Grant";
 import { simplify, getIntersection, isSuperset } from "scopeutils";
+import { NotFoundError } from "../errors";
 
 export interface TokenData {
   readonly id: string;
@@ -102,10 +103,24 @@ export class Token implements TokenData {
       [typeof id === "string" ? [id] : id]
     );
 
-    if (result.rows.length !== (typeof id === "string" ? 1 : id.length)) {
+    if (result.rows.length > (typeof id === "string" ? 1 : id.length)) {
       throw new Error(
-        "INVARIANT: Read must return the same number of records as requested."
+        "INVARIANT: Read must never return more records than requested."
       );
+    }
+
+    if (result.rows.length < (typeof id === "string" ? 1 : id.length)) {
+      throw new NotFoundError();
+    }
+
+    if (result.rows.length > (typeof id === "string" ? 1 : id.length)) {
+      throw new Error(
+        "INVARIANT: Read must never return more records than requested."
+      );
+    }
+
+    if (result.rows.length < (typeof id === "string" ? 1 : id.length)) {
+      throw new NotFoundError();
     }
 
     const tokens = result.rows.map(

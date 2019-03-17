@@ -21,6 +21,7 @@ export const GraphQLToken = new GraphQLObjectType({
         return token.users(context.tx);
       }
     },
+    secret: { type: GraphQLString },
     scopes: { type: new GraphQLList(GraphQLString) }
   })
 });

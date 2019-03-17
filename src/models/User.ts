@@ -5,6 +5,7 @@ import { Role } from "./Role";
 import { Profile } from "./Profile";
 import { simplify, isSuperset } from "scopeutils";
 import { Token } from "./Token";
+import { NotFoundError } from "../errors";
 
 export type UserType = "human" | "bot";
 
@@ -175,10 +176,14 @@ export class User implements UserData {
       [typeof id === "string" ? [id] : id]
     );
 
-    if (result.rows.length !== (typeof id === "string" ? 1 : id.length)) {
+    if (result.rows.length > (typeof id === "string" ? 1 : id.length)) {
       throw new Error(
-        "INVARIANT: Read must return the same number of records as requested."
+        "INVARIANT: Read must never return more records than requested."
       );
+    }
+
+    if (result.rows.length < (typeof id === "string" ? 1 : id.length)) {
+      throw new NotFoundError();
     }
 
     const users = result.rows.map(row => new User(row));

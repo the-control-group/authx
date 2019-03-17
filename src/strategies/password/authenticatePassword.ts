@@ -15,29 +15,23 @@ import v4 from "uuid/v4";
 import { Context } from "../../graphql/Context";
 import { GraphQLToken } from "../../graphql";
 import { Authority, Token } from "../../models";
+import { ForbiddenError, AuthenticationError } from "../../errors";
 
 import { PasswordAuthority, PasswordCredential } from "./models";
 
-export const GraphQLAuthenticatePasswordResult = new GraphQLObjectType({
-  name: "AuthenticatePasswordResult",
-  fields: () => ({
-    success: { type: new GraphQLNonNull(GraphQLBoolean) },
-    message: { type: GraphQLString },
-    token: { type: GraphQLToken }
-  })
-});
+const __DEV__ = process.env.NODE_ENV !== "production";
 
 export const authenticatePassword: GraphQLFieldConfig<
   any,
   {
     identityAuthorityId: string;
     identityAuthorityUserId: string;
-    authorityId: string;
+    passwordAuthorityId: string;
     password: string;
   },
   Context
 > = {
-  type: GraphQLAuthenticatePasswordResult,
+  type: GraphQLToken,
   description: "Create a new token.",
   args: {
     identityAuthorityId: {
@@ -46,27 +40,36 @@ export const authenticatePassword: GraphQLFieldConfig<
     identityAuthorityUserId: {
       type: new GraphQLNonNull(GraphQLString)
     },
-    authorityId: {
+    passwordAuthorityId: {
       type: new GraphQLNonNull(GraphQLID)
     },
     password: {
       type: new GraphQLNonNull(GraphQLString)
     }
   },
-  async resolve(source, args, context) {
+  async resolve(source, args, context): Promise<Token> {
     const { tx, token: t, realm, authorityMap } = context;
 
     if (t) {
-      throw new Error("You area already authenticated.");
+      throw new ForbiddenError("You area already authenticated.");
     }
 
     await tx.query("BEGIN DEFERRABLE");
 
     try {
       // fetch the authority
-      const authority = Authority.read(tx, args.authorityId, authorityMap);
+      const authority = await Authority.read(
+        tx,
+        args.passwordAuthorityId,
+        authorityMap
+      );
+
       if (!(authority instanceof PasswordAuthority)) {
-        throw new Error("The authority uses a strategy other than password.");
+        throw new AuthenticationError(
+          __DEV__
+            ? "The authority uses a strategy other than password."
+            : undefined
+        );
       }
 
       // find the user ID given identityAuthorityId and identityAuthorityUserId
@@ -95,19 +98,26 @@ export const authenticatePassword: GraphQLFieldConfig<
 
         userId = results.rows.length ? results.rows[0].user_id : null;
         if (!userId) {
-          throw new Error("Unable to find user identity.");
+          throw new AuthenticationError(
+            __DEV__ ? "Unable to find user identity." : undefined
+          );
         }
       }
 
       // get the credential
       const credential = await authority.credential(tx, userId);
+
       if (!credential) {
-        throw new Error("No such credential exists.");
+        throw new AuthenticationError(
+          __DEV__ ? "No such credential exists." : undefined
+        );
       }
 
       // check the password
       if (!(await compare(args.password, credential.details.hash))) {
-        throw new Error("The password is incorrect.");
+        throw new AuthenticationError(
+          __DEV__ ? "The password is incorrect." : undefined
+        );
       }
 
       // create a new token
@@ -131,19 +141,10 @@ export const authenticatePassword: GraphQLFieldConfig<
 
       await tx.query("COMMIT");
 
-      return {
-        success: true,
-        message: null,
-        token
-      };
+      return token;
     } catch (error) {
-      console.error(error);
       await tx.query("ROLLBACK");
-      return {
-        success: false,
-        message: "Authentication failed.",
-        token: null
-      };
+      throw error;
     }
   }
 };
