@@ -1,9 +1,12 @@
 import { Authority, Credential } from "./models";
-import { GraphQLObjectType } from "graphql";
+import { GraphQLNamedType, GraphQLFieldConfig } from "graphql";
+import { Context } from "./graphql/Context";
 
-export interface Strategy<A extends Authority<any>, C extends Credential<any>> {
-  Authority: A;
-  Credential: C;
-  GraphQLAuthority: GraphQLObjectType;
-  GraphQLCredential: GraphQLObjectType;
+export interface Strategy {
+  name: string;
+  types: GraphQLNamedType[];
+  queryFields: { [field: string]: GraphQLFieldConfig<any, any, Context> };
+  mutationFields: { [field: string]: GraphQLFieldConfig<any, any, Context> };
+  authorityModel: { new (data: any): Authority<any> };
+  credentialModel: { new (data: any): Credential<any> };
 }

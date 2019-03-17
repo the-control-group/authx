@@ -9,19 +9,13 @@ export * from "./graphql";
 
 import { Context } from "./graphql/Context";
 import { Strategy } from "./Strategy";
-import { Token } from "./models";
-import {
-  PasswordAuthority,
-  PasswordCredential,
-  GraphQLPasswordAuthority,
-  GraphQLPasswordCredential
-} from "./strategies/password";
+import { Token, Authority, Credential } from "./models";
 
 export class AuthX<StateT = any, CustomT = {}> extends Router<StateT, CustomT> {
   private pool: Pool;
   public readonly realm: string;
 
-  public constructor(config: any) {
+  public constructor(config: any, strategies: Strategy[]) {
     super(config);
     this.realm = config.realm || "AuthX";
 
@@ -92,6 +86,47 @@ export class AuthX<StateT = any, CustomT = {}> extends Router<StateT, CustomT> {
     // GraphQL
     // =======
     // The management interface is in GraphQL.
+
+    const authorityMap = strategies.reduce(
+      (
+        map: {
+          [field: string]: { new (data: any): Authority<any> };
+        },
+        s: Strategy
+      ) => {
+        if (map[s.name])
+          throw new Error(
+            `INVARIANT: Multiple strategies cannot use the same identifier; "${
+              s.name
+            }" is used twice.`
+          );
+
+        map[s.name] = s.authorityModel;
+        return map;
+      },
+      {}
+    );
+
+    const credentialMap = strategies.reduce(
+      (
+        map: {
+          [field: string]: { new (data: any): Credential<any> };
+        },
+        s: Strategy
+      ) => {
+        if (map[s.name])
+          throw new Error(
+            `INVARIANT: Multiple strategies cannot use the same identifier; "${
+              s.name
+            }" is used twice.`
+          );
+
+        map[s.name] = s.credentialModel;
+        return map;
+      },
+      {}
+    );
+
     this.post(
       "/graphql",
 
@@ -100,21 +135,14 @@ export class AuthX<StateT = any, CustomT = {}> extends Router<StateT, CustomT> {
       body(),
 
       execute({
-        schema: createSchema([
-          GraphQLPasswordAuthority,
-          GraphQLPasswordCredential
-        ]),
+        schema: createSchema(strategies),
         override: (ctx: any) => {
           const contextValue: Context = {
             realm: this.realm,
             tx: ctx[x].tx,
             token: ctx[x].token,
-            authorityMap: {
-              password: PasswordAuthority
-            },
-            credentialMap: {
-              password: PasswordCredential
-            }
+            authorityMap,
+            credentialMap
           };
 
           return {

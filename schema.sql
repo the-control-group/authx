@@ -143,6 +143,7 @@ CREATE TABLE authx.role_record_user (
 CREATE TABLE authx.token_record (
   user_id UUID NOT NULL REFERENCES authx.user,
   grant_id UUID NOT NULL REFERENCES authx.grant,
+  secret TEXT NOT NULL,
   scopes TEXT[] NOT NULL,
 
   PRIMARY KEY (record_id),

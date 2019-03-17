@@ -1,7 +1,14 @@
-import { GraphQLSchema, GraphQLNamedType } from "graphql";
+import {
+  GraphQLSchema,
+  GraphQLNamedType,
+  GraphQLObjectType,
+  GraphQLFieldConfig
+} from "graphql";
+import { Strategy } from "../Strategy";
+import { Context } from "./Context";
 
-import GraphQLMutation from "./GraphQLMutation";
-import GraphQLQuery from "./GraphQLQuery";
+import { mutationFields, mutationTypes } from "./mutation";
+import { queryFields, queryTypes } from "./query";
 
 import { GraphQLAuthority } from "./GraphQLAuthority";
 import { GraphQLClient } from "./GraphQLClient";
@@ -43,8 +50,60 @@ export * from "./GraphQLUserType";
 export * from "./GraphQLProfile";
 export * from "./GraphQLProfileInput";
 
-export default (types: GraphQLNamedType[]) =>
-  new GraphQLSchema({
+export default (strategies: Strategy[]) => {
+  const query = new GraphQLObjectType<any, Context>({
+    name: "Query",
+    description: "The query root of AuthX's GraphQL interface.",
+    fields: () =>
+      strategies.reduce(
+        (
+          fields: { [field: string]: GraphQLFieldConfig<any, any, Context> },
+          s: Strategy
+        ) => {
+          for (const f of Object.keys(s.queryFields)) {
+            if (fields[f]) {
+              throw new Error(
+                `INVARIANT: Multiple strategies cannot use the query field; "${f}" is used twice.`
+              );
+            }
+          }
+
+          return {
+            ...fields,
+            ...s.queryFields
+          };
+        },
+        { ...queryFields }
+      )
+  });
+
+  const mutation = new GraphQLObjectType<any, Context>({
+    name: "Mutation",
+    description: "The mutation root of AuthX's GraphQL interface.",
+    fields: () =>
+      strategies.reduce(
+        (
+          fields: { [field: string]: GraphQLFieldConfig<any, any, Context> },
+          s: Strategy
+        ) => {
+          for (const f of Object.keys(s.mutationFields)) {
+            if (fields[f]) {
+              throw new Error(
+                `INVARIANT: Multiple strategies cannot use the mutation field; "${f}" is used twice.`
+              );
+            }
+          }
+
+          return {
+            ...fields,
+            ...s.mutationFields
+          };
+        },
+        { ...mutationFields }
+      )
+  });
+
+  return new GraphQLSchema({
     types: [
       GraphQLAuthority,
       GraphQLClient,
@@ -68,8 +127,14 @@ export default (types: GraphQLNamedType[]) =>
       GraphQLProfileRelationship,
       GraphQLProfile,
 
-      ...types
+      ...mutationTypes,
+
+      // merge in types from strategies
+      ...strategies.reduce((types: GraphQLNamedType[], s: Strategy) => {
+        return [...types, ...s.types];
+      }, [])
     ],
-    mutation: GraphQLMutation,
-    query: GraphQLQuery
+    mutation,
+    query
   });
+};

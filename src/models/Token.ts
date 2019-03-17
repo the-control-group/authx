@@ -8,6 +8,7 @@ export interface TokenData {
   readonly enabled: boolean;
   readonly userId: string;
   readonly grantId: null | string;
+  readonly secret: string;
   readonly scopes: Iterable<string>;
 }
 
@@ -16,6 +17,7 @@ export class Token implements TokenData {
   public readonly enabled: boolean;
   public readonly userId: string;
   public readonly grantId: null | string;
+  public readonly secret: string;
   public readonly scopes: string[];
 
   private _user: null | Promise<User> = null;
@@ -26,6 +28,7 @@ export class Token implements TokenData {
     this.enabled = data.enabled;
     this.userId = data.userId;
     this.grantId = data.grantId;
+    this.secret = data.secret;
     this.scopes = simplify([...data.scopes]);
   }
 
@@ -89,6 +92,7 @@ export class Token implements TokenData {
         enabled,
         user_id,
         grant_id,
+        secret,
         scopes
       FROM authx.token_record
       WHERE
@@ -177,15 +181,17 @@ export class Token implements TokenData {
         enabled,
         user_id,
         grant_id,
+        secret,
         scopes
       )
       VALUES
-        ($1, $2, $3, $4, $5, $6, $7, $8)
+        ($1, $2, $3, $4, $5, $6, $7, $8, $9)
       RETURNING
         entity_id AS id,
         enabled,
         user_id,
         grant_id,
+        secret,
         scopes
       `,
       [
@@ -196,6 +202,7 @@ export class Token implements TokenData {
         data.enabled,
         data.userId,
         data.grantId,
+        data.secret,
         simplify([...data.scopes])
       ]
     );

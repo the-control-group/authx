@@ -116,15 +116,15 @@ AuthX:role.equal.lesser  :write.{basic|scopes|assignments|*}
 AuthX:role.equal.*       :write.{basic|scopes|assignments|*}
 AuthX:role.*    .*       :write.{basic|scopes|assignments|*}
 
-AuthX:token.assigned    :read.{basic|scopes}
-AuthX:token.equal.self  :read.{basic|scopes}
-AuthX:token.equal.lesser:read.{basic|scopes}
-AuthX:token.equal.*     :read.{basic|scopes}
-AuthX:token.*    .*     :read.{basic|scopes}
-AuthX:token.equal.self  :write.{basic|scopes|*}
-AuthX:token.equal.lesser:write.{basic|scopes|*}
-AuthX:token.equal.*     :write.{basic|scopes|*}
-AuthX:token.*    .*     :write.{basic|scopes|*}
+AuthX:token.assigned    :read.{basic|scopes|secrets}
+AuthX:token.equal.self  :read.{basic|scopes|secrets}
+AuthX:token.equal.lesser:read.{basic|scopes|secrets}
+AuthX:token.equal.*     :read.{basic|scopes|secrets}
+AuthX:token.*    .*     :read.{basic|scopes|secrets}
+AuthX:token.equal.self  :write.{basic|scopes|secrets|*}
+AuthX:token.equal.lesser:write.{basic|scopes|secrets|*}
+AuthX:token.equal.*     :write.{basic|scopes|secrets|*}
+AuthX:token.*    .*     :write.{basic|scopes|secrets|*}
 
 AuthX:user.{self|*}:read.basic
 AuthX:user.{self|*}:write.{basic|*}
