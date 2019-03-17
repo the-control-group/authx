@@ -67,8 +67,11 @@ export const GraphQLUser: GraphQLObjectType<
       description: "List all roles to which the user is assigned.",
       async resolve(user, args, { realm, token: t, tx }: Context) {
         return t
-          ? filter(await user.roles(tx), role =>
-              role.isAccessibleBy(realm, t, tx)
+          ? filter(
+              await user.roles(tx),
+              async role =>
+                (await role.isAccessibleBy(realm, t, tx)) &&
+                (await role.isAccessibleBy(realm, t, tx, "read.assignments"))
             )
           : [];
       }

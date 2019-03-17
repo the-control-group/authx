@@ -1,7 +1,10 @@
 import { Strategy } from "../../Strategy";
 import { PasswordAuthority, PasswordCredential } from "./models";
-import { GraphQLPasswordAuthority, GraphQLPasswordCredential } from "./graphql";
-import { authenticatePassword } from "./authenticatePassword";
+import {
+  authenticatePassword,
+  GraphQLPasswordAuthority,
+  GraphQLPasswordCredential
+} from "./graphql";
 
 export * from "./models";
 

@@ -20,7 +20,8 @@ export const GraphQLRole = new GraphQLObjectType<Role, Context>({
     users: {
       type: new GraphQLList(GraphQLUser),
       async resolve(role, args, { realm, token: t, tx }: Context) {
-        return t
+        return t &&
+          (await role.isAccessibleBy(realm, t, tx, "read.assignments"))
           ? filter(await role.users(tx), user =>
               user.isAccessibleBy(realm, t, tx)
             )

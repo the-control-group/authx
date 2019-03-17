@@ -9,7 +9,8 @@ import {
   GraphQLInputObjectType
 } from "graphql";
 
-import { Authority, Credential } from "../../models";
+import { Authority, Credential } from "../../../models";
+import { PasswordCredential } from "./PasswordCredential";
 
 // Authority
 // ---------
@@ -71,27 +72,5 @@ export class PasswordAuthority extends Authority<PasswordAuthorityDetails> {
     if (!results.rows[0]) return null;
 
     return PasswordCredential.read(tx, results.rows[0].id);
-  }
-}
-
-// Credential
-// ----------
-
-export interface PasswordCredentialDetails {
-  hash: string;
-}
-
-export class PasswordCredential extends Credential<PasswordCredentialDetails> {
-  private _authority: null | Promise<PasswordAuthority> = null;
-
-  public authority(
-    tx: PoolClient,
-    refresh: boolean = false
-  ): Promise<PasswordAuthority> {
-    if (!refresh && this._authority) {
-      return this._authority;
-    }
-
-    return (this._authority = PasswordAuthority.read(tx, this.authorityId));
   }
 }

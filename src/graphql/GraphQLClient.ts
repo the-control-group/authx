@@ -33,7 +33,8 @@ export const GraphQLClient = new GraphQLObjectType<Client, Context>({
     users: {
       type: new GraphQLList(GraphQLUser),
       async resolve(client, args, { realm, token: t, tx }: Context) {
-        return t
+        return t &&
+          (await client.isAccessibleBy(realm, t, tx, "read.assignments"))
           ? filter(await client.users(tx), user =>
               user.isAccessibleBy(realm, t, tx)
             )
