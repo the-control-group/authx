@@ -1,27 +1,27 @@
 import { PoolClient } from "pg";
 import { Authority } from "../../../model";
-import { PasswordCredential } from "./PasswordCredential";
+import { EmailCredential } from "./EmailCredential";
 
 // Authority
 // ---------
 
-export interface PasswordAuthorityDetails {
+export interface EmailAuthorityDetails {
   rounds: number;
 }
 
-export class PasswordAuthority extends Authority<PasswordAuthorityDetails> {
-  private _credentials: null | Promise<PasswordCredential[]> = null;
+export class EmailAuthority extends Authority<EmailAuthorityDetails> {
+  private _credentials: null | Promise<EmailCredential[]> = null;
 
   public credentials(
     tx: PoolClient,
     refresh: boolean = false
-  ): Promise<PasswordCredential[]> {
+  ): Promise<EmailCredential[]> {
     if (!refresh && this._credentials) {
       return this._credentials;
     }
 
     return (this._credentials = (async () =>
-      PasswordCredential.read(
+      EmailCredential.read(
         tx,
         (await tx.query(
           `
@@ -39,7 +39,7 @@ export class PasswordAuthority extends Authority<PasswordAuthorityDetails> {
   public async credential(
     tx: PoolClient,
     authorityUserId: string
-  ): Promise<null | PasswordCredential> {
+  ): Promise<null | EmailCredential> {
     const results = await tx.query(
       `
       SELECT entity_id AS id
@@ -61,6 +61,6 @@ export class PasswordAuthority extends Authority<PasswordAuthorityDetails> {
 
     if (!results.rows[0]) return null;
 
-    return PasswordCredential.read(tx, results.rows[0].id);
+    return EmailCredential.read(tx, results.rows[0].id);
   }
 }

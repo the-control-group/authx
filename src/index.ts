@@ -19,30 +19,18 @@ const __DEV__ = process.env.NODE_ENV !== "production";
 export class AuthX<StateT = any, CustomT = {}> extends Router<StateT, CustomT> {
   private pool: Pool;
   public readonly realm: string;
+  public readonly strategies: Strategy[];
 
   public constructor(config: any, strategies: Strategy[]) {
     super(config);
-    this.realm = config.realm || "AuthX";
-
-    // // set the config
-    // this.config = config;
 
     // create a database pool
     this.pool = new Pool();
 
-    // // attach the strategies
-    // this.strategies = strategies;
+    this.realm = config.realm || "AuthX";
+    this.strategies = strategies;
 
-    // Middleware
-    // ----------
-
-    // // error handling
-    // this.use(errorMiddleware);
-
-    // // add CORS header if necessary
-    // this.use(corsMiddleware);
-
-    // add authx namespace context
+    // define the context middleware
     const context: Middleware<ParameterizedContext<any, any>> = async (
       ctx,
       next
@@ -101,23 +89,21 @@ export class AuthX<StateT = any, CustomT = {}> extends Router<StateT, CustomT> {
             );
         }
 
-        ctx[x] = {
-          authx: this,
+        const context: Context = {
+          realm: this.realm,
           tx,
-          token
+          token,
+          authorityMap,
+          credentialMap
         };
+
+        ctx[x] = context;
 
         await next();
       } finally {
         tx.release();
       }
     };
-
-    // // get the current bearer token
-    // this.use(bearerMiddleware);
-
-    // // get the current user
-    // this.use(userMiddleware);
 
     // OAuth
     // =====
@@ -194,13 +180,7 @@ export class AuthX<StateT = any, CustomT = {}> extends Router<StateT, CustomT> {
       execute({
         schema: createSchema(strategies),
         override: (ctx: any) => {
-          const contextValue: Context = {
-            realm: this.realm,
-            tx: ctx[x].tx,
-            token: ctx[x].token,
-            authorityMap,
-            credentialMap
-          };
+          const contextValue: Context = ctx[x];
 
           return {
             contextValue

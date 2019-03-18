@@ -3,6 +3,7 @@ import Koa from "koa";
 import send from "koa-send";
 import AuthX from ".";
 
+import email from "./strategy/email";
 import password from "./strategy/password";
 
 const config = {};
@@ -14,7 +15,7 @@ const app = new Koa();
 app.proxy = true;
 
 // create a new instanciate of AuthX
-const authx = new AuthX(config, [password]);
+const authx = new AuthX(config, [email, password]);
 
 // apply the AuthX routes to the app
 app.use(authx.routes());

@@ -1,15 +1,5 @@
 import { PoolClient } from "pg";
-import bcrypt from "bcrypt";
-import {
-  GraphQLID,
-  GraphQLInt,
-  GraphQLNonNull,
-  GraphQLString,
-  GraphQLObjectType,
-  GraphQLInputObjectType
-} from "graphql";
-
-import { Authority, Credential } from "../../../model";
+import { Credential } from "../../../model";
 import { PasswordAuthority } from "./PasswordAuthority";
 
 // Credential
