@@ -1,5 +1,4 @@
 import v4 from "uuid/v4";
-import { hash } from "bcrypt";
 import {
   GraphQLBoolean,
   GraphQLFieldConfig,
@@ -14,6 +13,11 @@ import { Authority } from "../../../../model";
 import { EmailCredential, EmailAuthority } from "../../model";
 import { ForbiddenError, NotFoundError } from "../../../../errors";
 import { GraphQLEmailCredential } from "../GraphQLEmailCredential";
+
+// TODO: VERIFY
+function verify(proof: string): boolean {
+  return true;
+}
 
 export const GraphQLCreateEmailCredentialDetailsInput = new GraphQLInputObjectType(
   {
@@ -31,11 +35,10 @@ export const createEmailCredential: GraphQLFieldConfig<
   any,
   {
     enabled: boolean;
-    authorityId: string;
     userId: string;
-    details: {
-      email: string;
-    };
+    authorityId: string;
+    authorityUserId: string;
+    proof: null | string;
   },
   Context
 > = {
@@ -45,15 +48,23 @@ export const createEmailCredential: GraphQLFieldConfig<
     enabled: {
       type: new GraphQLNonNull(GraphQLBoolean)
     },
-    authorityId: {
-      type: new GraphQLNonNull(GraphQLID)
-    },
     userId: {
-      type: new GraphQLNonNull(GraphQLID)
+      type: new GraphQLNonNull(GraphQLID),
+      description: "The ID of the AuthX user who will own this credential."
     },
-    details: {
-      type: new GraphQLNonNull(GraphQLCreateEmailCredentialDetailsInput),
-      description: "Credential details, specific to the email strategy."
+    authorityId: {
+      type: new GraphQLNonNull(GraphQLID),
+      description:
+        "The ID of the AuthX email authority that can verify this credential."
+    },
+    authorityUserId: {
+      type: new GraphQLNonNull(GraphQLID),
+      description: "The email address of the user."
+    },
+    proof: {
+      type: GraphQLString,
+      description:
+        "This unique code is sent by the authority to prove ownership of the email address."
     }
   },
   async resolve(source, args, context): Promise<EmailCredential> {
@@ -81,14 +92,65 @@ export const createEmailCredential: GraphQLFieldConfig<
         userId: args.userId,
         authorityUserId: args.userId,
         contact: null,
-        details: {
-          hash: await hash(args.details.email, authority.details.rounds)
-        }
+        details: {}
       });
 
-      if (!(await data.isAccessibleBy(realm, t, tx, "write.*"))) {
-        throw new ForbiddenError(
-          "You do not have permission to create this credential."
+      if (!(await t.can(tx, `${realm}:credential.user.*.*:write.*`))) {
+        if (!(await data.isAccessibleBy(realm, t, tx, "write.*"))) {
+          throw new ForbiddenError(
+            "You do not have permission to create this credential."
+          );
+        }
+
+        // The user doesn't have permission to change the credentials of all users,
+        // so she needs to prove ownership of the email address.
+        if (!args.proof) {
+          throw new ForbiddenError(
+            "You do not have permission to create this credential without a proof."
+          );
+        }
+
+        if (!verify(args.proof)) {
+          throw new ForbiddenError("The proof is invalid.");
+        }
+      }
+
+      // Check if the email is used in a different credential, and if it is, disable it.
+      const existingCredentials = await EmailCredential.read(
+        tx,
+        (await tx.query(
+          `
+          SELECT entity_id as id
+          FROM authx.credential_record
+          WHERE
+            replacement_record_id IS NULL
+            AND enabled = TRUE
+            AND authority_id = $1
+            AND authority_user_id = $2
+          `,
+          [authority.id, data.authorityUserId]
+        )).rows.map(({ id }) => id)
+      );
+
+      if (existingCredentials.length > 1) {
+        throw new Error(
+          "INVARIANT: There cannot be more than one active credential with the same authorityId and authorityUserId."
+        );
+      }
+
+      // Disable the conflicting credential
+      if (existingCredentials.length === 1) {
+        await EmailCredential.write(
+          tx,
+          {
+            ...existingCredentials[0],
+            enabled: false
+          },
+          {
+            recordId: v4(),
+            createdByTokenId: t.id,
+            createdAt: new Date()
+          }
         );
       }
 

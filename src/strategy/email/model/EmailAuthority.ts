@@ -6,7 +6,13 @@ import { EmailCredential } from "./EmailCredential";
 // ---------
 
 export interface EmailAuthorityDetails {
-  rounds: number;
+  expiresIn: number;
+  authenticationEmailSubject: string;
+  authenticationEmailText: string;
+  authenticationEmailHtml: string;
+  verificationEmailSubject: string;
+  verificationEmailText: string;
+  verificationEmailHtml: string;
 }
 
 export class EmailAuthority extends Authority<EmailAuthorityDetails> {

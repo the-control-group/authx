@@ -23,7 +23,7 @@ app.use(authx.routes());
 // add public files
 const root = resolve(__dirname, "../public");
 app.use(async ctx => {
-  await send(ctx, ctx.path, { root });
+  if (!ctx.response.body) await send(ctx, ctx.path, { root });
 });
 
 // log errors - everything as JSON makes a happier you

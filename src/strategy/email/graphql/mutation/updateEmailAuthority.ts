@@ -19,10 +19,39 @@ export const GraphQLUpdateEmailAuthorityDetailsInput = new GraphQLInputObjectTyp
   {
     name: "UpdateEmailAuthorityDetailsInput",
     fields: () => ({
-      rounds: {
+      expiresIn: {
         type: GraphQLInt,
+        description: "Time in seconds until the email link expires."
+      },
+      authenticationEmailSubject: {
+        type: GraphQLString,
         description:
-          "The number of bcrypt rounds to use when generating new hashes."
+          "Authentication Email Subject. Handlebars template used to generate the email subject. Provided `token`, `credential`, and `url`."
+      },
+      authenticationEmailText: {
+        type: GraphQLString,
+        description:
+          "Authentication Email Plain Text Body. Handlebars template used to generate the email plain text body. Provided `token`, `credential`, and `url`."
+      },
+      authenticationEmailHtml: {
+        type: GraphQLString,
+        description:
+          "Authentication Email HTML Body. Handlebars template used to generate the email HTML body. Provided `token`, `credential`, and `url`."
+      },
+      verificationEmailSubject: {
+        type: GraphQLString,
+        description:
+          "Verification Email Subject. Handlebars template used to generate the email subject. Provided `token`, `credential`, and `url`."
+      },
+      verificationEmailText: {
+        type: GraphQLString,
+        description:
+          "Verification Email Plain Text Body. Handlebars template used to generate the email plain text body. Provided `token`, `credential`, and `url`."
+      },
+      verificationEmailHtml: {
+        type: GraphQLString,
+        description:
+          "Verification Email HTML Body. Handlebars template used to generate the email HTML body. Provided `token`, `credential`, and `url`."
       }
     })
   }
@@ -35,7 +64,13 @@ export const updateEmailAuthority: GraphQLFieldConfig<
     enabled: null | boolean;
     name: null | string;
     details: null | {
-      rounds: null | number;
+      expiresIn: null | number;
+      authenticationEmailSubject: null | string;
+      authenticationEmailText: null | string;
+      authenticationEmailHtml: null | string;
+      verificationEmailSubject: null | string;
+      verificationEmailText: null | string;
+      verificationEmailHtml: null | string;
     };
   },
   Context
@@ -100,10 +135,34 @@ export const updateEmailAuthority: GraphQLFieldConfig<
           name: typeof args.name === "string" ? args.name : before.name,
           details: args.details
             ? {
-                rounds:
-                  typeof args.details.rounds === "number"
-                    ? args.details.rounds
-                    : before.details.rounds
+                expiresIn:
+                  typeof args.details.expiresIn === "number"
+                    ? args.details.expiresIn
+                    : before.details.expiresIn,
+                authenticationEmailSubject:
+                  typeof args.details.authenticationEmailSubject === "string"
+                    ? args.details.authenticationEmailSubject
+                    : before.details.authenticationEmailSubject,
+                authenticationEmailText:
+                  typeof args.details.authenticationEmailText === "string"
+                    ? args.details.authenticationEmailText
+                    : before.details.authenticationEmailText,
+                authenticationEmailHtml:
+                  typeof args.details.authenticationEmailHtml === "string"
+                    ? args.details.authenticationEmailHtml
+                    : before.details.authenticationEmailHtml,
+                verificationEmailSubject:
+                  typeof args.details.verificationEmailSubject === "string"
+                    ? args.details.verificationEmailSubject
+                    : before.details.verificationEmailSubject,
+                verificationEmailText:
+                  typeof args.details.verificationEmailText === "string"
+                    ? args.details.verificationEmailText
+                    : before.details.verificationEmailText,
+                verificationEmailHtml:
+                  typeof args.details.verificationEmailHtml === "string"
+                    ? args.details.verificationEmailHtml
+                    : before.details.verificationEmailHtml
               }
             : before.details
         },

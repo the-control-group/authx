@@ -8,7 +8,6 @@ import {
 import { GraphQLAuthority } from "../GraphQLAuthority";
 import { Context } from "../Context";
 import { Authority } from "../../model";
-import { filter } from "../../util/filter";
 
 export const authorities: GraphQLFieldConfig<
   any,
@@ -37,8 +36,7 @@ export const authorities: GraphQLFieldConfig<
     }
   },
   async resolve(source, args, context): Promise<Authority<any>[]> {
-    const { tx, token: t, realm, authorityMap } = context;
-    if (!t) return [];
+    const { tx, authorityMap } = context;
 
     const ids = await tx.query(
       `
@@ -54,13 +52,6 @@ export const authorities: GraphQLFieldConfig<
       return [];
     }
 
-    const authorities = await Authority.read(
-      tx,
-      ids.rows.map(({ id }) => id),
-      authorityMap
-    );
-    return filter(authorities, authority =>
-      authority.isAccessibleBy(realm, t, tx)
-    );
+    return Authority.read(tx, ids.rows.map(({ id }) => id), authorityMap);
   }
 };
