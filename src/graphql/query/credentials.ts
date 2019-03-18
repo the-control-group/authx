@@ -7,7 +7,7 @@ import {
 } from "graphql";
 import { GraphQLCredential } from "../GraphQLCredential";
 import { Context } from "../Context";
-import { Credential } from "../../models";
+import { Credential } from "../../model";
 import { filter } from "../../util/filter";
 
 export const credentials: GraphQLFieldConfig<

@@ -1,4 +1,4 @@
-import { Client } from "../models";
+import { Client } from "../model";
 
 export const client = [
   {

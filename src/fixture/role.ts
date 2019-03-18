@@ -1,4 +1,4 @@
-import { Role } from "../models";
+import { Role } from "../model";
 
 export const role = [
   {

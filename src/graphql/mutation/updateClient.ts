@@ -12,7 +12,7 @@ import {
 
 import { Context } from "../Context";
 import { GraphQLClient } from "../GraphQLClient";
-import { Client } from "../../models";
+import { Client } from "../../model";
 import { ForbiddenError } from "../../errors";
 
 export const updateClient: GraphQLFieldConfig<

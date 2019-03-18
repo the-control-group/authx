@@ -8,10 +8,10 @@ import {
   GraphQLInputObjectType
 } from "graphql";
 
-import { Context } from "../../../graphql/Context";
-import { PasswordAuthority } from "../models";
-import { ForbiddenError } from "../../../errors";
-import { GraphQLPasswordAuthority } from "./GraphQLPasswordAuthority";
+import { Context } from "../../../../graphql/Context";
+import { PasswordAuthority } from "../../model";
+import { ForbiddenError } from "../../../../errors";
+import { GraphQLPasswordAuthority } from "../GraphQLPasswordAuthority";
 
 export const GraphQLCreatePasswordAuthorityDetailsInput = new GraphQLInputObjectType(
   {

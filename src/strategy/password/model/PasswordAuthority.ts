@@ -9,7 +9,7 @@ import {
   GraphQLInputObjectType
 } from "graphql";
 
-import { Authority, Credential } from "../../../models";
+import { Authority, Credential } from "../../../model";
 import { PasswordCredential } from "./PasswordCredential";
 
 // Authority

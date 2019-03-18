@@ -20,7 +20,7 @@ import {
   ContactTag,
   ContactRelationship,
   Contact
-} from "../models";
+} from "../model";
 
 export const GraphQLContactName: GraphQLObjectType<
   ContactName

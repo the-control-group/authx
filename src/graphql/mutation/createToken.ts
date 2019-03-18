@@ -12,7 +12,7 @@ import {
 
 import { Context } from "../Context";
 import { GraphQLToken } from "../GraphQLToken";
-import { Token, User } from "../../models";
+import { Token, User } from "../../model";
 import { ForbiddenError } from "../../errors";
 
 export const createToken: GraphQLFieldConfig<

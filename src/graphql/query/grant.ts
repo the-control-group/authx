@@ -1,7 +1,7 @@
 import { GraphQLFieldConfig, GraphQLID, GraphQLNonNull } from "graphql";
 import { Context } from "../Context";
 import { GraphQLGrant } from "../GraphQLGrant";
-import { Grant } from "../../models";
+import { Grant } from "../../model";
 
 export const grant: GraphQLFieldConfig<
   any,

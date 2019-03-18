@@ -10,7 +10,7 @@ import {
 
 import { Context } from "../Context";
 import { GraphQLToken } from "../GraphQLToken";
-import { Token } from "../../models";
+import { Token } from "../../model";
 import { ForbiddenError } from "../../errors";
 
 export const updateToken: GraphQLFieldConfig<

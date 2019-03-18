@@ -1,4 +1,4 @@
-import { User, UserData } from "../models";
+import { User, UserData } from "../model";
 
 export const user: {
   class: typeof User;

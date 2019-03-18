@@ -1,11 +1,6 @@
 import { PoolClient } from "pg";
-import { Token } from "../models";
-import {
-  AuthorityData,
-  Authority,
-  CredentialData,
-  Credential
-} from "../models";
+import { Token } from "../model";
+import { AuthorityData, Authority, CredentialData, Credential } from "../model";
 
 export interface Context {
   realm: string;

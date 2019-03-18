@@ -1,9 +1,9 @@
-import {resolve} from "path";
+import { resolve } from "path";
 import Koa from "koa";
 import send from "koa-send";
 import AuthX from ".";
 
-import password from "./strategies/password";
+import password from "./strategy/password";
 
 const config = {};
 
@@ -21,9 +21,9 @@ app.use(authx.routes());
 
 // add public files
 const root = resolve(__dirname, "../public");
-app.use(async (ctx) => {
+app.use(async ctx => {
   await send(ctx, ctx.path, { root });
-})
+});
 
 // log errors - everything as JSON makes a happier you
 app.on(

@@ -2,7 +2,7 @@ import { PoolClient } from "pg";
 import path from "path";
 import fs from "fs";
 
-import { User, Client, Grant, Role } from "../models";
+import { User, Client, Grant, Role } from "../model";
 
 const sql = fs.readFileSync(path.resolve(__dirname, "../../schema.sql"));
 

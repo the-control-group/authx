@@ -1,7 +1,7 @@
 import { GraphQLFieldConfig, GraphQLID, GraphQLNonNull } from "graphql";
 import { Context } from "../Context";
 import { GraphQLAuthority } from "../GraphQLAuthority";
-import { Authority } from "../../models";
+import { Authority } from "../../model";
 
 export const authority: GraphQLFieldConfig<
   any,

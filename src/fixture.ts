@@ -10,7 +10,7 @@ import {
   role,
   token,
   user
-} from "./fixtures";
+} from "./fixture/index";
 
 const sql = fs.readFileSync(path.resolve(__dirname, "../schema.sql"));
 

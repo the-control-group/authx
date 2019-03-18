@@ -6,7 +6,7 @@ import {
   GraphQLObjectType
 } from "graphql";
 
-import { Grant, Client, User } from "../models";
+import { Grant, Client, User } from "../model";
 import { Context } from "./Context";
 import { GraphQLClient } from "./GraphQLClient";
 import { GraphQLUser } from "./GraphQLUser";

@@ -1,7 +1,7 @@
 import { GraphQLFieldConfig, GraphQLID, GraphQLNonNull } from "graphql";
 import { Context } from "../Context";
 import { GraphQLClient } from "../GraphQLClient";
-import { Client } from "../../models";
+import { Client } from "../../model";
 
 export const client: GraphQLFieldConfig<
   any,

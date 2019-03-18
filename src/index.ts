@@ -10,7 +10,7 @@ export * from "./graphql";
 
 import { Context } from "./graphql/Context";
 import { Strategy } from "./Strategy";
-import { Token, Authority, Credential } from "./models";
+import { Token, Authority, Credential } from "./model";
 import { parse } from "auth-header";
 import { NotFoundError, AuthenticationError } from "./errors";
 

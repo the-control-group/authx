@@ -5,7 +5,7 @@ import {
   GraphQLObjectType
 } from "graphql";
 
-import { User } from "../models";
+import { User } from "../model";
 import { Context } from "./Context";
 import { GraphQLContact } from "./GraphQLContact";
 import { GraphQLCredential } from "./GraphQLCredential";

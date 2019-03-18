@@ -1,5 +1,5 @@
 import { Strategy } from "../../Strategy";
-import { PasswordAuthority, PasswordCredential } from "./models";
+import { PasswordAuthority, PasswordCredential } from "./model";
 import {
   authenticatePassword,
   createPasswordAuthority,
@@ -10,7 +10,7 @@ import {
   GraphQLPasswordCredential
 } from "./graphql";
 
-export * from "./models";
+export * from "./model";
 
 const strategy: Strategy = {
   name: "password",

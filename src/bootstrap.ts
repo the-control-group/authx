@@ -2,7 +2,7 @@ import crypto from "crypto";
 import v4 from "uuid/v4";
 import { Pool } from "pg";
 import bootstrap from "./util/bootstrap";
-import { User, Client, Grant, Role } from "./models";
+import { User, Client, Grant, Role } from "./model";
 
 const userId = v4();
 const user = new User({

@@ -1,7 +1,7 @@
 import { GraphQLFieldConfig, GraphQLID, GraphQLNonNull } from "graphql";
 import { Context } from "../Context";
 import { GraphQLRole } from "../GraphQLRole";
-import { Role } from "../../models";
+import { Role } from "../../model";
 
 export const role: GraphQLFieldConfig<
   any,

@@ -13,7 +13,7 @@ import {
 
 import { Context } from "../Context";
 import { GraphQLGrant } from "../GraphQLGrant";
-import { Grant, User } from "../../models";
+import { Grant, User } from "../../model";
 import { ForbiddenError } from "../../errors";
 
 export const createGrant: GraphQLFieldConfig<

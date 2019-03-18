@@ -9,11 +9,11 @@ import {
   GraphQLInputObjectType
 } from "graphql";
 
-import { Context } from "../../../graphql/Context";
-import { Authority } from "../../../models";
-import { PasswordCredential, PasswordAuthority } from "../models";
-import { ForbiddenError, NotFoundError } from "../../../errors";
-import { GraphQLPasswordCredential } from "./GraphQLPasswordCredential";
+import { Context } from "../../../../graphql/Context";
+import { Authority } from "../../../../model";
+import { PasswordCredential, PasswordAuthority } from "../../model";
+import { ForbiddenError, NotFoundError } from "../../../../errors";
+import { GraphQLPasswordCredential } from "../GraphQLPasswordCredential";
 
 export const GraphQLCreatePasswordCredentialDetailsInput = new GraphQLInputObjectType(
   {

@@ -7,7 +7,7 @@ import {
 } from "graphql";
 import { GraphQLToken } from "../GraphQLToken";
 import { Context } from "../Context";
-import { Token } from "../../models";
+import { Token } from "../../model";
 import { filter } from "../../util/filter";
 
 export const tokens: GraphQLFieldConfig<

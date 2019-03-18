@@ -9,11 +9,11 @@ import {
   GraphQLInputObjectType
 } from "graphql";
 
-import { Context } from "../../../graphql/Context";
-import { Authority } from "../../../models";
-import { PasswordAuthority } from "../models";
-import { ForbiddenError, NotFoundError } from "../../../errors";
-import { GraphQLPasswordAuthority } from "./GraphQLPasswordAuthority";
+import { Context } from "../../../../graphql/Context";
+import { Authority } from "../../../../model";
+import { PasswordAuthority } from "../../model";
+import { ForbiddenError, NotFoundError } from "../../../../errors";
+import { GraphQLPasswordAuthority } from "../GraphQLPasswordAuthority";
 
 export const GraphQLUpdatePasswordAuthorityDetailsInput = new GraphQLInputObjectType(
   {

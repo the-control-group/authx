@@ -1,7 +1,7 @@
 import { GraphQLFieldConfig, GraphQLID, GraphQLNonNull } from "graphql";
 import { Context } from "../Context";
 import { GraphQLToken } from "../GraphQLToken";
-import { Token } from "../../models";
+import { Token } from "../../model";
 
 export const token: GraphQLFieldConfig<
   any,

@@ -10,7 +10,7 @@ import {
 
 import { Context } from "../Context";
 import { GraphQLGrant } from "../GraphQLGrant";
-import { Grant } from "../../models";
+import { Grant } from "../../model";
 import { ForbiddenError } from "../../errors";
 
 export const updateGrant: GraphQLFieldConfig<

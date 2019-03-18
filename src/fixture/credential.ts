@@ -1,4 +1,4 @@
-import { PasswordCredential } from "../strategies/password";
+import { PasswordCredential } from "../strategy/password";
 
 export const credential = [
   {

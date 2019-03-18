@@ -9,12 +9,12 @@ import { randomBytes } from "crypto";
 import { compare } from "bcrypt";
 import v4 from "uuid/v4";
 
-import { Context } from "../../../graphql/Context";
-import { GraphQLToken } from "../../../graphql";
-import { Authority, Token } from "../../../models";
-import { ForbiddenError, AuthenticationError } from "../../../errors";
+import { Context } from "../../../../graphql/Context";
+import { GraphQLToken } from "../../../../graphql";
+import { Authority, Token } from "../../../../model";
+import { ForbiddenError, AuthenticationError } from "../../../../errors";
 
-import { PasswordAuthority } from "../models";
+import { PasswordAuthority } from "../../model";
 
 const __DEV__ = process.env.NODE_ENV !== "production";
 

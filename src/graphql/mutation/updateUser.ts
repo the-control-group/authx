@@ -9,7 +9,7 @@ import {
 import { Context } from "../Context";
 import { GraphQLUser } from "../GraphQLUser";
 import { GraphQLContactInput } from "../GraphQLContactInput";
-import { User, ContactInput } from "../../models";
+import { User, ContactInput } from "../../model";
 import { ForbiddenError } from "../../errors";
 
 export const updateUser: GraphQLFieldConfig<

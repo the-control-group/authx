@@ -1,16 +1,15 @@
-import { Grant } from "../models";
+import { Token } from "../model";
 
-export const grant = [
+export const token = [
   {
-    class: Grant,
+    class: Token,
     data: {
-      id: "d8dcaf12-b744-4d2d-b223-09e7e5eaa922",
+      id: "5387ece5-37a1-4573-a189-14333ebf8d88",
       enabled: true,
-      clientId: "1fcb730e-f134-463a-b224-cab7e61c5ce0",
       userId: "e165cbb0-86b0-4e11-9db7-eb5f742161b8",
-      oauth2Nonce: null,
-      oauth2RefreshToken:
-        "82bf9680e63b087c60fa18ce93a19f4764dce60fc2370460148201e7715bc048",
+      grantId: "d8dcaf12-b744-4d2d-b223-09e7e5eaa922",
+      secret:
+        "c8ad0dd621b819dceb95baac0d3f2e106b438bfbc5b1c811009c763de5dea1a4",
       scopes: ["AuthX:**:**"]
     },
     metadata: {
@@ -20,15 +19,14 @@ export const grant = [
     }
   },
   {
-    class: Grant,
+    class: Token,
     data: {
-      id: "e4670762-beb7-435c-94af-055b951f97e6",
+      id: "c70da498-27ed-4c3b-a318-38bb220cef48",
       enabled: true,
-      clientId: "17436d83-6022-4101-bf9f-997f1550f57c",
       userId: "a6a0946d-eeb4-45cd-83c6-c7920f2272eb",
-      oauth2Nonce: null,
-      oauth2RefreshToken:
-        "24254c0d927f5c7d7b36a968f66d5f2b9433157e06f5e34237fa73c108736b7a",
+      grantId: "e4670762-beb7-435c-94af-055b951f97e6",
+      secret:
+        "8f57395ecd9d6fcb884145f8f6feff357fead2fbd83607e87d71a7c372cf37ad",
       scopes: ["**:**:**"]
     },
     metadata: {
@@ -38,15 +36,14 @@ export const grant = [
     }
   },
   {
-    class: Grant,
+    class: Token,
     data: {
-      id: "4e76cb13-ab24-4dc1-ad96-abcbb89f5529",
+      id: "f0e54748-c7bb-4724-ad8b-7dabb66aafa9",
       enabled: true,
-      clientId: "17436d83-6022-4101-bf9f-997f1550f57c",
       userId: "51192909-3664-44d5-be62-c6b45f0b0ee6",
-      oauth2Nonce: "d122298d-55d9-4eee-9c17-463113669007",
-      oauth2RefreshToken:
-        "031adee275513f902344a75ff8a97e37773f6ae0ca6d8779323d1033291d527b",
+      grantId: "4e76cb13-ab24-4dc1-ad96-abcbb89f5529",
+      secret:
+        "6fac10e63eaed0835a9c263273dcf274b6751fd356d6bea04694510757d1646d",
       scopes: ["**:**:**"]
     },
     metadata: {

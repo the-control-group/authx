@@ -6,7 +6,7 @@ import {
   GraphQLObjectType
 } from "graphql";
 
-import { PasswordAuthority, PasswordAuthorityDetails } from "../models";
+import { PasswordAuthority, PasswordAuthorityDetails } from "../model";
 import { GraphQLAuthority } from "../../../graphql";
 import { Context } from "../../../graphql/Context";
 

@@ -5,7 +5,7 @@ import { Context } from "../Context";
 import { GraphQLUser } from "../GraphQLUser";
 import { GraphQLContactInput } from "../GraphQLContactInput";
 import { GraphQLUserType } from "../GraphQLUserType";
-import { User, UserType, ContactInitialInput } from "../../models";
+import { User, UserType, ContactInitialInput } from "../../model";
 import { ForbiddenError } from "../../errors";
 
 export const createUser: GraphQLFieldConfig<

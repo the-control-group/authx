@@ -1,4 +1,4 @@
-import { PasswordAuthority } from "../strategies/password";
+import { PasswordAuthority } from "../strategy/password";
 
 export const authority = [
   {

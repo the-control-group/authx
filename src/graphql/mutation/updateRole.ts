@@ -11,7 +11,7 @@ import {
 
 import { Context } from "../Context";
 import { GraphQLRole } from "../GraphQLRole";
-import { Role } from "../../models";
+import { Role } from "../../model";
 import { ForbiddenError } from "../../errors";
 
 export const updateRole: GraphQLFieldConfig<
