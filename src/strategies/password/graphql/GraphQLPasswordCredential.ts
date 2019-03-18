@@ -1,19 +1,11 @@
-import bcrypt from "bcrypt";
 import {
   GraphQLID,
-  GraphQLInt,
   GraphQLNonNull,
   GraphQLString,
-  GraphQLObjectType,
-  GraphQLInputObjectType
+  GraphQLObjectType
 } from "graphql";
 
-import {
-  PasswordAuthority,
-  PasswordAuthorityDetails,
-  PasswordCredential,
-  PasswordCredentialDetails
-} from "../models";
+import { PasswordCredential, PasswordCredentialDetails } from "../models";
 import { User } from "../../../models";
 import {
   GraphQLAuthority,

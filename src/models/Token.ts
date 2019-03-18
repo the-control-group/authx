@@ -44,12 +44,12 @@ export class Token implements TokenData {
     tx: PoolClient,
     action: string = "read.basic"
   ): Promise<boolean> {
-    // can view all tokens
+    // can access all tokens
     if (await t.can(tx, `${realm}:token.*.*:${action}`)) {
       return true;
     }
 
-    // can view own tokens
+    // can access own tokens
     if (
       this.userId === t.userId &&
       (await t.can(tx, `${realm}:token.equal.self:${action}`))
@@ -57,7 +57,7 @@ export class Token implements TokenData {
       return true;
     }
 
-    // can view grants for assigned clients
+    // can access grants for assigned clients
     // "assigned" grant scopes only apply for "read" actions
     if (action.split(".")[0] === "read") {
       const grant = await this.grant(tx);
@@ -70,7 +70,7 @@ export class Token implements TokenData {
       }
     }
 
-    // can view the tokens of users with lesser or equal access
+    // can access the tokens of users with lesser or equal access
     if (await t.can(tx, `${realm}:token.equal.*:${action}`)) {
       return isSuperset(
         await (await t.user(tx)).access(tx),
@@ -78,7 +78,7 @@ export class Token implements TokenData {
       );
     }
 
-    // can view the tokens of users with lesser access
+    // can access the tokens of users with lesser access
     if (await t.can(tx, `${realm}:token.equal.lesser:${action}`)) {
       return isStrictSuperset(
         await (await t.user(tx)).access(tx),

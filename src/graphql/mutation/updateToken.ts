@@ -1,18 +1,16 @@
 import v4 from "uuid/v4";
-import { isSuperset, isStrictSuperset } from "scopeutils";
 import {
   GraphQLBoolean,
   GraphQLFieldConfig,
   GraphQLID,
   GraphQLList,
   GraphQLNonNull,
-  GraphQLObjectType,
   GraphQLString
 } from "graphql";
 
 import { Context } from "../Context";
 import { GraphQLToken } from "../GraphQLToken";
-import { Token, User } from "../../models";
+import { Token } from "../../models";
 import { ForbiddenError } from "../../errors";
 
 export const updateToken: GraphQLFieldConfig<

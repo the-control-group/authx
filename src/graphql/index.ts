@@ -8,7 +8,7 @@ import { Strategy } from "../Strategy";
 import { Context } from "./Context";
 
 import { mutationFields, mutationTypes } from "./mutation";
-import { queryFields, queryTypes } from "./query";
+import { queryFields } from "./query";
 
 import { GraphQLAuthority } from "./GraphQLAuthority";
 import { GraphQLClient } from "./GraphQLClient";
@@ -33,11 +33,6 @@ import {
   GraphQLContactRelationship,
   GraphQLContact
 } from "./GraphQLContact";
-
-import {
-  GraphQLContactInput,
-  GraphQLContactInitialInput
-} from "./GraphQLContactInput";
 
 export * from "./GraphQLAuthority";
 export * from "./GraphQLCredential";

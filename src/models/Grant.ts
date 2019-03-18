@@ -48,12 +48,12 @@ export class Grant implements GrantData {
     tx: PoolClient,
     action: string = "read.basic"
   ): Promise<boolean> {
-    // can view all grants
+    // can access all grants
     if (await t.can(tx, `${realm}:grant.*.*:${action}`)) {
       return true;
     }
 
-    // can view own grants
+    // can access own grants
     if (
       this.userId === t.userId &&
       (await t.can(tx, `${realm}:grant.equal.self:${action}`))
@@ -61,7 +61,7 @@ export class Grant implements GrantData {
       return true;
     }
 
-    // can view grants for assigned clients
+    // can access grants for assigned clients
     if (
       // "assigned" grant scopes only apply for "read" actions
       action.split(".")[0] === "read" &&
@@ -71,7 +71,7 @@ export class Grant implements GrantData {
       return true;
     }
 
-    // can view the grants of users with lesser or equal access
+    // can access the grants of users with lesser or equal access
     if (await t.can(tx, `${realm}:grant.equal.*:${action}`)) {
       return isSuperset(
         await (await t.user(tx)).access(tx),
@@ -79,7 +79,7 @@ export class Grant implements GrantData {
       );
     }
 
-    // can view the grants of users with lesser access
+    // can access the grants of users with lesser access
     if (await t.can(tx, `${realm}:grant.equal.lesser:${action}`)) {
       return isStrictSuperset(
         await (await t.user(tx)).access(tx),

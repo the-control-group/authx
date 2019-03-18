@@ -1,10 +1,7 @@
 import {
-  GraphQLBoolean,
   GraphQLFieldConfig,
   GraphQLID,
-  GraphQLList,
   GraphQLNonNull,
-  GraphQLObjectType,
   GraphQLString
 } from "graphql";
 
@@ -17,7 +14,7 @@ import { GraphQLToken } from "../../../graphql";
 import { Authority, Token } from "../../../models";
 import { ForbiddenError, AuthenticationError } from "../../../errors";
 
-import { PasswordAuthority, PasswordCredential } from "../models";
+import { PasswordAuthority } from "../models";
 
 const __DEV__ = process.env.NODE_ENV !== "production";
 

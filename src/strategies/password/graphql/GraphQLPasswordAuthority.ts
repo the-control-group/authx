@@ -1,26 +1,13 @@
-import bcrypt from "bcrypt";
 import {
   GraphQLID,
   GraphQLInt,
   GraphQLNonNull,
   GraphQLString,
-  GraphQLObjectType,
-  GraphQLInputObjectType
+  GraphQLObjectType
 } from "graphql";
 
-import {
-  PasswordAuthority,
-  PasswordAuthorityDetails,
-  PasswordCredential,
-  PasswordCredentialDetails
-} from "../models";
-import { User } from "../../../models";
-import {
-  GraphQLAuthority,
-  GraphQLCredential,
-  GraphQLUser,
-  GraphQLContact
-} from "../../../graphql";
+import { PasswordAuthority, PasswordAuthorityDetails } from "../models";
+import { GraphQLAuthority } from "../../../graphql";
 import { Context } from "../../../graphql/Context";
 
 // Authority

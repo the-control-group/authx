@@ -6,15 +6,13 @@ import {
   GraphQLID,
   GraphQLList,
   GraphQLNonNull,
-  GraphQLObjectType,
   GraphQLInt,
   GraphQLString
 } from "graphql";
 
 import { Context } from "../Context";
 import { GraphQLClient } from "../GraphQLClient";
-import { GraphQLUser } from "../GraphQLUser";
-import { Client, User } from "../../models";
+import { Client } from "../../models";
 import { ForbiddenError } from "../../errors";
 
 export const updateClient: GraphQLFieldConfig<

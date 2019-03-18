@@ -3,8 +3,6 @@ import { Context } from "../Context";
 import { GraphQLToken } from "../GraphQLToken";
 import { Token } from "../../models";
 
-import { isSuperset, isStrictSuperset } from "scopeutils";
-
 export const token: GraphQLFieldConfig<
   any,
   {

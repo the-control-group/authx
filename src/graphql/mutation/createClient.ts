@@ -5,7 +5,6 @@ import {
   GraphQLFieldConfig,
   GraphQLList,
   GraphQLNonNull,
-  GraphQLObjectType,
   GraphQLString
 } from "graphql";
 

@@ -2,13 +2,11 @@ import {
   GraphQLID,
   GraphQLList,
   GraphQLNonNull,
-  GraphQLObjectType,
-  GraphQLString
+  GraphQLObjectType
 } from "graphql";
 
 import { User } from "../models";
 import { Context } from "./Context";
-import { PoolClient } from "pg";
 import { GraphQLContact } from "./GraphQLContact";
 import { GraphQLCredential } from "./GraphQLCredential";
 import { GraphQLRole } from "./GraphQLRole";
@@ -30,7 +28,7 @@ export const GraphQLUser: GraphQLObjectType<
       type: GraphQLContact,
       description:
         "User information formatted according to the Portable Contact spec.",
-      resolve: (user, args, context) => ({
+      resolve: user => ({
         ...user.contact,
         id: user.id,
         connected: false

@@ -39,12 +39,12 @@ export class Client implements ClientData {
     tx: PoolClient,
     action: string = "read.basic"
   ): Promise<boolean> {
-    // can view all vlients
+    // can access all vlients
     if (await t.can(tx, `${realm}:client.*:${action}`)) {
       return true;
     }
 
-    // can view assigned clients
+    // can access assigned clients
     return (
       this.userIds.has(t.userId) &&
       (await t.can(tx, `${realm}:client.assigned:${action}`))

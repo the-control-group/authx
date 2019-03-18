@@ -8,7 +8,6 @@ import {
 import { GraphQLGrant } from "../GraphQLGrant";
 import { Context } from "../Context";
 import { Grant } from "../../models";
-import { isSuperset, isStrictSuperset } from "scopeutils";
 import { filter } from "../../util/filter";
 
 export const grants: GraphQLFieldConfig<

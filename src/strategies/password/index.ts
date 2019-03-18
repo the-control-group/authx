@@ -2,6 +2,10 @@ import { Strategy } from "../../Strategy";
 import { PasswordAuthority, PasswordCredential } from "./models";
 import {
   authenticatePassword,
+  createPasswordAuthority,
+  updatePasswordAuthority,
+  createPasswordCredential,
+  updatePasswordCredential,
   GraphQLPasswordAuthority,
   GraphQLPasswordCredential
 } from "./graphql";
@@ -13,7 +17,13 @@ const strategy: Strategy = {
   types: [GraphQLPasswordAuthority, GraphQLPasswordCredential],
   queryFields: {},
   mutationFields: {
-    authenticatePassword
+    authenticatePassword,
+
+    createPasswordAuthority,
+    updatePasswordAuthority,
+
+    createPasswordCredential,
+    updatePasswordCredential
   },
   authorityModel: PasswordAuthority,
   credentialModel: PasswordCredential

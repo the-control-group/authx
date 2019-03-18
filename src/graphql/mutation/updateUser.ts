@@ -3,15 +3,13 @@ import {
   GraphQLID,
   GraphQLBoolean,
   GraphQLFieldConfig,
-  GraphQLObjectType,
-  GraphQLString,
   GraphQLNonNull
 } from "graphql";
 
 import { Context } from "../Context";
 import { GraphQLUser } from "../GraphQLUser";
 import { GraphQLContactInput } from "../GraphQLContactInput";
-import { User, ContactName, ContactInput } from "../../models";
+import { User, ContactInput } from "../../models";
 import { ForbiddenError } from "../../errors";
 
 export const updateUser: GraphQLFieldConfig<

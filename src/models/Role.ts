@@ -35,12 +35,12 @@ export class Role implements RoleData {
     tx: PoolClient,
     action: string = "read.basic"
   ): Promise<boolean> {
-    // can view all roles
+    // can access all roles
     if (await t.can(tx, `${realm}:role.*.*:${action}`)) {
       return true;
     }
 
-    // can view assigned roles
+    // can access assigned roles
     if (
       this.userIds.has(t.userId) &&
       (await t.can(tx, `${realm}:role.equal.assigned:${action}`))
@@ -48,12 +48,12 @@ export class Role implements RoleData {
       return true;
     }
 
-    // can view roles with lesser or equal access
+    // can access roles with lesser or equal access
     if (await t.can(tx, `${realm}:role.equal.*:${action}`)) {
       return isSuperset(await (await t.user(tx)).access(tx), this.access());
     }
 
-    // can view roles with lesser access
+    // can access roles with lesser access
     if (await t.can(tx, `${realm}:role.equal.lesser:${action}`)) {
       return isStrictSuperset(
         await (await t.user(tx)).access(tx),

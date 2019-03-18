@@ -1,11 +1,5 @@
 import v4 from "uuid/v4";
-import {
-  GraphQLBoolean,
-  GraphQLFieldConfig,
-  GraphQLObjectType,
-  GraphQLString,
-  GraphQLNonNull
-} from "graphql";
+import { GraphQLBoolean, GraphQLFieldConfig, GraphQLNonNull } from "graphql";
 
 import { Context } from "../Context";
 import { GraphQLUser } from "../GraphQLUser";

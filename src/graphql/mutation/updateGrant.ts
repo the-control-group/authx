@@ -1,18 +1,16 @@
 import v4 from "uuid/v4";
-import { isSuperset, isStrictSuperset } from "scopeutils";
 import {
   GraphQLBoolean,
   GraphQLFieldConfig,
   GraphQLID,
   GraphQLList,
   GraphQLNonNull,
-  GraphQLObjectType,
   GraphQLString
 } from "graphql";
 
 import { Context } from "../Context";
 import { GraphQLGrant } from "../GraphQLGrant";
-import { Grant, User } from "../../models";
+import { Grant } from "../../models";
 import { ForbiddenError } from "../../errors";
 
 export const updateGrant: GraphQLFieldConfig<

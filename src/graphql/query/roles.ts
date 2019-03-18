@@ -8,7 +8,6 @@ import {
 import { GraphQLRole } from "../GraphQLRole";
 import { Context } from "../Context";
 import { Role } from "../../models";
-import { isSuperset, isStrictSuperset } from "scopeutils";
 import { filter } from "../../util/filter";
 
 export const roles: GraphQLFieldConfig<

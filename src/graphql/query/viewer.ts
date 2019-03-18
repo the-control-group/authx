@@ -1,4 +1,4 @@
-import { GraphQLFieldConfig, GraphQLID, GraphQLNonNull } from "graphql";
+import { GraphQLFieldConfig } from "graphql";
 import { Context } from "../Context";
 import { GraphQLUser } from "../GraphQLUser";
 import { Token } from "../../models";

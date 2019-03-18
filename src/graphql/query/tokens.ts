@@ -8,7 +8,6 @@ import {
 import { GraphQLToken } from "../GraphQLToken";
 import { Context } from "../Context";
 import { Token } from "../../models";
-import { isSuperset, isStrictSuperset } from "scopeutils";
 import { filter } from "../../util/filter";
 
 export const tokens: GraphQLFieldConfig<

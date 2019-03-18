@@ -1,19 +1,17 @@
 import v4 from "uuid/v4";
-import { isSuperset, isStrictSuperset } from "scopeutils";
+import { isSuperset } from "scopeutils";
 import {
   GraphQLID,
   GraphQLBoolean,
   GraphQLFieldConfig,
   GraphQLList,
   GraphQLNonNull,
-  GraphQLObjectType,
   GraphQLString
 } from "graphql";
 
 import { Context } from "../Context";
 import { GraphQLRole } from "../GraphQLRole";
-import { GraphQLUser } from "../GraphQLUser";
-import { Role, User } from "../../models";
+import { Role } from "../../models";
 import { ForbiddenError } from "../../errors";
 
 export const updateRole: GraphQLFieldConfig<

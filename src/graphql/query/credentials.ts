@@ -8,7 +8,6 @@ import {
 import { GraphQLCredential } from "../GraphQLCredential";
 import { Context } from "../Context";
 import { Credential } from "../../models";
-import { isSuperset, isStrictSuperset } from "scopeutils";
 import { filter } from "../../util/filter";
 
 export const credentials: GraphQLFieldConfig<

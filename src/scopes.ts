@@ -91,7 +91,17 @@ export default (
     {
       "read.basic": "Read basic role information.",
       "read.scopes": "Read the role scopes.",
-      "read.assignments": "Read the list of users assigned to the role.",
+      "read.assignments": "Read the list of users assigned to the role."
+    }
+  ],
+  [
+    realm,
+    {
+      "role.equal.lesser": "Roles with less access than {you}.",
+      "role.equal.*": "Roles with the same or less access than {you}.",
+      "role.*.*": "All roles."
+    },
+    {
       "write.basic": "Write basic role information.",
       "write.scopes": "Write the role scopes.",
       "write.assignments": "Write the list of users assigned to the role.",

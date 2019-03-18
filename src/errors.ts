@@ -1,11 +1,12 @@
 export class ValidationError extends Error {
-  fileName?: string;
-  lineNumber?: number;
-  status: number;
-  statusCode: number;
-  validation: any;
+  public fileName?: string;
+  public lineNumber?: number;
+  public status: number;
+  public statusCode: number;
+  public validation: any;
+  public expose: true = true;
 
-  constructor(
+  public constructor(
     message?: string,
     validation?: string,
     fileName?: string,
@@ -18,23 +19,16 @@ export class ValidationError extends Error {
     this.validation = validation || {};
     this.status = this.statusCode = 400;
   }
-
-  expose() {
-    return {
-      message: this.message,
-      validation: this.validation
-    };
-  }
 }
 
 export class NotFoundError extends Error {
-  fileName?: string;
-  lineNumber?: number;
-  status: number;
-  statusCode: number;
-  expose: true = true;
+  public fileName?: string;
+  public lineNumber?: number;
+  public status: number;
+  public statusCode: number;
+  public expose: true = true;
 
-  constructor(message?: string, fileName?: string, lineNumber?: number) {
+  public constructor(message?: string, fileName?: string, lineNumber?: number) {
     super(message);
     if (typeof fileName !== undefined) this.fileName = fileName;
     if (typeof lineNumber !== undefined) this.lineNumber = lineNumber;
@@ -44,13 +38,13 @@ export class NotFoundError extends Error {
 }
 
 export class ConflictError extends Error {
-  fileName?: string;
-  lineNumber?: number;
-  status: number;
-  statusCode: number;
-  expose: true = true;
+  public fileName?: string;
+  public lineNumber?: number;
+  public status: number;
+  public statusCode: number;
+  public expose: true = true;
 
-  constructor(message?: string, fileName?: string, lineNumber?: number) {
+  public constructor(message?: string, fileName?: string, lineNumber?: number) {
     super(message);
     if (typeof fileName !== undefined) this.fileName = fileName;
     if (typeof lineNumber !== undefined) this.lineNumber = lineNumber;
@@ -60,13 +54,13 @@ export class ConflictError extends Error {
 }
 
 export class AuthenticationError extends Error {
-  fileName?: string;
-  lineNumber?: number;
-  status: number;
-  statusCode: number;
-  expose: true = true;
+  public fileName?: string;
+  public lineNumber?: number;
+  public status: number;
+  public statusCode: number;
+  public expose: true = true;
 
-  constructor(message?: string, fileName?: string, lineNumber?: number) {
+  public constructor(message?: string, fileName?: string, lineNumber?: number) {
     super(message);
     if (typeof fileName !== undefined) this.fileName = fileName;
     if (typeof lineNumber !== undefined) this.lineNumber = lineNumber;
@@ -76,13 +70,13 @@ export class AuthenticationError extends Error {
 }
 
 export class ForbiddenError extends Error {
-  fileName?: string;
-  lineNumber?: number;
-  status: number;
-  statusCode: number;
-  expose: true = true;
+  public fileName?: string;
+  public lineNumber?: number;
+  public status: number;
+  public statusCode: number;
+  public expose: true = true;
 
-  constructor(message?: string, fileName?: string, lineNumber?: number) {
+  public constructor(message?: string, fileName?: string, lineNumber?: number) {
     super(message);
     if (typeof fileName !== undefined) this.fileName = fileName;
     if (typeof lineNumber !== undefined) this.lineNumber = lineNumber;
@@ -92,13 +86,13 @@ export class ForbiddenError extends Error {
 }
 
 export class ServerError extends Error {
-  fileName?: string;
-  lineNumber?: number;
-  status: number;
-  statusCode: number;
-  expose: true = true;
+  public fileName?: string;
+  public lineNumber?: number;
+  public status: number;
+  public statusCode: number;
+  public expose: true = true;
 
-  constructor(message?: string, fileName?: string, lineNumber?: number) {
+  public constructor(message?: string, fileName?: string, lineNumber?: number) {
     super(message);
     if (typeof fileName !== undefined) this.fileName = fileName;
     if (typeof lineNumber !== undefined) this.lineNumber = lineNumber;
@@ -108,13 +102,13 @@ export class ServerError extends Error {
 }
 
 export class NotImplementedError extends Error {
-  fileName?: string;
-  lineNumber?: number;
-  status: number;
-  statusCode: number;
-  expose: true = true;
+  public fileName?: string;
+  public lineNumber?: number;
+  public status: number;
+  public statusCode: number;
+  public expose: true = true;
 
-  constructor(message?: string, fileName?: string, lineNumber?: number) {
+  public constructor(message?: string, fileName?: string, lineNumber?: number) {
     super(message);
     if (typeof fileName !== undefined) this.fileName = fileName;
     if (typeof lineNumber !== undefined) this.lineNumber = lineNumber;

@@ -32,7 +32,7 @@ export abstract class Authority<A> implements AuthorityData<A> {
     tx: PoolClient,
     action: string = "read.basic"
   ): Promise<boolean> {
-    // can view all authorities
+    // can access all authorities
     return await t.can(tx, `${realm}:authority:${action}`);
   }
 

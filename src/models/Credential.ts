@@ -44,12 +44,12 @@ export abstract class Credential<C> implements CredentialData<C> {
     tx: PoolClient,
     action: string = "read.basic"
   ): Promise<boolean> {
-    // can view all credentials
+    // can access all credentials
     if (await t.can(tx, `${realm}:credential.*.*:${action}`)) {
       return true;
     }
 
-    // can view own credentials
+    // can access own credentials
     if (
       this.userId === t.userId &&
       (await t.can(tx, `${realm}:credential.equal.self:${action}`))
@@ -57,7 +57,7 @@ export abstract class Credential<C> implements CredentialData<C> {
       return true;
     }
 
-    // can view the credentials of users with lesser or equal access
+    // can access the credentials of users with lesser or equal access
     if (await t.can(tx, `${realm}:credential.equal.*:${action}`)) {
       return isSuperset(
         await (await t.user(tx)).access(tx),
@@ -65,7 +65,7 @@ export abstract class Credential<C> implements CredentialData<C> {
       );
     }
 
-    // can view the credentials of users with lesser access
+    // can access the credentials of users with lesser access
     if (await t.can(tx, `${realm}:credential.equal.lesser:${action}`)) {
       return isStrictSuperset(
         await (await t.user(tx)).access(tx),

@@ -1,6 +1,3 @@
-import { GraphQLObjectType } from "graphql";
-import { Context } from "../Context";
-
 import { authority } from "./authority";
 import { authorities } from "./authorities";
 
