@@ -8,16 +8,16 @@ import { EmailAuthority } from "./EmailAuthority";
 export interface EmailCredentialDetails {}
 
 export class EmailCredential extends Credential<EmailCredentialDetails> {
-	private _authority: null | Promise<EmailAuthority> = null;
+  private _authority: null | Promise<EmailAuthority> = null;
 
-	public authority(
-		tx: PoolClient,
-		refresh: boolean = false
-	): Promise<EmailAuthority> {
-		if (!refresh && this._authority) {
-			return this._authority;
-		}
+  public authority(
+    tx: PoolClient,
+    refresh: boolean = false
+  ): Promise<EmailAuthority> {
+    if (!refresh && this._authority) {
+      return this._authority;
+    }
 
-		return (this._authority = EmailAuthority.read(tx, this.authorityId));
-	}
+    return (this._authority = EmailAuthority.read(tx, this.authorityId));
+  }
 }

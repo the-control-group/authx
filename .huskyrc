@@ -1,0 +1,5 @@
+{
+  "hooks": {
+    "pre-commit": "for P in packages/*/; do cd $P && npm run lint; cd ../..; done"
+  }
+}

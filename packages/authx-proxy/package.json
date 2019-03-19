@@ -32,7 +32,7 @@
   ],
   "license": "UNLICENSED",
   "main": "lib",
-  "name": "authx-interface",
+  "name": "authx-proxy",
   "peerDependencies": {},
   "repository": "https://github.com/the-control-group/authx",
   "scripts": {
