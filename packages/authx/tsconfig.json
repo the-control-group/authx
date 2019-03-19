@@ -5,9 +5,9 @@
     "lib": ["ES2018", "DOM"],
     "target": "ES2018",
     "module": "commonjs",
-    "outDir": "./lib",
+    "outDir": "./dist",
     "declaration": true,
-    "declarationDir": "./lib",
+    "declarationDir": "./dist",
     "rootDir": "./src",
     "strict": true,
     "esModuleInterop": true

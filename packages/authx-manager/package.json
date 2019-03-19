@@ -20,8 +20,8 @@
     "node": ">=6"
   },
   "files": [
-    "lib",
-    "!lib/test.*"
+    "dist",
+    "!dist/test.*"
   ],
   "keywords": [
     "oauth",
@@ -31,20 +31,20 @@
     "permissions"
   ],
   "license": "UNLICENSED",
-  "main": "lib",
+  "main": "dist",
   "name": "authx-manager",
   "peerDependencies": {},
   "repository": "https://github.com/the-control-group/authx",
   "scripts": {
     "format": "prettier --list-different --write '**/*.{json,yml,md,ts}'",
     "lint": "prettier -c '**/*.{json,yml,md,ts}' && eslint src --ext ts",
-    "prepare": "rm -rf lib && npx tsc",
-    "test": "npm run prepare && ava --verbose lib/test.js",
-    "watch": "rm -rf lib && npx tsc --watch",
-    "start:development": "NODE_ENV=development npx nodemon --inspect lib/server",
-    "start:production": "NODE_ENV=production node lib/server",
+    "prepare": "rm -rf dist && npx tsc",
+    "test": "npm run prepare && ava --verbose dist/test.js",
+    "watch": "rm -rf dist && npx tsc --watch",
+    "start:development": "NODE_ENV=development npx nodemon --inspect dist/server",
+    "start:production": "NODE_ENV=production node dist/server",
     "start": "npm run start:production"
   },
-  "types": "./lib/index.d.ts",
+  "types": "./dist/index.d.ts",
   "version": "2.0.0-alpha1"
 }
