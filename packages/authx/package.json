@@ -1,0 +1,87 @@
+{
+  "author": {
+    "email": "mike.marcacci@thecontrolgroup.com",
+    "name": "Mike Marcacci"
+  },
+  "bugs": "https://github.com/the-control-group/authx/issues",
+  "dependencies": {
+    "auth-header": "^1.0.0",
+    "basic-auth": "^2.0.1",
+    "bcrypt": "^3.0.4",
+    "bluebird": "^3.0.6",
+    "graphql": "^14.1.1",
+    "graphql-api-koa": "^2.0.0",
+    "graphql-relay": "^0.6.0",
+    "handlebars": "^4.0.3",
+    "jjv": "^1.0.2",
+    "jsonwebtoken": "^8.5.0",
+    "koa-body": "^4.1.0",
+    "koa-router": "^7.4.0",
+    "lodash": "^4.17.10",
+    "nodemailer": "^5.1.1",
+    "pg": "^7.8.1",
+    "prettier": "^1.16.4",
+    "raw-body": "^2.1.5",
+    "saml2-js": "^2.0.3",
+    "scim-query-filter-parser": "^1.1.0",
+    "scopeutils": "^2.1.0",
+    "uuid": "^3.3.2"
+  },
+  "description": "",
+  "devDependencies": {
+    "@types/auth-header": "^1.0.1",
+    "@types/bcrypt": "^3.0.0",
+    "@types/graphql": "./@types/graphql",
+    "@types/graphql-api-koa": "./@types/graphql-api-koa",
+    "@types/koa": "^2.0.48",
+    "@types/koa-router": "^7.0.40",
+    "@types/koa-send": "^4.1.2",
+    "@types/pg": "^7.4.13",
+    "@types/uuid": "^3.4.4",
+    "@typescript-eslint/eslint-plugin": "^1.4.0",
+    "@typescript-eslint/parser": "^1.4.0",
+    "ava": "^1.2.1",
+    "eslint": "^5.14.1",
+    "eslint-config-prettier": "^4.0.0",
+    "eslint-plugin-prettier": "^3.0.0",
+    "husky": "^1.1.2",
+    "koa": "^2.7.0",
+    "koa-send": "^5.0.0",
+    "nodemon": "^1.18.10",
+    "prettier": "^1.16.4",
+    "typescript": "^3.3.3333"
+  },
+  "engines": {
+    "node": ">=6"
+  },
+  "files": [
+    "lib",
+    "!lib/test.*"
+  ],
+  "keywords": [
+    "oauth",
+    "aim",
+    "acl",
+    "access control",
+    "permissions"
+  ],
+  "license": "UNLICENSED",
+  "main": "lib",
+  "name": "authx",
+  "peerDependencies": {
+    "koa": "^2.0.0"
+  },
+  "repository": "https://github.com/the-control-group/authx",
+  "scripts": {
+    "format": "prettier --list-different --write '**/*.{json,yml,md,ts}'",
+    "lint": "prettier -c '**/*.{json,yml,md,ts}' && eslint src --ext ts",
+    "prepare": "rm -rf lib && npx tsc",
+    "test": "npm run prepare && ava --verbose lib/test.js",
+    "watch": "rm -rf lib && npx tsc --watch",
+    "start:development": "NODE_ENV=development npx nodemon --inspect lib/server",
+    "start:production": "NODE_ENV=production node lib/server",
+    "start": "npm run start:production"
+  },
+  "types": "./lib/index.d.ts",
+  "version": "2.0.0-alpha1"
+}

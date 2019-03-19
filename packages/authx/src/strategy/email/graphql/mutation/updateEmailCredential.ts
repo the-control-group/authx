@@ -1,5 +1,4 @@
 import v4 from "uuid/v4";
-import { hash } from "bcrypt";
 import {
 	GraphQLBoolean,
 	GraphQLFieldConfig,

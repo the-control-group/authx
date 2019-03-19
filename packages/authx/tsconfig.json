@@ -1,0 +1,15 @@
+{
+  "exclude": ["./original/**/*", "./original/*", "./@types/**/*"],
+  "types": [],
+  "compilerOptions": {
+    "lib": ["ES2018", "DOM"],
+    "target": "ES2018",
+    "module": "commonjs",
+    "outDir": "./lib",
+    "declaration": true,
+    "declarationDir": "./lib",
+    "rootDir": "./src",
+    "strict": true,
+    "esModuleInterop": true
+  }
+}
