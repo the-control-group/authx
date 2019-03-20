@@ -4,7 +4,7 @@
   <title>Authenticate</title>
   <style type="text/css">
     html {
-      color: hsl(206, 0%, 100%);
+      color: hsl(206, 0%, 80%);
       font-family: sans-serif;
       height: 100%;
     }
@@ -27,11 +27,81 @@
       text-align: center;
     }
 
+    .tabs {
+      display: flex;
+    }
+
+    .tabs > div {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+    }
+
+    .tabs > div.active {
+      background: hsl(206, 7%, 21%);
+      border-radius: 7px 7px 0 0;
+    }
+
+    .tabs > div > button {
+      background-color: hsla(0, 0%, 0%, 0);
+      border: none;
+      color: hsl(206, 0%, 60%);
+      padding: 6px 5px;
+      font-size: 14px;
+      margin: 4px 4px;
+      outline-color: hsl(206, 46%, 37%);
+      transition: background-color 0.25s, color 0.25s;
+    }
+
+    .tabs > div.active > button {
+      color: hsl(206, 0%, 90%);
+    }
+
+    .tabs > div > button:focus {
+      outline-color: hsl(206, 46%, 37%);
+      outline-style: solid;
+      outline-width: 2px;
+      transition: outline-color 0.5s 0.5s;
+      color: hsl(206, 0%, 100%);
+    }
+
+    .tabs > div > button:hover {
+      background: hsla(206, 7%, 21%, 0.25);
+      color: hsl(206, 0%, 100%);
+    }
+
+    .tabs > div > button:active {
+      outline-style: none;
+      outline-color: transparent;
+      background: hsla(206, 7%, 21%, 0.5);
+      transition: background-color 0s;
+      color: hsl(206, 0%, 90%);
+    }
+
+    .tabs > div > div {
+      background-color: hsl(206, 7%, 21%);
+      height: 8px;
+    }
+
+    .tabs > div:first-child > div {
+      border-top-left-radius: 7px;
+    }
+
+    .tabs > div:last-child > div {
+      border-top-right-radius: 7px;
+    }
+
     form {
       background-color: hsl(206, 7%, 21%);
-      border-radius: 7px;
+      border-radius: 0 0 7px 7px;
       padding: 14px;
       margin: auto;
+    }
+
+    form > p {
+      margin: 7px 14px;
+      font-size: 14px;
+      text-align: center;
     }
 
     form > label {
@@ -49,31 +119,51 @@
       width: 100%;
     }
 
-    input {
+    form input,
+    form select {
+      font-size: 14px;
       background-color: hsl(206, 8%, 17%);
       border: 2px solid hsl(206, 8%, 17%);
+      color: hsl(206, 0%, 80%);
+    }
+
+    form input:focus,
+    form select:focus {
+      outline: none;
+      background-color: hsl(206, 6%, 25%);
+      border-color: hsl(206, 46%, 37%);
       color: hsl(206, 0%, 100%);
+    }
+
+    form input {
       padding: 0 14px;
-      font-size: 16px;
       height: 28px;
       box-sizing: border-box;
       border-radius: 14px;
     }
 
-    input:focus {
-      outline: none;
-      background-color: hsl(206, 6%, 25%);
-      border-color: hsl(206, 46%, 37%);
+    form.validate input:not(:focus):invalid {
+      background-color: hsl(0, 35%, 20%);
+      border-color: hsl(0, 35%, 20%);
     }
 
-    input[type="submit"], input[type="button"] {
-      background-color: hsl(208, 62%, 13%);
-      border-color: hsl(208, 62%, 13%);
+    form input[type="submit"],
+    form input[type="button"] {
+      background-color: hsl(206, 62%, 13%);
+      border-color: hsl(206, 62%, 13%);
+      border-radius: 7px;
+      height: 36px;
     }
 
-    input[type="submit"]:focus, input[type="button"]:focus {
-      background-color: hsl(208, 61%, 30%);
-      border-color: hsl(208, 100%, 33%);
+    form input[type="submit"]:disabled,
+    form input[type="button"]:disabled {
+      background-color: hsl(206, 10%, 13%);
+      border-color: hsl(206, 10%, 13%);
+    }
+
+    form input[type="submit"]:not(:disabled):focus,
+    form input[type="button"]:not(:disabled):focus {
+      border-color: hsl(206, 100%, 33%);
     }
   </style>
   </head>
