@@ -1,5 +1,4 @@
 {
-  "exclude": ["./original/**/*", "./original/*", "./@types/**/*"],
   "types": [],
   "compilerOptions": {
     "lib": ["ES2018", "DOM"],
@@ -11,5 +10,6 @@
     "rootDir": "./src",
     "strict": true,
     "esModuleInterop": true
-  }
+  },
+  "include": ["./src/**/*"]
 }

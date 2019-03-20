@@ -1,0 +1,98 @@
+<!DOCTYPE html>
+<html>
+  <head>
+  <title>Authenticate</title>
+  <style type="text/css">
+    html {
+      background-color: rgb(32, 33, 36);
+      color: rgb(255, 255, 255);
+      font-family: sans-serif;
+      height: 100%;
+    }
+
+    body {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      height: 100%;
+      margin: 0;
+    }
+
+    body > div {
+      width: 100%;
+      max-width: 400px;
+    }
+
+    h1 {
+      text-align: center;
+    }
+
+    form {
+      background-color: rgb(50, 54, 57);
+      border-radius: 7px;
+      padding: 14px;
+      margin: auto;
+    }
+
+    form > label {
+      display: block;
+      padding: 14px;
+    }
+
+    form > label > span {
+      padding: 0 7px 7px;
+      display: block;
+      font-size: 14px;
+    }
+
+    form > label > input {
+      width: 100%;
+    }
+
+    input {
+      background-color: rgb(40, 44, 47);
+      border: 2px solid rgb(40, 44, 47);
+      color: rgb(255, 255, 255);
+      padding: 0 14px;
+      font-size: 16px;
+      height: 28px;
+      box-sizing: border-box;
+      border-radius: 14px;
+    }
+
+    input:focus {
+      outline: none;
+      background-color: rgb(60, 64, 67);
+      border-color: rgb(52, 103, 139);
+    }
+
+    input[type="submit"], input[type="button"] {
+      background-color: hsl(208, 59%, 25%);
+      border-color: hsl(208, 59%, 25%);
+    }
+
+    input[type="submit"]:focus, input[type="button"]:focus {
+      background-color: hsl(208, 61%, 30%);
+      border-color: hsl(208, 100%, 33%);
+    }
+  </style>
+  </head>
+  <body>
+  <div>
+    <h1>Authenticate</h1>
+    <form>
+      <label>
+        <span>Email</span>
+        <input type="email" />
+      </label>
+      <label>
+        <span>Password</span>
+        <input type="password" />
+      </label>
+      <label>
+        <input type="submit" value="Submit" />
+      </label>
+    </form>
+  </div>
+  </body>
+</html>

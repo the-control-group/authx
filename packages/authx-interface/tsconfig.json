@@ -1,15 +1,14 @@
 {
-  "exclude": ["./original/**/*", "./original/*", "./@types/**/*"],
   "types": [],
   "compilerOptions": {
     "lib": ["ES2018", "DOM"],
     "target": "ES2018",
     "module": "commonjs",
     "outDir": "./dist",
-    "declaration": true,
-    "declarationDir": "./dist",
     "rootDir": "./src",
     "strict": true,
-    "esModuleInterop": true
-  }
+    "esModuleInterop": true,
+    "jsx": "react"
+  },
+  "include": ["./src/**/*"]
 }

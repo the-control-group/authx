@@ -5,19 +5,26 @@
   },
   "bugs": "https://github.com/the-control-group/authx/issues",
   "dependencies": {
-    "react": "^16.8.4"
+    "@types/react": "^16.8.8",
+    "@types/react-dom": "^16.8.2",
+    "react": "^16.8.4",
+    "react-dom": "^16.8.4"
   },
   "description": "",
   "devDependencies": {
-    "@types/react": "^16.8.8",
     "@typescript-eslint/eslint-plugin": "^1.4.0",
     "@typescript-eslint/parser": "^1.4.0",
     "ava": "^1.2.1",
+    "awesome-typescript-loader": "^5.2.1",
     "eslint": "^5.14.1",
     "eslint-config-prettier": "^4.0.0",
     "eslint-plugin-prettier": "^3.0.0",
+    "html-webpack-plugin": "^3.2.0",
     "prettier": "^1.16.4",
-    "typescript": "^3.3.3333"
+    "source-map-loader": "^0.2.4",
+    "typescript": "^3.3.3333",
+    "webpack": "^4.29.6",
+    "webpack-cli": "^3.3.0"
   },
   "engines": {
     "node": ">=6"
@@ -34,20 +41,20 @@
     "permissions"
   ],
   "license": "UNLICENSED",
-  "main": "dist",
+  "main": "index.js",
   "name": "authx-interface",
   "peerDependencies": {},
   "repository": "https://github.com/the-control-group/authx",
   "scripts": {
     "format": "prettier --list-different --write '**/*.{json,yml,md,ts}'",
     "lint": "prettier -c '**/*.{json,yml,md,ts}' && eslint src --ext ts",
-    "prepare": "rm -rf dist && npx tsc",
+    "prepare": "rm -rf dist && npx webpack",
     "test": "npm run prepare && ava --verbose dist/test.js",
-    "watch": "rm -rf dist && npx tsc --watch",
+    "watch": "rm -rf dist && npx webpack --watch",
     "start:development": "NODE_ENV=development npx nodemon --inspect dist/server",
     "start:production": "NODE_ENV=production node dist/server",
     "start": "npm run start:production"
   },
-  "types": "./dist/index.d.ts",
+  "types": "index.d.ts",
   "version": "2.0.0-alpha1"
 }

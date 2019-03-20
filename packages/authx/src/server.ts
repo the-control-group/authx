@@ -1,7 +1,6 @@
-import { resolve } from "path";
 import Koa from "koa";
-import send from "koa-send";
 import AuthX from ".";
+import authXInterface from "authx-interface";
 
 import email from "./strategy/email";
 import password from "./strategy/password";
@@ -14,17 +13,14 @@ const __DEV__ = process.env.NODE_ENV !== "production";
 const app = new Koa();
 app.proxy = true;
 
+// add the AuthX user interface
+app.use(authXInterface);
+
 // create a new instanciate of AuthX
 const authx = new AuthX(config, [email, password]);
 
 // apply the AuthX routes to the app
 app.use(authx.routes());
-
-// add public files
-const root = resolve(__dirname, "../public");
-app.use(async ctx => {
-  if (!ctx.response.body) await send(ctx, ctx.path, { root });
-});
 
 // log errors - everything as JSON makes a happier you
 app.on(
