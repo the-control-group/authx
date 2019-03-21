@@ -46,7 +46,7 @@ export class AuthX<StateT = any, CustomT = {}> extends Router<StateT, CustomT> {
         const basic =
           auth && auth.scheme === "Basic" && typeof auth.token === "string"
             ? auth.token
-            : ctx.cookies.get("session", { signed: false });
+            : null;
 
         if (basic) {
           const [id, secret] = new Buffer(basic, "base64")

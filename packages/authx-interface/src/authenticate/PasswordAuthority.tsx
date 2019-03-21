@@ -11,7 +11,9 @@ import { StrategyComponentProps } from "./definitions";
 
 export function PasswordAuthority({
   authority,
-  authorities
+  authorities,
+  setToken,
+  redirect
 }: StrategyComponentProps): ReactElement {
   // Focus the email field on mount
   const focusElement = useRef<HTMLInputElement>(null);
@@ -49,17 +51,17 @@ export function PasswordAuthority({
 
   // API and errors
   const graphql = useContext<GraphQL>(GraphQLContext);
-  const [error, setError] = useState<string>("");
+  const [errors, setErrors] = useState<string[]>([]);
   async function onSubmit(e: FormEvent): Promise<void> {
     e.preventDefault();
     if (!identityAuthorityId || !identityAuthorityUserId || !password) {
-      setError("Please fill out both an identity and password.");
+      setErrors(["Please fill out both an identity and password."]);
       return;
     }
 
     const operation = graphql.operate<
       {
-        authenticatePassword: {
+        authenticatePassword: null | {
           id: string;
           secret: null | string;
         };
@@ -73,18 +75,18 @@ export function PasswordAuthority({
     >({
       operation: {
         query: `
-                mutation($identityAuthorityId: ID!, $identityAuthorityUserId: String!, $passwordAuthorityId: ID!, $password: String!) {
-                  authenticatePassword(
-                    identityAuthorityId: $identityAuthorityId,
-                    identityAuthorityUserId: $identityAuthorityUserId,
-                    passwordAuthorityId: $passwordAuthorityId,
-                    password: $password,
-                  ) {
-                    id
-                    secret
-                  }
-                }
-              `,
+          mutation($identityAuthorityId: ID!, $identityAuthorityUserId: String!, $passwordAuthorityId: ID!, $password: String!) {
+            authenticatePassword(
+              identityAuthorityId: $identityAuthorityId,
+              identityAuthorityUserId: $identityAuthorityUserId,
+              passwordAuthorityId: $passwordAuthorityId,
+              password: $password,
+            ) {
+              id
+              secret
+            }
+          }
+        `,
         variables: {
           identityAuthorityId,
           identityAuthorityUserId,
@@ -97,7 +99,7 @@ export function PasswordAuthority({
     try {
       const result = await operation.cacheValuePromise;
       if (result.fetchError) {
-        setError(result.fetchError);
+        setErrors([result.fetchError]);
         return;
       }
 
@@ -107,38 +109,37 @@ export function PasswordAuthority({
       // failure message, to make it more difficult for an attacker to query
       // for valid email addresses, user IDs, or other information.
       if (result.graphQLErrors && result.graphQLErrors.length) {
-        setError(result.graphQLErrors[0].message);
+        setErrors(result.graphQLErrors.map(e => e.message));
         return;
       }
 
       const token = result.data && result.data.authenticatePassword;
       if (!token || !token.secret) {
-        setError(
+        setErrors([
           "No token was returned. Contact your administrator to ensure you have sufficient access to read your own tokens and token secrets."
-        );
+        ]);
         return;
       }
 
       // We have successfully authenticated!
       // Zero the error.
-      setError("");
+      setErrors([]);
 
       // Set the cookie.
-      document.cookie = `session=${btoa(
-        `${token.id}:${token.secret}`
-      )}; path=/; max-age=604800`;
+      setToken({ id: token.id, secret: token.secret });
 
       // Redirect.
-      // TODO: actually redirect, depending on props
-      // window.location.reload();
+      if (redirect) {
+        redirect();
+      }
     } catch (error) {
-      setError(error.message);
+      setErrors([error.message]);
       return;
     }
   }
 
   return (
-    <form onSubmit={onSubmit} className={error ? "validate" : ""}>
+    <form onSubmit={onSubmit} className={errors.length ? "validate" : ""}>
       <label>
         <span>Identity</span>
         <div style={{ display: "flex" }}>
@@ -176,7 +177,13 @@ export function PasswordAuthority({
         />
       </label>
 
-      {error ? <p className="error">{error}</p> : null}
+      {errors.length
+        ? errors.map((error, i) => (
+            <p key={i} className="error">
+              {error}
+            </p>
+          ))
+        : null}
 
       <label>
         <input type="submit" value="Submit" />

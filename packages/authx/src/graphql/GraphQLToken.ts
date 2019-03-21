@@ -3,6 +3,7 @@ import {
   GraphQLList,
   GraphQLNonNull,
   GraphQLString,
+  GraphQLBoolean,
   GraphQLObjectType
 } from "graphql";
 
@@ -16,8 +17,11 @@ export const GraphQLToken = new GraphQLObjectType<Token, Context>({
   fields: () => ({
     id: { type: new GraphQLNonNull(GraphQLID) },
     name: { type: GraphQLString },
+    enabled: {
+      type: GraphQLBoolean
+    },
     user: {
-      type: new GraphQLList(GraphQLUser),
+      type: GraphQLUser,
       async resolve(
         token,
         args,
