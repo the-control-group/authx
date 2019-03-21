@@ -159,7 +159,15 @@ export function PasswordAuthority({
           </select>
           <input
             ref={focusElement}
-            type={(identityAuthority && identityAuthority.strategy) || "text"}
+            type={
+              (identityAuthority &&
+                (identityAuthority.strategy === "email"
+                  ? "email"
+                  : identityAuthority.strategy === "phone"
+                  ? "tel"
+                  : null)) ||
+              "text"
+            }
             value={identityAuthorityUserId}
             onChange={e => setIdentityAuthorityUserId(e.target.value)}
             style={{ flex: "1" }}

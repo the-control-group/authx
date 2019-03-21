@@ -127,6 +127,7 @@ export const authenticatePassword: GraphQLFieldConfig<
           enabled: true,
           userId,
           grantId: null,
+          credentialId: credential.id,
           secret: randomBytes(16).toString("hex"),
           scopes: [`${realm}:**:**`]
         },

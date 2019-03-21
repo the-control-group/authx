@@ -7,8 +7,10 @@ import {
   GraphQLObjectType
 } from "graphql";
 
-import { Token, User } from "../model";
+import { Credential, Grant, Token, User } from "../model";
 import { Context } from "./Context";
+import { GraphQLCredential } from "./GraphQLCredential";
+import { GraphQLGrant } from "./GraphQLGrant";
 import { GraphQLUser } from "./GraphQLUser";
 
 export const GraphQLToken = new GraphQLObjectType<Token, Context>({
@@ -19,6 +21,32 @@ export const GraphQLToken = new GraphQLObjectType<Token, Context>({
     name: { type: GraphQLString },
     enabled: {
       type: GraphQLBoolean
+    },
+    credential: {
+      type: GraphQLCredential,
+      async resolve(
+        token,
+        args,
+        { realm, credentialMap, token: t, tx }: Context
+      ): Promise<null | Credential<any>> {
+        if (!t) return null;
+        const credential = await token.credential(tx, credentialMap);
+        return credential && credential.isAccessibleBy(realm, t, tx)
+          ? credential
+          : null;
+      }
+    },
+    grant: {
+      type: GraphQLGrant,
+      async resolve(
+        token,
+        args,
+        { realm, token: t, tx }: Context
+      ): Promise<null | Grant> {
+        if (!t) return null;
+        const grant = await token.grant(tx);
+        return grant && grant.isAccessibleBy(realm, t, tx) ? grant : null;
+      }
     },
     user: {
       type: GraphQLUser,
