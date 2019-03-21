@@ -1,6 +1,6 @@
-import React, { useState, useRef, useEffect, ComponentType } from "react";
+import React, { useState, ComponentType, ReactElement } from "react";
 import ReactDOM from "react-dom";
-import { GraphQL, GraphQLContext, useGraphQL } from "graphql-react";
+import { GraphQLContext, GraphQL, useGraphQL } from "graphql-react";
 import { Authority, StrategyComponentProps } from "./definitions";
 
 import { PasswordAuthority } from "./PasswordAuthority";
@@ -15,8 +15,8 @@ const strategyComponentMap: {
   email: EmailAuthority
 };
 
-function Authenticate() {
-  const { loading, cacheValue = {} } = useGraphQL({
+function Authenticate(): ReactElement<{}> {
+  const { cacheValue } = useGraphQL<any, void>({
     fetchOptionsOverride(options: any) {
       options.url = "/graphql";
     },
@@ -35,7 +35,8 @@ function Authenticate() {
 
   // sort authorities by name
   const authorities: Authority[] =
-    (cacheValue.data &&
+    (cacheValue &&
+      cacheValue.data &&
       [...cacheValue.data.authorities].sort((a, b) =>
         a.name < b.name ? -1 : a.name > b.name ? 1 : 0
       )) ||

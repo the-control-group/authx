@@ -43,8 +43,13 @@ export class AuthX<StateT = any, CustomT = {}> extends Router<StateT, CustomT> {
           ? parse(ctx.request.header.authorization)
           : null;
 
-        if (auth && auth.scheme === "Basic" && typeof auth.token === "string") {
-          const [id, secret] = new Buffer(auth.token, "base64")
+        const basic =
+          auth && auth.scheme === "Basic" && typeof auth.token === "string"
+            ? auth.token
+            : ctx.cookies.get("session", { signed: false });
+
+        if (basic) {
+          const [id, secret] = new Buffer(basic, "base64")
             .toString()
             .split(":", 2);
 

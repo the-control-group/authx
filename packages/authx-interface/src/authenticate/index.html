@@ -142,6 +142,13 @@
       border-radius: 14px;
     }
 
+    form select {
+      padding: 0 7px;
+      height: 28px;
+      box-sizing: border-box;
+      border-radius: 7px;
+    }
+
     form.validate input:not(:focus):invalid {
       background-color: hsl(0, 35%, 20%);
       border-color: hsl(0, 35%, 20%);
@@ -164,6 +171,10 @@
     form input[type="submit"]:not(:disabled):focus,
     form input[type="button"]:not(:disabled):focus {
       border-color: hsl(206, 100%, 33%);
+    }
+
+    form .error {
+      color: hsl(6, 100%, 50%);
     }
   </style>
   </head>

@@ -132,6 +132,7 @@ export class User implements UserData {
     refresh: boolean = false
   ): Promise<Role[]> {
     if (!refresh && this._roles) {
+      console.log((await this._roles).map(({ scopes }) => scopes));
       return this._roles;
     }
 

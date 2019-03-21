@@ -137,6 +137,9 @@ export const authenticatePassword: GraphQLFieldConfig<
         }
       );
 
+      // use this token for the rest of the request
+      context.token = token;
+
       await tx.query("COMMIT");
 
       return token;
