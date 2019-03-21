@@ -1,4 +1,5 @@
 import React, {
+  useMemo,
   useState,
   useEffect,
   useCallback,
@@ -99,14 +100,36 @@ function Authenticate({  }: {}): ReactElement<any> {
     [];
 
   // Set an active authority.
-  const [authorityId, setActiveAuthorityId] = useState<null | string>(null);
+  const [authorityId, setAuthorityId] = useState<null | string>(
+    new URL(window.location.href).searchParams.get("authorityId")
+  );
+
+  useEffect(() => {
+    function onPopState(e: PopStateEvent): void {
+      const next = new URL(window.location.href).searchParams.get(
+        "authorityId"
+      );
+      if (next) setAuthorityId(next);
+    }
+
+    window.addEventListener("popstate", onPopState);
+    return () => window.removeEventListener("popstate", onPopState);
+  }, []);
+
+  function setActiveAuthorityId(id: string, name?: string): void {
+    if (authorityId === id) return;
+    const url = new URL(window.location.href);
+    url.searchParams.set("authorityId", id);
+    window.history.pushState({}, name || "AuthX", url.href);
+    setAuthorityId(id);
+  }
+
   if (authorities.length && authorityId === null) {
     const firstPasswordAuthority = authorities.find(
       a => a.strategy === "password"
     );
-    setActiveAuthorityId(
-      (firstPasswordAuthority && firstPasswordAuthority.id) || authorities[0].id
-    );
+    const authority = firstPasswordAuthority || authorities[0];
+    setActiveAuthorityId(authority.id, authority.name);
   }
   const authority =
     (authorityId && authorities.find(a => a.id === authorityId)) || null;

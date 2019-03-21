@@ -5,8 +5,7 @@ import {
   GraphQLFieldConfig,
   GraphQLID,
   GraphQLNonNull,
-  GraphQLString,
-  GraphQLInputObjectType
+  GraphQLString
 } from "graphql";
 
 import { Context } from "../../../../graphql/Context";
@@ -15,27 +14,13 @@ import { PasswordCredential, PasswordAuthority } from "../../model";
 import { ForbiddenError, NotFoundError } from "../../../../errors";
 import { GraphQLPasswordCredential } from "../GraphQLPasswordCredential";
 
-export const GraphQLCreatePasswordCredentialDetailsInput = new GraphQLInputObjectType(
-  {
-    name: "CreatePasswordCredentialDetailsInput",
-    fields: () => ({
-      password: {
-        type: new GraphQLNonNull(GraphQLString),
-        description: "The plaintext password to use for this credential."
-      }
-    })
-  }
-);
-
 export const createPasswordCredential: GraphQLFieldConfig<
   any,
   {
     enabled: boolean;
     authorityId: string;
     userId: string;
-    details: {
-      password: string;
-    };
+    password: string;
   },
   Context
 > = {
@@ -51,9 +36,9 @@ export const createPasswordCredential: GraphQLFieldConfig<
     userId: {
       type: new GraphQLNonNull(GraphQLID)
     },
-    details: {
-      type: new GraphQLNonNull(GraphQLCreatePasswordCredentialDetailsInput),
-      description: "Credential details, specific to the password strategy."
+    password: {
+      type: new GraphQLNonNull(GraphQLString),
+      description: "The plaintext password to use for this credential."
     }
   },
   async resolve(source, args, context): Promise<PasswordCredential> {
@@ -82,7 +67,7 @@ export const createPasswordCredential: GraphQLFieldConfig<
         authorityUserId: args.userId,
         contact: null,
         details: {
-          hash: await hash(args.details.password, authority.details.rounds)
+          hash: await hash(args.password, authority.details.rounds)
         }
       });
 

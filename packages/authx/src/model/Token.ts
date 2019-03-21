@@ -15,7 +15,6 @@ export interface TokenData {
   readonly enabled: boolean;
   readonly userId: string;
   readonly grantId: null | string;
-  readonly credentialId: null | string;
   readonly secret: string;
   readonly scopes: Iterable<string>;
 }
@@ -25,13 +24,11 @@ export class Token implements TokenData {
   public readonly enabled: boolean;
   public readonly userId: string;
   public readonly grantId: null | string;
-  public readonly credentialId: null | string;
   public readonly secret: string;
   public readonly scopes: string[];
 
   private _user: null | Promise<User> = null;
   private _grant: null | Promise<Grant> = null;
-  private _credential: null | Promise<Credential<any>> = null;
   private _token: null | Promise<Grant> = null;
 
   public constructor(data: TokenData) {
@@ -39,7 +36,6 @@ export class Token implements TokenData {
     this.enabled = data.enabled;
     this.userId = data.userId;
     this.grantId = data.grantId;
-    this.credentialId = data.credentialId;
     this.secret = data.secret;
     this.scopes = simplify([...data.scopes]);
   }
@@ -118,28 +114,6 @@ export class Token implements TokenData {
     return (this._grant = Grant.read(tx, this.grantId));
   }
 
-  public async credential(
-    tx: PoolClient,
-    credentialMap: {
-      [key: string]: { new (data: CredentialData<any>): Credential<any> };
-    },
-    refresh: boolean = false
-  ): Promise<null | Credential<any>> {
-    if (!this.credentialId) {
-      return null;
-    }
-
-    if (!refresh && this._credential) {
-      return this._credential;
-    }
-
-    return (this._credential = Credential.read(
-      tx,
-      this.credentialId,
-      credentialMap
-    ));
-  }
-
   public async access(
     tx: PoolClient,
     refresh: boolean = false
@@ -182,7 +156,6 @@ export class Token implements TokenData {
         enabled,
         user_id,
         grant_id,
-        credential_id,
         secret,
         scopes
       FROM authx.token_record
@@ -218,8 +191,7 @@ export class Token implements TokenData {
         new Token({
           ...row,
           userId: row.user_id,
-          grantId: row.grant_id,
-          credentialId: row.credential_id
+          grantId: row.grant_id
         })
     );
 
@@ -232,15 +204,36 @@ export class Token implements TokenData {
     metadata: {
       recordId: string;
       createdByTokenId: string;
+      createdByCredentialId: null | string;
       createdAt: Date;
     }
   ): Promise<Token> {
+    // ensure the credential ID shares the user ID
+    if (metadata.createdByCredentialId) {
+      const result = await tx.query(
+        `
+        SELECT user_id
+        FROM authx.credential_record
+        WHERE
+          entity_id = $1
+          AND replacement_record_id IS NULL
+        `,
+        [metadata.createdByCredentialId]
+      );
+
+      if (result.rows.length !== 1 || result.rows[0].user_id !== data.userId) {
+        throw new Error(
+          "If a token references a credential, it must belong to the same user as the token."
+        );
+      }
+    }
+
     if (data.grantId) {
       // ensure the grant ID shares the user ID
       const result = await tx.query(
         `
         SELECT user_id
-        FROM authx.grant
+        FROM authx.grant_record
         WHERE
           entity_id = $1
           AND replacement_record_id IS NULL
@@ -251,26 +244,6 @@ export class Token implements TokenData {
       if (result.rows.length !== 1 || result.rows[0].user_id !== data.userId) {
         throw new Error(
           "If a token references a grant, it must belong to the same user as the token."
-        );
-      }
-    }
-
-    // ensure the credential ID shares the user ID
-    if (data.credentialId) {
-      const result = await tx.query(
-        `
-        SELECT user_id
-        FROM authx.credential
-        WHERE
-          entity_id = $1
-          AND replacement_record_id IS NULL
-        `,
-        [data.credentialId]
-      );
-
-      if (result.rows.length !== 1 || result.rows[0].user_id !== data.userId) {
-        throw new Error(
-          "If a token references a credential, it must belong to the same user as the token."
         );
       }
     }
@@ -313,6 +286,7 @@ export class Token implements TokenData {
       (
         record_id,
         created_by_token_id,
+        created_by_credential_id,
         created_at,
         entity_id,
         enabled,
@@ -328,19 +302,18 @@ export class Token implements TokenData {
         enabled,
         user_id,
         grant_id,
-        credential_id,
         secret,
         scopes
       `,
       [
         metadata.recordId,
         metadata.createdByTokenId,
+        metadata.createdByCredentialId,
         metadata.createdAt,
         data.id,
         data.enabled,
         data.userId,
         data.grantId,
-        data.credentialId,
         data.secret,
         simplify([...data.scopes])
       ]
@@ -354,8 +327,7 @@ export class Token implements TokenData {
     return new Token({
       ...row,
       userId: row.user_id,
-      grantId: row.grant_id,
-      credentialId: row.credential_id
+      grantId: row.grant_id
     });
   }
 }

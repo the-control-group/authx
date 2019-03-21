@@ -18,7 +18,7 @@ export const credential: {
           authorityUserId: "michael.scott@dundermifflin.com",
           userId: "a6a0946d-eeb4-45cd-83c6-c7920f2272eb",
           details: {
-            token: null
+            proof: null
           },
           contact: null
         },
@@ -41,7 +41,7 @@ export const credential: {
           authorityUserId: "dwight.schrute@dundermifflin.com",
           userId: "0cbd3783-0424-4f35-be51-b42f07a2a987",
           details: {
-            token: null
+            proof: null
           },
           contact: null
         },
@@ -64,7 +64,7 @@ export const credential: {
           authorityUserId: "jim.halpert@dundermifflin.com",
           userId: "d0fc4c64-a3d6-4d97-9341-07de24439bb1",
           details: {
-            token: null
+            proof: null
           },
           contact: null
         },
@@ -87,7 +87,7 @@ export const credential: {
           authorityUserId: "pam.beesly-halpert@dundermifflin.com",
           userId: "eaa9fa5e-088a-4ae2-a6ab-f120006b20a9",
           details: {
-            token: null
+            proof: null
           },
           contact: null
         },
@@ -110,7 +110,7 @@ export const credential: {
           authorityUserId: "toby.flenderson@dundermifflin.com",
           userId: "306eabbb-cc2b-4f88-be19-4bb6ec98e5c3",
           details: {
-            token: null
+            proof: null
           },
           contact: null
         },
@@ -133,7 +133,7 @@ export const credential: {
           authorityUserId: "jan.levinson@dundermifflin.com",
           userId: "dc396449-2c7d-4a23-a159-e6415ded71d2",
           details: {
-            token: null
+            proof: null
           },
           contact: null
         },
@@ -156,7 +156,7 @@ export const credential: {
           authorityUserId: "darryl.philbin@dundermifflin.com",
           userId: "51192909-3664-44d5-be62-c6b45f0b0ee6",
           details: {
-            token: null
+            proof: null
           },
           contact: null
         },
@@ -179,7 +179,7 @@ export const credential: {
           authorityUserId: "roy.anderson@dundermifflin.com",
           userId: "9ad4b34b-781d-44fe-ac39-9b7ac43dde21",
           details: {
-            token: null
+            proof: null
           },
           contact: null
         },

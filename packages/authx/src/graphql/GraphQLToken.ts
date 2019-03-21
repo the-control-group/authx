@@ -22,20 +22,6 @@ export const GraphQLToken = new GraphQLObjectType<Token, Context>({
     enabled: {
       type: GraphQLBoolean
     },
-    credential: {
-      type: GraphQLCredential,
-      async resolve(
-        token,
-        args,
-        { realm, credentialMap, token: t, tx }: Context
-      ): Promise<null | Credential<any>> {
-        if (!t) return null;
-        const credential = await token.credential(tx, credentialMap);
-        return credential && credential.isAccessibleBy(realm, t, tx)
-          ? credential
-          : null;
-      }
-    },
     grant: {
       type: GraphQLGrant,
       async resolve(
@@ -67,6 +53,8 @@ export const GraphQLToken = new GraphQLObjectType<Token, Context>({
         args,
         { realm, token: t, tx }: Context
       ): Promise<null | string> {
+        console.log(t);
+
         return t && (await token.isAccessibleBy(realm, t, tx, "read.secrets"))
           ? token.secret
           : null;

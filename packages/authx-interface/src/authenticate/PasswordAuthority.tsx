@@ -6,6 +6,7 @@ import React, {
   ReactElement,
   FormEvent
 } from "react";
+
 import { GraphQL, GraphQLContext } from "graphql-react";
 import { StrategyComponentProps } from "./definitions";
 
@@ -55,7 +56,7 @@ export function PasswordAuthority({
   async function onSubmit(e: FormEvent): Promise<void> {
     e.preventDefault();
     if (!identityAuthorityId || !identityAuthorityUserId || !password) {
-      setErrors(["Please fill out both an identity and password."]);
+      setErrors(["Please select an identity and enter a password."]);
       return;
     }
 
@@ -103,11 +104,11 @@ export function PasswordAuthority({
         return;
       }
 
-      // Usually, we would loop through these and display the correct errors
-      // by the correct field. This would work in development, but in
-      // production, AuthX only returns a single generic authentication
-      // failure message, to make it more difficult for an attacker to query
-      // for valid email addresses, user IDs, or other information.
+      // Usually, we would loop through these and display the correct errors by
+      // the correct field. This would work in development, but in production,
+      // AuthX only returns a single generic authentication failure message, to
+      // make it more difficult for an attacker to query for valid email
+      // addresses, user IDs, or other information.
       if (result.graphQLErrors && result.graphQLErrors.length) {
         setErrors(result.graphQLErrors.map(e => e.message));
         return;
@@ -125,7 +126,7 @@ export function PasswordAuthority({
       // Zero the error.
       setErrors([]);
 
-      // Set the cookie.
+      // Set the token.
       setToken({ id: token.id, secret: token.secret });
 
       // Redirect.
@@ -159,6 +160,13 @@ export function PasswordAuthority({
           </select>
           <input
             ref={focusElement}
+            name={
+              (identityAuthority &&
+                (identityAuthority.strategy === "password"
+                  ? "id"
+                  : identityAuthority.strategy)) ||
+              "id"
+            }
             type={
               (identityAuthority &&
                 (identityAuthority.strategy === "email"
@@ -178,6 +186,7 @@ export function PasswordAuthority({
       <label>
         <span>Password</span>
         <input
+          name="password"
           type="password"
           value={password}
           onChange={e => setPassword(e.target.value)}

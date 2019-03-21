@@ -35,7 +35,7 @@ module.exports = async (ctx, next) => {
   // The request uses a directory style, bue it missing a trailing slash.
   // Redirect to ensure relative assets will resolve correctly.
   if (!extname(path) && path[path.length - 1] !== "/") {
-    ctx.response.redirect(ctx.request.path + "/");
+    ctx.response.redirect(`${ctx.request.path}/${ctx.request.search}`);
     return next();
   }
 

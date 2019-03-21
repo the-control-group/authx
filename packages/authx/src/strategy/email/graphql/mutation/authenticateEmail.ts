@@ -4,48 +4,50 @@ import {
   GraphQLNonNull,
   GraphQLString
 } from "graphql";
-
+import jwt from "jsonwebtoken";
 import { randomBytes } from "crypto";
-import { compare } from "bcrypt";
 import v4 from "uuid/v4";
 
 import { Context } from "../../../../graphql/Context";
 import { GraphQLToken } from "../../../../graphql";
 import { Authority, Token } from "../../../../model";
 import { ForbiddenError, AuthenticationError } from "../../../../errors";
-
 import { EmailAuthority } from "../../model";
+import { substitute } from "../../substitute";
 
 const __DEV__ = process.env.NODE_ENV !== "production";
 
 export const authenticateEmail: GraphQLFieldConfig<
   any,
   {
-    identityAuthorityId: string;
-    identityAuthorityUserId: string;
-    emailAuthorityId: string;
+    authorityId: string;
     email: string;
+    proof: null | string;
   },
   Context
 > = {
   type: GraphQLToken,
   description: "Create a new token.",
   args: {
-    identityAuthorityId: {
-      type: new GraphQLNonNull(GraphQLID)
-    },
-    identityAuthorityUserId: {
-      type: new GraphQLNonNull(GraphQLString)
-    },
-    emailAuthorityId: {
+    authorityId: {
       type: new GraphQLNonNull(GraphQLID)
     },
     email: {
       type: new GraphQLNonNull(GraphQLString)
+    },
+    proof: {
+      type: GraphQLString
     }
   },
   async resolve(source, args, context): Promise<Token> {
-    const { tx, token: t, realm, authorityMap } = context;
+    const {
+      tx,
+      token: t,
+      realm,
+      authorityMap,
+      sendMail,
+      interfaceBaseUrl
+    } = context;
 
     if (t) {
       throw new ForbiddenError("You area already authenticated.");
@@ -57,7 +59,7 @@ export const authenticateEmail: GraphQLFieldConfig<
       // fetch the authority
       const authority = await Authority.read(
         tx,
-        args.emailAuthorityId,
+        args.authorityId,
         authorityMap
       );
 
@@ -69,52 +71,93 @@ export const authenticateEmail: GraphQLFieldConfig<
         );
       }
 
-      // find the user ID given identityAuthorityId and identityAuthorityUserId
-      var userId: string | null;
-      if (args.identityAuthorityId === authority.id) {
-        userId = args.identityAuthorityUserId;
-      } else {
-        const results = await tx.query(
-          `
-          SELECT user_id
-          FROM authx.credential_record
-          WHERE
-            authority_id = $1
-            AND authority_user_id = $2
-            AND enabled = true
-            AND replacement_record_id IS NULL
-        `,
-          [args.identityAuthorityId, args.identityAuthorityUserId]
-        );
-
-        if (results.rows.length > 1) {
-          throw new Error(
-            "INVARIANT: There cannot be more than one active credential with the same authorityId and authorityUserId."
-          );
-        }
-
-        userId = results.rows.length ? results.rows[0].user_id : null;
-      }
-
-      if (!userId) {
-        throw new AuthenticationError(
-          __DEV__ ? "Unable to find user identity." : undefined
-        );
-      }
-
       // get the credential
-      const credential = await authority.credential(tx, userId);
-
+      const credential = await authority.credential(tx, args.email);
       if (!credential) {
         throw new AuthenticationError(
           __DEV__ ? "No such credential exists." : undefined
         );
       }
 
-      // check the email
-      if (!(await compare(args.email, credential.details.hash))) {
-        throw new AuthenticationError(
-          __DEV__ ? "The email is incorrect." : undefined
+      // The user already has a proof that she controls the email.
+      const { proof } = args;
+      if (proof) {
+        if (
+          !authority.details.publicKeys.some(key => {
+            try {
+              const payload = jwt.verify(proof, key, {
+                algorithms: ["RS512"]
+              });
+
+              // Make sure we're using the same email
+              if ((payload as any).email !== args.email) {
+                throw new ForbiddenError(
+                  "This proof was generated for a different email address."
+                );
+              }
+
+              // Make sure this is for the same user
+              if ((payload as any).sub) {
+                throw new ForbiddenError(
+                  "This proof was generated for a specific user."
+                );
+              }
+
+              return true;
+            } catch (error) {
+              if (error instanceof ForbiddenError) {
+                throw error;
+              }
+
+              return false;
+            }
+          })
+        ) {
+          throw new ForbiddenError("The proof is invalid.");
+        }
+      }
+
+      // The user needs to be sent a proof.
+      else {
+        const proofId = v4();
+
+        // Generate a new proof
+        const proof = jwt.sign(
+          {
+            email: args.email
+          },
+          authority.details.privateKey,
+          {
+            algorithm: "RS512",
+            expiresIn: authority.details.proofValidityDuration,
+            jwtid: proofId
+          }
+        );
+
+        const url =
+          interfaceBaseUrl +
+          `authenticate?authorityId=${authority.id}&proof=${encodeURIComponent(
+            proof
+          )}`;
+
+        // TODO: Add a nonce to the credential
+
+        // Send an email
+        await sendMail({
+          to: args.email,
+          subject: authority.details.authenticationEmailSubject,
+          text: substitute(
+            { proof, url },
+            authority.details.authenticationEmailText
+          ),
+          html: substitute(
+            { proof, url },
+            authority.details.authenticationEmailHtml
+          )
+        });
+
+        throw new ForbiddenError(
+          "An email has been sent to this address with a code that can be used to prove control."
         );
       }
 
@@ -125,20 +168,23 @@ export const authenticateEmail: GraphQLFieldConfig<
         {
           id: tokenId,
           enabled: true,
-          userId,
+          userId: credential.userId,
           grantId: null,
-          credentialId: credential.id,
           secret: randomBytes(16).toString("hex"),
           scopes: [`${realm}:**:**`]
         },
         {
           recordId: v4(),
           createdByTokenId: tokenId,
+          createdByCredentialId: credential.id,
           createdAt: new Date()
         }
       );
 
       await tx.query("COMMIT");
+
+      // use this token for the rest of the request
+      context.token = token;
 
       return token;
     } catch (error) {

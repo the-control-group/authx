@@ -5,8 +5,7 @@ import {
   GraphQLFieldConfig,
   GraphQLID,
   GraphQLNonNull,
-  GraphQLString,
-  GraphQLInputObjectType
+  GraphQLString
 } from "graphql";
 
 import { Context } from "../../../../graphql/Context";
@@ -15,26 +14,12 @@ import { PasswordCredential } from "../../model";
 import { ForbiddenError, NotFoundError } from "../../../../errors";
 import { GraphQLPasswordCredential } from "../GraphQLPasswordCredential";
 
-export const GraphQLUpdatePasswordCredentialDetailsInput = new GraphQLInputObjectType(
-  {
-    name: "UpdatePasswordCredentialDetailsInput",
-    fields: () => ({
-      password: {
-        type: GraphQLString,
-        description: "The plaintext password to use for this credential."
-      }
-    })
-  }
-);
-
 export const updatePasswordCredential: GraphQLFieldConfig<
   any,
   {
     id: string;
     enabled: null | boolean;
-    details: null | {
-      password: null | string;
-    };
+    password: null | string;
   },
   Context
 > = {
@@ -47,9 +32,9 @@ export const updatePasswordCredential: GraphQLFieldConfig<
     enabled: {
       type: GraphQLBoolean
     },
-    details: {
-      type: GraphQLUpdatePasswordCredentialDetailsInput,
-      description: "Credential details, specific to the password strategy."
+    password: {
+      type: GraphQLString,
+      description: "The plaintext password to use for this credential."
     }
   },
   async resolve(source, args, context): Promise<PasswordCredential> {
@@ -77,7 +62,7 @@ export const updatePasswordCredential: GraphQLFieldConfig<
       }
 
       if (
-        args.details &&
+        args.password &&
         !(await before.isAccessibleBy(realm, t, tx, "write.details"))
       ) {
         throw new ForbiddenError(
@@ -91,17 +76,16 @@ export const updatePasswordCredential: GraphQLFieldConfig<
           ...before,
           enabled:
             typeof args.enabled === "boolean" ? args.enabled : before.enabled,
-          details: args.details
-            ? {
-                hash:
-                  typeof args.details.password === "string"
-                    ? await hash(
-                        args.details.password,
-                        (await before.authority(tx)).details.rounds
-                      )
-                    : before.details.hash
-              }
-            : before.details
+          details: {
+            ...before.details,
+            hash:
+              typeof args.password === "string"
+                ? await hash(
+                    args.password,
+                    (await before.authority(tx)).details.rounds
+                  )
+                : before.details.hash
+          }
         },
         {
           recordId: v4(),

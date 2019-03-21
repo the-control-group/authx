@@ -104,6 +104,10 @@
       text-align: center;
     }
 
+    form p + p {
+      margin-top: 14px;
+    }
+
     form label {
       display: block;
       padding: 14px;
@@ -175,6 +179,17 @@
 
     form .error {
       color: hsl(6, 100%, 50%);
+    }
+
+    .info {
+      padding: 10px;
+      background: hsla(0, 0%, 100%, 0.03);
+      border-radius: 7px;
+      border: 2px solid hsla(0, 0%, 100%, 0.04)
+    }
+
+    .info > label:first-child {
+      padding-top: 7px;
     }
   </style>
   </head>

@@ -90,13 +90,13 @@ export const createToken: GraphQLFieldConfig<
           enabled: args.enabled,
           userId: args.userId,
           grantId: args.grantId,
-          credentialId: null,
           secret: randomBytes(16).toString("hex"),
           scopes: args.scopes
         },
         {
           recordId: v4(),
           createdByTokenId: t.id,
+          createdByCredentialId: null,
           createdAt: new Date()
         }
       );

@@ -1,6 +1,6 @@
 import { Pool } from "pg";
 import { Middleware, ParameterizedContext } from "koa";
-import Router from "koa-router";
+import Router, { IRouterOptions } from "koa-router";
 import body from "koa-body";
 import { errorHandler, execute } from "graphql-api-koa";
 import x from "./x";
@@ -8,6 +8,7 @@ import x from "./x";
 import createSchema from "./graphql";
 export * from "./graphql";
 
+import { Config } from "./Config";
 import { Context } from "./graphql/Context";
 import { Strategy } from "./Strategy";
 import { Token, Authority, Credential } from "./model";
@@ -17,25 +18,27 @@ import { NotFoundError, AuthenticationError } from "./errors";
 const __DEV__ = process.env.NODE_ENV !== "production";
 
 export class AuthX<StateT = any, CustomT = {}> extends Router<StateT, CustomT> {
-  private pool: Pool;
-  public readonly realm: string;
-  public readonly strategies: Strategy[];
-
-  public constructor(config: any, strategies: Strategy[]) {
+  public constructor(config: Config & IRouterOptions) {
     super(config);
 
-    // create a database pool
-    this.pool = new Pool();
+    const {
+      realm = "AuthX",
+      interfaceBaseUrl,
+      oauthPrivateKey,
+      oauthPublicKeys,
+      strategies,
+      sendMail
+    } = config;
 
-    this.realm = config.realm || "AuthX";
-    this.strategies = strategies;
+    // create a database pool
+    const pool = new Pool(config.pg);
 
     // define the context middleware
     const context: Middleware<ParameterizedContext<any, any>> = async (
       ctx,
       next
     ): Promise<void> => {
-      const tx = await this.pool.connect();
+      const tx = await pool.connect();
       try {
         let token = null;
 
@@ -95,11 +98,13 @@ export class AuthX<StateT = any, CustomT = {}> extends Router<StateT, CustomT> {
         }
 
         const context: Context = {
-          realm: this.realm,
-          tx,
-          token,
+          realm,
+          interfaceBaseUrl,
+          sendMail,
           authorityMap,
-          credentialMap
+          credentialMap,
+          token,
+          tx
         };
 
         ctx[x] = context;

@@ -157,21 +157,21 @@ export function Token({
       </label>
 
       {errors.length ? (
-        <div
-          style={{
-            padding: "10px",
-            background: "hsla(0, 0%, 100%, 0.03)",
-            borderRadius: "7px",
-            border: "2px solid hsla(0, 0%, 100%, 0.04)"
-          }}
-        >
+        <div className="info">
           <p>
             If you are unable to revoke the current token, you can remove it
             from this browser. If you do this, make sure to revoke it from a
             different computer if you suspect it was comprimized.
           </p>
           <label>
-            <input type="submit" value="Reset Browser" />
+            <input
+              onClick={e => {
+                e.preventDefault();
+                clearToken();
+              }}
+              type="button"
+              value="Reset Browser Data"
+            />
           </label>
         </div>
       ) : null}

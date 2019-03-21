@@ -1,11 +1,11 @@
 import v4 from "uuid/v4";
+import jwt from "jsonwebtoken";
 import {
   GraphQLBoolean,
   GraphQLFieldConfig,
   GraphQLID,
   GraphQLNonNull,
-  GraphQLString,
-  GraphQLInputObjectType
+  GraphQLString
 } from "graphql";
 
 import { Context } from "../../../../graphql/Context";
@@ -13,23 +13,7 @@ import { Authority } from "../../../../model";
 import { EmailCredential, EmailAuthority } from "../../model";
 import { ForbiddenError, NotFoundError } from "../../../../errors";
 import { GraphQLEmailCredential } from "../GraphQLEmailCredential";
-
-// TODO: VERIFY
-function verify(proof: string): boolean {
-  return true;
-}
-
-export const GraphQLCreateEmailCredentialDetailsInput = new GraphQLInputObjectType(
-  {
-    name: "CreateEmailCredentialDetailsInput",
-    fields: () => ({
-      email: {
-        type: new GraphQLNonNull(GraphQLString),
-        description: "The plaintext email to use for this credential."
-      }
-    })
-  }
-);
+import { substitute } from "../../substitute";
 
 export const createEmailCredential: GraphQLFieldConfig<
   any,
@@ -37,7 +21,7 @@ export const createEmailCredential: GraphQLFieldConfig<
     enabled: boolean;
     userId: string;
     authorityId: string;
-    authorityUserId: string;
+    email: string;
     proof: null | string;
   },
   Context
@@ -57,18 +41,25 @@ export const createEmailCredential: GraphQLFieldConfig<
       description:
         "The ID of the AuthX email authority that can verify this credential."
     },
-    authorityUserId: {
+    email: {
       type: new GraphQLNonNull(GraphQLID),
       description: "The email address of the user."
     },
     proof: {
       type: GraphQLString,
       description:
-        "This unique code is sent by the authority to prove ownership of the email address."
+        "This is a unique code that was sent by the authority to prove control of the email address."
     }
   },
   async resolve(source, args, context): Promise<EmailCredential> {
-    const { tx, token: t, realm, authorityMap } = context;
+    const {
+      tx,
+      token: t,
+      realm,
+      authorityMap,
+      sendMail,
+      interfaceBaseUrl
+    } = context;
 
     if (!t) {
       throw new ForbiddenError(
@@ -90,32 +81,12 @@ export const createEmailCredential: GraphQLFieldConfig<
         enabled: args.enabled,
         authorityId: args.authorityId,
         userId: args.userId,
-        authorityUserId: args.userId,
+        authorityUserId: args.email,
         contact: null,
         details: {}
       });
 
-      if (!(await t.can(tx, `${realm}:credential.user.*.*:write.*`))) {
-        if (!(await data.isAccessibleBy(realm, t, tx, "write.*"))) {
-          throw new ForbiddenError(
-            "You do not have permission to create this credential."
-          );
-        }
-
-        // The user doesn't have permission to change the credentials of all users,
-        // so she needs to prove ownership of the email address.
-        if (!args.proof) {
-          throw new ForbiddenError(
-            "You do not have permission to create this credential without a proof."
-          );
-        }
-
-        if (!verify(args.proof)) {
-          throw new ForbiddenError("The proof is invalid.");
-        }
-      }
-
-      // Check if the email is used in a different credential, and if it is, disable it.
+      // Check if the email is used in a different credential
       const existingCredentials = await EmailCredential.read(
         tx,
         (await tx.query(
@@ -136,6 +107,100 @@ export const createEmailCredential: GraphQLFieldConfig<
         throw new Error(
           "INVARIANT: There cannot be more than one active credential with the same authorityId and authorityUserId."
         );
+      }
+
+      if (!(await t.can(tx, `${realm}:credential.user.*.*:write.*`))) {
+        if (!(await data.isAccessibleBy(realm, t, tx, "write.*"))) {
+          throw new ForbiddenError(
+            "You do not have permission to create this credential."
+          );
+        }
+
+        // The user doesn't have permission to change the credentials of all
+        // users, but has passed a proof that she controls the email address, so
+        // we can treat it as hers.
+        const { proof } = args;
+        if (proof) {
+          if (
+            !authority.details.publicKeys.some(key => {
+              try {
+                const payload = jwt.verify(proof, key, {
+                  algorithms: ["RS512"]
+                });
+
+                // Make sure we're using the same email
+                if ((payload as any).email !== args.email) {
+                  throw new ForbiddenError(
+                    "This proof was generated for a different email address."
+                  );
+                }
+
+                // Make sure this is for the same user
+                if ((payload as any).sub !== t.userId) {
+                  throw new ForbiddenError(
+                    "This proof was generated for a different user."
+                  );
+                }
+
+                return true;
+              } catch (error) {
+                if (error instanceof ForbiddenError) {
+                  throw error;
+                }
+
+                return false;
+              }
+            })
+          ) {
+            throw new ForbiddenError("The proof is invalid.");
+          }
+        }
+
+        // The user doesn't have permission to change the credentials of all
+        // users, so she needs to prove control of the email address.
+        else {
+          const proofId = v4();
+
+          // Generate a new proof
+          const proof = jwt.sign(
+            {
+              email: args.email
+            },
+            authority.details.privateKey,
+            {
+              algorithm: "RS512",
+              expiresIn: authority.details.proofValidityDuration,
+              subject: t.userId,
+              jwtid: proofId
+            }
+          );
+
+          const url =
+            interfaceBaseUrl +
+            `authenticate?authorityId=${
+              authority.id
+            }&proof=${encodeURIComponent(interfaceBaseUrl)}`;
+
+          // TODO: Add a nonce to any existing credential with the same address
+
+          // Send an email
+          await sendMail({
+            to: args.email,
+            subject: authority.details.verificationEmailSubject,
+            text: substitute(
+              { proof, url },
+              authority.details.verificationEmailText
+            ),
+            html: substitute(
+              { proof, url },
+              authority.details.verificationEmailHtml
+            )
+          });
+
+          throw new ForbiddenError(
+            "An email has been sent to this address with a code that can be used to prove control."
+          );
+        }
       }
 
       // Disable the conflicting credential

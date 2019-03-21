@@ -9,6 +9,7 @@
     "@types/bcrypt": "^3.0.0",
     "@types/graphql": "./@types/graphql",
     "@types/graphql-api-koa": "./@types/graphql-api-koa",
+    "@types/jsonwebtoken": "^8.3.2",
     "@types/koa": "^2.0.48",
     "@types/koa-router": "^7.0.40",
     "@types/koa-send": "^4.1.2",
@@ -63,10 +64,10 @@
   "scripts": {
     "format": "prettier --list-different --write '**/*.{json,yml,md,ts}'",
     "lint": "prettier -c '**/*.{json,yml,md,ts}' && eslint src --ext ts",
-    "prepare": "rm -rf dist && npx tsc",
+    "prepare": "rm -rf dist && tsc",
     "test": "npm run prepare && ava --verbose dist/test.js",
-    "watch": "rm -rf dist && npx tsc --watch",
-    "start:development": "NODE_ENV=development npx nodemon --inspect dist/server",
+    "watch": "rm -rf dist && tsc --watch",
+    "start:development": "NODE_ENV=development nodemon --inspect dist/server",
     "start:production": "NODE_ENV=production node dist/server",
     "start": "npm run start:production"
   },

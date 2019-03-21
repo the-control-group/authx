@@ -127,21 +127,21 @@ export const authenticatePassword: GraphQLFieldConfig<
           enabled: true,
           userId,
           grantId: null,
-          credentialId: credential.id,
           secret: randomBytes(16).toString("hex"),
           scopes: [`${realm}:**:**`]
         },
         {
           recordId: v4(),
           createdByTokenId: tokenId,
+          createdByCredentialId: credential.id,
           createdAt: new Date()
         }
       );
 
+      await tx.query("COMMIT");
+
       // use this token for the rest of the request
       context.token = token;
-
-      await tx.query("COMMIT");
 
       return token;
     } catch (error) {

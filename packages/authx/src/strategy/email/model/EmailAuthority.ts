@@ -6,7 +6,9 @@ import { EmailCredential } from "./EmailCredential";
 // ---------
 
 export interface EmailAuthorityDetails {
-  expiresIn: number;
+  privateKey: string;
+  publicKeys: string[];
+  proofValidityDuration: number;
   authenticationEmailSubject: string;
   authenticationEmailText: string;
   authenticationEmailHtml: string;

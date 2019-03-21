@@ -73,6 +73,7 @@ export const updateToken: GraphQLFieldConfig<
         {
           recordId: v4(),
           createdByTokenId: t.id,
+          createdByCredentialId: null,
           createdAt: new Date()
         }
       );

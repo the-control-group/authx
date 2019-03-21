@@ -5,8 +5,7 @@ import {
   GraphQLID,
   GraphQLNonNull,
   GraphQLInt,
-  GraphQLString,
-  GraphQLInputObjectType
+  GraphQLString
 } from "graphql";
 
 import { Context } from "../../../../graphql/Context";
@@ -15,28 +14,13 @@ import { PasswordAuthority } from "../../model";
 import { ForbiddenError, NotFoundError } from "../../../../errors";
 import { GraphQLPasswordAuthority } from "../GraphQLPasswordAuthority";
 
-export const GraphQLUpdatePasswordAuthorityDetailsInput = new GraphQLInputObjectType(
-  {
-    name: "UpdatePasswordAuthorityDetailsInput",
-    fields: () => ({
-      rounds: {
-        type: GraphQLInt,
-        description:
-          "The number of bcrypt rounds to use when generating new hashes."
-      }
-    })
-  }
-);
-
 export const updatePasswordAuthority: GraphQLFieldConfig<
   any,
   {
     id: string;
     enabled: null | boolean;
     name: null | string;
-    details: null | {
-      rounds: null | number;
-    };
+    rounds: null | number;
   },
   Context
 > = {
@@ -53,9 +37,10 @@ export const updatePasswordAuthority: GraphQLFieldConfig<
       type: GraphQLString,
       description: "The name of the authority."
     },
-    details: {
-      type: GraphQLUpdatePasswordAuthorityDetailsInput,
-      description: "Authority details, specific to the password strategy."
+    rounds: {
+      type: GraphQLInt,
+      description:
+        "The number of bcrypt rounds to use when generating new hashes."
     }
   },
   async resolve(source, args, context): Promise<PasswordAuthority> {
@@ -83,7 +68,7 @@ export const updatePasswordAuthority: GraphQLFieldConfig<
       }
 
       if (
-        args.details &&
+        args.rounds &&
         !(await before.isAccessibleBy(realm, t, tx, "write.details"))
       ) {
         throw new ForbiddenError(
@@ -98,14 +83,13 @@ export const updatePasswordAuthority: GraphQLFieldConfig<
           enabled:
             typeof args.enabled === "boolean" ? args.enabled : before.enabled,
           name: typeof args.name === "string" ? args.name : before.name,
-          details: args.details
-            ? {
-                rounds:
-                  typeof args.details.rounds === "number"
-                    ? args.details.rounds
-                    : before.details.rounds
-              }
-            : before.details
+          details: {
+            ...before.details,
+            rounds:
+              typeof args.rounds === "number"
+                ? args.rounds
+                : before.details.rounds
+          }
         },
         {
           recordId: v4(),
