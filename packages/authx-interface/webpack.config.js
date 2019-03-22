@@ -32,7 +32,7 @@ module.exports = [
     },
     plugins: [
       new HtmlWebpackPlugin({
-        template: path.join(__dirname, "src/authenticate/index.html"),
+        template: path.join(__dirname, "src/index.html"),
         filename: "index.html"
       })
     ]
@@ -63,7 +63,7 @@ module.exports = [
     },
     plugins: [
       new HtmlWebpackPlugin({
-        template: path.join(__dirname, "src/authorize/index.html"),
+        template: path.join(__dirname, "src/index.html"),
         filename: "index.html"
       })
     ]

@@ -43,7 +43,7 @@ export type GraphQLOperation<V> = {
 
 export interface GraphQLOperationLoading<T> {
   cacheKey: GraphQLCacheKey;
-  cacheValue: GraphQLCacheValue<T>;
+  cacheValue: undefined | GraphQLCacheValue<T>;
   cacheValuePromise: Promise<GraphQLCacheValue<T>>;
 }
 
@@ -56,8 +56,49 @@ export interface GraphQLOperationStatus<T> {
 
 export class GraphQL {
   public constructor(options?: { cache?: GraphQLCache });
-  public off(type: string, handler: (event?: any) => void): void;
-  public on(type: string, handler: (event?: any) => void): void;
+
+  public on(
+    type: "reset",
+    handler: (event: { exceptCacheKey: GraphQLCacheKey }) => void
+  ): void;
+
+  public on(
+    type: "cache",
+    handler: (event: {
+      cacheKey: GraphQLCacheKey;
+      cacheValue: GraphQLCacheValue<any>;
+    }) => void
+  ): void;
+
+  public on(
+    type: "fetch",
+    handler: (event: {
+      cacheKey: GraphQLCacheKey;
+      cacheValuePromise: Promise<GraphQLCacheValue<any>>;
+    }) => void
+  ): void;
+
+  public off(
+    type: "reset",
+    handler: (event: { exceptCacheKey: GraphQLCacheKey }) => void
+  ): void;
+
+  public off(
+    type: "cache",
+    handler: (event: {
+      cacheKey: GraphQLCacheKey;
+      cacheValue: GraphQLCacheValue<any>;
+    }) => void
+  ): void;
+
+  public off(
+    type: "fetch",
+    handler: (event: {
+      cacheKey: GraphQLCacheKey;
+      cacheValuePromise: Promise<GraphQLCacheValue<any>>;
+    }) => void
+  ): void;
+
   public reset(exceptCacheKey?: string): void;
   public operate<T, V>(options: {
     operation: GraphQLOperation<V>;

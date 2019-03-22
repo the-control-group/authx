@@ -1,5 +1,6 @@
 import React, {
   useMemo,
+  useContext,
   useState,
   useEffect,
   useCallback,
@@ -11,7 +12,8 @@ import {
   GraphQLContext,
   GraphQL,
   useGraphQL,
-  GraphQLFetchOptions
+  GraphQLFetchOptions,
+  GraphQLCacheValue
 } from "graphql-react";
 import { Authority, StrategyComponentProps } from "./definitions";
 
@@ -30,11 +32,16 @@ const strategyComponentMap: {
 
 function Authenticate({  }: {}): ReactElement<any> {
   // Get the current token from localStorage.
-  const [tokenId, tokenSecret] = (
-    window.localStorage.getItem("token") || ":"
-  ).split(":");
   const [token, setToken] = useState<null | { id: string; secret: string }>(
-    tokenId && tokenSecret ? { id: tokenId, secret: tokenSecret } : null
+    useMemo(() => {
+      const [tokenId, tokenSecret] = (
+        window.localStorage.getItem("token") || ":"
+      ).split(":");
+
+      return tokenId && tokenSecret
+        ? { id: tokenId, secret: tokenSecret }
+        : null;
+    }, [])
   );
 
   // Listen for changes to the token in localStorage
@@ -59,6 +66,32 @@ function Authenticate({  }: {}): ReactElement<any> {
     };
   }, [token, setToken]);
 
+  // If any request returns a 401, we know that the token is no longer valid.
+  const graphql = useContext<GraphQL>(GraphQLContext);
+  useEffect(() => {
+    if (!token) return;
+
+    async function onFetch({
+      cacheValuePromise: request
+    }: {
+      cacheValuePromise: Promise<GraphQLCacheValue<any>>;
+    }): Promise<void> {
+      try {
+        const response = await request;
+        if (response.httpError && response.httpError.status === 401) {
+          window.localStorage.removeItem("token");
+          setToken(null);
+        }
+      } catch (error) {
+        console.error(error);
+      }
+    }
+
+    graphql.on("fetch", onFetch);
+    return () => graphql.off("fetch", onFetch);
+  }, [token, graphql]);
+
+  // Set fetch options
   const fetchOptionsOverride = useCallback(
     (options: GraphQLFetchOptions) => {
       options.url = "/graphql";
@@ -191,6 +224,8 @@ function Authenticate({  }: {}): ReactElement<any> {
     </div>
   );
 }
+
+document.title = "Authenticate";
 
 ReactDOM.render(
   <GraphQLContext.Provider value={graphql}>
