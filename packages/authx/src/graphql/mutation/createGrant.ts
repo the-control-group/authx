@@ -91,6 +91,7 @@ export const createGrant: GraphQLFieldConfig<
           enabled: args.enabled,
           userId: args.userId,
           clientId: args.clientId,
+          secret: randomBytes(16).toString("hex"),
           nonces: [
             Buffer.from(
               [

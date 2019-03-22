@@ -21,6 +21,7 @@ export const updateGrant: GraphQLFieldConfig<
     id: string;
     enabled: null | boolean;
     scopes: null | string[];
+    generateSecret: boolean;
     generateNonces: null | number;
     removeNonces: null | string[];
   },
@@ -37,6 +38,10 @@ export const updateGrant: GraphQLFieldConfig<
     },
     scopes: {
       type: new GraphQLList(new GraphQLNonNull(GraphQLString))
+    },
+    generateSecret: {
+      type: GraphQLBoolean,
+      defaultValue: false
     },
     generateNonces: {
       type: GraphQLInt
@@ -73,7 +78,7 @@ export const updateGrant: GraphQLFieldConfig<
       }
 
       if (
-        (args.generateNonces || args.removeNonces) &&
+        (args.generateSecret || args.generateNonces || args.removeNonces) &&
         !(await before.isAccessibleBy(realm, t, tx, "write.secrets"))
       ) {
         throw new ForbiddenError(
@@ -119,6 +124,9 @@ export const updateGrant: GraphQLFieldConfig<
           ...before,
           enabled:
             typeof args.enabled === "boolean" ? args.enabled : before.enabled,
+          secret: args.generateSecret
+            ? randomBytes(16).toString("hex")
+            : before.secret,
           nonces,
           scopes: args.scopes || before.scopes
         },

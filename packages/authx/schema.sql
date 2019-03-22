@@ -61,8 +61,8 @@ CREATE UNIQUE INDEX ON authx.authority_record USING BTREE (entity_id) WHERE repl
 
 CREATE TABLE authx.client_record (
   name TEXT NOT NULL,
-  oauth2_secrets TEXT[] NOT NULL,
-  oauth2_urls TEXT[] NOT NULL,
+  secrets TEXT[] NOT NULL,
+  urls TEXT[] NOT NULL,
 
   PRIMARY KEY (record_id),
   FOREIGN KEY (replacement_record_id) REFERENCES authx.client_record DEFERRABLE INITIALLY DEFERRED,
@@ -103,6 +103,7 @@ CREATE UNIQUE INDEX ON authx.credential_record USING BTREE (authority_id, author
 CREATE TABLE authx.grant_record (
   user_id UUID NOT NULL REFERENCES authx.user,
   client_id UUID NOT NULL REFERENCES authx.client,
+  secret TEXT NOT NULL,
   nonces TEXT[] NOT NULL,
   scopes TEXT[] NOT NULL,
 

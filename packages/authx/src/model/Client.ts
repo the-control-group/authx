@@ -8,8 +8,8 @@ export interface ClientData {
   readonly id: string;
   readonly enabled: boolean;
   readonly name: string;
-  readonly oauth2Secrets: Iterable<string>;
-  readonly oauth2Urls: Iterable<string>;
+  readonly secrets: Iterable<string>;
+  readonly urls: Iterable<string>;
   readonly userIds: Iterable<string>;
 }
 
@@ -17,8 +17,8 @@ export class Client implements ClientData {
   public readonly id: string;
   public readonly enabled: boolean;
   public readonly name: string;
-  public readonly oauth2Secrets: Set<string>;
-  public readonly oauth2Urls: Set<string>;
+  public readonly secrets: Set<string>;
+  public readonly urls: Set<string>;
   public readonly userIds: Set<string>;
 
   private _grants: null | Promise<Grant[]> = null;
@@ -28,8 +28,8 @@ export class Client implements ClientData {
     this.id = data.id;
     this.enabled = data.enabled;
     this.name = data.name;
-    this.oauth2Secrets = new Set(data.oauth2Secrets);
-    this.oauth2Urls = new Set(data.oauth2Urls);
+    this.secrets = new Set(data.secrets);
+    this.urls = new Set(data.urls);
     this.userIds = new Set(data.userIds);
   }
 
@@ -97,8 +97,8 @@ export class Client implements ClientData {
         entity_id AS id,
         enabled,
         name,
-        oauth2_secrets,
-        oauth2_urls,
+        secrets,
+        urls,
         json_agg(authx.client_record_user.user_id) AS user_ids
       FROM authx.client_record
       LEFT JOIN authx.client_record_user
@@ -110,8 +110,8 @@ export class Client implements ClientData {
         authx.client_record.entity_id,
         authx.client_record.enabled,
         authx.client_record.name,
-        authx.client_record.oauth2_secrets,
-        authx.client_record.oauth2_urls
+        authx.client_record.secrets,
+        authx.client_record.urls
       `,
       [typeof id === "string" ? [id] : id]
     );
@@ -130,8 +130,8 @@ export class Client implements ClientData {
       row =>
         new Client({
           ...row,
-          oauth2Secrets: row.oauth2_secrets,
-          oauth2Urls: row.oauth2_urls,
+          secrets: row.secrets,
+          urls: row.urls,
           userIds: row.user_ids.filter((id: null | string) => id)
         })
     );
@@ -184,8 +184,8 @@ export class Client implements ClientData {
         entity_id,
         enabled,
         name,
-        oauth2_secrets,
-        oauth2_urls
+        secrets,
+        urls
       )
       VALUES
         ($1, $2, $3, $4, $5, $6, $7, $8)
@@ -193,8 +193,8 @@ export class Client implements ClientData {
         entity_id AS id,
         enabled,
         name,
-        oauth2_secrets,
-        oauth2_urls
+        secrets,
+        urls
       `,
       [
         metadata.recordId,
@@ -203,8 +203,8 @@ export class Client implements ClientData {
         data.id,
         data.enabled,
         data.name,
-        [...new Set(data.oauth2Secrets)],
-        [...new Set(data.oauth2Urls)]
+        [...new Set(data.secrets)],
+        [...new Set(data.urls)]
       ]
     );
 
@@ -233,8 +233,8 @@ export class Client implements ClientData {
     const row = next.rows[0];
     return new Client({
       ...row,
-      oauth2Secrets: row.oauth2_secrets,
-      oauth2Urls: row.oauth2_urls,
+      secrets: row.secrets,
+      urls: row.urls,
       userIds: users.rows.map(({ user_id: userId }) => userId)
     });
   }

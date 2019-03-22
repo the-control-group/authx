@@ -15,6 +15,7 @@ export interface GrantData {
   readonly enabled: boolean;
   readonly clientId: string;
   readonly userId: string;
+  readonly secret: string;
   readonly nonces: Iterable<string>;
   readonly scopes: Iterable<string>;
 }
@@ -24,6 +25,7 @@ export class Grant implements GrantData {
   public readonly enabled: boolean;
   public readonly clientId: string;
   public readonly userId: string;
+  public readonly secret: string;
   public readonly nonces: Set<string>;
   public readonly scopes: string[];
 
@@ -35,6 +37,7 @@ export class Grant implements GrantData {
     this.enabled = data.enabled;
     this.clientId = data.clientId;
     this.userId = data.userId;
+    this.secret = data.secret;
     this.nonces = new Set(data.nonces);
     this.scopes = simplify([...data.scopes]);
   }
@@ -137,6 +140,7 @@ export class Grant implements GrantData {
         enabled,
         client_id,
         user_id,
+        secret,
         nonces,
         scopes
       FROM authx.grant_record
@@ -221,16 +225,18 @@ export class Grant implements GrantData {
         enabled,
         client_id,
         user_id,
+        secret,
         nonces,
         scopes
       )
       VALUES
-        ($1, $2, $3, $4, $5, $6, $7, $8, $9)
+        ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10)
       RETURNING
         entity_id AS id,
         enabled,
         client_id,
         user_id,
+        secret,
         nonces,
         scopes
       `,
@@ -242,6 +248,7 @@ export class Grant implements GrantData {
         data.enabled,
         data.clientId,
         data.userId,
+        data.secret,
         [...new Set(data.nonces)],
         simplify([...data.scopes])
       ]
