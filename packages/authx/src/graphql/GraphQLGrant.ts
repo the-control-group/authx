@@ -40,27 +40,15 @@ export const GraphQLGrant = new GraphQLObjectType<Grant, Context>({
         return client.isAccessibleBy(realm, t, tx) ? client : null;
       }
     },
-    oauth2Nonce: {
-      type: GraphQLString,
+    nonces: {
+      type: new GraphQLList(GraphQLString),
       async resolve(
         grant,
         args,
         { realm, token: t, tx }: Context
-      ): Promise<null | string> {
+      ): Promise<null | string[]> {
         return t && (await grant.isAccessibleBy(realm, t, tx, "read.secrets"))
-          ? grant.oauth2Nonce
-          : null;
-      }
-    },
-    oauth2RefreshToken: {
-      type: GraphQLString,
-      async resolve(
-        grant,
-        args,
-        { realm, token: t, tx }: Context
-      ): Promise<null | string> {
-        return t && (await grant.isAccessibleBy(realm, t, tx, "read.secrets"))
-          ? grant.oauth2RefreshToken
+          ? [...grant.nonces]
           : null;
       }
     },

@@ -140,7 +140,10 @@ export function PasswordAuthority({
   }
 
   return (
-    <form onSubmit={onSubmit} className={errors.length ? "validate" : ""}>
+    <form
+      onSubmit={onSubmit}
+      className={errors.length ? "panel validate" : "panel"}
+    >
       <label>
         <span>Identity</span>
         <div style={{ display: "flex" }}>

@@ -127,6 +127,37 @@ export class User implements UserData {
       ))());
   }
 
+  public async grant(
+    tx: PoolClient,
+    clientId: string,
+    refresh: boolean = false
+  ): Promise<null | Grant> {
+    const result = await tx.query(
+      `
+      SELECT entity_id AS id
+      FROM authx.grant_record
+      WHERE
+        user_id = $1
+        AND client_id = $2
+        AND enabled = TRUE
+        AND replacement_record_id IS NULL
+      `,
+      [this.id, clientId]
+    );
+
+    if (result.rows.length > 1) {
+      throw new Error(
+        "INVARIANT: It must be impossible for the same user and client to have multiple enabled grants.."
+      );
+    }
+
+    if (result.rows.length) {
+      return Grant.read(tx, result.rows[0].id);
+    }
+
+    return null;
+  }
+
   public async roles(
     tx: PoolClient,
     refresh: boolean = false

@@ -5,7 +5,7 @@ import {
   GraphQLObjectType
 } from "graphql";
 
-import { User } from "../model";
+import { User, Grant } from "../model";
 import { Context } from "./Context";
 import { GraphQLContact } from "./GraphQLContact";
 import { GraphQLCredential } from "./GraphQLCredential";
@@ -46,18 +46,41 @@ export const GraphQLUser: GraphQLObjectType<
           ? filter(await user.credentials(tx, credentialMap), credential =>
               credential.isAccessibleBy(realm, t, tx)
             )
-          : [];
+          : null;
       }
     },
     grants: {
       type: new GraphQLList(GraphQLGrant),
       description: "List all of the user's grants.",
-      async resolve(user, args, { realm, token: t, tx }: Context) {
+      async resolve(
+        user,
+        args,
+        { realm, token: t, tx }: Context
+      ): Promise<null | Grant[]> {
         return t
           ? filter(await user.grants(tx), grant =>
               grant.isAccessibleBy(realm, t, tx)
             )
-          : [];
+          : null;
+      }
+    },
+    grant: {
+      type: GraphQLGrant,
+      args: {
+        clientId: {
+          type: new GraphQLNonNull(GraphQLID),
+          description: "A ID of the client."
+        }
+      },
+      description: "Look for a grant between this user and a client.",
+      async resolve(
+        user,
+        args,
+        { realm, token: t, tx }: Context
+      ): Promise<null | Grant> {
+        if (!t) return null;
+        const grant = await user.grant(tx, args.clientId);
+        return grant && grant.isAccessibleBy(realm, t, tx) ? grant : null;
       }
     },
     roles: {
@@ -71,7 +94,7 @@ export const GraphQLUser: GraphQLObjectType<
                 (await role.isAccessibleBy(realm, t, tx)) &&
                 (await role.isAccessibleBy(realm, t, tx, "read.assignments"))
             )
-          : [];
+          : null;
       }
     },
     clients: {
@@ -82,7 +105,7 @@ export const GraphQLUser: GraphQLObjectType<
           ? filter(await user.clients(tx), client =>
               client.isAccessibleBy(realm, t, tx)
             )
-          : [];
+          : null;
       }
     }
   })

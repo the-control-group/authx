@@ -10,7 +10,8 @@
     "@types/react-dom": "^16.8.2",
     "graphql-react": "^8.1.1",
     "react": "^16.8.4",
-    "react-dom": "^16.8.4"
+    "react-dom": "^16.8.4",
+    "scopeutils": "^2.1.0"
   },
   "description": "",
   "devDependencies": {

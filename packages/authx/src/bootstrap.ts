@@ -36,8 +36,7 @@ const grant = new Grant({
   enabled: true,
   clientId: client.id,
   userId: user.id,
-  oauth2Nonce: null,
-  oauth2RefreshToken: crypto.randomBytes(16).toString("hex"),
+  nonces: [],
   scopes: ["AuthX:**:**"]
 });
 

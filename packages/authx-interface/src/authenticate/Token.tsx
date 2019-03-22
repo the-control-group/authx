@@ -141,7 +141,10 @@ export function Token({
   }
 
   return (
-    <form onSubmit={onSubmit} className={errors.length ? "validate" : ""}>
+    <form
+      onSubmit={onSubmit}
+      className={errors.length ? "panel validate" : "panel"}
+    >
       <p>You are logged in{displayName ? ` as ${displayName}` : ""}.</p>
 
       {errors.length

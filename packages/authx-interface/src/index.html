@@ -91,93 +91,97 @@
       border-top-right-radius: 7px;
     }
 
-    form {
-      background-color: hsl(206, 7%, 21%);
+    .tabs + .panel {
       border-radius: 0 0 7px 7px;
+    }
+
+    .panel {
+      background-color: hsl(206, 7%, 21%);
+      border-radius: 7px;
       padding: 14px;
       margin: auto;
     }
 
-    form p {
+    .panel p {
       margin: 7px 14px;
       font-size: 14px;
       text-align: center;
     }
 
-    form p + p {
+    .panel p + p {
       margin-top: 14px;
     }
 
-    form label {
+    .panel label {
       display: block;
       padding: 14px;
     }
 
-    form label > span {
+    .panel label > span {
       padding: 0 7px 7px;
       display: block;
       font-size: 14px;
     }
 
-    form label > input {
+    .panel label > input {
       width: 100%;
     }
 
-    form input,
-    form select {
+    .panel input,
+    .panel select {
       font-size: 14px;
       background-color: hsl(206, 8%, 17%);
       border: 2px solid hsl(206, 8%, 17%);
       color: hsl(206, 0%, 80%);
     }
 
-    form input:focus,
-    form select:focus {
+    .panel input:focus,
+    .panel select:focus {
       outline: none;
       background-color: hsl(206, 6%, 25%);
       border-color: hsl(206, 46%, 37%);
       color: hsl(206, 0%, 100%);
     }
 
-    form input {
+    .panel input {
       padding: 0 14px;
       height: 28px;
       box-sizing: border-box;
       border-radius: 14px;
     }
 
-    form select {
+    .panel select {
       padding: 0 7px;
       height: 28px;
       box-sizing: border-box;
       border-radius: 7px;
     }
 
-    form.validate input:not(:focus):invalid {
+    .panel.validate input:not(:focus):invalid {
       background-color: hsl(0, 35%, 20%);
       border-color: hsl(0, 35%, 20%);
     }
 
-    form input[type="submit"],
-    form input[type="button"] {
+    .panel input[type="submit"],
+    .panel input[type="button"] {
       background-color: hsl(206, 62%, 13%);
       border-color: hsl(206, 62%, 13%);
       border-radius: 7px;
       height: 36px;
     }
 
-    form input[type="submit"]:disabled,
-    form input[type="button"]:disabled {
+    .panel input[type="submit"]:disabled,
+    .panel input[type="button"]:disabled {
       background-color: hsl(206, 10%, 13%);
       border-color: hsl(206, 10%, 13%);
     }
 
-    form input[type="submit"]:not(:disabled):focus,
-    form input[type="button"]:not(:disabled):focus {
+    .panel input[type="submit"]:not(:disabled):focus,
+    .panel input[type="button"]:not(:disabled):focus {
       border-color: hsl(206, 100%, 33%);
     }
 
-    form .error {
+    .panel .error {
       color: hsl(6, 100%, 50%);
     }
 

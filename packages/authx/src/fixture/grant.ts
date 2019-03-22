@@ -12,9 +12,7 @@ export const grant = [
           enabled: true,
           clientId: "1fcb730e-f134-463a-b224-cab7e61c5ce0",
           userId: "e165cbb0-86b0-4e11-9db7-eb5f742161b8",
-          oauth2Nonce: null,
-          oauth2RefreshToken:
-            "82bf9680e63b087c60fa18ce93a19f4764dce60fc2370460148201e7715bc048",
+          nonces: [],
           scopes: ["AuthX:**:**"]
         },
         {
@@ -34,9 +32,7 @@ export const grant = [
           enabled: true,
           clientId: "17436d83-6022-4101-bf9f-997f1550f57c",
           userId: "a6a0946d-eeb4-45cd-83c6-c7920f2272eb",
-          oauth2Nonce: null,
-          oauth2RefreshToken:
-            "24254c0d927f5c7d7b36a968f66d5f2b9433157e06f5e34237fa73c108736b7a",
+          nonces: [],
           scopes: ["**:**:**"]
         },
         {
@@ -56,9 +52,9 @@ export const grant = [
           enabled: true,
           clientId: "17436d83-6022-4101-bf9f-997f1550f57c",
           userId: "51192909-3664-44d5-be62-c6b45f0b0ee6",
-          oauth2Nonce: "d122298d-55d9-4eee-9c17-463113669007",
-          oauth2RefreshToken:
-            "031adee275513f902344a75ff8a97e37773f6ae0ca6d8779323d1033291d527b",
+          nonces: [
+            "NGU3NmNiMTMtYWIyNC00ZGMxLWFkOTYtYWJjYmI4OWY1NTI5OjE1NTE5MDY0Nzk4MTQ6MmQyMzc1ZmRjMTA0NjM0YjU3OGI5YWUxZDUxNGJiM2Y="
+          ],
           scopes: ["**:**:**"]
         },
         {

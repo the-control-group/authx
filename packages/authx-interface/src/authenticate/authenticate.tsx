@@ -1,27 +1,11 @@
-import React, {
-  useMemo,
-  useContext,
-  useState,
-  useEffect,
-  useCallback,
-  ComponentType,
-  ReactElement
-} from "react";
+import React, { useState, useEffect, ComponentType, ReactElement } from "react";
 import ReactDOM from "react-dom";
-import {
-  GraphQLContext,
-  GraphQL,
-  useGraphQL,
-  GraphQLFetchOptions,
-  GraphQLCacheValue
-} from "graphql-react";
+import { GraphQLContext, GraphQL, useGraphQL } from "graphql-react";
 import { Authority, StrategyComponentProps } from "./definitions";
-
 import { PasswordAuthority } from "./PasswordAuthority";
 import { EmailAuthority } from "./EmailAuthority";
 import { Token } from "./Token";
-
-const graphql = new GraphQL();
+import { useAuthX } from "../authx";
 
 const strategyComponentMap: {
   [strategy: string]: ComponentType<StrategyComponentProps>;
@@ -31,84 +15,10 @@ const strategyComponentMap: {
 };
 
 function Authenticate({  }: {}): ReactElement<any> {
-  // Get the current token from localStorage.
-  const [token, setToken] = useState<null | { id: string; secret: string }>(
-    useMemo(() => {
-      const [tokenId, tokenSecret] = (
-        window.localStorage.getItem("token") || ":"
-      ).split(":");
-
-      return tokenId && tokenSecret
-        ? { id: tokenId, secret: tokenSecret }
-        : null;
-    }, [])
-  );
-
-  // Listen for changes to the token in localStorage
-  useEffect(() => {
-    function onChange(e: StorageEvent): void {
-      console.log(e);
-      if (e.key === "token") {
-        const [tokenId, tokenSecret] = (e.newValue || "null").split(":");
-        if (
-          tokenId &&
-          tokenSecret &&
-          (!token || token.id !== tokenId || token.secret !== tokenSecret)
-        ) {
-          setToken({ id: tokenId, secret: tokenSecret });
-        }
-      }
-    }
-
-    window.addEventListener("storage", onChange);
-    return () => {
-      window.removeEventListener("storage", onChange);
-    };
-  }, [token, setToken]);
-
-  // If any request returns a 401, we know that the token is no longer valid.
-  const graphql = useContext<GraphQL>(GraphQLContext);
-  useEffect(() => {
-    if (!token) return;
-
-    async function onFetch({
-      cacheValuePromise: request
-    }: {
-      cacheValuePromise: Promise<GraphQLCacheValue<any>>;
-    }): Promise<void> {
-      try {
-        const response = await request;
-        if (response.httpError && response.httpError.status === 401) {
-          window.localStorage.removeItem("token");
-          setToken(null);
-        }
-      } catch (error) {
-        console.error(error);
-      }
-    }
-
-    graphql.on("fetch", onFetch);
-    return () => graphql.off("fetch", onFetch);
-  }, [token, graphql]);
-
-  // Set fetch options
-  const fetchOptionsOverride = useCallback(
-    (options: GraphQLFetchOptions) => {
-      options.url = "/graphql";
-      if (token) {
-        options.headers = new Headers();
-        options.headers.append("Content-Type", `application/json`);
-        options.headers.append(
-          "Authorization",
-          `Basic ${btoa(`${token.id}:${token.secret}`)}`
-        );
-      }
-    },
-    [token]
-  );
+  const { token, fetchOptionsOverride, setToken, clearToken } = useAuthX();
 
   // Get all active authorities from the API.
-  const { cacheValue } = useGraphQL<any, void>({
+  const { loading, cacheValue } = useGraphQL<any, void>({
     fetchOptionsOverride,
     operation: {
       query: `
@@ -153,7 +63,9 @@ function Authenticate({  }: {}): ReactElement<any> {
     if (authorityId === id) return;
     const url = new URL(window.location.href);
     url.searchParams.set("authorityId", id);
-    window.history.pushState({}, name || "AuthX", url.href);
+    if (!authorityId)
+      window.history.replaceState({}, name || "AuthX", url.href);
+    else window.history.pushState({}, name || "AuthX", url.href);
     setAuthorityId(id);
   }
 
@@ -185,10 +97,7 @@ function Authenticate({  }: {}): ReactElement<any> {
           fetchOptionsOverride={fetchOptionsOverride}
           redirect={redirect}
           token={token}
-          clearToken={() => {
-            window.localStorage.removeItem("token");
-            setToken(null);
-          }}
+          clearToken={clearToken}
         />
       </div>
     );
@@ -215,18 +124,26 @@ function Authenticate({  }: {}): ReactElement<any> {
           redirect={redirect}
           authority={authority}
           authorities={authorities}
-          setToken={token => {
-            window.localStorage.setItem("token", `${token.id}:${token.secret}`);
-            setToken(token);
-          }}
+          setToken={setToken}
         />
-      ) : null}
+      ) : (
+        <div className="panel">
+          {loading
+            ? "Loading"
+            : !authorities.length
+            ? authorityId
+              ? "The authority failed to load."
+              : "Unable to load authorities."
+            : null}
+        </div>
+      )}
     </div>
   );
 }
 
+// Instantiate the app
+const graphql = new GraphQL();
 document.title = "Authenticate";
-
 ReactDOM.render(
   <GraphQLContext.Provider value={graphql}>
     <Authenticate />

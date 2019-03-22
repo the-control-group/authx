@@ -141,7 +141,10 @@ export function EmailAuthority({
   }
 
   return (
-    <form onSubmit={onSubmit} className={errors.length ? "validate" : ""}>
+    <form
+      onSubmit={onSubmit}
+      className={errors.length ? "panel validate" : "panel"}
+    >
       <label>
         <span>Email</span>
         <input
