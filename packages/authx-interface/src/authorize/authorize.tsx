@@ -1,18 +1,29 @@
-import React, { useState, useEffect, ComponentType, ReactElement } from "react";
+import React, {
+  Fragment,
+  useState,
+  useEffect,
+  ComponentType,
+  ReactElement
+} from "react";
 import { isSuperset } from "scopeutils";
 import ReactDOM from "react-dom";
 import { GraphQLContext, GraphQL, useGraphQL } from "graphql-react";
 import { useAuthX } from "../authx";
 
+function getRequestedScope(url: URL): null | string[] {
+  const param = url.searchParams.get("scope");
+  return param ? param.split(" ") : null;
+}
+
 function Authorize({  }: {}): ReactElement<any> {
   const { token, fetchOptionsOverride, setToken, clearToken } = useAuthX();
 
   const url = new URL(window.location.href);
+  const responseType = url.searchParams.get("response_type") || null;
+  const state = url.searchParams.get("state") || null;
   const clientId = url.searchParams.get("client_id") || null;
   const redirectUri = url.searchParams.get("redirect_uri") || null;
-  const requestedScopes = (
-    url.searchParams.get("scope") || { split: () => [] }
-  ).split(" ");
+  const requestedScopes = getRequestedScope(url);
 
   // We are not authenticated, redirect to the authentication page
   if (!token) {
@@ -41,7 +52,7 @@ function Authorize({  }: {}): ReactElement<any> {
             scopes: null | string[];
             client: null | {
               name: string;
-              oauth2Urls: string[];
+              urls: string[];
             };
           };
         };
@@ -64,7 +75,7 @@ function Authorize({  }: {}): ReactElement<any> {
                 scopes
                 client {
                   name
-                  oauth2Urls
+                  urls
                 }
               }
             }
@@ -82,15 +93,95 @@ function Authorize({  }: {}): ReactElement<any> {
     cacheValue.data.viewer.user;
   const grant = user && user.grant;
   const client = grant && grant.client;
+  const urls = client && client.urls;
+
+  // This is an invalid request
+  if (
+    responseType !== "code" ||
+    !clientId ||
+    !redirectUri ||
+    (urls && !urls.includes(redirectUri))
+  ) {
+    if (clientId && redirectUri && urls && urls.includes(redirectUri)) {
+      const url = new URL(redirectUri);
+      url.searchParams.set("error", "invalid_request");
+      if (state) url.searchParams.set("state", state);
+      window.location.replace(url.href);
+    }
+    return (
+      <div>
+        <h1>Authorize</h1>
+        <div className="panel">
+          {!clientId ? (
+            <div className="error">
+              Parameter <span className="code">client_id</span> must be
+              specified.
+            </div>
+          ) : null}
+          {!redirectUri ? (
+            <div className="error">
+              Parameter <span className="code">redirect_uri</span> must be
+              specified.
+            </div>
+          ) : null}
+          {redirectUri && urls && !urls.includes(redirectUri) ? (
+            <div className="error">
+              The specified <span className="code">redirect_uri</span> is not
+              registered with the client.
+            </div>
+          ) : null}
+          {responseType !== "code" ? (
+            <div className="error">
+              Parameter <span className="code">response_type</span> must be set
+              to "code".
+            </div>
+          ) : null}
+        </div>
+      </div>
+    );
+  }
+
+  if (!user || !grant || !client) {
+    return (
+      <div>
+        <h1>Authorize</h1>
+        <div className="panel">
+          {loading ? (
+            "Loading..."
+          ) : (
+            <Fragment>
+              {!user ? <div className="error">Unable to load user.</div> : null}
+              {user && !grant ? (
+                <div className="error">
+                  Unable to load grant. Make sure you have access to read your
+                  own grants.
+                </div>
+              ) : null}
+              {user && grant && !client ? (
+                <div className="error">
+                  Unable to load client. Make sure you have access to read
+                  clients.
+                </div>
+              ) : null}
+            </Fragment>
+          )}
+        </div>
+      </div>
+    );
+  }
 
   // Check that all requested scopes are granted
   const grantedScopes = grant && grant.scopes;
-  if (grantedScopes && isSuperset(grantedScopes, requestedScopes)) {
+  if (
+    grantedScopes &&
+    requestedScopes &&
+    isSuperset(grantedScopes, requestedScopes)
+  ) {
+    console.log(grantedScopes, requestedScopes, redirectUri);
+
     // Check that the return URL is registered with the client
-    const oauth2Urls = client && client.oauth2Urls;
-    if (redirectUri && oauth2Urls && oauth2Urls.includes(redirectUri)) {
-      const url = new URL(redirectUri);
-      window.location.replace(url.href);
+    if (redirectUri && urls && urls.includes(redirectUri)) {
+      console.log("TODO: generate a nonce and redirect");
     }
   }
 
@@ -98,13 +189,43 @@ function Authorize({  }: {}): ReactElement<any> {
     <div>
       <h1>Authorize</h1>
       <div className="panel">
-        {loading
-          ? "Loading"
-          : !user
-          ? "Unable to load user"
-          : !grant
-          ? "Unable to load grant"
-          : null}
+        {loading ? (
+          "Loading"
+        ) : (
+          <Fragment>
+            "{client.name}" is requesting access to:
+            <ul>
+              {(requestedScopes &&
+                requestedScopes.map((s, i) => (
+                  <li key={i}>
+                    <pre>{s}</pre>
+                  </li>
+                ))) ||
+                null}
+            </ul>
+          </Fragment>
+        )}
+
+        <div style={{ display: "flex" }}>
+          <input
+            style={{ flex: "1", marginRight: "7px" }}
+            type="button"
+            value="Grant Access"
+          />
+          <input
+            onClick={e => {
+              e.preventDefault();
+              const url = new URL(redirectUri);
+              url.searchParams.set("error", "access_denied");
+              if (state) url.searchParams.set("state", state);
+              window.location.replace(url.href);
+            }}
+            className="danger"
+            style={{ flex: "1", marginLeft: "7px" }}
+            type="button"
+            value="Deny"
+          />
+        </div>
       </div>
     </div>
   );
