@@ -1,11 +1,14 @@
 import React, { useState, useEffect, ComponentType, ReactElement } from "react";
 import ReactDOM from "react-dom";
-import { GraphQLContext, GraphQL, useGraphQL } from "graphql-react";
+import {
+  GraphQLContext,
+  GraphQL,
+  useGraphQL,
+  GraphQLFetchOptionsOverride
+} from "graphql-react";
 import { Authority, StrategyComponentProps } from "./definitions";
 import { PasswordAuthority } from "./PasswordAuthority";
 import { EmailAuthority } from "./EmailAuthority";
-import { Token } from "./Token";
-import { useAuthX } from "../authx";
 
 const strategyComponentMap: {
   [strategy: string]: ComponentType<StrategyComponentProps>;
@@ -14,9 +17,13 @@ const strategyComponentMap: {
   email: EmailAuthority
 };
 
-function Authenticate({  }: {}): ReactElement<any> {
-  const { token, fetchOptionsOverride, setToken, clearToken } = useAuthX();
-
+export function Authenticate({
+  setToken,
+  fetchOptionsOverride
+}: {
+  setToken: (token: { id: string; secret: string }) => void;
+  fetchOptionsOverride: GraphQLFetchOptionsOverride;
+}): ReactElement<any> {
   // Get all active authorities from the API.
   const { loading, cacheValue } = useGraphQL<any, void>({
     fetchOptionsOverride,
@@ -83,26 +90,6 @@ function Authenticate({  }: {}): ReactElement<any> {
 
   const redirect = null;
 
-  // We are already logged in
-  if (token) {
-    return (
-      <div>
-        <h1>Authenticate</h1>
-        <div className="tabs">
-          <div>
-            <div />
-          </div>
-        </div>
-        <Token
-          fetchOptionsOverride={fetchOptionsOverride}
-          redirect={redirect}
-          token={token}
-          clearToken={clearToken}
-        />
-      </div>
-    );
-  }
-
   return (
     <div>
       <h1>Authenticate</h1>
@@ -140,13 +127,3 @@ function Authenticate({  }: {}): ReactElement<any> {
     </div>
   );
 }
-
-// Instantiate the app
-const graphql = new GraphQL();
-document.title = "Authenticate";
-ReactDOM.render(
-  <GraphQLContext.Provider value={graphql}>
-    <Authenticate />
-  </GraphQLContext.Provider>,
-  document.getElementById("root")
-);
