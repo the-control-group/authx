@@ -11,5 +11,8 @@
   },
   "nohoist": [
     "packages/authx-interface/html-webpack-plugin"
-  ]
+  ],
+  "scripts": {
+    "prepare": "for P in packages/*/; do cd $P && npm run prepare; cd ../..; done"
+  }
 }
