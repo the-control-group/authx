@@ -13,11 +13,11 @@
     "@types/koa": "^2.0.48",
     "@types/koa-router": "^7.0.40",
     "@types/koa-send": "^4.1.2",
-    "@types/pg": "^7.4.13",
+    "@types/pg": "^7.4.14",
     "@types/uuid": "^3.4.4",
     "auth-header": "^1.0.0",
     "authx-interface": "2.0.0-alpha1",
-    "bcrypt": "^3.0.4",
+    "bcrypt": "^3.0.5",
     "graphql": "^14.1.1",
     "graphql-api-koa": "^2.0.0",
     "jsonwebtoken": "^8.5.0",
@@ -30,15 +30,15 @@
   },
   "description": "",
   "devDependencies": {
-    "@typescript-eslint/eslint-plugin": "^1.4.0",
-    "@typescript-eslint/parser": "^1.4.0",
-    "ava": "^1.2.1",
+    "@typescript-eslint/eslint-plugin": "^1.5.0",
+    "@typescript-eslint/parser": "^1.5.0",
+    "ava": "^1.4.0",
     "eslint": "^5.14.1",
     "eslint-config-prettier": "^4.0.0",
     "eslint-plugin-prettier": "^3.0.0",
     "nodemon": "^1.18.10",
     "prettier": "^1.16.4",
-    "typescript": "^3.3.3333"
+    "typescript": "^3.3.4000"
   },
   "engines": {
     "node": ">=6"
