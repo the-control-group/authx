@@ -16,7 +16,7 @@
     "@types/pg": "^7.4.14",
     "@types/uuid": "^3.4.4",
     "auth-header": "^1.0.0",
-    "authx-interface": "2.0.0-alpha1",
+    "authx-interface": "2.0.0-alpha2",
     "bcrypt": "^3.0.5",
     "graphql": "^14.1.1",
     "graphql-api-koa": "^2.0.0",
@@ -72,5 +72,5 @@
     "start": "npm run start:production"
   },
   "types": "dist/index.d.ts",
-  "version": "2.0.0-alpha1"
+  "version": "2.0.0-alpha2"
 }
