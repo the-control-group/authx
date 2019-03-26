@@ -21,12 +21,7 @@ export class AuthX<StateT = any, CustomT = {}> extends Router<StateT, CustomT> {
   public constructor(config: Config & IRouterOptions) {
     super(config);
 
-    const {
-      realm = "AuthX",
-      interfaceBaseUrl,
-      strategies,
-      sendMail
-    } = config;
+    const { realm = "AuthX", interfaceBaseUrl, strategies, sendMail } = config;
 
     // create a database pool
     const pool = new Pool(config.pg);

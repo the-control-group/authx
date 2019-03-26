@@ -127,10 +127,7 @@ export class User implements UserData {
       ))());
   }
 
-  public async grant(
-    tx: PoolClient,
-    clientId: string
-  ): Promise<null | Grant> {
+  public async grant(tx: PoolClient, clientId: string): Promise<null | Grant> {
     const result = await tx.query(
       `
       SELECT entity_id AS id
