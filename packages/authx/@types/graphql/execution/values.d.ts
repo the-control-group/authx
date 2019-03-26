@@ -1,13 +1,21 @@
 import Maybe from "../tsutils/Maybe";
 import { GraphQLError } from "../error/GraphQLError";
-import { GraphQLInputType, GraphQLField, GraphQLArgument } from "../type/definition";
+import {
+  GraphQLInputType,
+  GraphQLField,
+  GraphQLArgument
+} from "../type/definition";
 import { GraphQLDirective } from "../type/directives";
 import { GraphQLSchema } from "../type/schema";
-import { FieldNode, DirectiveNode, VariableDefinitionNode } from "../language/ast";
+import {
+  FieldNode,
+  DirectiveNode,
+  VariableDefinitionNode
+} from "../language/ast";
 
 interface CoercedVariableValues {
-    errors: ReadonlyArray<GraphQLError> | undefined;
-    coerced: { [key: string]: any } | undefined;
+  errors: ReadonlyArray<GraphQLError> | undefined;
+  coerced: { [key: string]: any } | undefined;
 }
 
 /**
@@ -20,9 +28,9 @@ interface CoercedVariableValues {
  * Object prototype.
  */
 export function getVariableValues(
-    schema: GraphQLSchema,
-    varDefNodes: VariableDefinitionNode[],
-    inputs: { [key: string]: any }
+  schema: GraphQLSchema,
+  varDefNodes: VariableDefinitionNode[],
+  inputs: { [key: string]: any }
 ): CoercedVariableValues;
 
 /**
@@ -34,9 +42,9 @@ export function getVariableValues(
  * Object prototype.
  */
 export function getArgumentValues(
-    def: GraphQLField<any, any, any> | GraphQLDirective,
-    node: FieldNode | DirectiveNode,
-    variableValues?: Maybe<{ [key: string]: any }>
+  def: GraphQLField<any, any, any> | GraphQLDirective,
+  node: FieldNode | DirectiveNode,
+  variableValues?: Maybe<{ [key: string]: any }>
 ): { [key: string]: any };
 
 /**
@@ -51,9 +59,9 @@ export function getArgumentValues(
  * Object prototype.
  */
 export function getDirectiveValues(
-    directiveDef: GraphQLDirective,
-    node: {
-        readonly directives?: ReadonlyArray<DirectiveNode>;
-    },
-    variableValues?: Maybe<{ [key: string]: any }>
+  directiveDef: GraphQLDirective,
+  node: {
+    readonly directives?: ReadonlyArray<DirectiveNode>;
+  },
+  variableValues?: Maybe<{ [key: string]: any }>
 ): undefined | { [key: string]: any };

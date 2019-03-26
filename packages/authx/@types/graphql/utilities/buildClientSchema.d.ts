@@ -15,4 +15,7 @@ interface Options extends GraphQLSchemaValidationOptions {}
  * This function expects a complete introspection result. Don't forget to check
  * the "errors" field of a server response before calling this function.
  */
-export function buildClientSchema(introspection: IntrospectionQuery, options?: Options): GraphQLSchema;
+export function buildClientSchema(
+  introspection: IntrospectionQuery,
+  options?: Options
+): GraphQLSchema;

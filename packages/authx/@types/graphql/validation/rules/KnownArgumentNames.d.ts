@@ -2,16 +2,16 @@ import { ValidationContext, SDLValidationContext } from "../ValidationContext";
 import { ASTVisitor } from "../../language/visitor";
 
 export function unknownArgMessage(
-    argName: string,
-    fieldName: string,
-    typeName: string,
-    suggestedArgs: Array<string>
+  argName: string,
+  fieldName: string,
+  typeName: string,
+  suggestedArgs: Array<string>
 ): string;
 
 export function unknownDirectiveArgMessage(
-    argName: string,
-    directiveName: string,
-    suggestedArgs: Array<string>
+  argName: string,
+  directiveName: string,
+  suggestedArgs: Array<string>
 ): string;
 
 /**
@@ -23,4 +23,6 @@ export function unknownDirectiveArgMessage(
 export function KnownArgumentNames(context: ValidationContext): ASTVisitor;
 
 // @internal
-export function KnownArgumentNamesOnDirectives(context: ValidationContext | SDLValidationContext): ASTVisitor;
+export function KnownArgumentNamesOnDirectives(
+  context: ValidationContext | SDLValidationContext
+): ASTVisitor;

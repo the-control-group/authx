@@ -1,6 +1,6 @@
 interface Location {
-    line: number;
-    column: number;
+  line: number;
+  column: number;
 }
 
 /**
@@ -12,8 +12,8 @@ interface Location {
  * line and column in locationOffset are 1-indexed
  */
 export class Source {
-    body: string;
-    name: string;
-    locationOffset: Location;
-    constructor(body: string, name?: string, locationOffset?: Location);
+  body: string;
+  name: string;
+  locationOffset: Location;
+  constructor(body: string, name?: string, locationOffset?: Location);
 }

@@ -1,33 +1,33 @@
 // The GraphQL query recommended for a full schema introspection.
 export {
-    getIntrospectionQuery,
-    // @deprecated, use getIntrospectionQuery() - will be removed in v15
-    introspectionQuery,
+  getIntrospectionQuery,
+  // @deprecated, use getIntrospectionQuery() - will be removed in v15
+  introspectionQuery
 } from "./introspectionQuery";
 
 export {
-    IntrospectionOptions,
-    IntrospectionQuery,
-    IntrospectionSchema,
-    IntrospectionType,
-    IntrospectionInputType,
-    IntrospectionOutputType,
-    IntrospectionScalarType,
-    IntrospectionObjectType,
-    IntrospectionInterfaceType,
-    IntrospectionUnionType,
-    IntrospectionEnumType,
-    IntrospectionInputObjectType,
-    IntrospectionTypeRef,
-    IntrospectionInputTypeRef,
-    IntrospectionOutputTypeRef,
-    IntrospectionNamedTypeRef,
-    IntrospectionListTypeRef,
-    IntrospectionNonNullTypeRef,
-    IntrospectionField,
-    IntrospectionInputValue,
-    IntrospectionEnumValue,
-    IntrospectionDirective,
+  IntrospectionOptions,
+  IntrospectionQuery,
+  IntrospectionSchema,
+  IntrospectionType,
+  IntrospectionInputType,
+  IntrospectionOutputType,
+  IntrospectionScalarType,
+  IntrospectionObjectType,
+  IntrospectionInterfaceType,
+  IntrospectionUnionType,
+  IntrospectionEnumType,
+  IntrospectionInputObjectType,
+  IntrospectionTypeRef,
+  IntrospectionInputTypeRef,
+  IntrospectionOutputTypeRef,
+  IntrospectionNamedTypeRef,
+  IntrospectionListTypeRef,
+  IntrospectionNonNullTypeRef,
+  IntrospectionField,
+  IntrospectionInputValue,
+  IntrospectionEnumValue,
+  IntrospectionDirective
 } from "./introspectionQuery";
 
 // Gets the target Operation from a Document
@@ -44,12 +44,12 @@ export { buildClientSchema } from "./buildClientSchema";
 
 // Build a GraphQLSchema from GraphQL Schema language.
 export {
-    buildASTSchema,
-    buildSchema,
-    // @deprecated: Get the description from a schema AST node and supports legacy
-    // syntax for specifying descriptions - will be removed in v16
-    getDescription,
-    BuildSchemaOptions,
+  buildASTSchema,
+  buildSchema,
+  // @deprecated: Get the description from a schema AST node and supports legacy
+  // syntax for specifying descriptions - will be removed in v16
+  getDescription,
+  BuildSchemaOptions
 } from "./buildASTSchema";
 
 // Extends an existing GraphQLSchema from a parsed GraphQL Schema language AST.
@@ -59,7 +59,11 @@ export { extendSchema } from "./extendSchema";
 export { lexicographicSortSchema } from "./lexicographicSortSchema";
 
 // Print a GraphQLSchema to GraphQL Schema language.
-export { printSchema, printType, printIntrospectionSchema } from "./schemaPrinter";
+export {
+  printSchema,
+  printType,
+  printIntrospectionSchema
+} from "./schemaPrinter";
 
 // Create a GraphQLType from a GraphQL language AST.
 export { typeFromAST } from "./typeFromAST";
@@ -93,19 +97,23 @@ export { concatAST } from "./concatAST";
 export { separateOperations } from "./separateOperations";
 
 // Comparators for types
-export { isEqualType, isTypeSubTypeOf, doTypesOverlap } from "./typeComparators";
+export {
+  isEqualType,
+  isTypeSubTypeOf,
+  doTypesOverlap
+} from "./typeComparators";
 
 // Asserts that a string is a valid GraphQL name
 export { assertValidName, isValidNameError } from "./assertValidName";
 
 // Compares two GraphQLSchemas and detects breaking changes.
 export {
-    BreakingChangeType,
-    DangerousChangeType,
-    findBreakingChanges,
-    findDangerousChanges,
-    BreakingChange,
-    DangerousChange,
+  BreakingChangeType,
+  DangerousChangeType,
+  findBreakingChanges,
+  findDangerousChanges,
+  BreakingChange,
+  DangerousChange
 } from "./findBreakingChanges";
 
 // Report all deprecated usage within a GraphQL document.

@@ -9,4 +9,6 @@ export function nonExecutableDefinitionMessage(defName: string): string;
  * A GraphQL document is only valid for execution if all definitions are either
  * operation or fragment definitions.
  */
-export function ExecutableDefinitions(context: ASTValidationContext): ASTVisitor;
+export function ExecutableDefinitions(
+  context: ASTValidationContext
+): ASTVisitor;

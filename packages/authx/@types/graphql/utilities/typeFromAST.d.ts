@@ -1,5 +1,16 @@
-import { TypeNode, NamedTypeNode, ListTypeNode, NonNullTypeNode } from "../language/ast";
-import { GraphQLType, GraphQLNullableType, GraphQLNamedType, GraphQLList, GraphQLNonNull } from "../type/definition";
+import {
+  TypeNode,
+  NamedTypeNode,
+  ListTypeNode,
+  NonNullTypeNode
+} from "../language/ast";
+import {
+  GraphQLType,
+  GraphQLNullableType,
+  GraphQLNamedType,
+  GraphQLList,
+  GraphQLNonNull
+} from "../type/definition";
 import { GraphQLSchema } from "../type/schema";
 
 /**
@@ -9,8 +20,17 @@ import { GraphQLSchema } from "../type/schema";
  * the type called "User" found in the schema. If a type called "User" is not
  * found in the schema, then undefined will be returned.
  */
-export function typeFromAST(schema: GraphQLSchema, typeNode: NamedTypeNode): GraphQLNamedType | undefined;
+export function typeFromAST(
+  schema: GraphQLSchema,
+  typeNode: NamedTypeNode
+): GraphQLNamedType | undefined;
 
-export function typeFromAST(schema: GraphQLSchema, typeNode: ListTypeNode): GraphQLList<any> | undefined;
+export function typeFromAST(
+  schema: GraphQLSchema,
+  typeNode: ListTypeNode
+): GraphQLList<any> | undefined;
 
-export function typeFromAST(schema: GraphQLSchema, typeNode: NonNullTypeNode): GraphQLNonNull<any> | undefined;
+export function typeFromAST(
+  schema: GraphQLSchema,
+  typeNode: NonNullTypeNode
+): GraphQLNonNull<any> | undefined;

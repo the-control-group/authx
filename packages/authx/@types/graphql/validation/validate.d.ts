@@ -21,10 +21,10 @@ import { ValidationRule } from "./ValidationContext";
  * will be created from the provided schema.
  */
 export function validate(
-    schema: GraphQLSchema,
-    documentAST: DocumentNode,
-    rules?: ReadonlyArray<ValidationRule>,
-    typeInfo?: TypeInfo
+  schema: GraphQLSchema,
+  documentAST: DocumentNode,
+  rules?: ReadonlyArray<ValidationRule>,
+  typeInfo?: TypeInfo
 ): ReadonlyArray<GraphQLError>;
 
 /**
@@ -41,4 +41,7 @@ export function assertValidSDL(documentAST: DocumentNode): undefined;
  *
  * @internal
  */
-export function assertValidSDLExtension(documentAST: DocumentNode, schema: GraphQLSchema): undefined;
+export function assertValidSDLExtension(
+  documentAST: DocumentNode,
+  schema: GraphQLSchema
+): undefined;

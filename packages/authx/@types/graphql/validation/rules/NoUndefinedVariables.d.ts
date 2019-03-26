@@ -2,7 +2,10 @@ import Maybe from "../../tsutils/Maybe";
 import { ValidationContext } from "../ValidationContext";
 import { ASTVisitor } from "../../language/visitor";
 
-export function undefinedVarMessage(varName: string, opName: Maybe<string>): string;
+export function undefinedVarMessage(
+  varName: string,
+  opName: Maybe<string>
+): string;
 
 /**
  * No undefined variables

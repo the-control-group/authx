@@ -1,9 +1,15 @@
 import { ValidationContext } from "../ValidationContext";
 import { ASTVisitor } from "../../language/visitor";
 
-export function noSubselectionAllowedMessage(fieldName: string, type: string): string;
+export function noSubselectionAllowedMessage(
+  fieldName: string,
+  type: string
+): string;
 
-export function requiredSubselectionMessage(fieldName: string, type: string): string;
+export function requiredSubselectionMessage(
+  fieldName: string,
+  type: string
+): string;
 
 /**
  * Scalar leafs

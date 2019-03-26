@@ -3,22 +3,22 @@ import { GraphQLSchema } from "../type/schema";
 import { GraphQLSchemaValidationOptions } from "../type/schema";
 
 interface Options extends GraphQLSchemaValidationOptions {
-    /**
-     * Descriptions are defined as preceding string literals, however an older
-     * experimental version of the SDL supported preceding comments as
-     * descriptions. Set to true to enable this deprecated behavior.
-     * This option is provided to ease adoption and will be removed in v16.
-     *
-     * Default: false
-     */
-    commentDescriptions?: boolean;
+  /**
+   * Descriptions are defined as preceding string literals, however an older
+   * experimental version of the SDL supported preceding comments as
+   * descriptions. Set to true to enable this deprecated behavior.
+   * This option is provided to ease adoption and will be removed in v16.
+   *
+   * Default: false
+   */
+  commentDescriptions?: boolean;
 
-    /**
-     * Set to true to assume the SDL is valid.
-     *
-     * Default: false
-     */
-    assumeValidSDL?: boolean;
+  /**
+   * Set to true to assume the SDL is valid.
+   *
+   * Default: false
+   */
+  assumeValidSDL?: boolean;
 }
 
 /**
@@ -39,4 +39,8 @@ interface Options extends GraphQLSchemaValidationOptions {
  *        Provide true to use preceding comments as the description.
  *
  */
-export function extendSchema(schema: GraphQLSchema, documentAST: DocumentNode, options?: Options): GraphQLSchema;
+export function extendSchema(
+  schema: GraphQLSchema,
+  documentAST: DocumentNode,
+  options?: Options
+): GraphQLSchema;

@@ -1,7 +1,10 @@
 import { ValidationContext } from "../ValidationContext";
 import { ASTVisitor } from "../../language/visitor";
 
-export function fieldsConflictMessage(responseName: string, reason: ConflictReasonMessage): string;
+export function fieldsConflictMessage(
+  responseName: string,
+  reason: ConflictReasonMessage
+): string;
 
 /**
  * Overlapping fields can be merged
@@ -10,7 +13,9 @@ export function fieldsConflictMessage(responseName: string, reason: ConflictReas
  * fragments) either correspond to distinct response names or can be merged
  * without ambiguity.
  */
-export function OverlappingFieldsCanBeMerged(context: ValidationContext): ASTVisitor;
+export function OverlappingFieldsCanBeMerged(
+  context: ValidationContext
+): ASTVisitor;
 
 // Field name and reason.
 type ConflictReason = [string, string];

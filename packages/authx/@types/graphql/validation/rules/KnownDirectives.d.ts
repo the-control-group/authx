@@ -3,7 +3,10 @@ import { ASTVisitor } from "../../language/visitor";
 
 export function unknownDirectiveMessage(directiveName: string): string;
 
-export function misplacedDirectiveMessage(directiveName: string, location: string): string;
+export function misplacedDirectiveMessage(
+  directiveName: string,
+  location: string
+): string;
 
 /**
  * Known directives
@@ -11,4 +14,6 @@ export function misplacedDirectiveMessage(directiveName: string, location: strin
  * A GraphQL document is only valid if all `@directives` are known by the
  * schema and legally positioned.
  */
-export function KnownDirectives(context: ValidationContext | SDLValidationContext): ASTVisitor;
+export function KnownDirectives(
+  context: ValidationContext | SDLValidationContext
+): ASTVisitor;

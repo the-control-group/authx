@@ -9,4 +9,7 @@ import { GraphQLInputType } from "../type/definition";
  *
  * This function will be removed in v15
  */
-export function isValidLiteralValue(type: GraphQLInputType, valueNode: ValueNode): ReadonlyArray<GraphQLError>;
+export function isValidLiteralValue(
+  type: GraphQLInputType,
+  valueNode: ValueNode
+): ReadonlyArray<GraphQLError>;

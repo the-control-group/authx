@@ -13,21 +13,21 @@ export function isDirective(directive: any): directive is GraphQLDirective;
  * behavior. Type system creators will usually not create these directly.
  */
 export class GraphQLDirective {
-    name: string;
-    description: Maybe<string>;
-    locations: DirectiveLocationEnum[];
-    args: GraphQLArgument[];
-    astNode: Maybe<DirectiveDefinitionNode>;
+  name: string;
+  description: Maybe<string>;
+  locations: DirectiveLocationEnum[];
+  args: GraphQLArgument[];
+  astNode: Maybe<DirectiveDefinitionNode>;
 
-    constructor(config: GraphQLDirectiveConfig);
+  constructor(config: GraphQLDirectiveConfig);
 }
 
 export interface GraphQLDirectiveConfig {
-    name: string;
-    description?: Maybe<string>;
-    locations: DirectiveLocationEnum[];
-    args?: Maybe<GraphQLFieldConfigArgumentMap<any>>;
-    astNode?: Maybe<DirectiveDefinitionNode>;
+  name: string;
+  description?: Maybe<string>;
+  locations: DirectiveLocationEnum[];
+  args?: Maybe<GraphQLFieldConfigArgumentMap<any>>;
+  astNode?: Maybe<DirectiveDefinitionNode>;
 }
 
 /**

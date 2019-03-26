@@ -6,4 +6,6 @@ import { DocumentNode, OperationDefinitionNode } from "../language/ast";
  * which contains a single operation as well the fragment definitions it
  * refers to.
  */
-export function separateOperations(documentAST: DocumentNode): { [key: string]: DocumentNode };
+export function separateOperations(
+  documentAST: DocumentNode
+): { [key: string]: DocumentNode };

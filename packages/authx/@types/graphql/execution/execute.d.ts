@@ -2,20 +2,20 @@ import Maybe from "../tsutils/Maybe";
 import { GraphQLError, locatedError } from "../error";
 import { GraphQLSchema } from "../type/schema";
 import {
-    GraphQLField,
-    GraphQLFieldResolver,
-    ResponsePath,
-    GraphQLObjectType,
-    GraphQLResolveInfo,
+  GraphQLField,
+  GraphQLFieldResolver,
+  ResponsePath,
+  GraphQLObjectType,
+  GraphQLResolveInfo
 } from "../type/definition";
 import {
-    DirectiveNode,
-    DocumentNode,
-    OperationDefinitionNode,
-    SelectionSetNode,
-    FieldNode,
-    InlineFragmentNode,
-    FragmentDefinitionNode,
+  DirectiveNode,
+  DocumentNode,
+  OperationDefinitionNode,
+  SelectionSetNode,
+  FieldNode,
+  InlineFragmentNode,
+  FragmentDefinitionNode
 } from "../language/ast";
 import { MaybePromise } from "../jsutils/MaybePromise";
 
@@ -26,18 +26,18 @@ import { MaybePromise } from "../jsutils/MaybePromise";
  * and the fragments defined in the query document
  */
 export interface ExecutionContext {
-    schema: GraphQLSchema;
-    fragments: { [key: string]: FragmentDefinitionNode };
-    rootValue: any;
-    contextValue: any;
-    operation: OperationDefinitionNode;
-    variableValues: { [key: string]: any };
-    fieldResolver: GraphQLFieldResolver<any, any, any>;
-    errors: GraphQLError[];
+  schema: GraphQLSchema;
+  fragments: { [key: string]: FragmentDefinitionNode };
+  rootValue: any;
+  contextValue: any;
+  operation: OperationDefinitionNode;
+  variableValues: { [key: string]: any };
+  fieldResolver: GraphQLFieldResolver<any, any, any>;
+  errors: GraphQLError[];
 }
 
 export interface ExecutionResultDataDefault {
-    [key: string]: any
+  [key: string]: any;
 }
 
 /**
@@ -47,18 +47,18 @@ export interface ExecutionResultDataDefault {
  *   - `data` is the result of a successful execution of the query.
  */
 export interface ExecutionResult<TData = ExecutionResultDataDefault> {
-    errors?: ReadonlyArray<GraphQLError>;
-    data?: TData;
+  errors?: ReadonlyArray<GraphQLError>;
+  data?: TData;
 }
 
 export type ExecutionArgs = {
-    schema: GraphQLSchema;
-    document: DocumentNode;
-    rootValue?: any;
-    contextValue?: any;
-    variableValues?: Maybe<{ [key: string]: any }>;
-    operationName?: Maybe<string>;
-    fieldResolver?: Maybe<GraphQLFieldResolver<any, any, any>>;
+  schema: GraphQLSchema;
+  document: DocumentNode;
+  rootValue?: any;
+  contextValue?: any;
+  variableValues?: Maybe<{ [key: string]: any }>;
+  operationName?: Maybe<string>;
+  fieldResolver?: Maybe<GraphQLFieldResolver<any, any, any>>;
 };
 
 /**
@@ -73,22 +73,26 @@ export type ExecutionArgs = {
  *
  * Accepts either an object with named arguments, or individual arguments.
  */
-export function execute<TData = ExecutionResultDataDefault>(args: ExecutionArgs): MaybePromise<ExecutionResult<TData>>;
 export function execute<TData = ExecutionResultDataDefault>(
-    schema: GraphQLSchema,
-    document: DocumentNode,
-    rootValue?: any,
-    contextValue?: any,
-    variableValues?: Maybe<{ [key: string]: any }>,
-    operationName?: Maybe<string>,
-    fieldResolver?: Maybe<GraphQLFieldResolver<any, any, any>>
+  args: ExecutionArgs
+): MaybePromise<ExecutionResult<TData>>;
+export function execute<TData = ExecutionResultDataDefault>(
+  schema: GraphQLSchema,
+  document: DocumentNode,
+  rootValue?: any,
+  contextValue?: any,
+  variableValues?: Maybe<{ [key: string]: any }>,
+  operationName?: Maybe<string>,
+  fieldResolver?: Maybe<GraphQLFieldResolver<any, any, any>>
 ): MaybePromise<ExecutionResult<TData>>;
 
 /**
  * Given a ResponsePath (found in the `path` entry in the information provided
  * as the last argument to a field resolver), return an Array of the path keys.
  */
-export function responsePathAsArray(path: ResponsePath): ReadonlyArray<string | number>;
+export function responsePathAsArray(
+  path: ResponsePath
+): ReadonlyArray<string | number>;
 
 /**
  * Given a ResponsePath and a key, return a new ResponsePath containing the
@@ -96,8 +100,8 @@ export function responsePathAsArray(path: ResponsePath): ReadonlyArray<string | 
 
  */
 export function addPath(
-    prev: ResponsePath | undefined,
-    key: string | number
+  prev: ResponsePath | undefined,
+  key: string | number
 ): { prev: ResponsePath | undefined; key: string | number };
 
 /**
@@ -105,9 +109,9 @@ export function addPath(
  * improper use of the GraphQL library.
  */
 export function assertValidExecutionArguments(
-    schema: GraphQLSchema,
-    document: DocumentNode,
-    rawVariableValues: Maybe<{ [key: string]: any }>
+  schema: GraphQLSchema,
+  document: DocumentNode,
+  rawVariableValues: Maybe<{ [key: string]: any }>
 ): void;
 
 /**
@@ -117,13 +121,13 @@ export function assertValidExecutionArguments(
  * Throws a GraphQLError if a valid execution context cannot be created.
  */
 export function buildExecutionContext(
-    schema: GraphQLSchema,
-    document: DocumentNode,
-    rootValue: any,
-    contextValue: any,
-    rawVariableValues: Maybe<{ [key: string]: any }>,
-    operationName: Maybe<string>,
-    fieldResolver: Maybe<GraphQLFieldResolver<any, any, any>>
+  schema: GraphQLSchema,
+  document: DocumentNode,
+  rootValue: any,
+  contextValue: any,
+  rawVariableValues: Maybe<{ [key: string]: any }>,
+  operationName: Maybe<string>,
+  fieldResolver: Maybe<GraphQLFieldResolver<any, any, any>>
 ): ReadonlyArray<GraphQLError> | ExecutionContext;
 
 /**
@@ -135,30 +139,30 @@ export function buildExecutionContext(
  * Object type returned by that field.
  */
 export function collectFields(
-    exeContext: ExecutionContext,
-    runtimeType: GraphQLObjectType,
-    selectionSet: SelectionSetNode,
-    fields: { [key: string]: Array<FieldNode> },
-    visitedFragmentNames: { [key: string]: boolean }
+  exeContext: ExecutionContext,
+  runtimeType: GraphQLObjectType,
+  selectionSet: SelectionSetNode,
+  fields: { [key: string]: Array<FieldNode> },
+  visitedFragmentNames: { [key: string]: boolean }
 ): { [key: string]: Array<FieldNode> };
 
 export function buildResolveInfo(
-    exeContext: ExecutionContext,
-    fieldDef: GraphQLField<any, any, any>,
-    fieldNodes: ReadonlyArray<FieldNode>,
-    parentType: GraphQLObjectType,
-    path: ResponsePath
+  exeContext: ExecutionContext,
+  fieldDef: GraphQLField<any, any, any>,
+  fieldNodes: ReadonlyArray<FieldNode>,
+  parentType: GraphQLObjectType,
+  path: ResponsePath
 ): GraphQLResolveInfo;
 
 // Isolates the "ReturnOrAbrupt" behavior to not de-opt the `resolveField`
 // function. Returns the result of resolveFn or the abrupt-return Error object.
 export function resolveFieldValueOrError<TSource, TArgs, TContext>(
-    exeContext: ExecutionContext,
-    fieldDef: GraphQLField<TSource, TArgs, TContext>,
-    fieldNodes: ReadonlyArray<FieldNode>,
-    resolveFn: GraphQLFieldResolver<TSource, TArgs, TContext>,
-    source: TSource,
-    info: GraphQLResolveInfo
+  exeContext: ExecutionContext,
+  fieldDef: GraphQLField<TSource, TArgs, TContext>,
+  fieldNodes: ReadonlyArray<FieldNode>,
+  resolveFn: GraphQLFieldResolver<TSource, TArgs, TContext>,
+  source: TSource,
+  info: GraphQLResolveInfo
 ): Error | any;
 
 /**
@@ -179,7 +183,7 @@ export const defaultFieldResolver: GraphQLFieldResolver<any, any, any>;
  * definitions, which would cause issues.
  */
 export function getFieldDef(
-    schema: GraphQLSchema,
-    parentType: GraphQLObjectType,
-    fieldName: string
+  schema: GraphQLSchema,
+  parentType: GraphQLObjectType,
+  fieldName: string
 ): Maybe<GraphQLField<any, any, any>>;

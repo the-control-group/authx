@@ -1,20 +1,20 @@
 import Maybe from "../tsutils/Maybe";
 import { GraphQLError } from "../error";
 import {
-    DocumentNode,
-    OperationDefinitionNode,
-    VariableNode,
-    SelectionSetNode,
-    FragmentSpreadNode,
-    FragmentDefinitionNode,
+  DocumentNode,
+  OperationDefinitionNode,
+  VariableNode,
+  SelectionSetNode,
+  FragmentSpreadNode,
+  FragmentDefinitionNode
 } from "../language/ast";
 import { GraphQLSchema } from "../type/schema";
 import {
-    GraphQLInputType,
-    GraphQLOutputType,
-    GraphQLCompositeType,
-    GraphQLField,
-    GraphQLArgument,
+  GraphQLInputType,
+  GraphQLOutputType,
+  GraphQLCompositeType,
+  GraphQLField,
+  GraphQLArgument
 } from "../type/definition";
 import { GraphQLDirective } from "../type/directives";
 import { TypeInfo } from "../utilities/TypeInfo";
@@ -22,9 +22,9 @@ import { ASTVisitor } from "../language/visitor";
 
 type NodeWithSelectionSet = OperationDefinitionNode | FragmentDefinitionNode;
 type VariableUsage = {
-    readonly node: VariableNode;
-    readonly type: Maybe<GraphQLInputType>;
-    readonly defaultValue: Maybe<any>;
+  readonly node: VariableNode;
+  readonly type: Maybe<GraphQLInputType>;
+  readonly defaultValue: Maybe<any>;
 };
 
 /**
@@ -33,51 +33,55 @@ type VariableUsage = {
  * validation rule.
  */
 export class ASTValidationContext {
-    constructor(ast: DocumentNode);
+  constructor(ast: DocumentNode);
 
-    reportError(error: GraphQLError): undefined;
+  reportError(error: GraphQLError): undefined;
 
-    getErrors(): ReadonlyArray<GraphQLError>;
+  getErrors(): ReadonlyArray<GraphQLError>;
 
-    getDocument(): DocumentNode;
+  getDocument(): DocumentNode;
 }
 
 export class SDLValidationContext extends ASTValidationContext {
-    constructor(ast: DocumentNode, schema?: Maybe<GraphQLSchema>);
+  constructor(ast: DocumentNode, schema?: Maybe<GraphQLSchema>);
 
-    getSchema(): Maybe<GraphQLSchema>;
+  getSchema(): Maybe<GraphQLSchema>;
 }
 
 export type SDLValidationRule = (context: SDLValidationContext) => ASTVisitor;
 
 export class ValidationContext extends ASTValidationContext {
-    constructor(schema: GraphQLSchema, ast: DocumentNode, typeInfo: TypeInfo);
+  constructor(schema: GraphQLSchema, ast: DocumentNode, typeInfo: TypeInfo);
 
-    getSchema(): GraphQLSchema;
+  getSchema(): GraphQLSchema;
 
-    getFragment(name: string): Maybe<FragmentDefinitionNode>;
+  getFragment(name: string): Maybe<FragmentDefinitionNode>;
 
-    getFragmentSpreads(node: SelectionSetNode): ReadonlyArray<FragmentSpreadNode>;
+  getFragmentSpreads(node: SelectionSetNode): ReadonlyArray<FragmentSpreadNode>;
 
-    getRecursivelyReferencedFragments(operation: OperationDefinitionNode): ReadonlyArray<FragmentDefinitionNode>;
+  getRecursivelyReferencedFragments(
+    operation: OperationDefinitionNode
+  ): ReadonlyArray<FragmentDefinitionNode>;
 
-    getVariableUsages(node: NodeWithSelectionSet): ReadonlyArray<VariableUsage>;
+  getVariableUsages(node: NodeWithSelectionSet): ReadonlyArray<VariableUsage>;
 
-    getRecursiveVariableUsages(operation: OperationDefinitionNode): ReadonlyArray<VariableUsage>;
+  getRecursiveVariableUsages(
+    operation: OperationDefinitionNode
+  ): ReadonlyArray<VariableUsage>;
 
-    getType(): Maybe<GraphQLOutputType>;
+  getType(): Maybe<GraphQLOutputType>;
 
-    getParentType(): Maybe<GraphQLCompositeType>;
+  getParentType(): Maybe<GraphQLCompositeType>;
 
-    getInputType(): Maybe<GraphQLInputType>;
+  getInputType(): Maybe<GraphQLInputType>;
 
-    getParentInputType(): Maybe<GraphQLInputType>;
+  getParentInputType(): Maybe<GraphQLInputType>;
 
-    getFieldDef(): Maybe<GraphQLField<any, any, any>>;
+  getFieldDef(): Maybe<GraphQLField<any, any, any>>;
 
-    getDirective(): Maybe<GraphQLDirective>;
+  getDirective(): Maybe<GraphQLDirective>;
 
-    getArgument(): Maybe<GraphQLArgument>;
+  getArgument(): Maybe<GraphQLArgument>;
 }
 
 export type ValidationRule = (context: ValidationContext) => ASTVisitor;

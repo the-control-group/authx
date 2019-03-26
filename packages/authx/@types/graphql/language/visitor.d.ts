@@ -3,40 +3,42 @@ import { ASTNode, ASTKindToNode } from "./ast";
 import { TypeInfo } from "../utilities/TypeInfo";
 
 interface EnterLeave<T> {
-    readonly enter?: T;
-    readonly leave?: T;
+  readonly enter?: T;
+  readonly leave?: T;
 }
 
 type EnterLeaveVisitor<KindToNode, Nodes> = EnterLeave<
-    VisitFn<Nodes> | { [K in keyof KindToNode]?: VisitFn<Nodes, KindToNode[K]> }
+  VisitFn<Nodes> | { [K in keyof KindToNode]?: VisitFn<Nodes, KindToNode[K]> }
 >;
 
 type ShapeMapVisitor<KindToNode, Nodes> = {
-    [K in keyof KindToNode]?: VisitFn<Nodes, KindToNode[K]> | EnterLeave<VisitFn<Nodes, KindToNode[K]>>
+  [K in keyof KindToNode]?:
+    | VisitFn<Nodes, KindToNode[K]>
+    | EnterLeave<VisitFn<Nodes, KindToNode[K]>>
 };
 
 export type ASTVisitor = Visitor<ASTKindToNode>;
 export type Visitor<KindToNode, Nodes = KindToNode[keyof KindToNode]> =
-    | EnterLeaveVisitor<KindToNode, Nodes>
-    | ShapeMapVisitor<KindToNode, Nodes>;
+  | EnterLeaveVisitor<KindToNode, Nodes>
+  | ShapeMapVisitor<KindToNode, Nodes>;
 
 /**
  * A visitor is comprised of visit functions, which are called on each node
  * during the visitor's traversal.
  */
 export type VisitFn<TAnyNode, TVisitedNode = TAnyNode> = (
-    // The current node being visiting.
-    node: TVisitedNode,
-    // The index or key to this node from the parent node or Array.
-    key: string | number | undefined,
-    // The parent immediately above this node, which may be an Array.
-    parent: TAnyNode | ReadonlyArray<TAnyNode> | undefined,
-    // The key path to get to this node from the root node.
-    path: ReadonlyArray<string | number>,
-    // All nodes and Arrays visited before reaching parent of this node.
-    // These correspond to array indices in `path`.
-    // Note: ancestors includes arrays which contain the parent of visited node.
-    ancestors: ReadonlyArray<TAnyNode | ReadonlyArray<TAnyNode>>
+  // The current node being visiting.
+  node: TVisitedNode,
+  // The index or key to this node from the parent node or Array.
+  key: string | number | undefined,
+  // The parent immediately above this node, which may be an Array.
+  parent: TAnyNode | ReadonlyArray<TAnyNode> | undefined,
+  // The key path to get to this node from the root node.
+  path: ReadonlyArray<string | number>,
+  // All nodes and Arrays visited before reaching parent of this node.
+  // These correspond to array indices in `path`.
+  // Note: ancestors includes arrays which contain the parent of visited node.
+  ancestors: ReadonlyArray<TAnyNode | ReadonlyArray<TAnyNode>>
 ) => any;
 
 /**
@@ -135,9 +137,9 @@ export const BREAK: any;
  *     })
  */
 export function visit(
-    root: ASTNode,
-    visitor: Visitor<ASTKindToNode>,
-    visitorKeys?: VisitorKeyMap<ASTKindToNode> // default: QueryDocumentKeys
+  root: ASTNode,
+  visitor: Visitor<ASTKindToNode>,
+  visitorKeys?: VisitorKeyMap<ASTKindToNode> // default: QueryDocumentKeys
 ): any;
 
 /**
@@ -146,16 +148,25 @@ export function visit(
  *
  * If a prior visitor edits a node, no following visitors will see that node.
  */
-export function visitInParallel(visitors: Array<Visitor<ASTKindToNode>>): Visitor<ASTKindToNode>;
+export function visitInParallel(
+  visitors: Array<Visitor<ASTKindToNode>>
+): Visitor<ASTKindToNode>;
 
 /**
  * Creates a new visitor instance which maintains a provided TypeInfo instance
  * along with visiting visitor.
  */
-export function visitWithTypeInfo(typeInfo: TypeInfo, visitor: Visitor<ASTKindToNode>): Visitor<ASTKindToNode>;
+export function visitWithTypeInfo(
+  typeInfo: TypeInfo,
+  visitor: Visitor<ASTKindToNode>
+): Visitor<ASTKindToNode>;
 
 /**
  * Given a visitor instance, if it is leaving or not, and a node kind, return
  * the function the visitor runtime should call.
  */
-export function getVisitFn(visitor: Visitor<any>, kind: string, isLeaving: boolean): Maybe<VisitFn<any>>;
+export function getVisitFn(
+  visitor: Visitor<any>,
+  kind: string,
+  isLeaving: boolean
+): Maybe<VisitFn<any>>;

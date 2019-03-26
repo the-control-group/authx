@@ -1,202 +1,209 @@
-import { assertInputType, isInputType, isOutputType, GraphQLObjectType, GraphQLFieldConfig, GraphQLString } from 'graphql';
+import {
+  assertInputType,
+  isInputType,
+  isOutputType,
+  GraphQLObjectType,
+  GraphQLFieldConfig,
+  GraphQLString
+} from "graphql";
 
 ///////////////////////////
 // graphql               //
 ///////////////////////////
 function graphql_tests() {
-    // TODO
+  // TODO
 }
 
 ///////////////////////////
 // graphql/language      //
 ///////////////////////////
 function language_ast_tests() {
-    // TODO
+  // TODO
 }
 
 function language_index_tests() {
-    // TODO
+  // TODO
 }
 
 function language_kinds_tests() {
-    // TODO
+  // TODO
 }
 
 function language_lexer_tests() {
-    // TODO
+  // TODO
 }
 
 function language_location_tests() {
-    // TODO
+  // TODO
 }
 
 function language_parser_tests() {
-    // TODO
+  // TODO
 }
 
 function language_printer_tests() {
-    // TODO
+  // TODO
 }
 
 function language_source_tests() {
-    // TODO
+  // TODO
 }
 
 function language_visitor_tests() {
-    // TODO
+  // TODO
 }
 
 ///////////////////////////
 // graphql/type          //
 ///////////////////////////
 function type_definition_tests() {
-    isInputType(null);
-    isOutputType(null);
-    assertInputType(null);
-    new GraphQLObjectType({
-        name: "Query",
-        fields: (): {
-            hello: GraphQLFieldConfig<any, { message: null | string }, any>
-        } => ({
-            hello: {
-                type: GraphQLString,
-                args: {
-                    message: {
-                        type: GraphQLString
-                    }
-                },
-                resolve: (source, args, context) => {
-                    return args.message;
-                }
-            }
-        })
+  isInputType(null);
+  isOutputType(null);
+  assertInputType(null);
+  new GraphQLObjectType({
+    name: "Query",
+    fields: (): {
+      hello: GraphQLFieldConfig<any, { message: null | string }, any>;
+    } => ({
+      hello: {
+        type: GraphQLString,
+        args: {
+          message: {
+            type: GraphQLString
+          }
+        },
+        resolve: (source, args, context) => {
+          return args.message;
+        }
+      }
     })
+  });
 }
 
 function type_directives_tests() {
-    // TODO
+  // TODO
 }
 
 function type_introspection_tests() {
-    // TODO
+  // TODO
 }
 
 function type_scalars_tests() {
-    // TODO
+  // TODO
 }
 
 function type_schema_tests() {
-    // TODO
+  // TODO
 }
 
 ///////////////////////////
 // graphql/validation    //
 ///////////////////////////
 function validation_specifiedRules_tests() {
-    // TODO
+  // TODO
 }
 
 function validation_validate_tests() {
-    // TODO
+  // TODO
 }
 
 ///////////////////////////
 // graphql/execution     //
 ///////////////////////////
 function execution_execute_tests() {
-    // TODOS
+  // TODOS
 }
 
 function execution_values_tests() {
-    // TODOS
+  // TODOS
 }
 
 ///////////////////////////
 // graphql/error         //
 ///////////////////////////
 function error_GraphQLError() {
-    // TODOS
+  // TODOS
 }
 
 function error_formatError() {
-    // TODOS
+  // TODOS
 }
 
 function error_locatedError() {
-    // TODOS
+  // TODOS
 }
 
 function error_syntaxError() {
-    // TODOS
+  // TODOS
 }
 
 ///////////////////////////
 // graphql/utilities     //
 ///////////////////////////
 function utilities_TypeInfo_tests() {
-    // TODOS
+  // TODOS
 }
 
 function utilities_assertValidName_tests() {
-    // TODOS
+  // TODOS
 }
 
 function utilities_astFromValue_tests() {
-    // TODOS
+  // TODOS
 }
 
 function utilities_buildASTSchema_tests() {
-    // TODOS
+  // TODOS
 }
 
 function utilities_buildClientSchema_tests() {
-    // TODOS
+  // TODOS
 }
 
 function utilities_concatAST_tests() {
-    // TODOS
+  // TODOS
 }
 
 function utilities_extendSchema_tests() {
-    // TODOS
+  // TODOS
 }
 
 function utilities_getOperationAST_tests() {
-    // TODOS
+  // TODOS
 }
 
 function utilities_index_tests() {
-    // TODOS
+  // TODOS
 }
 
 function utilities_introspectionQuery_tests() {
-    // TODOS
+  // TODOS
 }
 
 function utilities_isValidJSValue_tests() {
-    // TODOS
+  // TODOS
 }
 
 function utilities_isValidLiteralValue_tests() {
-    // TODOS
+  // TODOS
 }
 
 function utilities_schemaPrinter_tests() {
-    // TODOS
+  // TODOS
 }
 
 function utilities_separateOperations_tests() {
-    // TODOS
+  // TODOS
 }
 
 function utilities_typeComparators_tests() {
-    // TODOS
+  // TODOS
 }
 
 function utilities_typeFromAST_tests() {
-    // TODOS
+  // TODOS
 }
 
 function utilities_valueFromAST_tests() {
-    // TODOS
+  // TODOS
 }

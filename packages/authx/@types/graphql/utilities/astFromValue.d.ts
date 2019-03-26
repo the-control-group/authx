@@ -19,4 +19,7 @@ import { GraphQLInputType } from "../type/definition";
  * | null          | NullValue            |
  *
  */
-export function astFromValue(value: any, type: GraphQLInputType): Maybe<ValueNode>;
+export function astFromValue(
+  value: any,
+  type: GraphQLInputType
+): Maybe<ValueNode>;

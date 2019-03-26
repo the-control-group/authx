@@ -3,13 +3,13 @@ import { ASTNode } from "../language/ast";
 import { GraphQLInputType } from "../type/definition";
 
 interface CoercedValue {
-    readonly errors: ReadonlyArray<GraphQLError> | undefined;
-    readonly value: any;
+  readonly errors: ReadonlyArray<GraphQLError> | undefined;
+  readonly value: any;
 }
 
 interface Path {
-    readonly prev: Path | undefined;
-    readonly key: string | number;
+  readonly prev: Path | undefined;
+  readonly key: string | number;
 }
 
 /**
@@ -19,4 +19,9 @@ interface Path {
  * encountered coercion errors.
  *
  */
-export function coerceValue(value: any, type: GraphQLInputType, blameNode?: ASTNode, path?: Path): CoercedValue;
+export function coerceValue(
+  value: any,
+  type: GraphQLInputType,
+  blameNode?: ASTNode,
+  path?: Path
+): CoercedValue;

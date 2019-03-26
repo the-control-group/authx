@@ -1,9 +1,17 @@
 import { ValidationContext, SDLValidationContext } from "../ValidationContext";
 import { ASTVisitor } from "../../language/visitor";
 
-export function missingFieldArgMessage(fieldName: string, argName: string, type: string): string;
+export function missingFieldArgMessage(
+  fieldName: string,
+  argName: string,
+  type: string
+): string;
 
-export function missingDirectiveArgMessage(directiveName: string, argName: string, type: string): string;
+export function missingDirectiveArgMessage(
+  directiveName: string,
+  argName: string,
+  type: string
+): string;
 
 /**
  * Provided required arguments
@@ -11,7 +19,11 @@ export function missingDirectiveArgMessage(directiveName: string, argName: strin
  * A field or directive is only valid if all required (non-null without a
  * default value) field arguments have been provided.
  */
-export function ProvidedRequiredArguments(context: ValidationContext): ASTVisitor;
+export function ProvidedRequiredArguments(
+  context: ValidationContext
+): ASTVisitor;
 
 // @internal
-export function ProvidedRequiredArgumentsOnDirectives(context: ValidationContext | SDLValidationContext): ASTVisitor;
+export function ProvidedRequiredArgumentsOnDirectives(
+  context: ValidationContext | SDLValidationContext
+): ASTVisitor;

@@ -4,8 +4,8 @@ import { Source } from "./source";
  * Represents a location in a Source.
  */
 export interface SourceLocation {
-    readonly line: number;
-    readonly column: number;
+  readonly line: number;
+  readonly column: number;
 }
 
 /**

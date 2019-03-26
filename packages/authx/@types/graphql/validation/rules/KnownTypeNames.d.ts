@@ -1,7 +1,10 @@
 import { ValidationContext } from "../ValidationContext";
 import { ASTVisitor } from "../../language/visitor";
 
-export function unknownTypeMessage(typeName: string, suggestedTypes: Array<string>): string;
+export function unknownTypeMessage(
+  typeName: string,
+  suggestedTypes: Array<string>
+): string;
 
 /**
  * Known type names
