@@ -24,8 +24,6 @@ export class AuthX<StateT = any, CustomT = {}> extends Router<StateT, CustomT> {
     const {
       realm = "AuthX",
       interfaceBaseUrl,
-      oauthPrivateKey,
-      oauthPublicKeys,
       strategies,
       sendMail
     } = config;

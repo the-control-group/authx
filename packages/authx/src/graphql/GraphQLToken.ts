@@ -7,9 +7,8 @@ import {
   GraphQLObjectType
 } from "graphql";
 
-import { Credential, Grant, Token, User } from "../model";
+import { Grant, Token, User } from "../model";
 import { Context } from "./Context";
-import { GraphQLCredential } from "./GraphQLCredential";
 import { GraphQLGrant } from "./GraphQLGrant";
 import { GraphQLUser } from "./GraphQLUser";
 

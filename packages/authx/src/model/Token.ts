@@ -1,7 +1,6 @@
 import { PoolClient } from "pg";
 import { User } from "./User";
 import { Grant } from "./Grant";
-import { Credential, CredentialData } from "./Credential";
 import {
   simplify,
   getIntersection,

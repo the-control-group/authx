@@ -129,8 +129,7 @@ export class User implements UserData {
 
   public async grant(
     tx: PoolClient,
-    clientId: string,
-    refresh: boolean = false
+    clientId: string
   ): Promise<null | Grant> {
     const result = await tx.query(
       `

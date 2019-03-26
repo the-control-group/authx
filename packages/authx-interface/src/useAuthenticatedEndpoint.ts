@@ -1,6 +1,5 @@
 import { useEffect, useCallback, useContext } from "react";
 import {
-  GraphQL,
   GraphQLContext,
   GraphQLCacheValue,
   GraphQLFetchOptions,

@@ -5,9 +5,7 @@ import { EmailAuthority } from "./EmailAuthority";
 // Credential
 // ----------
 
-export interface EmailCredentialDetails {}
-
-export class EmailCredential extends Credential<EmailCredentialDetails> {
+export class EmailCredential extends Credential<{}> {
   private _authority: null | Promise<EmailAuthority> = null;
 
   public authority(
