@@ -1,0 +1,7 @@
+{
+  "name": "@types/graphql-react",
+  "version": "0.0.0",
+  "dependencies": {
+    "@types/react": "^16.8.8"
+  }
+}
