@@ -24,7 +24,7 @@ const authx = new AuthX({
     host: process.env.PGHOST || undefined,
     password: process.env.PGPASSWORD || undefined,
     port: process.env.PGPORT ? parseInt(process.env.PGPORT, 10) : undefined,
-    ssl: process.env.PGSSL ? true : false,
+    ssl: process.env.PGSSL === "true" ? true : false,
     user: process.env.PGUSER || undefined
   },
   oauthPrivateKey:
@@ -51,7 +51,8 @@ MIGfMA0GCSqGSIb3DQEBAQUAA4GNADCBiQKBgQCfb+nyTPFCntEXbrFPU5DeE0gC
 4jXRcSFWDfCRgeqeQWqIW9DeMmCj13k0z6fQCiG3FATYosS64wAs+OiyGtu9q/Jy
 UEVIBMF0upDJMA53AFFx+0Fb/i76JFPTY7SxzvioIFeKRwY8evIRWQWYO95Os6gK
 Bac/x5qiUn5fh2xM+wIDAQAB
------END PUBLIC KEY-----`
+-----END PUBLIC KEY-----`,
+    ...(process.env.OAUTHPUBLIC ? [process.env.OAUTHPUBLIC] : [])
   ],
   async sendMail(options: {
     to: string;

@@ -5,6 +5,9 @@ import { EmailAuthority } from "./EmailAuthority";
 // Credential
 // ----------
 
+// eslint-disable-next-line
+export interface EmailCredentialDetails {}
+
 export class EmailCredential extends Credential<{}> {
   private _authority: null | Promise<EmailAuthority> = null;
 
