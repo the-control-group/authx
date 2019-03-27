@@ -9,7 +9,9 @@
     "declarationDir": "./dist",
     "rootDir": "./src",
     "strict": true,
-    "esModuleInterop": true
+    "esModuleInterop": true,
+    "baseUrl": "@types",
+    "typeRoots": ["@types"]
   },
   "include": ["./src/**/*"]
 }
