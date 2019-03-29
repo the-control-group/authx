@@ -435,9 +435,8 @@ type ScalarInput<T> =
       ? GraphQLScalarType
       : GraphQLInputObjectType);
 
-type GraphQLArgumentConfigType<TArg> = TArg extends (infer TItem)[]
-  ? // Because conditional types don't support recursion yer, we will only
-    // type check lists to a depth of 1.
+type GraphQLArgumentConfigType<TArg> = TArg extends (infer TItem)[] // Because conditional types don't support recursion yer, we will only
+  ? // type check lists to a depth of 1.
     // See https://github.com/Microsoft/TypeScript/issues/6230
     GraphQLList<
       TItem extends any[]
