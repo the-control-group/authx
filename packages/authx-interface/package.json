@@ -58,5 +58,5 @@
     "start": "npm run start:production"
   },
   "types": "index.d.ts",
-  "version": "2.0.0-alpha3"
+  "version": "2.0.0-alpha5"
 }
