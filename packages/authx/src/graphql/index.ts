@@ -1,8 +1,6 @@
 import {
   GraphQLSchema,
-  GraphQLNamedType,
-  GraphQLObjectType,
-  GraphQLFieldConfig
+  GraphQLObjectType
 } from "graphql";
 import { StrategyCollection } from "../StrategyCollection";
 import { Context } from "../Context";
