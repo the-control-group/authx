@@ -6,7 +6,7 @@ import {
   GraphQLFieldConfig
 } from "graphql";
 import { GraphQLUser } from "../GraphQLUser";
-import { Context } from "../Context";
+import { Context } from "../../Context";
 import { User } from "../../model";
 import { filter } from "../../util/filter";
 

@@ -8,7 +8,7 @@ import {
   GraphQLInputObjectType
 } from "graphql";
 
-import { Context } from "../../../../graphql/Context";
+import { Context } from "../../../../Context";
 import { Credential } from "../../../../model";
 import { EmailCredential } from "../../model";
 import { ForbiddenError, NotFoundError } from "../../../../errors";
@@ -45,7 +45,12 @@ export const updateEmailCredential: GraphQLFieldConfig<
     }
   },
   async resolve(source, args, context): Promise<EmailCredential> {
-    const { tx, token: t, realm, credentialMap } = context;
+    const {
+      tx,
+      token: t,
+      realm,
+      strategies: { credentialMap }
+    } = context;
 
     if (!t) {
       throw new ForbiddenError(

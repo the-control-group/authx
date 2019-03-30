@@ -4,8 +4,8 @@ import {
   GraphQLObjectType,
   GraphQLFieldConfig
 } from "graphql";
-import { Strategy } from "../Strategy";
-import { Context } from "./Context";
+import { StrategyCollection } from "../StrategyCollection";
+import { Context } from "../Context";
 
 import { mutationFields, mutationTypes } from "./mutation";
 import { queryFields } from "./query";
@@ -48,57 +48,25 @@ export * from "./GraphQLUserType";
 export * from "./GraphQLContact";
 export * from "./GraphQLContactInput";
 
-export default (strategies: Strategy[]) => {
+export default function createSchema(
+  strategies: StrategyCollection
+): GraphQLSchema {
   const query = new GraphQLObjectType<any, Context>({
     name: "Query",
     description: "The query root of AuthX's GraphQL interface.",
-    fields: () =>
-      strategies.reduce(
-        (
-          fields: { [field: string]: GraphQLFieldConfig<any, any, Context> },
-          s: Strategy
-        ) => {
-          for (const f of Object.keys(s.queryFields)) {
-            if (fields[f]) {
-              throw new Error(
-                `INVARIANT: Multiple strategies cannot use the query field; "${f}" is used twice.`
-              );
-            }
-          }
-
-          return {
-            ...fields,
-            ...s.queryFields
-          };
-        },
-        { ...queryFields }
-      )
+    fields: () => ({
+      ...queryFields,
+      ...strategies.queryFields
+    })
   });
 
   const mutation = new GraphQLObjectType<any, Context>({
     name: "Mutation",
     description: "The mutation root of AuthX's GraphQL interface.",
-    fields: () =>
-      strategies.reduce(
-        (
-          fields: { [field: string]: GraphQLFieldConfig<any, any, Context> },
-          s: Strategy
-        ) => {
-          for (const f of Object.keys(s.mutationFields)) {
-            if (fields[f]) {
-              throw new Error(
-                `INVARIANT: Multiple strategies cannot use the mutation field; "${f}" is used twice.`
-              );
-            }
-          }
-
-          return {
-            ...fields,
-            ...s.mutationFields
-          };
-        },
-        { ...mutationFields }
-      )
+    fields: () => ({
+      ...mutationFields,
+      ...strategies.mutationFields
+    })
   });
 
   return new GraphQLSchema({
@@ -128,11 +96,9 @@ export default (strategies: Strategy[]) => {
       ...mutationTypes,
 
       // merge in types from strategies
-      ...strategies.reduce((types: GraphQLNamedType[], s: Strategy) => {
-        return [...types, ...s.types];
-      }, [])
+      ...strategies.types
     ],
     mutation,
     query
   });
-};
+}

@@ -21,6 +21,22 @@ export class ValidationError extends Error {
   }
 }
 
+export class UnsupportedMediaTypeError extends Error {
+  public fileName?: string;
+  public lineNumber?: number;
+  public status: number;
+  public statusCode: number;
+  public expose: true = true;
+
+  public constructor(message?: string, fileName?: string, lineNumber?: number) {
+    super(message);
+    if (typeof fileName !== undefined) this.fileName = fileName;
+    if (typeof lineNumber !== undefined) this.lineNumber = lineNumber;
+    this.message = message || "The media type is unsupported.";
+    this.status = this.statusCode = 415;
+  }
+}
+
 export class NotFoundError extends Error {
   public fileName?: string;
   public lineNumber?: number;

@@ -13,7 +13,7 @@ import {
   GraphQLUser,
   GraphQLContact
 } from "../../../graphql";
-import { Context } from "../../../graphql/Context";
+import { Context } from "../../../Context";
 
 // Credential
 // ----------

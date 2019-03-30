@@ -6,22 +6,42 @@ import { errorHandler, execute } from "graphql-api-koa";
 import x from "./x";
 
 import createSchema from "./graphql";
-export * from "./graphql";
+import oauth2 from "./oauth2";
+import graphiql from "./graphiql";
 
 import { Config } from "./Config";
-import { Context } from "./graphql/Context";
-import { Strategy } from "./Strategy";
-import { Token, Authority, Credential } from "./model";
+import { Context } from "./Context";
+import { Token } from "./model";
 import { parse } from "auth-header";
-import { NotFoundError, AuthenticationError } from "./errors";
+import {
+  NotFoundError,
+  AuthenticationError,
+  UnsupportedMediaTypeError
+} from "./errors";
 
 const __DEV__ = process.env.NODE_ENV !== "production";
 
-export class AuthX<StateT = any, CustomT = {}> extends Router<StateT, CustomT> {
+import { StrategyCollection } from "./StrategyCollection";
+
+export * from "./errors";
+export * from "./model";
+export * from "./graphql";
+export * from "./Strategy";
+export * from "./StrategyCollection";
+export * from "./Config";
+export * from "./Context";
+
+export class AuthX<
+  StateT extends any = any,
+  CustomT extends { [x]: Context } = { [x]: Context }
+> extends Router<StateT, CustomT> {
   public constructor(config: Config & IRouterOptions) {
     super(config);
 
-    const { realm = "AuthX", interfaceBaseUrl, strategies, sendMail } = config;
+    const strategies =
+      config.strategies instanceof StrategyCollection
+        ? config.strategies
+        : new StrategyCollection(config.strategies);
 
     // create a database pool
     const pool = new Pool(config.pg);
@@ -91,11 +111,8 @@ export class AuthX<StateT = any, CustomT = {}> extends Router<StateT, CustomT> {
         }
 
         const context: Context = {
-          realm,
-          interfaceBaseUrl,
-          sendMail,
-          authorityMap,
-          credentialMap,
+          ...config,
+          strategies,
           token,
           tx
         };
@@ -108,68 +125,9 @@ export class AuthX<StateT = any, CustomT = {}> extends Router<StateT, CustomT> {
       }
     };
 
-    // OAuth
-    // =====
-    // These endpoints are used by clients wishing to authenticate a user with
-    // AuthX. They implement the OAuth 2.0 flow for "authorization code" grant
-    // types.
-
-    // this.get('/oauth2', oauth2Controller);
-    // this.post('/oauth2', oauth2Controller);
-
-    // Keys
-    // ====
-    // This outputs valid public keys and algorithms that can be used to verify
-    // access tokens by resource servers. The first key is always the most
-    // recent.
-
-    // this.get('/keys', async ctx => {
-    //   ctx.body = this.config.accessToken.public;
-    // });
-
     // GraphQL
     // =======
-    // The management interface is in GraphQL.
-
-    const authorityMap = strategies.reduce(
-      (
-        map: {
-          [field: string]: { new (data: any): Authority<any> };
-        },
-        s: Strategy
-      ) => {
-        if (map[s.name])
-          throw new Error(
-            `INVARIANT: Multiple strategies cannot use the same identifier; "${
-              s.name
-            }" is used twice.`
-          );
-
-        map[s.name] = s.authorityModel;
-        return map;
-      },
-      {}
-    );
-
-    const credentialMap = strategies.reduce(
-      (
-        map: {
-          [field: string]: { new (data: any): Credential<any> };
-        },
-        s: Strategy
-      ) => {
-        if (map[s.name])
-          throw new Error(
-            `INVARIANT: Multiple strategies cannot use the same identifier; "${
-              s.name
-            }" is used twice.`
-          );
-
-        map[s.name] = s.credentialModel;
-        return map;
-      },
-      {}
-    );
+    // The GraphQL endpoint is the primary API for interacting with AuthX.
 
     this.post(
       "/graphql",
@@ -178,7 +136,18 @@ export class AuthX<StateT = any, CustomT = {}> extends Router<StateT, CustomT> {
 
       context,
 
-      body(),
+      // The GraphQL endpoint only accepts JSON. This helps protect against CSRF
+      // attacks that send urlenceded data via HTML forms.
+      async (ctx, next) => {
+        if (!ctx.is("json"))
+          throw new UnsupportedMediaTypeError(
+            "Requests to the AuthX GraphQL endpoint MUST specify a Content-Type of `application/json`."
+          );
+
+        await next();
+      },
+
+      body({ multipart: false, urlencoded: false, text: false, json: true }),
 
       execute({
         schema: createSchema(strategies),
@@ -190,6 +159,32 @@ export class AuthX<StateT = any, CustomT = {}> extends Router<StateT, CustomT> {
           };
         }
       })
+    );
+
+    // GraphiQL
+    // ========
+    // This is a graphical (get it, graph-i-QL) interface to the AuthX API.
+    this.get("/graphiql", async (ctx, next) => {
+      ctx.body = graphiql;
+      await next();
+    });
+
+    // OAuth
+    // =====
+    // The core AuthX library supports the following OAuth2 grant types:
+    //
+    // - `authorization_code`
+    // - `refresh_token`
+    //
+    // Because it involves presentation elements, the core AuthX library does
+    // **not** implement the `code` grant type. Instead, a compatible reference
+    // implementation of this flow is provided by the `authx-interface` NPM
+    // package.
+
+    this.post(
+      "/",
+      body({ multipart: false, urlencoded: true, text: false, json: true }),
+      oauth2
     );
   }
 }

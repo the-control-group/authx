@@ -8,7 +8,7 @@ import jwt from "jsonwebtoken";
 import { randomBytes } from "crypto";
 import v4 from "uuid/v4";
 
-import { Context } from "../../../../graphql/Context";
+import { Context } from "../../../../Context";
 import { GraphQLToken } from "../../../../graphql";
 import { Authority, Token } from "../../../../model";
 import { ForbiddenError, AuthenticationError } from "../../../../errors";
@@ -44,7 +44,7 @@ export const authenticateEmail: GraphQLFieldConfig<
       tx,
       token: t,
       realm,
-      authorityMap,
+      strategies: { authorityMap },
       sendMail,
       interfaceBaseUrl
     } = context;
@@ -140,7 +140,7 @@ export const authenticateEmail: GraphQLFieldConfig<
             proof
           )}`;
 
-        // TODO: Add a nonce to the credential
+        // TODO: Add a code to the credential
 
         // Send an email
         await sendMail({

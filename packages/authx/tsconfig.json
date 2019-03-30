@@ -10,8 +10,12 @@
     "rootDir": "./src",
     "strict": true,
     "esModuleInterop": true,
-    "baseUrl": "@types",
-    "typeRoots": ["@types"]
+    "baseUrl": "",
+    "paths": {
+      "graphql": ["@types/graphql"],
+      "graphql/*": ["@types/graphql/*"],
+      "graphql-api-koa": ["@types/graphql-api-koa"]
+    }
   },
   "include": ["./src/**/*"]
 }

@@ -8,7 +8,7 @@ import {
 
 import { EmailAuthority, EmailAuthorityDetails } from "../model";
 import { GraphQLAuthority } from "../../../graphql";
-import { Context } from "../../../graphql/Context";
+import { Context } from "../../../Context";
 
 // Authority
 // ---------

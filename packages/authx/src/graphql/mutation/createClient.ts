@@ -8,7 +8,7 @@ import {
   GraphQLString
 } from "graphql";
 
-import { Context } from "../Context";
+import { Context } from "../../Context";
 import { GraphQLClient } from "../GraphQLClient";
 import { Client } from "../../model";
 import { ForbiddenError } from "../../errors";

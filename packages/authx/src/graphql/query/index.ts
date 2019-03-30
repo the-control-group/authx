@@ -21,6 +21,8 @@ import { users } from "./users";
 
 import { viewer } from "./viewer";
 
+import { keys } from "./keys";
+
 export const queryFields = {
   authority,
   authorities,
@@ -36,7 +38,8 @@ export const queryFields = {
   tokens,
   user,
   users,
-  viewer
+  viewer,
+  keys
 };
 
 export const queryTypes = [];

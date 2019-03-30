@@ -7,7 +7,7 @@ import {
   GraphQLString
 } from "graphql";
 
-import { Context } from "../../../../graphql/Context";
+import { Context } from "../../../../Context";
 import { PasswordAuthority } from "../../model";
 import { ForbiddenError } from "../../../../errors";
 import { GraphQLPasswordAuthority } from "../GraphQLPasswordAuthority";

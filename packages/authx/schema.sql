@@ -104,7 +104,7 @@ CREATE TABLE authx.grant_record (
   user_id UUID NOT NULL REFERENCES authx.user,
   client_id UUID NOT NULL REFERENCES authx.client,
   secret TEXT NOT NULL,
-  nonces TEXT[] NOT NULL,
+  codes TEXT[] NOT NULL,
   scopes TEXT[] NOT NULL,
 
   PRIMARY KEY (record_id),

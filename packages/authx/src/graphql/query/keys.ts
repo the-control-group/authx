@@ -1,0 +1,15 @@
+import {
+  GraphQLList,
+  GraphQLNonNull,
+  GraphQLString,
+  GraphQLFieldConfig
+} from "graphql";
+import { Context } from "../../Context";
+
+export const keys: GraphQLFieldConfig<any, {}, Context> = {
+  type: new GraphQLList(new GraphQLNonNull(GraphQLString)),
+  description: "List all keys.",
+  async resolve(source, args, context): Promise<string[]> {
+    return context.publicKeys;
+  }
+};

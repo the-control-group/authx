@@ -8,7 +8,7 @@ import {
   GraphQLString
 } from "graphql";
 
-import { Context } from "../Context";
+import { Context } from "../../Context";
 import { GraphQLToken } from "../GraphQLToken";
 import { Token } from "../../model";
 import { ForbiddenError } from "../../errors";
@@ -18,7 +18,6 @@ export const updateToken: GraphQLFieldConfig<
   {
     id: string;
     enabled: null | boolean;
-    scopes: null | string[];
   },
   Context
 > = {
@@ -30,9 +29,6 @@ export const updateToken: GraphQLFieldConfig<
     },
     enabled: {
       type: GraphQLBoolean
-    },
-    scopes: {
-      type: new GraphQLList(new GraphQLNonNull(GraphQLString))
     }
   },
   async resolve(source, args, context): Promise<Token> {
@@ -53,22 +49,12 @@ export const updateToken: GraphQLFieldConfig<
         );
       }
 
-      if (
-        args.scopes &&
-        !(await before.isAccessibleBy(realm, t, tx, "write.scopes"))
-      ) {
-        throw new ForbiddenError(
-          "You do not have permission to update this token's scopes."
-        );
-      }
-
       const token = await Token.write(
         tx,
         {
           ...before,
           enabled:
-            typeof args.enabled === "boolean" ? args.enabled : before.enabled,
-          scopes: args.scopes || before.scopes
+            typeof args.enabled === "boolean" ? args.enabled : before.enabled
         },
         {
           recordId: v4(),

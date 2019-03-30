@@ -1,6 +1,6 @@
 import { Authority, Credential } from "./model";
 import { GraphQLNamedType, GraphQLFieldConfig } from "graphql";
-import { Context } from "./graphql/Context";
+import { Context } from "./Context";
 
 export interface Strategy {
   name: string;

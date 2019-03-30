@@ -2,5 +2,5 @@
 // https://github.com/Microsoft/TypeScript/issues/1863
 //
 // const x: unique symbol = Symbol("AuthX");
-const x: string = Symbol("AuthX") as any;
+const x: "x" = Symbol("AuthX") as any;
 export default x;

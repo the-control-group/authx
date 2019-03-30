@@ -6,7 +6,7 @@ import {
   GraphQLFieldConfig
 } from "graphql";
 import { GraphQLGrant } from "../GraphQLGrant";
-import { Context } from "../Context";
+import { Context } from "../../Context";
 import { Grant } from "../../model";
 import { filter } from "../../util/filter";
 

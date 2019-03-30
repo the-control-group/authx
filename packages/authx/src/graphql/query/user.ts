@@ -1,5 +1,5 @@
 import { GraphQLFieldConfig, GraphQLID, GraphQLNonNull } from "graphql";
-import { Context } from "../Context";
+import { Context } from "../../Context";
 import { GraphQLUser } from "../GraphQLUser";
 import { User } from "../../model";
 

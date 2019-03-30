@@ -6,7 +6,7 @@ import {
 } from "graphql";
 
 import { User, Grant } from "../model";
-import { Context } from "./Context";
+import { Context } from "../Context";
 import { GraphQLContact } from "./GraphQLContact";
 import { GraphQLCredential } from "./GraphQLCredential";
 import { GraphQLRole } from "./GraphQLRole";
@@ -40,7 +40,7 @@ export const GraphQLUser: GraphQLObjectType<
       async resolve(
         user,
         args,
-        { realm, token: t, tx, credentialMap }: Context
+        { realm, token: t, tx, strategies: { credentialMap } }: Context
       ) {
         return t
           ? filter(await user.credentials(tx, credentialMap), credential =>

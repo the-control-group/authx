@@ -8,7 +8,7 @@ import {
   GraphQLString
 } from "graphql";
 
-import { Context } from "../../../../graphql/Context";
+import { Context } from "../../../../Context";
 import { Authority } from "../../../../model";
 import { PasswordAuthority } from "../../model";
 import { ForbiddenError, NotFoundError } from "../../../../errors";
@@ -44,7 +44,12 @@ export const updatePasswordAuthority: GraphQLFieldConfig<
     }
   },
   async resolve(source, args, context): Promise<PasswordAuthority> {
-    const { tx, token: t, realm, authorityMap } = context;
+    const {
+      tx,
+      token: t,
+      realm,
+      strategies: { authorityMap }
+    } = context;
 
     if (!t) {
       throw new ForbiddenError(

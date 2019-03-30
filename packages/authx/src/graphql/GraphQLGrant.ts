@@ -7,7 +7,7 @@ import {
 } from "graphql";
 
 import { Grant, Client, User } from "../model";
-import { Context } from "./Context";
+import { Context } from "../Context";
 import { GraphQLClient } from "./GraphQLClient";
 import { GraphQLUser } from "./GraphQLUser";
 
@@ -40,7 +40,7 @@ export const GraphQLGrant = new GraphQLObjectType<Grant, Context>({
         return client.isAccessibleBy(realm, t, tx) ? client : null;
       }
     },
-    nonces: {
+    codes: {
       type: new GraphQLList(GraphQLString),
       async resolve(
         grant,
@@ -48,7 +48,7 @@ export const GraphQLGrant = new GraphQLObjectType<Grant, Context>({
         { realm, token: t, tx }: Context
       ): Promise<null | string[]> {
         return t && (await grant.isAccessibleBy(realm, t, tx, "read.secrets"))
-          ? [...grant.nonces]
+          ? [...grant.codes]
           : null;
       }
     },

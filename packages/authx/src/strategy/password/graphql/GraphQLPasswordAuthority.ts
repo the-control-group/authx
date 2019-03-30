@@ -8,7 +8,7 @@ import {
 
 import { PasswordAuthority, PasswordAuthorityDetails } from "../model";
 import { GraphQLAuthority } from "../../../graphql";
-import { Context } from "../../../graphql/Context";
+import { Context } from "../../../Context";
 
 // Authority
 // ---------

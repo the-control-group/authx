@@ -1,5 +1,5 @@
 import { GraphQLFieldConfig, GraphQLID, GraphQLNonNull } from "graphql";
-import { Context } from "../Context";
+import { Context } from "../../Context";
 import { GraphQLCredential } from "../GraphQLCredential";
 import { Credential } from "../../model";
 
@@ -18,7 +18,12 @@ export const credential: GraphQLFieldConfig<
     }
   },
   async resolve(source, args, context): Promise<null | Credential<any>> {
-    const { tx, token: t, realm, credentialMap } = context;
+    const {
+      tx,
+      token: t,
+      realm,
+      strategies: { credentialMap }
+    } = context;
     if (!t) return null;
 
     const credential = await Credential.read(tx, args.id, credentialMap);

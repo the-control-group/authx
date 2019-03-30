@@ -1,5 +1,5 @@
 import { GraphQLFieldConfig, GraphQLID, GraphQLNonNull } from "graphql";
-import { Context } from "../Context";
+import { Context } from "../../Context";
 import { GraphQLAuthority } from "../GraphQLAuthority";
 import { Authority } from "../../model";
 
@@ -18,7 +18,12 @@ export const authority: GraphQLFieldConfig<
     }
   },
   async resolve(source, args, context): Promise<null | Authority<any>> {
-    const { tx, token: t, realm, authorityMap } = context;
+    const {
+      tx,
+      token: t,
+      realm,
+      strategies: { authorityMap }
+    } = context;
     if (!t) return null;
 
     const authority = await Authority.read(tx, args.id, authorityMap);

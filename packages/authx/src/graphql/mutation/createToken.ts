@@ -10,7 +10,7 @@ import {
   GraphQLString
 } from "graphql";
 
-import { Context } from "../Context";
+import { Context } from "../../Context";
 import { GraphQLToken } from "../GraphQLToken";
 import { Token, User } from "../../model";
 import { ForbiddenError } from "../../errors";

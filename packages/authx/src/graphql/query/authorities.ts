@@ -6,7 +6,7 @@ import {
   GraphQLFieldConfig
 } from "graphql";
 import { GraphQLAuthority } from "../GraphQLAuthority";
-import { Context } from "../Context";
+import { Context } from "../../Context";
 import { Authority } from "../../model";
 
 export const authorities: GraphQLFieldConfig<
@@ -36,7 +36,10 @@ export const authorities: GraphQLFieldConfig<
     }
   },
   async resolve(source, args, context): Promise<Authority<any>[]> {
-    const { tx, authorityMap } = context;
+    const {
+      tx,
+      strategies: { authorityMap }
+    } = context;
 
     const ids = await tx.query(
       `

@@ -6,7 +6,7 @@ import {
   GraphQLFieldConfig
 } from "graphql";
 import { GraphQLCredential } from "../GraphQLCredential";
-import { Context } from "../Context";
+import { Context } from "../../Context";
 import { Credential } from "../../model";
 import { filter } from "../../util/filter";
 
@@ -37,7 +37,12 @@ export const credentials: GraphQLFieldConfig<
     }
   },
   async resolve(source, args, context): Promise<Credential<any>[]> {
-    const { tx, token: t, realm, credentialMap } = context;
+    const {
+      tx,
+      token: t,
+      realm,
+      strategies: { credentialMap }
+    } = context;
     if (!t) return [];
 
     const ids = await tx.query(

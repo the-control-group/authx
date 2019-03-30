@@ -1,7 +1,8 @@
+import { PoolClient } from "pg";
+import { Token } from "./model";
 import { StrategyCollection } from "./StrategyCollection";
-import { Strategy } from "./Strategy";
 
-export interface Config {
+export interface Context {
   realm: string;
   interfaceBaseUrl: string;
   privateKey: string;
@@ -15,15 +16,7 @@ export interface Config {
     html: string;
     from?: string;
   }) => Promise<any>;
-  strategies: StrategyCollection | Strategy[];
-  pg: {
-    database?: string;
-    host?: string;
-    idleTimeoutMillis?: number;
-    max?: number;
-    password?: string;
-    port?: number;
-    ssl?: boolean;
-    user?: string;
-  };
+  tx: PoolClient;
+  strategies: StrategyCollection;
+  token: null | Token;
 }

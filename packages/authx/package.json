@@ -14,7 +14,6 @@
     "@types/pg": "^7.4.14",
     "@types/uuid": "^3.4.4",
     "auth-header": "^1.0.0",
-    "authx-interface": "^2.0.0-alpha5",
     "bcrypt": "^3.0.5",
     "graphql": "^14.1.1",
     "graphql-api-koa": "^2.0.0",
@@ -31,6 +30,7 @@
     "@typescript-eslint/eslint-plugin": "^1.5.0",
     "@typescript-eslint/parser": "^1.5.0",
     "ava": "^1.4.0",
+    "authx-interface": "^2.0.0-alpha.6",
     "eslint": "^5.14.1",
     "eslint-config-prettier": "^4.0.0",
     "eslint-plugin-prettier": "^3.0.0",
@@ -70,5 +70,5 @@
     "start": "npm run start:production"
   },
   "types": "dist/index.d.ts",
-  "version": "2.0.0-alpha5"
+  "version": "2.0.0-alpha.6"
 }

@@ -10,7 +10,7 @@ import {
   GraphQLString
 } from "graphql";
 
-import { Context } from "../Context";
+import { Context } from "../../Context";
 import { GraphQLClient } from "../GraphQLClient";
 import { Client } from "../../model";
 import { ForbiddenError } from "../../errors";
@@ -21,10 +21,10 @@ export const updateClient: GraphQLFieldConfig<
     id: string;
     enabled: null | boolean;
     name: null | string;
-    addOauthUrls: null | string[];
-    removeOauthUrls: null | string[];
-    generateOauthSecrets: null | number;
-    removeOauthSecrets: null | string[];
+    addUrls: null | string[];
+    removeUrls: null | string[];
+    generateSecrets: null | number;
+    removeSecrets: null | string[];
     assignUserIds: null | string[];
     unassignUserIds: null | string[];
   },
@@ -42,10 +42,10 @@ export const updateClient: GraphQLFieldConfig<
     name: {
       type: GraphQLString
     },
-    addOauthUrls: {
+    addUrls: {
       type: new GraphQLList(new GraphQLNonNull(GraphQLString))
     },
-    removeOauthUrls: {
+    removeUrls: {
       type: new GraphQLList(new GraphQLNonNull(GraphQLString))
     },
     assignUserIds: {
@@ -54,10 +54,10 @@ export const updateClient: GraphQLFieldConfig<
     unassignUserIds: {
       type: new GraphQLList(new GraphQLNonNull(GraphQLString))
     },
-    generateOauthSecrets: {
+    generateSecrets: {
       type: GraphQLInt
     },
-    removeOauthSecrets: {
+    removeSecrets: {
       type: new GraphQLList(new GraphQLNonNull(GraphQLString))
     }
   },
@@ -83,14 +83,14 @@ export const updateClient: GraphQLFieldConfig<
       let urls = [...before.urls];
 
       // Assign users
-      if (args.addOauthUrls) {
-        urls = [...urls, ...args.addOauthUrls];
+      if (args.addUrls) {
+        urls = [...urls, ...args.addUrls];
       }
 
       // Unassign users
-      if (args.removeOauthUrls) {
-        const removeOauthUrls = new Set(args.removeOauthUrls);
-        urls = urls.filter(id => !removeOauthUrls.has(id));
+      if (args.removeUrls) {
+        const removeUrls = new Set(args.removeUrls);
+        urls = urls.filter(id => !removeUrls.has(id));
       }
 
       // write.secrets ---------------------------------------------------------
@@ -103,16 +103,16 @@ export const updateClient: GraphQLFieldConfig<
       let secrets = [...before.secrets];
 
       // Generate secrets
-      if (args.generateOauthSecrets) {
-        for (let i = args.generateOauthSecrets; i > 0; i--) {
+      if (args.generateSecrets) {
+        for (let i = args.generateSecrets; i > 0; i--) {
           secrets.push(randomBytes(16).toString("hex"));
         }
       }
 
       // Remove secrets
-      if (args.removeOauthSecrets) {
-        const removeOauthSecrets = new Set(args.removeOauthSecrets);
-        secrets = secrets.filter(id => !removeOauthSecrets.has(id));
+      if (args.removeSecrets) {
+        const removeSecrets = new Set(args.removeSecrets);
+        secrets = secrets.filter(id => !removeSecrets.has(id));
       }
 
       // write.assignments -----------------------------------------------------

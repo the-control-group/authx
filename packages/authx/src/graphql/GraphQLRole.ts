@@ -7,7 +7,7 @@ import {
 } from "graphql";
 
 import { Role } from "../model";
-import { Context } from "./Context";
+import { Context } from "../Context";
 import { GraphQLUser } from "./GraphQLUser";
 import { filter } from "../util/filter";
 

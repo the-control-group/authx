@@ -11,7 +11,7 @@ import {
   GraphQLString
 } from "graphql";
 
-import { Context } from "../Context";
+import { Context } from "../../Context";
 import { GraphQLGrant } from "../GraphQLGrant";
 import { Grant, User } from "../../model";
 import { ForbiddenError } from "../../errors";
@@ -46,7 +46,7 @@ export const createGrant: GraphQLFieldConfig<
     }
   },
   async resolve(source, args, context): Promise<Grant> {
-    const { tx, token: t, realm } = context;
+    const { tx, token: t, realm, codeValidityDuration } = context;
 
     if (!t) {
       throw new ForbiddenError("You must be authenticated to create a grant.");
@@ -84,6 +84,7 @@ export const createGrant: GraphQLFieldConfig<
 
     try {
       const id = v4();
+      const now = Math.floor(Date.now() / 1000);
       const grant = await Grant.write(
         tx,
         {
@@ -92,11 +93,11 @@ export const createGrant: GraphQLFieldConfig<
           userId: args.userId,
           clientId: args.clientId,
           secret: randomBytes(16).toString("hex"),
-          nonces: [
+          codes: [
             Buffer.from(
               [
-                args.userId,
-                Date.now() + 1000 * 60 * 5,
+                id,
+                now + codeValidityDuration,
                 randomBytes(16).toString("hex")
               ].join(":")
             ).toString("base64")

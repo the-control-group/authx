@@ -6,7 +6,7 @@ import {
   GraphQLFieldConfig
 } from "graphql";
 import { GraphQLRole } from "../GraphQLRole";
-import { Context } from "../Context";
+import { Context } from "../../Context";
 import { Role } from "../../model";
 import { filter } from "../../util/filter";
 

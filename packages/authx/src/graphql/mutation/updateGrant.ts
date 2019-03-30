@@ -10,7 +10,7 @@ import {
   GraphQLString
 } from "graphql";
 
-import { Context } from "../Context";
+import { Context } from "../../Context";
 import { GraphQLGrant } from "../GraphQLGrant";
 import { Grant } from "../../model";
 import { ForbiddenError } from "../../errors";
@@ -22,8 +22,8 @@ export const updateGrant: GraphQLFieldConfig<
     enabled: null | boolean;
     scopes: null | string[];
     generateSecret: boolean;
-    generateNonces: null | number;
-    removeNonces: null | string[];
+    generateCodes: null | number;
+    removeCodes: null | string[];
   },
   Context
 > = {
@@ -43,15 +43,15 @@ export const updateGrant: GraphQLFieldConfig<
       type: GraphQLBoolean,
       defaultValue: false
     },
-    generateNonces: {
+    generateCodes: {
       type: GraphQLInt
     },
-    removeNonces: {
+    removeCodes: {
       type: new GraphQLList(new GraphQLNonNull(GraphQLString))
     }
   },
   async resolve(source, args, context): Promise<Grant> {
-    const { tx, token: t, realm } = context;
+    const { tx, token: t, realm, codeValidityDuration } = context;
 
     if (!t) {
       throw new ForbiddenError("You must be authenticated to update a grant.");
@@ -78,7 +78,7 @@ export const updateGrant: GraphQLFieldConfig<
       }
 
       if (
-        (args.generateSecret || args.generateNonces || args.removeNonces) &&
+        (args.generateSecret || args.generateCodes || args.removeCodes) &&
         !(await before.isAccessibleBy(realm, t, tx, "write.secrets"))
       ) {
         throw new ForbiddenError(
@@ -86,25 +86,25 @@ export const updateGrant: GraphQLFieldConfig<
         );
       }
 
-      const now = Date.now();
-      let nonces = [...before.nonces];
+      const now = Math.floor(Date.now() / 1000);
+      let codes = [...before.codes];
 
-      // Prune expired nonces
-      if (args.generateNonces || args.removeNonces) {
-        nonces = nonces.filter(nonce => {
-          const expiration = nonce.split(":")[1];
+      // Prune expired codes
+      if (args.generateCodes || args.removeCodes) {
+        codes = codes.filter(code => {
+          const expiration = code.split(":")[1];
           return expiration && parseInt(expiration) > now;
         });
       }
 
-      // Generate nonces
-      if (args.generateNonces) {
-        for (let i = args.generateNonces; i > 0; i--) {
-          nonces.push(
+      // Generate codes
+      if (args.generateCodes) {
+        for (let i = args.generateCodes; i > 0; i--) {
+          codes.push(
             Buffer.from(
               [
                 before.id,
-                now + 1000 * 60 * 5,
+                now + codeValidityDuration,
                 randomBytes(16).toString("hex")
               ].join(":")
             ).toString("base64")
@@ -112,10 +112,10 @@ export const updateGrant: GraphQLFieldConfig<
         }
       }
 
-      // Remove nonces
-      if (args.removeNonces) {
-        const removeNonces = new Set(args.removeNonces);
-        nonces = nonces.filter(id => !removeNonces.has(id));
+      // Remove codes
+      if (args.removeCodes) {
+        const removeCodes = new Set(args.removeCodes);
+        codes = codes.filter(id => !removeCodes.has(id));
       }
 
       const grant = await Grant.write(
@@ -127,7 +127,7 @@ export const updateGrant: GraphQLFieldConfig<
           secret: args.generateSecret
             ? randomBytes(16).toString("hex")
             : before.secret,
-          nonces,
+          codes,
           scopes: args.scopes || before.scopes
         },
         {

@@ -6,7 +6,7 @@ import {
   GraphQLFieldConfig
 } from "graphql";
 import { GraphQLToken } from "../GraphQLToken";
-import { Context } from "../Context";
+import { Context } from "../../Context";
 import { Token } from "../../model";
 import { filter } from "../../util/filter";
 

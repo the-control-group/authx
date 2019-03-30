@@ -8,7 +8,7 @@ import {
 } from "graphql";
 
 import { Grant, Token, User } from "../model";
-import { Context } from "./Context";
+import { Context } from "../Context";
 import { GraphQLGrant } from "./GraphQLGrant";
 import { GraphQLUser } from "./GraphQLUser";
 

@@ -1,5 +1,5 @@
 import Koa from "koa";
-import AuthX from ".";
+import AuthX, { StrategyCollection } from ".";
 import authXInterface from "authx-interface";
 
 import email from "./strategy/email";
@@ -18,17 +18,10 @@ app.use(authXInterface);
 const authx = new AuthX({
   realm: "AuthX",
   interfaceBaseUrl: "http://localhost:3000/",
-  strategies: [email, password],
-  pg: {
-    database: process.env.PGDATABASE || undefined,
-    host: process.env.PGHOST || undefined,
-    password: process.env.PGPASSWORD || undefined,
-    port: process.env.PGPORT ? parseInt(process.env.PGPORT, 10) : undefined,
-    ssl: process.env.PGSSL === "true" ? true : false,
-    user: process.env.PGUSER || undefined
-  },
-  oauthPrivateKey:
-    process.env.OAUTHPRIVATE ||
+  codeValidityDuration: 60,
+  jwtValidityDuration: 5 * 60,
+  privateKey:
+    process.env.KEYPRIVATE ||
     `-----BEGIN RSA PRIVATE KEY-----
 MIICXAIBAAKBgQCfb+nyTPFCntEXbrFPU5DeE0gC4jXRcSFWDfCRgeqeQWqIW9De
 MmCj13k0z6fQCiG3FATYosS64wAs+OiyGtu9q/JyUEVIBMF0upDJMA53AFFx+0Fb
@@ -44,15 +37,15 @@ hsBvMWA/juLuk/2JRuNutY0WBmtkkS42AwJBAKEjS++txniWfl5qNE53CPxTKVTG
 XFd/8L+wpK65vVNgUIsCQFO6/fma+fjXx9kG+/zy4C/VwJWFUcpo5Z3R2TF7FheW
 5N6OERXoA+Qu+ew7xS6WrAp33dHncIyr9ekkvGc01FU=
 -----END RSA PRIVATE KEY-----`,
-  oauthPublicKeys: [
-    process.env.OAUTHPUBLIC ||
+  publicKeys: [
+    process.env.KEYPUBLIC ||
       `-----BEGIN PUBLIC KEY-----
 MIGfMA0GCSqGSIb3DQEBAQUAA4GNADCBiQKBgQCfb+nyTPFCntEXbrFPU5DeE0gC
 4jXRcSFWDfCRgeqeQWqIW9DeMmCj13k0z6fQCiG3FATYosS64wAs+OiyGtu9q/Jy
 UEVIBMF0upDJMA53AFFx+0Fb/i76JFPTY7SxzvioIFeKRwY8evIRWQWYO95Os6gK
 Bac/x5qiUn5fh2xM+wIDAQAB
 -----END PUBLIC KEY-----`,
-    ...(process.env.OAUTHPUBLIC ? [process.env.OAUTHPUBLIC] : [])
+    ...(process.env.KEYPUBLIC2 ? [process.env.KEYPUBLIC2] : [])
   ],
   async sendMail(options: {
     to: string;
@@ -63,6 +56,15 @@ Bac/x5qiUn5fh2xM+wIDAQAB
   }) {
     console.log("--- SENDING EMAIL MESSAGE -------------------------");
     console.log(options);
+  },
+  strategies: new StrategyCollection([email, password]),
+  pg: {
+    database: process.env.PGDATABASE || undefined,
+    host: process.env.PGHOST || undefined,
+    password: process.env.PGPASSWORD || undefined,
+    port: process.env.PGPORT ? parseInt(process.env.PGPORT, 10) : undefined,
+    ssl: process.env.PGSSL === "true" ? true : false,
+    user: process.env.PGUSER || undefined
   }
 });
 

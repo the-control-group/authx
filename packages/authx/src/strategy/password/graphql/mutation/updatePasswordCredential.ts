@@ -8,7 +8,7 @@ import {
   GraphQLString
 } from "graphql";
 
-import { Context } from "../../../../graphql/Context";
+import { Context } from "../../../../Context";
 import { Credential } from "../../../../model";
 import { PasswordCredential } from "../../model";
 import { ForbiddenError, NotFoundError } from "../../../../errors";
@@ -38,7 +38,12 @@ export const updatePasswordCredential: GraphQLFieldConfig<
     }
   },
   async resolve(source, args, context): Promise<PasswordCredential> {
-    const { tx, token: t, realm, credentialMap } = context;
+    const {
+      tx,
+      token: t,
+      realm,
+      strategies: { credentialMap }
+    } = context;
 
     if (!t) {
       throw new ForbiddenError(

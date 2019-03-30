@@ -13,7 +13,7 @@ export const grant = [
           clientId: "1fcb730e-f134-463a-b224-cab7e61c5ce0",
           userId: "e165cbb0-86b0-4e11-9db7-eb5f742161b8",
           secret: "383e0e7248492fc42db4791ab7927734",
-          nonces: [],
+          codes: [],
           scopes: ["AuthX:**:**"]
         },
         {
@@ -34,7 +34,7 @@ export const grant = [
           clientId: "17436d83-6022-4101-bf9f-997f1550f57c",
           userId: "a6a0946d-eeb4-45cd-83c6-c7920f2272eb",
           secret: "7dfcbf758d2740e01d1b9000b821e1aa",
-          nonces: [],
+          codes: [],
           scopes: ["**:**:**"]
         },
         {
@@ -55,7 +55,7 @@ export const grant = [
           clientId: "17436d83-6022-4101-bf9f-997f1550f57c",
           userId: "51192909-3664-44d5-be62-c6b45f0b0ee6",
           secret: "b5bc36346e93ebb362bbdfa32936bc9e",
-          nonces: [
+          codes: [
             "NGU3NmNiMTMtYWIyNC00ZGMxLWFkOTYtYWJjYmI4OWY1NTI5OjE1NTE5MDY0Nzk4MTQ6MmQyMzc1ZmRjMTA0NjM0YjU3OGI5YWUxZDUxNGJiM2Y="
           ],
           scopes: ["**:**:**"]

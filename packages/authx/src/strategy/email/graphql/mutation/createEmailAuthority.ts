@@ -8,7 +8,7 @@ import {
   GraphQLString
 } from "graphql";
 
-import { Context } from "../../../../graphql/Context";
+import { Context } from "../../../../Context";
 import { EmailAuthority } from "../../model";
 import { ForbiddenError } from "../../../../errors";
 import { GraphQLEmailAuthority } from "../GraphQLEmailAuthority";

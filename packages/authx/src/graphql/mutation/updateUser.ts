@@ -6,7 +6,7 @@ import {
   GraphQLNonNull
 } from "graphql";
 
-import { Context } from "../Context";
+import { Context } from "../../Context";
 import { GraphQLUser } from "../GraphQLUser";
 import { GraphQLContactInput } from "../GraphQLContactInput";
 import { User, ContactInput } from "../../model";

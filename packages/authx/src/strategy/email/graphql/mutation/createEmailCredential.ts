@@ -8,7 +8,7 @@ import {
   GraphQLString
 } from "graphql";
 
-import { Context } from "../../../../graphql/Context";
+import { Context } from "../../../../Context";
 import { Authority } from "../../../../model";
 import { EmailCredential, EmailAuthority } from "../../model";
 import { ForbiddenError, NotFoundError } from "../../../../errors";
@@ -56,7 +56,7 @@ export const createEmailCredential: GraphQLFieldConfig<
       tx,
       token: t,
       realm,
-      authorityMap,
+      strategies: { authorityMap },
       sendMail,
       interfaceBaseUrl
     } = context;
@@ -181,7 +181,7 @@ export const createEmailCredential: GraphQLFieldConfig<
               authority.id
             }&proof=${encodeURIComponent(interfaceBaseUrl)}`;
 
-          // TODO: Add a nonce to any existing credential with the same address
+          // TODO: Add a code to any existing credential with the same address
 
           // Send an email
           await sendMail({
