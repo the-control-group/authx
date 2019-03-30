@@ -21,7 +21,8 @@ export const updateGrant: GraphQLFieldConfig<
     id: string;
     enabled: null | boolean;
     scopes: null | string[];
-    generateSecret: boolean;
+    generateSecrets: null | number;
+    removeSecrets: null | string[];
     generateCodes: null | number;
     removeCodes: null | string[];
   },
@@ -39,9 +40,11 @@ export const updateGrant: GraphQLFieldConfig<
     scopes: {
       type: new GraphQLList(new GraphQLNonNull(GraphQLString))
     },
-    generateSecret: {
-      type: GraphQLBoolean,
-      defaultValue: false
+    generateSecrets: {
+      type: GraphQLInt
+    },
+    removeSecrets: {
+      type: new GraphQLList(new GraphQLNonNull(GraphQLString))
     },
     generateCodes: {
       type: GraphQLInt
@@ -78,7 +81,10 @@ export const updateGrant: GraphQLFieldConfig<
       }
 
       if (
-        (args.generateSecret || args.generateCodes || args.removeCodes) &&
+        (args.generateSecrets ||
+          args.removeSecrets ||
+          args.generateCodes ||
+          args.removeCodes) &&
         !(await before.isAccessibleBy(realm, t, tx, "write.secrets"))
       ) {
         throw new ForbiddenError(
@@ -87,35 +93,58 @@ export const updateGrant: GraphQLFieldConfig<
       }
 
       const now = Math.floor(Date.now() / 1000);
+      let secrets = [...before.secrets];
       let codes = [...before.codes];
 
-      // Prune expired codes
-      if (args.generateCodes || args.removeCodes) {
-        codes = codes.filter(code => {
-          const expiration = code.split(":")[1];
-          return expiration && parseInt(expiration) > now;
-        });
-      }
-
-      // Generate codes
-      if (args.generateCodes) {
-        for (let i = args.generateCodes; i > 0; i--) {
-          codes.push(
+      // Generate secrets.
+      if (args.generateSecrets) {
+        for (let i = args.generateSecrets; i > 0; i--) {
+          secrets.push(
             Buffer.from(
-              [
-                before.id,
-                now + codeValidityDuration,
-                randomBytes(16).toString("hex")
-              ].join(":")
+              [before.id, now, randomBytes(16).toString("hex")].join(":")
             ).toString("base64")
           );
         }
       }
 
-      // Remove codes
+      // Remove secrets.
+      if (args.removeSecrets) {
+        const removeSecrets = new Set(args.removeSecrets);
+        secrets = secrets.filter(id => !removeSecrets.has(id));
+      }
+
+      // Make sure we have at least one secret.
+      if (!secrets.length) {
+        secrets.push(
+          Buffer.from(
+            [before.id, now, randomBytes(16).toString("hex")].join(":")
+          ).toString("base64")
+        );
+      }
+
+      // Generate codes.
+      if (args.generateCodes) {
+        for (let i = args.generateCodes; i > 0; i--) {
+          codes.push(
+            Buffer.from(
+              [before.id, now, randomBytes(16).toString("hex")].join(":")
+            ).toString("base64")
+          );
+        }
+      }
+
+      // Remove codes.
       if (args.removeCodes) {
         const removeCodes = new Set(args.removeCodes);
         codes = codes.filter(id => !removeCodes.has(id));
+      }
+
+      // Prune expired codes.
+      if (args.generateCodes || args.removeCodes) {
+        codes = codes.filter(code => {
+          const issued = code.split(":")[1];
+          return issued && parseInt(issued) + codeValidityDuration > now;
+        });
       }
 
       const grant = await Grant.write(
@@ -124,9 +153,7 @@ export const updateGrant: GraphQLFieldConfig<
           ...before,
           enabled:
             typeof args.enabled === "boolean" ? args.enabled : before.enabled,
-          secret: args.generateSecret
-            ? randomBytes(16).toString("hex")
-            : before.secret,
+          secrets,
           codes,
           scopes: args.scopes || before.scopes
         },

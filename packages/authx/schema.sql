@@ -103,7 +103,7 @@ CREATE UNIQUE INDEX ON authx.credential_record USING BTREE (authority_id, author
 CREATE TABLE authx.grant_record (
   user_id UUID NOT NULL REFERENCES authx.user,
   client_id UUID NOT NULL REFERENCES authx.client,
-  secret TEXT NOT NULL,
+  secrets TEXT[] NOT NULL,
   codes TEXT[] NOT NULL,
   scopes TEXT[] NOT NULL,
 

@@ -4,6 +4,8 @@ import { Pool } from "pg";
 import bootstrap from "./util/bootstrap";
 import { User, Client, Grant, Role } from "./model";
 
+const now = Math.floor(Date.now() / 1000);
+
 const userId = v4();
 const user = new User({
   id: userId,
@@ -31,12 +33,18 @@ const client = new Client({
   userIds: []
 });
 
+const grantId = v4();
 const grant = new Grant({
-  id: v4(),
+  id: grantId,
   enabled: true,
   clientId: client.id,
   userId: user.id,
-  secret: crypto.randomBytes(16).toString("hex"),
+  secrets: [
+    Buffer.from(
+      [grantId, now, crypto.randomBytes(16).toString("hex")].join(":"),
+      "utf8"
+    ).toString("base64")
+  ],
   codes: [],
   scopes: ["AuthX:**:**"]
 });

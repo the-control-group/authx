@@ -12,7 +12,9 @@ export const grant = [
           enabled: true,
           clientId: "1fcb730e-f134-463a-b224-cab7e61c5ce0",
           userId: "e165cbb0-86b0-4e11-9db7-eb5f742161b8",
-          secret: "383e0e7248492fc42db4791ab7927734",
+          secrets: [
+            "ZDhkY2FmMTItYjc0NC00ZDJkLWIyMjMtMDllN2U1ZWFhOTIyOjE1NTM5MjUzNDA6MzdiZTdkOGEyNzJkMDM5NjE0NjFmYTBiM2ViN2FkZjE="
+          ],
           codes: [],
           scopes: ["AuthX:**:**"]
         },
@@ -33,7 +35,9 @@ export const grant = [
           enabled: true,
           clientId: "17436d83-6022-4101-bf9f-997f1550f57c",
           userId: "a6a0946d-eeb4-45cd-83c6-c7920f2272eb",
-          secret: "7dfcbf758d2740e01d1b9000b821e1aa",
+          secrets: [
+            "ZTQ2NzA3NjItYmViNy00MzVjLTk0YWYtMDU1Yjk1MWY5N2U2OjE1NTM5MjUzNDA6ZDQ5NDJjZGFhYTY1ZTg4YmQ2MWQ1MDIyZjlmN2E0ZGU="
+          ],
           codes: [],
           scopes: ["**:**:**"]
         },
@@ -54,9 +58,11 @@ export const grant = [
           enabled: true,
           clientId: "17436d83-6022-4101-bf9f-997f1550f57c",
           userId: "51192909-3664-44d5-be62-c6b45f0b0ee6",
-          secret: "b5bc36346e93ebb362bbdfa32936bc9e",
+          secrets: [
+            "NGU3NmNiMTMtYWIyNC00ZGMxLWFkOTYtYWJjYmI4OWY1NTI5OjE1NTM5MjUzNDA6MTY5ZmJiZDQ2YmMzNjIwMWE0OGI0Zjc4Y2E2MzE2MzQ="
+          ],
           codes: [
-            "NGU3NmNiMTMtYWIyNC00ZGMxLWFkOTYtYWJjYmI4OWY1NTI5OjE1NTE5MDY0Nzk4MTQ6MmQyMzc1ZmRjMTA0NjM0YjU3OGI5YWUxZDUxNGJiM2Y="
+            "NGU3NmNiMTMtYWIyNC00ZGMxLWFkOTYtYWJjYmI4OWY1NTI5OjE1NTM5MjUzNDA6MmQyMzc1ZmRjMTA0NjM0YjU3OGI5YWUxZDUxNGJiM2Y="
           ],
           scopes: ["**:**:**"]
         },

@@ -15,7 +15,7 @@ export interface GrantData {
   readonly enabled: boolean;
   readonly clientId: string;
   readonly userId: string;
-  readonly secret: string;
+  readonly secrets: Iterable<string>;
   readonly codes: Iterable<string>;
   readonly scopes: Iterable<string>;
 }
@@ -25,19 +25,20 @@ export class Grant implements GrantData {
   public readonly enabled: boolean;
   public readonly clientId: string;
   public readonly userId: string;
-  public readonly secret: string;
+  public readonly secrets: Set<string>;
   public readonly codes: Set<string>;
   public readonly scopes: string[];
 
   private _client: null | Promise<Client> = null;
   private _user: null | Promise<User> = null;
+  private _tokens: null | Promise<Token[]> = null;
 
   public constructor(data: GrantData) {
     this.id = data.id;
     this.enabled = data.enabled;
     this.clientId = data.clientId;
     this.userId = data.userId;
-    this.secret = data.secret;
+    this.secrets = new Set(data.secrets);
     this.codes = new Set(data.codes);
     this.scopes = simplify([...data.scopes]);
   }
@@ -105,6 +106,30 @@ export class Grant implements GrantData {
     return (this._user = User.read(tx, this.userId));
   }
 
+  public async tokens(
+    tx: PoolClient,
+    refresh: boolean = false
+  ): Promise<Token[]> {
+    if (!refresh && this._tokens) {
+      return this._tokens;
+    }
+
+    return (this._tokens = (async () =>
+      Token.read(
+        tx,
+        (await tx.query(
+          `
+          SELECT entity_id AS id
+          FROM authx.token_record
+          WHERE
+            user_id = $1
+            AND replacement_record_id IS NULL
+          `,
+          [this.id]
+        )).rows.map(({ id }) => id)
+      ))());
+  }
+
   public async access(
     tx: PoolClient,
     refresh: boolean = false
@@ -140,7 +165,7 @@ export class Grant implements GrantData {
         enabled,
         client_id,
         user_id,
-        secret,
+        secrets,
         codes,
         scopes
       FROM authx.grant_record
@@ -225,7 +250,7 @@ export class Grant implements GrantData {
         enabled,
         client_id,
         user_id,
-        secret,
+        secrets,
         codes,
         scopes
       )
@@ -236,7 +261,7 @@ export class Grant implements GrantData {
         enabled,
         client_id,
         user_id,
-        secret,
+        secrets,
         codes,
         scopes
       `,
@@ -248,7 +273,7 @@ export class Grant implements GrantData {
         data.enabled,
         data.clientId,
         data.userId,
-        data.secret,
+        [...new Set(data.secrets)],
         [...new Set(data.codes)],
         simplify([...data.scopes])
       ]

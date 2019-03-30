@@ -93,7 +93,6 @@ export class User implements UserData {
           FROM authx.credential_record
           WHERE
             user_id = $1
-            AND enabled = TRUE
             AND replacement_record_id IS NULL
           `,
           [this.id]
@@ -119,7 +118,6 @@ export class User implements UserData {
           FROM authx.grant_record
           WHERE
             user_id = $1
-            AND enabled = TRUE
             AND replacement_record_id IS NULL
           `,
           [this.id]
@@ -135,7 +133,6 @@ export class User implements UserData {
       WHERE
         user_id = $1
         AND client_id = $2
-        AND enabled = TRUE
         AND replacement_record_id IS NULL
       `,
       [this.id, clientId]

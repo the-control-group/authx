@@ -12,7 +12,10 @@ import { Context } from "../Context";
 import { GraphQLGrant } from "./GraphQLGrant";
 import { GraphQLUser } from "./GraphQLUser";
 
-export const GraphQLToken = new GraphQLObjectType<Token, Context>({
+export const GraphQLToken: GraphQLObjectType<
+  Token,
+  Context
+> = new GraphQLObjectType<Token, Context>({
   name: "Token",
   interfaces: () => [],
   fields: () => ({

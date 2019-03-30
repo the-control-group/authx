@@ -65,7 +65,6 @@ export class Client implements ClientData {
             FROM authx.grant_records
             WHERE
               client_id = $1
-              AND enabled = TRUE
               AND replacement_record_id IS NULL
             `,
           [this.id]

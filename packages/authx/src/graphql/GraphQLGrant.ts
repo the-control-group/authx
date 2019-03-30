@@ -10,8 +10,13 @@ import { Grant, Client, User } from "../model";
 import { Context } from "../Context";
 import { GraphQLClient } from "./GraphQLClient";
 import { GraphQLUser } from "./GraphQLUser";
+import { GraphQLToken } from "./GraphQLToken";
+import { filter } from "../util/filter";
 
-export const GraphQLGrant = new GraphQLObjectType<Grant, Context>({
+export const GraphQLGrant: GraphQLObjectType<
+  Grant,
+  Context
+> = new GraphQLObjectType<Grant, Context>({
   name: "Grant",
   interfaces: () => [],
   fields: () => ({
@@ -40,6 +45,18 @@ export const GraphQLGrant = new GraphQLObjectType<Grant, Context>({
         return client.isAccessibleBy(realm, t, tx) ? client : null;
       }
     },
+    secrets: {
+      type: new GraphQLList(GraphQLString),
+      async resolve(
+        grant,
+        args,
+        { realm, token: t, tx }: Context
+      ): Promise<null | string[]> {
+        return t && (await grant.isAccessibleBy(realm, t, tx, "read.secrets"))
+          ? [...grant.secrets]
+          : null;
+      }
+    },
     codes: {
       type: new GraphQLList(GraphQLString),
       async resolve(
@@ -62,6 +79,16 @@ export const GraphQLGrant = new GraphQLObjectType<Grant, Context>({
         return t && (await grant.isAccessibleBy(realm, t, tx, "read.scopes"))
           ? grant.scopes
           : null;
+      }
+    },
+    tokens: {
+      type: new GraphQLList(GraphQLToken),
+      async resolve(grant, args, { realm, token: t, tx }: Context) {
+        return t
+          ? filter(await grant.tokens(tx), token =>
+              token.isAccessibleBy(realm, t, tx)
+            )
+          : [];
       }
     }
   })
