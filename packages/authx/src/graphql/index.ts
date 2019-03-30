@@ -1,7 +1,4 @@
-import {
-  GraphQLSchema,
-  GraphQLObjectType
-} from "graphql";
+import { GraphQLSchema, GraphQLObjectType } from "graphql";
 import { StrategyCollection } from "../StrategyCollection";
 import { Context } from "../Context";
 

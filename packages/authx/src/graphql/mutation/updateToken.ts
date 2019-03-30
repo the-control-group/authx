@@ -3,7 +3,7 @@ import {
   GraphQLBoolean,
   GraphQLFieldConfig,
   GraphQLID,
-  GraphQLNonNull,
+  GraphQLNonNull
 } from "graphql";
 
 import { Context } from "../../Context";
