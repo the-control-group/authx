@@ -85,5 +85,6 @@ const fixture = async (tx: PoolClient): Promise<void> => {
     tx.query("ROLLBACK");
   } finally {
     tx.release();
+    await pool.end();
   }
 })();

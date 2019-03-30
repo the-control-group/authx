@@ -164,7 +164,9 @@ export default async (ctx: ParameterizedContext<any, { [x]: Context }>) => {
         // Remove the authorization code we used, and prune any others that have
         // expired.
         const codes = [...grant.codes].filter(code => {
-          const issued = code.split(":")[1];
+          const issued = Buffer.from(code, "base64")
+            .toString("utf8")
+            .split(":")[1];
           return (
             code !== paramsCode &&
             issued &&

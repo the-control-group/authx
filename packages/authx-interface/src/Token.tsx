@@ -12,7 +12,6 @@ import {
   useGraphQL,
   GraphQLFetchOptions
 } from "graphql-react";
-import { StrategyComponentProps } from "./definitions";
 
 export function Token({
   fetchOptionsOverride,

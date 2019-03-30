@@ -142,7 +142,9 @@ export const updateGrant: GraphQLFieldConfig<
       // Prune expired codes.
       if (args.generateCodes || args.removeCodes) {
         codes = codes.filter(code => {
-          const issued = code.split(":")[1];
+          const issued = Buffer.from(code, "base64")
+            .toString("utf8")
+            .split(":")[1];
           return issued && parseInt(issued) + codeValidityDuration > now;
         });
       }

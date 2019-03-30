@@ -28,7 +28,7 @@ export function useToken(): {
     function onChange(e: StorageEvent): void {
       console.log(e);
       if (e.key === "token") {
-        const [tokenId, tokenSecret] = (e.newValue || "null").split(":");
+        const [tokenId, tokenSecret] = (e.newValue || ":").split(":");
         if (
           tokenId &&
           tokenSecret &&

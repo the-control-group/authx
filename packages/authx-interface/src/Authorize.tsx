@@ -1,8 +1,16 @@
-import React, { Fragment, ReactElement } from "react";
+import React, {
+  Fragment,
+  ReactElement,
+  useEffect,
+  useContext,
+  useState,
+  FormEvent
+} from "react";
 import {
   GraphQL,
   useGraphQL,
-  GraphQLFetchOptionsOverride
+  GraphQLFetchOptionsOverride,
+  GraphQLContext
 } from "graphql-react";
 import { validate, isSuperset } from "scopeutils";
 
@@ -99,15 +107,84 @@ export function Authorize({
   const client = grant && grant.client;
   const urls = client && client.urls;
 
-  // This is an invalid request
-  if (
-    !paramsClientId ||
-    !paramsRedirectUri ||
-    (urls && !urls.includes(paramsRedirectUri)) ||
-    paramsResponseType !== "code" ||
-    requestedScopesAreValid === false
-  ) {
-    // If safe, redrect the error to the client
+  // API and errors
+  const graphql = useContext<GraphQL>(GraphQLContext);
+  const [errors, setErrors] = useState<string[]>([]);
+  async function onGrantAccess(): Promise<void> {
+    if (!grant || !paramsRedirectUri) return;
+
+    const operation = graphql.operate<
+      {
+        updateGrant: null | {
+          codes: null | string[];
+          scopes: null | string[];
+        };
+      },
+      {
+        id: string;
+        scopes: string[];
+      }
+    >({
+      fetchOptionsOverride,
+      operation: {
+        query: `
+          mutation($id: ID!, $scopes: [String!]!) {
+            updateGrant(id: $id, scopes: $scopes, generateCodes: 1) {
+              codes
+              scopes
+            }
+          }
+        `,
+        variables: {
+          id: grant.id,
+          scopes: [...(grant.scopes || []), ...(requestedScopes || [])]
+        }
+      }
+    });
+
+    try {
+      const result = await operation.cacheValuePromise;
+      if (result.fetchError) {
+        setErrors([result.fetchError]);
+        return;
+      }
+
+      if (result.graphQLErrors && result.graphQLErrors.length) {
+        setErrors(result.graphQLErrors.map(e => e.message));
+        return;
+      }
+
+      const code =
+        (result.data &&
+          result.data.updateGrant &&
+          result.data.updateGrant.codes &&
+          [...result.data.updateGrant.codes].sort().reverse()[0]) ||
+        null;
+
+      if (!code) {
+        setErrors([
+          "No code was returned. Contact your administrator to ensure you have sufficient access to read your own tokens and token secrets."
+        ]);
+        return;
+      }
+
+      // We have successfully authenticated!
+      // Zero the error.
+      setErrors([]);
+
+      // Redirect
+      const url = new URL(paramsRedirectUri);
+      if (paramsState) url.searchParams.set("state", paramsState);
+      url.searchParams.set("code", code);
+      window.location.replace(url.href);
+    } catch (error) {
+      setErrors([error.message]);
+      return;
+    }
+  }
+
+  useEffect(() => {
+    // Make sure we're ready and it's safe to redirect the user
     if (
       paramsClientId &&
       paramsRedirectUri &&
@@ -115,6 +192,8 @@ export function Authorize({
       urls.includes(paramsRedirectUri)
     ) {
       const url = new URL(paramsRedirectUri);
+      if (paramsState) url.searchParams.set("state", paramsState);
+
       if (paramsResponseType !== "code") {
         url.searchParams.append("error", "unsupported_response_type");
         url.searchParams.append(
@@ -131,11 +210,41 @@ export function Authorize({
         );
       }
 
-      if (paramsState) url.searchParams.set("state", paramsState);
-      window.location.replace(url.href);
-    }
+      // We have an error to redirect
+      if (url.searchParams.has("error")) {
+        window.location.replace(url.href);
+        return;
+      }
 
-    // Otherwise, show the error directly to the user
+      // Check that all requested scopes are already granted
+      const grantedScopes = grant && grant.scopes;
+      if (
+        grantedScopes &&
+        requestedScopes &&
+        isSuperset(grantedScopes, requestedScopes)
+      ) {
+        // console.log("TODO: generate a nonce and redirect");
+      }
+    }
+  }, [
+    paramsClientId,
+    paramsRedirectUri,
+    urls,
+    paramsState,
+    paramsResponseType,
+    requestedScopes,
+    requestedScopesAreValid,
+    grant
+  ]);
+
+  // This is an invalid request
+  if (
+    !paramsClientId ||
+    !paramsRedirectUri ||
+    (urls && !urls.includes(paramsRedirectUri)) ||
+    paramsResponseType !== "code" ||
+    requestedScopesAreValid === false
+  ) {
     return (
       <div>
         <h1>Authorize</h1>
@@ -161,7 +270,7 @@ export function Authorize({
           {paramsResponseType !== "code" ? (
             <div className="error">
               Parameter <span className="code">response_type</span> must be set
-              to "code".
+              to &quot;code&quot;.
             </div>
           ) : null}
           {requestedScopesAreValid === false ? (
@@ -205,16 +314,6 @@ export function Authorize({
     );
   }
 
-  // Check that all requested scopes are already granted
-  const grantedScopes = grant && grant.scopes;
-  if (
-    grantedScopes &&
-    requestedScopes &&
-    isSuperset(grantedScopes, requestedScopes)
-  ) {
-    console.log("TODO: generate a nonce and redirect");
-  }
-
   return (
     <div>
       <h1>Authorize</h1>
@@ -222,23 +321,60 @@ export function Authorize({
         {loading ? (
           "Loading"
         ) : (
-          <Fragment>
-            "{client.name}" is requesting access to:
-            <ul>
-              {(requestedScopes &&
-                requestedScopes.map((s, i) => (
-                  <li key={i}>
-                    <pre>{s}</pre>
-                  </li>
-                ))) ||
-                null}
-            </ul>
-          </Fragment>
+          <div>
+            <p>
+              Welcome
+              {user && user.contact ? ` ${user.contact.displayName}` : ""}!
+              <button
+                onClick={e => {
+                  e.preventDefault();
+                  clearToken();
+                }}
+                type="button"
+                style={{
+                  background: "hsl(206, 0%, 80%)",
+                  color: "hsl(0, 0%, 9%)",
+                  borderRadius: "14px",
+                  margin: "0 14px"
+                }}
+              >
+                Log Out
+              </button>
+            </p>
+
+            <p>
+              The app &quot;{client.name}&quot; is requesting access to the
+              following scopes:
+            </p>
+            <div className="info">
+              <ul>
+                {(requestedScopes &&
+                  requestedScopes.map((s, i) => (
+                    <li key={i}>
+                      <pre>{s}</pre>
+                    </li>
+                  ))) ||
+                  null}
+              </ul>
+            </div>
+          </div>
         )}
 
-        <div style={{ display: "flex" }}>
+        {errors.length
+          ? errors.map((error, i) => (
+              <p key={i} className="error">
+                {error}
+              </p>
+            ))
+          : null}
+
+        <div style={{ display: "flex", margin: "14px" }}>
           <input
-            style={{ flex: "1", marginRight: "7px" }}
+            onClick={e => {
+              e.preventDefault();
+              onGrantAccess();
+            }}
+            style={{ flex: "1", marginRight: "14px" }}
             type="button"
             value="Grant Access"
           />

@@ -48,6 +48,8 @@ export class StrategyCollection {
           `INVARIANT: Multiple strategies cannot use the query field; "${f}" is used twice.`
         );
       }
+
+      queryFields[f] = s.queryFields[f];
     }
 
     const mutationFields = { ...this.mutationFields };
@@ -57,6 +59,8 @@ export class StrategyCollection {
           `INVARIANT: Multiple strategies cannot use the mutation field; "${f}" is used twice.`
         );
       }
+
+      mutationFields[f] = s.mutationFields[f];
     }
 
     this.map = { ...this.map, [s.name]: s };

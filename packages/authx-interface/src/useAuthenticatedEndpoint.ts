@@ -25,23 +25,18 @@ export function useAuthenticatedEndpoint(
   useEffect(() => {
     if (!token) return;
 
-    async function onFetch({
-      cacheValuePromise: request
+    async function onCache({
+      cacheValue
     }: {
-      cacheValuePromise: Promise<GraphQLCacheValue<any>>;
+      cacheValue: GraphQLCacheValue<any>;
     }): Promise<void> {
-      try {
-        const response = await request;
-        if (response.httpError && response.httpError.status === 401) {
-          clearToken();
-        }
-      } catch (error) {
-        console.error(error);
+      if (cacheValue.httpError && cacheValue.httpError.status === 401) {
+        clearToken();
       }
     }
 
-    graphql.on("fetch", onFetch);
-    return () => graphql.off("fetch", onFetch);
+    graphql.on("cache", onCache);
+    return () => graphql.off("cache", onCache);
   }, [token, clearToken, graphql]);
 
   // Set Authorization header in fetch options
