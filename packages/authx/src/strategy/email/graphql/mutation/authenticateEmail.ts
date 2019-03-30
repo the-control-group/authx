@@ -46,7 +46,7 @@ export const authenticateEmail: GraphQLFieldConfig<
       realm,
       strategies: { authorityMap },
       sendMail,
-      interfaceBaseUrl
+      base
     } = context;
 
     if (t) {
@@ -135,7 +135,7 @@ export const authenticateEmail: GraphQLFieldConfig<
         );
 
         const url =
-          interfaceBaseUrl +
+          base +
           `authenticate?authorityId=${authority.id}&proof=${encodeURIComponent(
             proof
           )}`;

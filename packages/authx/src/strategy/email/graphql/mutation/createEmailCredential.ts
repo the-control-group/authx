@@ -58,7 +58,7 @@ export const createEmailCredential: GraphQLFieldConfig<
       realm,
       strategies: { authorityMap },
       sendMail,
-      interfaceBaseUrl
+      base
     } = context;
 
     if (!t) {
@@ -176,10 +176,10 @@ export const createEmailCredential: GraphQLFieldConfig<
           );
 
           const url =
-            interfaceBaseUrl +
+            base +
             `authenticate?authorityId=${
               authority.id
-            }&proof=${encodeURIComponent(interfaceBaseUrl)}`;
+            }&proof=${encodeURIComponent(base)}`;
 
           // TODO: Add a code to any existing credential with the same address
 

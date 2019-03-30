@@ -4,7 +4,7 @@ import { StrategyCollection } from "./StrategyCollection";
 
 export interface Context {
   realm: string;
-  interfaceBaseUrl: string;
+  base: string;
   privateKey: string;
   publicKeys: string[];
   codeValidityDuration: number;

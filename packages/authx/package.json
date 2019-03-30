@@ -29,7 +29,7 @@
   "devDependencies": {
     "@typescript-eslint/eslint-plugin": "^1.5.0",
     "@typescript-eslint/parser": "^1.5.0",
-    "authx-interface": "^2.0.0-alpha.6",
+    "authx-interface": "^2.0.0-alpha.7",
     "ava": "^1.4.0",
     "eslint": "^5.16.0",
     "eslint-config-prettier": "^4.0.0",
@@ -70,5 +70,5 @@
     "start": "npm run start:production"
   },
   "types": "dist/index.d.ts",
-  "version": "2.0.0-alpha.6"
+  "version": "2.0.0-alpha.8"
 }

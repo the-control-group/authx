@@ -3,7 +3,7 @@ import { Strategy } from "./Strategy";
 
 export interface Config {
   realm: string;
-  interfaceBaseUrl: string;
+  base: string;
   privateKey: string;
   publicKeys: string[];
   codeValidityDuration: number;

@@ -17,7 +17,7 @@ app.use(authXInterface);
 // create a new instanciate of AuthX
 const authx = new AuthX({
   realm: "AuthX",
-  interfaceBaseUrl: "http://localhost:3000/",
+  base: "http://localhost:3000/",
   codeValidityDuration: 60,
   jwtValidityDuration: 5 * 60,
   privateKey:
