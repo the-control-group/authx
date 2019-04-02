@@ -1,65 +1,76 @@
-import crypto from "crypto";
+import { randomBytes } from "crypto";
+import { hash } from "bcrypt";
 import v4 from "uuid/v4";
 import { Pool } from "pg";
 import bootstrap from "./util/bootstrap";
-import { User, Client, Grant, Role } from "./model";
-
-const now = Math.floor(Date.now() / 1000);
-
-const userId = v4();
-const user = new User({
-  id: userId,
-  enabled: true,
-  type: "bot",
-  contact: {
-    displayName: "AuthX System",
-    name: null,
-    nickname: null,
-    birthday: null,
-    anniversary: null,
-    gender: null,
-    note: null,
-    preferredUsername: null,
-    utcOffset: null
-  }
-});
-
-const client = new Client({
-  id: v4(),
-  enabled: true,
-  name: "AuthX Bootstrap",
-  secrets: [crypto.randomBytes(16).toString("hex")],
-  urls: [],
-  userIds: []
-});
-
-const grantId = v4();
-const grant = new Grant({
-  id: grantId,
-  enabled: true,
-  clientId: client.id,
-  userId: user.id,
-  secrets: [
-    Buffer.from(
-      [grantId, now, crypto.randomBytes(16).toString("hex")].join(":"),
-      "utf8"
-    ).toString("base64")
-  ],
-  codes: [],
-  scopes: ["AuthX:**:**"]
-});
-
-const role = new Role({
-  id: v4(),
-  enabled: true,
-  name: "AuthX Administrator",
-  scopes: ["AuthX:**:**"],
-  userIds: [user.id]
-});
+import { User, Role, Token } from "./model";
+import { PasswordAuthority, PasswordCredential } from "./strategy/password";
 
 (async () => {
   const pool = new Pool();
   const tx = await pool.connect();
+
+  const user = new User({
+    id: v4(),
+    enabled: true,
+    type: "human",
+    contact: {
+      displayName: "AuthX Root User",
+      name: null,
+      nickname: null,
+      birthday: null,
+      anniversary: null,
+      gender: null,
+      note: null,
+      preferredUsername: null,
+      utcOffset: null
+    }
+  });
+
+  const authority = new PasswordAuthority({
+    id: v4(),
+    enabled: true,
+    strategy: "password",
+    name: "Password",
+    details: {
+      rounds: 12
+    }
+  });
+
+  const password = randomBytes(16).toString("hex");
+  const credential = new PasswordCredential({
+    id: v4(),
+    enabled: true,
+    authorityId: authority.id,
+    authorityUserId: user.id,
+    userId: user.id,
+    contact: null,
+    details: {
+      hash: await hash(password, authority.details.rounds)
+    }
+  });
+
+  const role = new Role({
+    id: v4(),
+    enabled: true,
+    name: "AuthX Administrator",
+    scopes: ["AuthX:**:**"],
+    userIds: [user.id]
+  });
+
+  const token = new Token({
+    id: v4(),
+    enabled: true,
+    scopes: ["AuthX:**:**"],
+    userId: user.id,
+    grantId: null,
+    secret: randomBytes(16).toString("hex")
+  });
+
+  console.log(`Bootstrapping the following user:
+  User ID: ${user.id}
+  Password: ${password}
+`);
 
   try {
     await tx.query("BEGIN DEFERRABLE");
@@ -69,23 +80,23 @@ const role = new Role({
         data: user,
         metadata: {
           recordId: v4(),
-          createdByTokenId: grant.id,
+          createdByTokenId: token.id,
           createdAt: new Date()
         }
       },
-      client: {
-        data: client,
+      authority: {
+        data: authority,
         metadata: {
           recordId: v4(),
-          createdByTokenId: grant.id,
+          createdByTokenId: token.id,
           createdAt: new Date()
         }
       },
-      grant: {
-        data: grant,
+      credential: {
+        data: credential,
         metadata: {
           recordId: v4(),
-          createdByTokenId: grant.id,
+          createdByTokenId: token.id,
           createdAt: new Date()
         }
       },
@@ -93,8 +104,17 @@ const role = new Role({
         data: role,
         metadata: {
           recordId: v4(),
-          createdByTokenId: grant.id,
+          createdByTokenId: token.id,
           createdAt: new Date()
+        }
+      },
+      token: {
+        data: token,
+        metadata: {
+          recordId: v4(),
+          createdByTokenId: token.id,
+          createdAt: new Date(),
+          createdByCredentialId: null
         }
       }
     });
@@ -105,5 +125,6 @@ const role = new Role({
     tx.query("ROLLBACK");
   } finally {
     tx.release();
+    await pool.end();
   }
-})();
+})().catch(error => console.error(error));
