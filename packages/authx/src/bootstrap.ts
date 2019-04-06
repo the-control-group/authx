@@ -53,15 +53,15 @@ import { PasswordAuthority, PasswordCredential } from "./strategy/password";
   const role = new Role({
     id: v4(),
     enabled: true,
-    name: "AuthX Administrator",
-    scopes: ["AuthX:**:**"],
+    name: "Super Administrator",
+    scopes: ["**:**:**"],
     userIds: [user.id]
   });
 
   const token = new Token({
     id: v4(),
     enabled: true,
-    scopes: ["AuthX:**:**"],
+    scopes: ["**:**:**"],
     userId: user.id,
     grantId: null,
     secret: randomBytes(16).toString("hex")
@@ -75,49 +75,53 @@ import { PasswordAuthority, PasswordCredential } from "./strategy/password";
   try {
     await tx.query("BEGIN DEFERRABLE");
 
-    await bootstrap(tx, {
-      user: {
-        data: user,
-        metadata: {
-          recordId: v4(),
-          createdByTokenId: token.id,
-          createdAt: new Date()
+    await bootstrap(
+      tx,
+      {
+        user: {
+          data: user,
+          metadata: {
+            recordId: v4(),
+            createdByTokenId: token.id,
+            createdAt: new Date()
+          }
+        },
+        authority: {
+          data: authority,
+          metadata: {
+            recordId: v4(),
+            createdByTokenId: token.id,
+            createdAt: new Date()
+          }
+        },
+        credential: {
+          data: credential,
+          metadata: {
+            recordId: v4(),
+            createdByTokenId: token.id,
+            createdAt: new Date()
+          }
+        },
+        role: {
+          data: role,
+          metadata: {
+            recordId: v4(),
+            createdByTokenId: token.id,
+            createdAt: new Date()
+          }
+        },
+        token: {
+          data: token,
+          metadata: {
+            recordId: v4(),
+            createdByTokenId: token.id,
+            createdAt: new Date(),
+            createdByCredentialId: null
+          }
         }
       },
-      authority: {
-        data: authority,
-        metadata: {
-          recordId: v4(),
-          createdByTokenId: token.id,
-          createdAt: new Date()
-        }
-      },
-      credential: {
-        data: credential,
-        metadata: {
-          recordId: v4(),
-          createdByTokenId: token.id,
-          createdAt: new Date()
-        }
-      },
-      role: {
-        data: role,
-        metadata: {
-          recordId: v4(),
-          createdByTokenId: token.id,
-          createdAt: new Date()
-        }
-      },
-      token: {
-        data: token,
-        metadata: {
-          recordId: v4(),
-          createdByTokenId: token.id,
-          createdAt: new Date(),
-          createdByCredentialId: null
-        }
-      }
-    });
+      process.argv.includes("--schema")
+    );
 
     await tx.query("COMMIT");
   } catch (error) {

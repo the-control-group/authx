@@ -44,6 +44,8 @@ export function PasswordAuthority({
     const firstEmailAuthority = authorities.find(a => a.strategy === "email");
     if (firstEmailAuthority) {
       setIdentityAuthorityId(firstEmailAuthority.id);
+    } else if (authorities.length) {
+      setIdentityAuthorityId(authorities[0].id);
     }
   }
 
