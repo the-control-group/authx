@@ -18,7 +18,7 @@ module.exports = async (ctx, next) => {
 
   // Check to see if the file exists by trying to open a file handler
   const fd = await new Promise((resolve, reject) =>
-    open(filePath, (error, fd) => {
+    open(filePath, "r", (error, fd) => {
       if (error) {
         if (error.code !== "ENOENT") return reject(error);
 
