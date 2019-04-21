@@ -6,6 +6,7 @@ import React, {
   FormEvent,
   ReactElement
 } from "react";
+
 import {
   GraphQL,
   GraphQLContext,
@@ -44,10 +45,11 @@ export function Token({
         user: null | { id: string; contact: null | { displayName: string } };
       };
     },
-    void
+    {}
   >({
     fetchOptionsOverride,
     operation: {
+      variables: {},
       query: `
         query {
           viewer {

@@ -5,6 +5,7 @@
   },
   "bugs": "https://github.com/the-control-group/authx/issues",
   "dependencies": {
+    "@types/graphql-react": "^8.1.1",
     "@types/react": "^16.8.8",
     "@types/react-dom": "^16.8.3",
     "graphql-react": "^8.1.1",

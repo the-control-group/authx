@@ -7,6 +7,7 @@
   "dependencies": {
     "@types/auth-header": "^1.0.1",
     "@types/bcrypt": "^3.0.0",
+    "@types/graphql-api-koa": "^2.0.0",
     "@types/jsonwebtoken": "^8.3.2",
     "@types/koa": "^2.0.48",
     "@types/koa-router": "^7.0.40",

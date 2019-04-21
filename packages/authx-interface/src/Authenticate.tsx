@@ -1,11 +1,5 @@
 import React, { useState, useEffect, ComponentType, ReactElement } from "react";
-import ReactDOM from "react-dom";
-import {
-  GraphQLContext,
-  GraphQL,
-  useGraphQL,
-  GraphQLFetchOptionsOverride
-} from "graphql-react";
+import { useGraphQL, GraphQLFetchOptionsOverride } from "graphql-react";
 import { Authority, StrategyComponentProps } from "./definitions";
 import { PasswordAuthority } from "./PasswordAuthority";
 import { EmailAuthority } from "./EmailAuthority";
@@ -25,9 +19,10 @@ export function Authenticate({
   fetchOptionsOverride: GraphQLFetchOptionsOverride;
 }): ReactElement<any> {
   // Get all active authorities from the API.
-  const { loading, cacheValue } = useGraphQL<any, void>({
+  const { loading, cacheValue } = useGraphQL<any, {}>({
     fetchOptionsOverride,
     operation: {
+      variables: {},
       query: `
         query {
           authorities {
@@ -55,7 +50,7 @@ export function Authenticate({
   );
 
   useEffect(() => {
-    function onPopState(e: PopStateEvent): void {
+    function onPopState(): void {
       const next = new URL(window.location.href).searchParams.get(
         "authorityId"
       );

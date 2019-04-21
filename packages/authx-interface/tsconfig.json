@@ -9,10 +9,7 @@
     "strict": true,
     "esModuleInterop": true,
     "jsx": "react",
-    "baseUrl": "",
-    "paths": {
-      "graphql-react": ["@types/graphql-react"]
-    }
+    "baseUrl": ""
   },
   "include": ["./src/**/*"]
 }
