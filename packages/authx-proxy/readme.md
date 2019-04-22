@@ -1,3 +1,64 @@
+## Configuration
+
+The AuthX proxy is a flexible HTTP proxy designed to sit in front of a resource, in front of a client, or behind a client.
+
+The proxy is configured with an array of rules, which are checked against the request URL in order until, a match is found. If no match is found, the proxy will respond with a status of `404`.
+
+Here are some common use-cases:
+
+### Protecting A Resource
+
+In this case, we are going to add
+
+```ts
+const proxy = new AuthXProxy({
+  authxUrl: "https://authx.example.com/",
+  authxPublicKeyCacheRefreshInterval: 300, // 300 seconds = 5 minutes
+  rules: [
+    // We don't want to restrict access to /public, so we use the
+    // `resource-augment` behavior:
+    {
+      test: ({ url, method }) =>
+        method === "GET" &&
+        /^https?:resource\.example\.com\/public\/.+$/.test(url.path),
+      behavior: "resource-augment",
+      target: "http://127.0.0.1:3000"
+    },
+
+    // We want to make sure any GET request to /something has been authorized
+    // for the `example.resource:something:read` scope:
+    {
+      test: ({ url, method }) =>
+        method === "GET" &&
+        /^https?:resource\.example\.com\/something\/.+$/.test(url),
+      behavior: "resource-restrict",
+      target: "http://127.0.0.1:3000",
+      requiredScopes: ["example.resource:something:read"]
+    },
+
+    // We want to make sure any POST or PUT request to /something has been
+    // authorized for the `example.resource:something:write` scope:
+    {
+      test: ({ url, method }) =>
+        (method === "POST" || method === "PUT") &&
+        /^https?:resource\.example\.com\/something\/.+$/.test(url),
+      behavior: "resource-restrict",
+      target: "http://127.0.0.1:3000",
+      requiredScopes: ["example.resource:something:write"]
+    },
+
+    // For any other endpoints, we're going to play things safe and require
+    // requests to have full access to this resource's realm.
+    {
+      test: () => true,
+      behavior: "resource-restrict",
+      target: "http://127.0.0.1:3000",
+      requiredScopes: ["example.resource:**:**"]
+    }
+  ]
+});
+```
+
 ## Behaviors
 
 ### resource-augment
@@ -9,7 +70,7 @@ This behavior is useful when the proxy sits in front of a resource and is design
 
 ```ts
 {
-  readonly test: string | RegExp | ((url: string) => boolean);
+  readonly test: ((request: { method: string, url: URL }) => boolean);
   readonly behavior: "resource-augment";
   readonly target: string;
 }
@@ -25,7 +86,7 @@ This behavior is useful when the proxy sits in front of a resource and is design
 
 ```ts
 {
-  readonly test: string | RegExp | ((url: string) => boolean);
+  readonly test: ((request: { method: string, url: URL }) => boolean);
   readonly behavior: "resource-restrict";
   readonly target: string;
   readonly requiredScopes: string[];
@@ -38,7 +99,7 @@ This behavior is useful when the proxy sits in front of a web client that is acc
 
 ```ts
 {
-  readonly test: string | RegExp | ((url: string) => boolean);
+  readonly test: ((request: { method: string, url: URL }) => boolean);
   readonly behavior: "resource-authorize";
   readonly clientId: string;
   readonly clientSecret: string;
@@ -63,7 +124,7 @@ This behavior is useful when the proxy sits in front of a web client that is acc
 
 ```ts
 {
-  readonly test: string | RegExp | ((url: string) => boolean);
+  readonly test: ((request: { method: string, url: URL }) => boolean);
   readonly behavior: "client-augment";
   readonly target: string;
   readonly clientUrl: string;
@@ -88,7 +149,7 @@ This behavior is useful when the proxy sits in front of a web client that is acc
 
 ```ts
 {
-  readonly test: string | RegExp | ((url: string) => boolean);
+  readonly test: ((request: { method: string, url: URL }) => boolean);
   readonly behavior: "client-restrict";
   readonly target: string;
   readonly clientUrl: string;
@@ -109,7 +170,7 @@ This behavior is useful when the proxy sits behind a client that wishes to use p
 
 ```ts
 {
-  readonly test: string | RegExp | ((url: string) => boolean);
+  readonly test: ((request: { method: string, url: URL }) => boolean);
   readonly behavior: "client-inject";
   readonly target: string;
   readonly clientId: string;
