@@ -130,7 +130,7 @@ export class AuthXProxy extends EventEmitter {
     response.end();
   }
 
-  public async listen() {}
+  public async listen(): Promise<void> {}
 
-  public close() {}
+  public async close(): Promise<void> {}
 }

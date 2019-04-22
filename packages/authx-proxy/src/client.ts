@@ -60,23 +60,23 @@ export function client(): Promise<void> {
       return;
     }
 
-    try {
-      const token = await fetch(this.config.client.oauthProviderUrl, {
-        method: "POST",
-        body: JSON.stringify({
-          // eslint-disable-next-line @typescript-eslint/camelcase
-          client_id: this.config.client.id,
-          // eslint-disable-next-line @typescript-eslint/camelcase
-          client_secret: this.config.client.secret,
-          code: code,
-          // Note that this requests all the scopes that have already been
-          // granted to the client, not *all* scopes.
-          scope: "**:**:**"
-        }),
-        headers: {
-          "Content-Type": "application/json"
-        }
-      });
-    } catch (error) {}
+    // try {
+    //   const token = await fetch(this.config.client.oauthProviderUrl, {
+    //     method: "POST",
+    //     body: JSON.stringify({
+    //       // eslint-disable-next-line @typescript-eslint/camelcase
+    //       client_id: this.config.client.id,
+    //       // eslint-disable-next-line @typescript-eslint/camelcase
+    //       client_secret: this.config.client.secret,
+    //       code: code,
+    //       // Note that this requests all the scopes that have already been
+    //       // granted to the client, not *all* scopes.
+    //       scope: "**:**:**"
+    //     }),
+    //     headers: {
+    //       "Content-Type": "application/json"
+    //     }
+    //   });
+    // } catch (error) {}
   }
 }
