@@ -11,7 +11,7 @@
     "graphql-react": "^8.1.1",
     "react": "^16.8.5",
     "react-dom": "^16.8.5",
-    "scopeutils": "^2.1.0"
+    "scopeutils": "^2.2.0"
   },
   "description": "",
   "devDependencies": {

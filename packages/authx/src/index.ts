@@ -9,7 +9,7 @@ import createSchema from "./graphql";
 import oauth2 from "./oauth2";
 import graphiql from "./graphiql";
 
-import { Config } from "./Config";
+import { Config, assertConfig } from "./Config";
 import { Context } from "./Context";
 import { Token } from "./model";
 import { parse } from "auth-header";
@@ -36,6 +36,7 @@ export class AuthX<
   CustomT extends { [x]: Context } = { [x]: Context }
 > extends Router<StateT, CustomT> {
   public constructor(config: Config & IRouterOptions) {
+    assertConfig(config);
     super(config);
 
     const strategies =

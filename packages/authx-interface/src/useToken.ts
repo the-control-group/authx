@@ -14,7 +14,7 @@ export function useToken(): {
   const [token, setToken] = useState<null | { id: string; secret: string }>(
     useMemo(() => {
       const [tokenId, tokenSecret] = (
-        window.localStorage.getItem("token") || ":"
+        window.localStorage.getItem("authx-interface.token") || ":"
       ).split(":");
 
       return tokenId && tokenSecret
@@ -27,7 +27,7 @@ export function useToken(): {
   useEffect(() => {
     function onChange(e: StorageEvent): void {
       console.log(e);
-      if (e.key === "token") {
+      if (e.key === "authx-interface.token") {
         const [tokenId, tokenSecret] = (e.newValue || ":").split(":");
         if (
           tokenId &&
@@ -48,12 +48,15 @@ export function useToken(): {
   return {
     token,
     clearToken: useCallback(() => {
-      window.localStorage.removeItem("token");
+      window.localStorage.removeItem("authx-interface.token");
       setToken(null);
     }, [setToken]),
     setToken: useCallback(
       token => {
-        window.localStorage.setItem("token", `${token.id}:${token.secret}`);
+        window.localStorage.setItem(
+          "authx-interface.token",
+          `${token.id}:${token.secret}`
+        );
         setToken(token);
       },
       [setToken]

@@ -1,6 +1,4 @@
-[![wercker status](https://app.wercker.com/status/fe30b946cc0ec765b7f89d03ae512793/s/master "wercker status")](https://app.wercker.com/project/bykey/fe30b946cc0ec765b7f89d03ae512793)
-
-This is the TCG auth service. It's named AuthX because it's an "exchange" of sorts, consolidating identities from several upstream authorities into a single identity for downstream clients. AuthX uses the OAuth2 framework in both directions, and adds an _authorization_ layer. Authorization control is based on the [simple scopes spec](https://github.com/the-control-group/scopeutils).
+This is AuthX. It's named AuthX because it's an "exchange" of sorts, consolidating identities from several upstream authorities into a single identity for downstream clients. AuthX uses the OAuth2 framework in both directions, and adds an _authorization_ layer. Authorization control is based on the [AuthX scope spec](https://github.com/the-control-group/scopeutils).
 
 ## Concepts
 

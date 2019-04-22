@@ -17,7 +17,7 @@ app.use(authXInterface);
 // create a new instanciate of AuthX
 const authx = new AuthX({
   realm: "AuthX",
-  base: "http://localhost:3000/",
+  base: "http://localhost/",
   codeValidityDuration: 60,
   jwtValidityDuration: 5 * 60,
   privateKey:
@@ -53,7 +53,7 @@ Bac/x5qiUn5fh2xM+wIDAQAB
     text: string;
     html: string;
     from?: string;
-  }) {
+  }): Promise<void> {
     console.log("--- SENDING EMAIL MESSAGE -------------------------");
     console.log(options);
   },
@@ -75,10 +75,10 @@ app.use(authx.routes());
 app.on(
   "error",
   __DEV__
-    ? error => {
+    ? (error): void => {
         console.error(error);
       }
-    : error => {
+    : (error): void => {
         if (error.status && error.status < 500)
           console.log(
             JSON.stringify(
@@ -98,4 +98,4 @@ app.on(
 );
 
 // start listening
-app.listen(process.env.PORT || 3000);
+app.listen(process.env.PORT || 80);
