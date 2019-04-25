@@ -8,23 +8,13 @@ Here are some common use-cases:
 
 ### Protecting A Resource
 
-In this case, we are going to add
+In this case, we have a resource – often an API – which is accessed by a client. The route `/something` is special, and we only want to give access to authorized users.
 
-```ts
-const proxy = new AuthXProxy({
+```js
+new AuthXProxy({
   authxUrl: "https://authx.example.com/",
   authxPublicKeyCacheRefreshInterval: 300, // 300 seconds = 5 minutes
   rules: [
-    // We don't want to restrict access to /public, so we use the
-    // `resource-augment` behavior:
-    {
-      test: ({ url, method }) =>
-        method === "GET" &&
-        /^https?:resource\.example\.com\/public\/.+$/.test(url.path),
-      behavior: "resource-augment",
-      target: "http://127.0.0.1:3000"
-    },
-
     // We want to make sure any GET request to /something has been authorized
     // for the `example.resource:something:read` scope:
     {
@@ -47,13 +37,60 @@ const proxy = new AuthXProxy({
       requiredScopes: ["example.resource:something:write"]
     },
 
-    // For any other endpoints, we're going to play things safe and require
-    // requests to have full access to this resource's realm.
+    // For all other paths, we want to let all requests through, but validate
+    // any tokens that are present. Here we use the `resource-augment` behavior:
     {
       test: () => true,
+      behavior: "resource-augment",
+      target: "http://127.0.0.1:3000"
+    }
+  ]
+});
+```
+
+### Wrapping A Web Client
+
+In this case, we have a web app that needs to run on behalf of a user. Only the "admin" section of the UI requires a user to be logged in, while the rest of the app is navigable by anyone.
+
+The front-end needs to be able to make calls two external resources: `resource-a` and `resource-b`. One of these resources contains information that is especially sensitive, so it's important that the tokens passed to each resource have the minimum permissions necessary.
+
+```js
+new AuthXProxy({
+  authxUrl: "https://authx.example.com/",
+  authxPublicKeyCacheRefreshInterval: 300, // 300 seconds = 5 minutes
+  rules: [
+    // We want to make sure any GET request to /something has been authorized
+    // for the `example.resource:something:read` scope:
+    {
+      test: ({ url }) =>
+        /^https?:resource\.example\.com\/something\/.+$/.test(url),
       behavior: "resource-restrict",
       target: "http://127.0.0.1:3000",
-      requiredScopes: ["example.resource:**:**"]
+      requiredScopes: ["example.resource:something:read"]
+    },
+
+    // We want to make sure any POST or PUT request to /something has been
+    // authorized for the `example.resource:something:write` scope:
+    {
+      test: ({ url, method }) =>
+        (method === "POST" || method === "PUT") &&
+        /^https?:resource\.example\.com\/something\/.+$/.test(url),
+      behavior: "client-restrict",
+      target: "http://127.0.0.1:3000",
+      requiredScopes: [],
+      requestedScopes: [
+        "example.resource-a:something:**",
+        "example.resource-b:something:**"
+      ],
+      passedScopes: ["example.resource-a:something:**"]
+    },
+
+    // For all other paths, we want to let all requests through, but validate
+    // any tokens that are present. Here we use the `resource-augment` behavior:
+    {
+      test: () => true,
+      behavior: "client-augment",
+      target: "http://127.0.0.1:3000"
     }
   ]
 });
