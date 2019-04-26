@@ -44,7 +44,7 @@
     "access control",
     "permissions"
   ],
-  "license": "UNLICENSED",
+  "license": "MIT",
   "main": "index.js",
   "name": "authx-interface",
   "peerDependencies": {},

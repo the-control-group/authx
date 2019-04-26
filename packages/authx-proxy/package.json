@@ -39,7 +39,7 @@
     "access control",
     "permissions"
   ],
-  "license": "UNLICENSED",
+  "license": "MIT",
   "main": "dist",
   "name": "authx-proxy",
   "peerDependencies": {},

@@ -30,7 +30,7 @@
     "access control",
     "permissions"
   ],
-  "license": "UNLICENSED",
+  "license": "MIT",
   "main": "dist",
   "name": "authx-manager",
   "peerDependencies": {},
