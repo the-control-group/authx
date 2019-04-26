@@ -20,13 +20,13 @@ export const credential: GraphQLFieldConfig<
   async resolve(source, args, context): Promise<null | Credential<any>> {
     const {
       tx,
-      token: t,
+      authorization: a,
       realm,
       strategies: { credentialMap }
     } = context;
-    if (!t) return null;
+    if (!a) return null;
 
     const credential = await Credential.read(tx, args.id, credentialMap);
-    return (await credential.isAccessibleBy(realm, t, tx)) ? credential : null;
+    return (await credential.isAccessibleBy(realm, a, tx)) ? credential : null;
   }
 };

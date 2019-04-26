@@ -111,31 +111,33 @@ export default (
   [
     realm,
     {
-      "token.assigned": "Tokens for clients to which {you} are assigned."
+      "authorization.assigned":
+        "Authorizations for clients to which {you} are assigned."
     },
     {
-      "read.basic": "Read basic token information.",
-      "read.scopes": "Read the token scopes.",
-      "read.secrets": "Read the token secrets."
+      "read.basic": "Read basic authorization information.",
+      "read.scopes": "Read the authorization scopes.",
+      "read.secrets": "Read the authorization secrets."
     }
   ],
   [
     realm,
     {
-      "token.equal.self": "Tokens {you} own.",
-      "token.equal.lesser": "Tokens of users with less access than {you}.",
-      "token.equal.*":
-        "Tokens of users with the same or less access than {you}.",
-      "token.*.*": "Tokens of all users."
+      "authorization.equal.self": "Authorizations {you} own.",
+      "authorization.equal.lesser":
+        "Authorizations of users with less access than {you}.",
+      "authorization.equal.*":
+        "Authorizations of users with the same or less access than {you}.",
+      "authorization.*.*": "Authorizations of all users."
     },
     {
-      "read.basic": "Read basic token information.",
-      "read.scopes": "Read the token scopes.",
-      "read.secrets": "Read the token secrets.",
-      "write.basic": "Write basic token information.",
-      "write.scopes": "Write the token scopes.",
-      "write.secrets": "Write the token secrets.",
-      "write.*": "Write or create tokens."
+      "read.basic": "Read basic authorization information.",
+      "read.scopes": "Read the authorization scopes.",
+      "read.secrets": "Read the authorization secrets.",
+      "write.basic": "Write basic authorization information.",
+      "write.scopes": "Write the authorization scopes.",
+      "write.secrets": "Write the authorization secrets.",
+      "write.*": "Write or create authorizations."
     }
   ],
   [

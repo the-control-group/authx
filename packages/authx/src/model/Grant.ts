@@ -1,7 +1,7 @@
 import { PoolClient } from "pg";
 import { Client } from "./Client";
 import { User } from "./User";
-import { Token } from "./Token";
+import { Authorization } from "./Authorization";
 import {
   simplify,
   getIntersection,
@@ -31,7 +31,7 @@ export class Grant implements GrantData {
 
   private _client: null | Promise<Client> = null;
   private _user: null | Promise<User> = null;
-  private _tokens: null | Promise<Token[]> = null;
+  private _authorizations: null | Promise<Authorization[]> = null;
 
   public constructor(data: GrantData) {
     this.id = data.id;
@@ -45,7 +45,7 @@ export class Grant implements GrantData {
 
   public async isAccessibleBy(
     realm: string,
-    t: Token,
+    t: Authorization,
     tx: PoolClient,
     action: string = "read.basic"
   ): Promise<boolean> {
@@ -106,21 +106,21 @@ export class Grant implements GrantData {
     return (this._user = User.read(tx, this.userId));
   }
 
-  public async tokens(
+  public async authorizations(
     tx: PoolClient,
     refresh: boolean = false
-  ): Promise<Token[]> {
-    if (!refresh && this._tokens) {
-      return this._tokens;
+  ): Promise<Authorization[]> {
+    if (!refresh && this._authorizations) {
+      return this._authorizations;
     }
 
-    return (this._tokens = (async () =>
-      Token.read(
+    return (this._authorizations = (async () =>
+      Authorization.read(
         tx,
         (await tx.query(
           `
           SELECT entity_id AS id
-          FROM authx.token_record
+          FROM authx.authorization_record
           WHERE
             user_id = $1
             AND replacement_record_id IS NULL
@@ -203,7 +203,7 @@ export class Grant implements GrantData {
     data: GrantData,
     metadata: {
       recordId: string;
-      createdByTokenId: string;
+      createdByAuthorizationId: string;
       createdAt: Date;
     }
   ): Promise<Grant> {
@@ -244,7 +244,7 @@ export class Grant implements GrantData {
       INSERT INTO authx.grant_record
       (
         record_id,
-        created_by_token_id,
+        created_by_authorization_id,
         created_at,
         entity_id,
         enabled,
@@ -267,7 +267,7 @@ export class Grant implements GrantData {
       `,
       [
         metadata.recordId,
-        metadata.createdByTokenId,
+        metadata.createdByAuthorizationId,
         metadata.createdAt,
         data.id,
         data.enabled,

@@ -37,8 +37,8 @@ export const grants: GraphQLFieldConfig<
     }
   },
   async resolve(source, args, context): Promise<Grant[]> {
-    const { tx, token: t, realm } = context;
-    if (!t) return [];
+    const { tx, authorization: a, realm } = context;
+    if (!a) return [];
 
     const ids = await tx.query(
       `
@@ -55,6 +55,6 @@ export const grants: GraphQLFieldConfig<
     }
 
     const grants = await Grant.read(tx, ids.rows.map(({ id }) => id));
-    return filter(grants, grant => grant.isAccessibleBy(realm, t, tx));
+    return filter(grants, grant => grant.isAccessibleBy(realm, a, tx));
   }
 };

@@ -2,7 +2,7 @@ import { PoolClient } from "pg";
 import { Authority } from "./Authority";
 import { User } from "./User";
 import { Contact } from "./Contact";
-import { Token } from "./Token";
+import { Authorization } from "./Authorization";
 import { NotFoundError } from "../errors";
 
 import { isSuperset, isStrictSuperset } from "scopeutils";
@@ -40,7 +40,7 @@ export abstract class Credential<C> implements CredentialData<C> {
 
   public async isAccessibleBy(
     realm: string,
-    t: Token,
+    t: Authorization,
     tx: PoolClient,
     action: string = "read.basic"
   ): Promise<boolean> {
@@ -202,7 +202,7 @@ export abstract class Credential<C> implements CredentialData<C> {
     data: CredentialData<any>,
     metadata: {
       recordId: string;
-      createdByTokenId: string;
+      createdByAuthorizationId: string;
       createdAt: Date;
     }
   ): Promise<T> {
@@ -243,7 +243,7 @@ export abstract class Credential<C> implements CredentialData<C> {
       INSERT INTO authx.credential_record
       (
         record_id,
-        created_by_token_id,
+        created_by_authorization_id,
         created_at,
         entity_id,
         enabled,
@@ -266,7 +266,7 @@ export abstract class Credential<C> implements CredentialData<C> {
       `,
       [
         metadata.recordId,
-        metadata.createdByTokenId,
+        metadata.createdByAuthorizationId,
         metadata.createdAt,
         data.id,
         data.enabled,

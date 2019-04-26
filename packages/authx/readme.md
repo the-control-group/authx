@@ -2,7 +2,7 @@ This is AuthX. It's named AuthX because it's an "exchange" of sorts, consolidati
 
 ## Concepts
 
-AuthX is designed for a scenario in which a **RESOURCE** needs to restrict access to all or part of its functionality. A **CLIENT** app, acting on behalf of a **User** can retreive an OAuth token from AuthX, which can be passed to the **RESOURCE** with any request.
+AuthX is designed for a scenario in which a **RESOURCE** needs to restrict access to all or part of its functionality. A **CLIENT** app, acting on behalf of a **User** can retreive an OAuth authorization from AuthX, which can be passed to the **RESOURCE** with any request.
 
 ```
 ╔══════════════════════════════════════════╗
@@ -115,15 +115,15 @@ AuthX:role.equal.lesser  :write.{basic|scopes|assignments|*}
 AuthX:role.equal.*       :write.{basic|scopes|assignments|*}
 AuthX:role.*    .*       :write.{basic|scopes|assignments|*}
 
-AuthX:token.assigned    :read.{basic|scopes|secrets}
-AuthX:token.equal.self  :read.{basic|scopes|secrets}
-AuthX:token.equal.lesser:read.{basic|scopes|secrets}
-AuthX:token.equal.*     :read.{basic|scopes|secrets}
-AuthX:token.*    .*     :read.{basic|scopes|secrets}
-AuthX:token.equal.self  :write.{basic|scopes|secrets|*}
-AuthX:token.equal.lesser:write.{basic|scopes|secrets|*}
-AuthX:token.equal.*     :write.{basic|scopes|secrets|*}
-AuthX:token.*    .*     :write.{basic|scopes|secrets|*}
+AuthX:authorization.assigned    :read.{basic|scopes|secrets}
+AuthX:authorization.equal.self  :read.{basic|scopes|secrets}
+AuthX:authorization.equal.lesser:read.{basic|scopes|secrets}
+AuthX:authorization.equal.*     :read.{basic|scopes|secrets}
+AuthX:authorization.*    .*     :read.{basic|scopes|secrets}
+AuthX:authorization.equal.self  :write.{basic|scopes|secrets|*}
+AuthX:authorization.equal.lesser:write.{basic|scopes|secrets|*}
+AuthX:authorization.equal.*     :write.{basic|scopes|secrets|*}
+AuthX:authorization.*    .*     :write.{basic|scopes|secrets|*}
 
 AuthX:user.equal.self  :read.{basic}
 AuthX:user.equal.lesser:read.{basic}

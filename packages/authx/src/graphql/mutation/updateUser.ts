@@ -35,10 +35,12 @@ export const updateUser: GraphQLFieldConfig<
     }
   },
   async resolve(source, args, context): Promise<User> {
-    const { tx, token: t, realm } = context;
+    const { tx, authorization: a, realm } = context;
 
-    if (!t) {
-      throw new ForbiddenError("You must be authenticated to update a token.");
+    if (!a) {
+      throw new ForbiddenError(
+        "You must be authenticated to update a authorization."
+      );
     }
 
     await tx.query("BEGIN DEFERRABLE");
@@ -46,7 +48,7 @@ export const updateUser: GraphQLFieldConfig<
     try {
       const before = await User.read(tx, args.id);
 
-      if (!(await before.isAccessibleBy(realm, t, tx, "write.basic"))) {
+      if (!(await before.isAccessibleBy(realm, a, tx, "write.basic"))) {
         throw new ForbiddenError(
           "You do not have permission to update this user."
         );
@@ -142,7 +144,7 @@ export const updateUser: GraphQLFieldConfig<
         },
         {
           recordId: v4(),
-          createdByTokenId: t.id,
+          createdByAuthorizationId: a.id,
           createdAt: new Date()
         }
       );

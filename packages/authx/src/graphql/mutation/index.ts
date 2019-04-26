@@ -7,8 +7,8 @@ import { updateGrant } from "./updateGrant";
 import { createRole } from "./createRole";
 import { updateRole } from "./updateRole";
 
-import { createToken } from "./createToken";
-import { updateToken } from "./updateToken";
+import { createAuthorization } from "./createAuthorization";
+import { updateAuthorization } from "./updateAuthorization";
 
 import { createUser } from "./createUser";
 import { updateUser } from "./updateUser";
@@ -23,8 +23,8 @@ export const mutationFields = {
   createRole,
   updateRole,
 
-  createToken,
-  updateToken,
+  createAuthorization,
+  updateAuthorization,
 
   createUser,
   updateUser

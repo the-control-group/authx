@@ -1,6 +1,6 @@
 import { PoolClient } from "pg";
 import { User } from "./User";
-import { Token } from "./Token";
+import { Authorization } from "./Authorization";
 import { simplify, isSuperset, isStrictSuperset } from "scopeutils";
 import { NotFoundError } from "../errors";
 
@@ -31,7 +31,7 @@ export class Role implements RoleData {
 
   public async isAccessibleBy(
     realm: string,
-    t: Token,
+    t: Authorization,
     tx: PoolClient,
     action: string = "read.basic"
   ): Promise<boolean> {
@@ -137,7 +137,11 @@ export class Role implements RoleData {
   public static async write(
     tx: PoolClient,
     data: RoleData,
-    metadata: { recordId: string; createdByTokenId: string; createdAt: Date }
+    metadata: {
+      recordId: string;
+      createdByAuthorizationId: string;
+      createdAt: Date;
+    }
   ): Promise<Role> {
     // ensure that the entity ID exists
     await tx.query(
@@ -174,7 +178,7 @@ export class Role implements RoleData {
       INSERT INTO authx.role_record
       (
         record_id,
-        created_by_token_id,
+        created_by_authorization_id,
         created_at,
         entity_id,
         enabled,
@@ -191,7 +195,7 @@ export class Role implements RoleData {
       `,
       [
         metadata.recordId,
-        metadata.createdByTokenId,
+        metadata.createdByAuthorizationId,
         metadata.createdAt,
         data.id,
         data.enabled,

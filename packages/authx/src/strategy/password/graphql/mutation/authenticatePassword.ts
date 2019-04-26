@@ -10,8 +10,8 @@ import { compare } from "bcrypt";
 import v4 from "uuid/v4";
 
 import { Context } from "../../../../Context";
-import { GraphQLToken } from "../../../../graphql";
-import { Authority, Token } from "../../../../model";
+import { GraphQLAuthorization } from "../../../../graphql";
+import { Authority, Authorization } from "../../../../model";
 import { ForbiddenError, AuthenticationError } from "../../../../errors";
 
 import { PasswordAuthority } from "../../model";
@@ -28,8 +28,8 @@ export const authenticatePassword: GraphQLFieldConfig<
   },
   Context
 > = {
-  type: GraphQLToken,
-  description: "Create a new token.",
+  type: GraphQLAuthorization,
+  description: "Create a new authorization.",
   args: {
     identityAuthorityId: {
       type: new GraphQLNonNull(GraphQLID)
@@ -44,15 +44,15 @@ export const authenticatePassword: GraphQLFieldConfig<
       type: new GraphQLNonNull(GraphQLString)
     }
   },
-  async resolve(source, args, context): Promise<Token> {
+  async resolve(source, args, context): Promise<Authorization> {
     const {
       tx,
-      token: t,
+      authorization: a,
       realm,
       strategies: { authorityMap }
     } = context;
 
-    if (t) {
+    if (a) {
       throw new ForbiddenError("You area already authenticated.");
     }
 
@@ -123,12 +123,12 @@ export const authenticatePassword: GraphQLFieldConfig<
         );
       }
 
-      // create a new token
-      const tokenId = v4();
-      const token = await Token.write(
+      // create a new authorization
+      const authorizationId = v4();
+      const authorization = await Authorization.write(
         tx,
         {
-          id: tokenId,
+          id: authorizationId,
           enabled: true,
           userId,
           grantId: null,
@@ -137,7 +137,7 @@ export const authenticatePassword: GraphQLFieldConfig<
         },
         {
           recordId: v4(),
-          createdByTokenId: tokenId,
+          createdByAuthorizationId: authorizationId,
           createdByCredentialId: credential.id,
           createdAt: new Date()
         }
@@ -145,10 +145,10 @@ export const authenticatePassword: GraphQLFieldConfig<
 
       await tx.query("COMMIT");
 
-      // use this token for the rest of the request
-      context.token = token;
+      // use this authorization for the rest of the request
+      context.authorization = authorization;
 
-      return token;
+      return authorization;
     } catch (error) {
       await tx.query("ROLLBACK");
       throw error;

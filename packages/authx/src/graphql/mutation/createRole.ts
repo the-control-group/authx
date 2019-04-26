@@ -45,24 +45,24 @@ export const createRole: GraphQLFieldConfig<
     }
   },
   async resolve(source, args, context): Promise<Role> {
-    const { tx, token: t, realm } = context;
+    const { tx, authorization: a, realm } = context;
 
-    if (!t) {
+    if (!a) {
       throw new ForbiddenError("You must be authenticated to create a role.");
     }
 
     if (
       // can create any roles
-      !(await t.can(tx, `${realm}:role.*.*:write.*`)) &&
+      !(await a.can(tx, `${realm}:role.*.*:write.*`)) &&
       // can create roles with equal access
       !(
-        (await t.can(tx, `${realm}:role.equal.*:write.*`)) &&
-        isSuperset(await (await t.user(tx)).access(tx), args.scopes)
+        (await a.can(tx, `${realm}:role.equal.*:write.*`)) &&
+        isSuperset(await (await a.user(tx)).access(tx), args.scopes)
       ) &&
       // can create roles with lesser access
       !(
-        (await t.can(tx, `${realm}:role.equal.lesser:write.*`)) &&
-        isStrictSuperset(await (await t.user(tx)).access(tx), args.scopes)
+        (await a.can(tx, `${realm}:role.equal.lesser:write.*`)) &&
+        isStrictSuperset(await (await a.user(tx)).access(tx), args.scopes)
       )
     ) {
       throw new ForbiddenError("You do not have permission to create a role.");
@@ -83,7 +83,7 @@ export const createRole: GraphQLFieldConfig<
         },
         {
           recordId: v4(),
-          createdByTokenId: t.id,
+          createdByAuthorizationId: a.id,
           createdAt: new Date()
         }
       );

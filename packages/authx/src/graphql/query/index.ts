@@ -13,8 +13,8 @@ import { grants } from "./grants";
 import { role } from "./role";
 import { roles } from "./roles";
 
-import { token } from "./token";
-import { tokens } from "./tokens";
+import { authorization } from "./authorization";
+import { authorizations } from "./authorizations";
 
 import { user } from "./user";
 import { users } from "./users";
@@ -34,8 +34,8 @@ export const queryFields = {
   grants,
   role,
   roles,
-  token,
-  tokens,
+  authorization,
+  authorizations,
   user,
   users,
   viewer,

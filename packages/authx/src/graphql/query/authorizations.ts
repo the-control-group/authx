@@ -5,12 +5,12 @@ import {
   GraphQLNonNull,
   GraphQLFieldConfig
 } from "graphql";
-import { GraphQLToken } from "../GraphQLToken";
+import { GraphQLAuthorization } from "../GraphQLAuthorization";
 import { Context } from "../../Context";
-import { Token } from "../../model";
+import { Authorization } from "../../model";
 import { filter } from "../../util/filter";
 
-export const tokens: GraphQLFieldConfig<
+export const authorizations: GraphQLFieldConfig<
   any,
   {
     includeDisabled: boolean;
@@ -19,13 +19,13 @@ export const tokens: GraphQLFieldConfig<
   },
   Context
 > = {
-  type: new GraphQLList(new GraphQLNonNull(GraphQLToken)),
-  description: "List all tokens.",
+  type: new GraphQLList(new GraphQLNonNull(GraphQLAuthorization)),
+  description: "List all authorizations.",
   args: {
     includeDisabled: {
       type: GraphQLBoolean,
       defaultValue: false,
-      description: "Include disabled tokens in results."
+      description: "Include disabled authorizations in results."
     },
     offset: {
       type: GraphQLInt,
@@ -36,14 +36,14 @@ export const tokens: GraphQLFieldConfig<
       description: "The maximum number of results to return."
     }
   },
-  async resolve(source, args, context): Promise<Token[]> {
-    const { tx, token: t, realm } = context;
-    if (!t) return [];
+  async resolve(source, args, context): Promise<Authorization[]> {
+    const { tx, authorization: a, realm } = context;
+    if (!a) return [];
 
     const ids = await tx.query(
       `
         SELECT entity_id AS id
-        FROM authx.token_record
+        FROM authx.authorization_record
         WHERE
           replacement_record_id IS NULL
           ${args.includeDisabled ? "" : "AND enabled = true"}
@@ -54,7 +54,12 @@ export const tokens: GraphQLFieldConfig<
       return [];
     }
 
-    const tokens = await Token.read(tx, ids.rows.map(({ id }) => id));
-    return filter(tokens, token => token.isAccessibleBy(realm, t, tx));
+    const authorizations = await Authorization.read(
+      tx,
+      ids.rows.map(({ id }) => id)
+    );
+    return filter(authorizations, authorization =>
+      authorization.isAccessibleBy(realm, a, tx)
+    );
   }
 };

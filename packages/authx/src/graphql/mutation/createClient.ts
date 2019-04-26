@@ -45,19 +45,19 @@ export const createClient: GraphQLFieldConfig<
     }
   },
   async resolve(source, args, context): Promise<Client> {
-    const { tx, token: t, realm } = context;
+    const { tx, authorization: a, realm } = context;
 
-    if (!t) {
+    if (!a) {
       throw new ForbiddenError("You must be authenticated to create a client.");
     }
 
     if (
       // can create any new clients
-      !(await t.can(tx, `${realm}:client.*:write.*`)) &&
+      !(await a.can(tx, `${realm}:client.*:write.*`)) &&
       // can create assigned new clients
       !(
-        (await t.can(tx, `${realm}:client.assigned:write.*`)) &&
-        args.userIds.includes(t.userId)
+        (await a.can(tx, `${realm}:client.assigned:write.*`)) &&
+        args.userIds.includes(a.userId)
       )
     ) {
       throw new ForbiddenError(
@@ -81,7 +81,7 @@ export const createClient: GraphQLFieldConfig<
         },
         {
           recordId: v4(),
-          createdByTokenId: t.id,
+          createdByAuthorizationId: a.id,
           createdAt: new Date()
         }
       );

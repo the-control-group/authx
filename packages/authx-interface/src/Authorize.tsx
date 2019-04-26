@@ -15,12 +15,12 @@ import {
 import { validate, isSuperset } from "scopeutils";
 
 export function Authorize({
-  token,
-  clearToken,
+  authorization,
+  clearAuthorization,
   fetchOptionsOverride
 }: {
-  token: { id: string; secret: string };
-  clearToken: () => void;
+  authorization: { id: string; secret: string };
+  clearAuthorization: () => void;
   fetchOptionsOverride: GraphQLFetchOptionsOverride;
 }): ReactElement<any> {
   const url = new URL(window.location.href);
@@ -38,7 +38,7 @@ export function Authorize({
     : null;
 
   // We are not authenticated, redirect to the authentication page
-  if (!token) {
+  if (!authorization) {
     const url = new URL(window.location.href);
     const segments = url.pathname.split("/");
     url.pathname = [
@@ -163,7 +163,7 @@ export function Authorize({
 
       if (!code) {
         setErrors([
-          "No code was returned. Contact your administrator to ensure you have sufficient access to read your own tokens and token secrets."
+          "No code was returned. Contact your administrator to ensure you have sufficient access to read your own authorizations and authorization secrets."
         ]);
         return;
       }
@@ -328,7 +328,7 @@ export function Authorize({
               <button
                 onClick={e => {
                   e.preventDefault();
-                  clearToken();
+                  clearAuthorization();
                 }}
                 type="button"
                 style={{

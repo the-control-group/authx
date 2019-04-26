@@ -11,7 +11,7 @@ import graphiql from "./graphiql";
 
 import { Config, assertConfig } from "./Config";
 import { Context } from "./Context";
-import { Token } from "./model";
+import { Authorization } from "./model";
 import { parse } from "auth-header";
 import {
   NotFoundError,
@@ -54,7 +54,7 @@ export class AuthX<
     ): Promise<void> => {
       const tx = await pool.connect();
       try {
-        let token = null;
+        let authorization = null;
 
         const auth = ctx.request.header.authorization
           ? parse(ctx.request.header.authorization)
@@ -71,42 +71,42 @@ export class AuthX<
             .split(":", 2);
 
           try {
-            token = await Token.read(tx, id);
+            authorization = await Authorization.read(tx, id);
           } catch (error) {
             if (!(error instanceof NotFoundError)) throw error;
             throw new AuthenticationError(
               __DEV__
-                ? "Unable to find the token specified in the HTTP authorization header."
+                ? "Unable to find the authorization specified in the HTTP authorization header."
                 : undefined
             );
           }
 
-          if (!token.enabled)
+          if (!authorization.enabled)
             throw new AuthenticationError(
               __DEV__
-                ? "The token specified in HTTP authorization header is disabled."
+                ? "The authorization specified in HTTP authorization header is disabled."
                 : undefined
             );
 
-          if (token.secret !== secret)
+          if (authorization.secret !== secret)
             throw new AuthenticationError(
               __DEV__
                 ? "The secret specified in HTTP authorization header was incorrect."
                 : undefined
             );
 
-          const grant = await token.user(tx);
+          const grant = await authorization.user(tx);
           if (grant && !grant.enabled)
             throw new AuthenticationError(
               __DEV__
-                ? "The grant of the token specified in HTTP authorization header is disabled."
+                ? "The grant of the authorization specified in HTTP authorization header is disabled."
                 : undefined
             );
 
-          if (!(await token.user(tx)).enabled)
+          if (!(await authorization.user(tx)).enabled)
             throw new AuthenticationError(
               __DEV__
-                ? "The user of the token specified in HTTP authorization header is disabled."
+                ? "The user of the authorization specified in HTTP authorization header is disabled."
                 : undefined
             );
         }
@@ -114,7 +114,7 @@ export class AuthX<
         const context: Context = {
           ...config,
           strategies,
-          token,
+          authorization,
           tx
         };
 
@@ -175,7 +175,7 @@ export class AuthX<
     // The core AuthX library supports the following OAuth2 grant types:
     //
     // - `authorization_code`
-    // - `refresh_token`
+    // - `refresh_authorization`
     //
     // Because it involves presentation elements, the core AuthX library does
     // **not** implement the `code` grant type. Instead, a compatible reference

@@ -37,8 +37,8 @@ export const roles: GraphQLFieldConfig<
     }
   },
   async resolve(source, args, context): Promise<Role[]> {
-    const { tx, token: t, realm } = context;
-    if (!t) return [];
+    const { tx, authorization: a, realm } = context;
+    if (!a) return [];
 
     const ids = await tx.query(
       `
@@ -55,6 +55,6 @@ export const roles: GraphQLFieldConfig<
     }
 
     const roles = await Role.read(tx, ids.rows.map(({ id }) => id));
-    return filter(roles, role => role.isAccessibleBy(realm, t, tx));
+    return filter(roles, role => role.isAccessibleBy(realm, a, tx));
   }
 };

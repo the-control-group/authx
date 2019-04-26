@@ -46,12 +46,12 @@ export const updatePasswordAuthority: GraphQLFieldConfig<
   async resolve(source, args, context): Promise<PasswordAuthority> {
     const {
       tx,
-      token: t,
+      authorization: a,
       realm,
       strategies: { authorityMap }
     } = context;
 
-    if (!t) {
+    if (!a) {
       throw new ForbiddenError(
         "You must be authenticated to update an authority."
       );
@@ -66,7 +66,7 @@ export const updatePasswordAuthority: GraphQLFieldConfig<
         throw new NotFoundError("No password authority exists with this ID.");
       }
 
-      if (!(await before.isAccessibleBy(realm, t, tx, "write.basic"))) {
+      if (!(await before.isAccessibleBy(realm, a, tx, "write.basic"))) {
         throw new ForbiddenError(
           "You do not have permission to update this authority."
         );
@@ -74,7 +74,7 @@ export const updatePasswordAuthority: GraphQLFieldConfig<
 
       if (
         args.rounds &&
-        !(await before.isAccessibleBy(realm, t, tx, "write.details"))
+        !(await before.isAccessibleBy(realm, a, tx, "write.details"))
       ) {
         throw new ForbiddenError(
           "You do not have permission to update this authority's details."
@@ -98,7 +98,7 @@ export const updatePasswordAuthority: GraphQLFieldConfig<
         },
         {
           recordId: v4(),
-          createdByTokenId: t.id,
+          createdByAuthorizationId: a.id,
           createdAt: new Date()
         }
       );

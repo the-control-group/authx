@@ -3,7 +3,7 @@ export * from "./Client";
 export * from "./Credential";
 export * from "./Grant";
 export * from "./Role";
-export * from "./Token";
+export * from "./Authorization";
 export * from "./User";
 export * from "./Contact";
 export * from "./ContactInput";

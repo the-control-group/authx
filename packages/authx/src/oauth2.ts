@@ -2,7 +2,7 @@ import v4 from "uuid/v4";
 import jwt from "jsonwebtoken";
 import { randomBytes } from "crypto";
 import { Context } from "./Context";
-import { Client, Grant, Token } from "./model";
+import { Client, Grant, Authorization } from "./model";
 import { NotFoundError } from "./errors";
 import { validate, isEqual } from "scopeutils";
 import { ParameterizedContext } from "koa";
@@ -21,8 +21,8 @@ class OAuthError extends Error {
 
 // Loop through an iterable of grant secrets and select the secret that was most
 // recently issued
-function getRefreshToken(secrets: Iterable<string>): null | string {
-  let refreshToken = null;
+function getRefreshAuthorization(secrets: Iterable<string>): null | string {
+  let refreshAuthorization = null;
   let max = 0;
   for (const secret of secrets) {
     const issuedString = Buffer.from(secret, "base64")
@@ -31,12 +31,12 @@ function getRefreshToken(secrets: Iterable<string>): null | string {
 
     const issuedNumber = parseInt(issuedString);
     if (issuedString && issuedNumber && issuedNumber > max) {
-      refreshToken = secret;
+      refreshAuthorization = secret;
       max = issuedNumber;
     }
   }
 
-  return refreshToken;
+  return refreshAuthorization;
 }
 
 export default async (ctx: ParameterizedContext<any, { [x]: Context }>) => {
@@ -131,21 +131,21 @@ export default async (ctx: ParameterizedContext<any, { [x]: Context }>) => {
           throw new OAuthError("invalid_grant");
         }
 
-        // Look for an existing active token for this grant with the same scopes
-        const tokens = (await grant.tokens(tx)).filter(
+        // Look for an existing active authorization for this grant with the same scopes
+        const authorizations = (await grant.authorizations(tx)).filter(
           t => t.enabled && isEqual(requestedScopes, t.scopes)
         );
 
-        const token = tokens.length
-          ? // Use an existing token.
-            tokens[0]
-          : // Create a new token.
+        const authorization = authorizations.length
+          ? // Use an existing authorization.
+            authorizations[0]
+          : // Create a new authorization.
             await (() => {
-              const tokenId = v4();
-              return Token.write(
+              const authorizationId = v4();
+              return Authorization.write(
                 tx,
                 {
-                  id: tokenId,
+                  id: authorizationId,
                   enabled: true,
                   userId: user.id,
                   grantId: grant.id,
@@ -154,7 +154,7 @@ export default async (ctx: ParameterizedContext<any, { [x]: Context }>) => {
                 },
                 {
                   recordId: v4(),
-                  createdByTokenId: tokenId,
+                  createdByAuthorizationId: authorizationId,
                   createdByCredentialId: null,
                   createdAt: new Date()
                 }
@@ -182,19 +182,19 @@ export default async (ctx: ParameterizedContext<any, { [x]: Context }>) => {
           },
           {
             recordId: v4(),
-            createdByTokenId: token.id,
+            createdByAuthorizationId: authorization.id,
             createdAt: new Date()
           }
         );
 
         const body = {
           // eslint-disable-next-line
-          token_type: "bearer",
+          authorization_type: "bearer",
           // eslint-disable-next-line
-          access_token: jwt.sign(
+          access_authorization: jwt.sign(
             {
-              type: "access_token",
-              scopes: await token.access(tx)
+              type: "access_authorization",
+              scopes: await authorization.access(tx)
             },
             privateKey,
             {
@@ -206,10 +206,10 @@ export default async (ctx: ParameterizedContext<any, { [x]: Context }>) => {
             }
           ),
           // eslint-disable-next-line
-          refresh_token: getRefreshToken(grant.secrets),
+          refresh_authorization: getRefreshAuthorization(grant.secrets),
           // eslint-disable-next-line
           expires_in: 3600,
-          scope: (await token.access(tx)).join(" ")
+          scope: (await authorization.access(tx)).join(" ")
         };
 
         await tx.query("COMMIT");
@@ -220,16 +220,21 @@ export default async (ctx: ParameterizedContext<any, { [x]: Context }>) => {
       }
     }
 
-    // Refresh Token
+    // Refresh Authorization
     // =============
-    if (grantType === "refresh_token") {
+    if (grantType === "refresh_authorization") {
       tx.query("BEGIN DEFERRABLE");
       try {
         const paramsClientId: undefined | string = ctx.body.client_id;
         const paramsClientSecret: undefined | string = ctx.body.client_secret;
-        const paramsRefreshToken: undefined | string = ctx.body.refresh_token;
+        const paramsRefreshAuthorization: undefined | string =
+          ctx.body.refresh_authorization;
         const paramsScope: undefined | string = ctx.body.scope;
-        if (!paramsClientId || !paramsClientSecret || !paramsRefreshToken) {
+        if (
+          !paramsClientId ||
+          !paramsClientSecret ||
+          !paramsRefreshAuthorization
+        ) {
           throw new OAuthError("invalid_request");
         }
 
@@ -256,7 +261,10 @@ export default async (ctx: ParameterizedContext<any, { [x]: Context }>) => {
         }
 
         // Decode and validate the authorization code.
-        const [grantId, secret] = Buffer.from(paramsRefreshToken, "base64")
+        const [grantId, secret] = Buffer.from(
+          paramsRefreshAuthorization,
+          "base64"
+        )
           .toString("utf8")
           .split(":");
 
@@ -277,7 +285,7 @@ export default async (ctx: ParameterizedContext<any, { [x]: Context }>) => {
           throw new OAuthError("invalid_grant");
         }
 
-        if (!grant.secrets.has(paramsRefreshToken)) {
+        if (!grant.secrets.has(paramsRefreshAuthorization)) {
           throw new OAuthError("invalid_grant");
         }
 
@@ -287,21 +295,21 @@ export default async (ctx: ParameterizedContext<any, { [x]: Context }>) => {
           throw new OAuthError("invalid_grant");
         }
 
-        // Look for an existing active token for this grant with the same scopes
-        const tokens = (await grant.tokens(tx)).filter(
+        // Look for an existing active authorization for this grant with the same scopes
+        const authorizations = (await grant.authorizations(tx)).filter(
           t => t.enabled && isEqual(requestedScopes, t.scopes)
         );
 
-        const token = tokens.length
-          ? // Use an existing token.
-            tokens[0]
-          : // Create a new token.
+        const authorization = authorizations.length
+          ? // Use an existing authorization.
+            authorizations[0]
+          : // Create a new authorization.
             await (() => {
-              const tokenId = v4();
-              return Token.write(
+              const authorizationId = v4();
+              return Authorization.write(
                 tx,
                 {
-                  id: tokenId,
+                  id: authorizationId,
                   enabled: true,
                   userId: user.id,
                   grantId: grant.id,
@@ -310,7 +318,7 @@ export default async (ctx: ParameterizedContext<any, { [x]: Context }>) => {
                 },
                 {
                   recordId: v4(),
-                  createdByTokenId: tokenId,
+                  createdByAuthorizationId: authorizationId,
                   createdByCredentialId: null,
                   createdAt: new Date()
                 }
@@ -319,12 +327,12 @@ export default async (ctx: ParameterizedContext<any, { [x]: Context }>) => {
 
         const body = {
           // eslint-disable-next-line
-          token_type: "bearer",
+          authorization_type: "bearer",
           // eslint-disable-next-line
-          access_token: jwt.sign(
+          access_authorization: jwt.sign(
             {
-              type: "access_token",
-              scopes: await token.access(tx)
+              type: "access_authorization",
+              scopes: await authorization.access(tx)
             },
             privateKey,
             {
@@ -336,10 +344,10 @@ export default async (ctx: ParameterizedContext<any, { [x]: Context }>) => {
             }
           ),
           // eslint-disable-next-line
-          refresh_token: getRefreshToken(grant.secrets),
+          refresh_authorization: getRefreshAuthorization(grant.secrets),
           // eslint-disable-next-line
           expires_in: 3600,
-          scope: (await token.access(tx)).join(" ")
+          scope: (await authorization.access(tx)).join(" ")
         };
 
         await tx.query("COMMIT");

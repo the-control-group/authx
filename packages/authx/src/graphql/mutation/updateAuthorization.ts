@@ -7,11 +7,11 @@ import {
 } from "graphql";
 
 import { Context } from "../../Context";
-import { GraphQLToken } from "../GraphQLToken";
-import { Token } from "../../model";
+import { GraphQLAuthorization } from "../GraphQLAuthorization";
+import { Authorization } from "../../model";
 import { ForbiddenError } from "../../errors";
 
-export const updateToken: GraphQLFieldConfig<
+export const updateAuthorization: GraphQLFieldConfig<
   any,
   {
     id: string;
@@ -19,8 +19,8 @@ export const updateToken: GraphQLFieldConfig<
   },
   Context
 > = {
-  type: GraphQLToken,
-  description: "Update a new token.",
+  type: GraphQLAuthorization,
+  description: "Update a new authorization.",
   args: {
     id: {
       type: new GraphQLNonNull(GraphQLID)
@@ -29,25 +29,27 @@ export const updateToken: GraphQLFieldConfig<
       type: GraphQLBoolean
     }
   },
-  async resolve(source, args, context): Promise<Token> {
-    const { tx, token: t, realm } = context;
+  async resolve(source, args, context): Promise<Authorization> {
+    const { tx, authorization: a, realm } = context;
 
-    if (!t) {
-      throw new ForbiddenError("You must be authenticated to update a token.");
+    if (!a) {
+      throw new ForbiddenError(
+        "You must be authenticated to update a authorization."
+      );
     }
 
     await tx.query("BEGIN DEFERRABLE");
 
     try {
-      const before = await Token.read(tx, args.id);
+      const before = await Authorization.read(tx, args.id);
 
-      if (!(await before.isAccessibleBy(realm, t, tx, "write.basic"))) {
+      if (!(await before.isAccessibleBy(realm, a, tx, "write.basic"))) {
         throw new ForbiddenError(
-          "You do not have permission to update this token."
+          "You do not have permission to update this authorization."
         );
       }
 
-      const token = await Token.write(
+      const authorization = await Authorization.write(
         tx,
         {
           ...before,
@@ -56,14 +58,14 @@ export const updateToken: GraphQLFieldConfig<
         },
         {
           recordId: v4(),
-          createdByTokenId: t.id,
+          createdByAuthorizationId: a.id,
           createdByCredentialId: null,
           createdAt: new Date()
         }
       );
 
       await tx.query("COMMIT");
-      return token;
+      return authorization;
     } catch (error) {
       await tx.query("ROLLBACK");
       throw error;

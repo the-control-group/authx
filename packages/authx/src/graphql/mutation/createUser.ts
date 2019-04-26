@@ -32,15 +32,19 @@ export const createUser: GraphQLFieldConfig<
     }
   },
   async resolve(source, args, context): Promise<User> {
-    const { tx, token: t, realm } = context;
+    const { tx, authorization: a, realm } = context;
 
-    if (!t) {
-      throw new ForbiddenError("You must be authenticated to create a token.");
+    if (!a) {
+      throw new ForbiddenError(
+        "You must be authenticated to create a authorization."
+      );
     }
 
     // can create a new user
-    if (!(await t.can(tx, `${realm}:user.*:write.*`))) {
-      throw new ForbiddenError("You must be authenticated to create a token.");
+    if (!(await a.can(tx, `${realm}:user.*:write.*`))) {
+      throw new ForbiddenError(
+        "You must be authenticated to create a authorization."
+      );
     }
 
     await tx.query("BEGIN DEFERRABLE");
@@ -57,7 +61,7 @@ export const createUser: GraphQLFieldConfig<
         },
         {
           recordId: v4(),
-          createdByTokenId: t.id,
+          createdByAuthorizationId: a.id,
           createdAt: new Date()
         }
       );

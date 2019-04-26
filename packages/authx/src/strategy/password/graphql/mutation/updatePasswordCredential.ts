@@ -40,12 +40,12 @@ export const updatePasswordCredential: GraphQLFieldConfig<
   async resolve(source, args, context): Promise<PasswordCredential> {
     const {
       tx,
-      token: t,
+      authorization: a,
       realm,
       strategies: { credentialMap }
     } = context;
 
-    if (!t) {
+    if (!a) {
       throw new ForbiddenError(
         "You must be authenticated to update an credential."
       );
@@ -60,7 +60,7 @@ export const updatePasswordCredential: GraphQLFieldConfig<
         throw new NotFoundError("No password credential exists with this ID.");
       }
 
-      if (!(await before.isAccessibleBy(realm, t, tx, "write.basic"))) {
+      if (!(await before.isAccessibleBy(realm, a, tx, "write.basic"))) {
         throw new ForbiddenError(
           "You do not have permission to update this credential."
         );
@@ -68,7 +68,7 @@ export const updatePasswordCredential: GraphQLFieldConfig<
 
       if (
         args.password &&
-        !(await before.isAccessibleBy(realm, t, tx, "write.details"))
+        !(await before.isAccessibleBy(realm, a, tx, "write.details"))
       ) {
         throw new ForbiddenError(
           "You do not have permission to update this credential's details."
@@ -94,7 +94,7 @@ export const updatePasswordCredential: GraphQLFieldConfig<
         },
         {
           recordId: v4(),
-          createdByTokenId: t.id,
+          createdByAuthorizationId: a.id,
           createdAt: new Date()
         }
       );

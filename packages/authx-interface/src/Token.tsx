@@ -14,17 +14,17 @@ import {
   GraphQLFetchOptions
 } from "graphql-react";
 
-export function Token({
+export function Authorization({
   fetchOptionsOverride,
   redirect,
-  token,
-  clearToken
+  authorization,
+  clearAuthorization
 }: {
   fetchOptionsOverride: (options: GraphQLFetchOptions) => void;
   redirect: null | (() => void);
-  token: { id: string; secret: string };
-  clearToken: () => void;
-}): ReactElement<{ token: string }> {
+  authorization: { id: string; secret: string };
+  clearAuthorization: () => void;
+}): ReactElement<{ authorization: string }> {
   // Focus the email field on mount
   const focusElement = useRef<HTMLInputElement>(null);
   const [mounted, setMounted] = useState<boolean>(false);
@@ -81,7 +81,7 @@ export function Token({
     e.preventDefault();
     const operation = graphql.operate<
       {
-        updateToken: null | {
+        updateAuthorization: null | {
           id: string;
           enabled: boolean;
         };
@@ -94,7 +94,7 @@ export function Token({
       operation: {
         query: `
           mutation($id: ID!) {
-            updateToken(
+            updateAuthorization(
               id: $id,
               enabled: false
             ) {
@@ -104,7 +104,7 @@ export function Token({
           }
         `,
         variables: {
-          id: token.id
+          id: authorization.id
         }
       }
     });
@@ -121,20 +121,20 @@ export function Token({
         return;
       }
 
-      const token = result.data && result.data.updateToken;
-      if (!token) {
+      const authorization = result.data && result.data.updateAuthorization;
+      if (!authorization) {
         setErrors([
-          "No token was returned. Contact your administrator to ensure you have sufficient access to read your own tokens."
+          "No authorization was returned. Contact your administrator to ensure you have sufficient access to read your own authorizations."
         ]);
         return;
       }
 
-      // We have successfully disabled the token!
+      // We have successfully disabled the authorization!
       // Zero the error.
       setErrors([]);
 
-      // Clear the token from our cookie store.
-      clearToken();
+      // Clear the authorization from our cookie store.
+      clearAuthorization();
     } catch (error) {
       setErrors([error.message]);
       return;
@@ -157,21 +157,21 @@ export function Token({
         : null}
 
       <label>
-        <input type="submit" value="Revoke Token" />
+        <input type="submit" value="Revoke Authorization" />
       </label>
 
       {errors.length ? (
         <div className="info">
           <p>
-            If you are unable to revoke the current token, you can remove it
-            from this browser. If you do this, make sure to revoke it from a
-            different computer if you suspect it was comprimized.
+            If you are unable to revoke the current authorization, you can
+            remove it from this browser. If you do this, make sure to revoke it
+            from a different computer if you suspect it was comprimized.
           </p>
           <label>
             <input
               onClick={e => {
                 e.preventDefault();
-                clearToken();
+                clearAuthorization();
               }}
               type="button"
               value="Reset Browser Data"

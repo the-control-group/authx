@@ -39,11 +39,11 @@ export const credentials: GraphQLFieldConfig<
   async resolve(source, args, context): Promise<Credential<any>[]> {
     const {
       tx,
-      token: t,
+      authorization: a,
       realm,
       strategies: { credentialMap }
     } = context;
-    if (!t) return [];
+    if (!a) return [];
 
     const ids = await tx.query(
       `
@@ -65,7 +65,7 @@ export const credentials: GraphQLFieldConfig<
       credentialMap
     );
     return filter(credentials, credential =>
-      credential.isAccessibleBy(realm, t, tx)
+      credential.isAccessibleBy(realm, a, tx)
     );
   }
 };

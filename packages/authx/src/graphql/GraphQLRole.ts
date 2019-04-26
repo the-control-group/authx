@@ -19,11 +19,11 @@ export const GraphQLRole = new GraphQLObjectType<Role, Context>({
     name: { type: GraphQLString },
     users: {
       type: new GraphQLList(GraphQLUser),
-      async resolve(role, args, { realm, token: t, tx }: Context) {
-        return t &&
-          (await role.isAccessibleBy(realm, t, tx, "read.assignments"))
+      async resolve(role, args, { realm, authorization: a, tx }: Context) {
+        return a &&
+          (await role.isAccessibleBy(realm, a, tx, "read.assignments"))
           ? filter(await role.users(tx), user =>
-              user.isAccessibleBy(realm, t, tx)
+              user.isAccessibleBy(realm, a, tx)
             )
           : [];
       }
@@ -33,9 +33,9 @@ export const GraphQLRole = new GraphQLObjectType<Role, Context>({
       async resolve(
         role,
         args,
-        { realm, token: t, tx }: Context
+        { realm, authorization: a, tx }: Context
       ): Promise<null | string[]> {
-        return t && (await role.isAccessibleBy(realm, t, tx, "read.scopes"))
+        return a && (await role.isAccessibleBy(realm, a, tx, "read.scopes"))
           ? role.scopes
           : null;
       }

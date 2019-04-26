@@ -20,7 +20,7 @@ export const grant = [
         },
         {
           recordId: "b741401e-fb12-4964-bbc7-0d32e3a35781",
-          createdByTokenId: "f0e54748-c7bb-4724-ad8b-7dabb66aafa9",
+          createdByAuthorizationId: "f0e54748-c7bb-4724-ad8b-7dabb66aafa9",
           createdAt: new Date("2019-03-06T21:07:59.814Z")
         }
       )
@@ -43,7 +43,7 @@ export const grant = [
         },
         {
           recordId: "ce1a45cd-af9c-42fb-9879-aec6bc8b12a1",
-          createdByTokenId: "f0e54748-c7bb-4724-ad8b-7dabb66aafa9",
+          createdByAuthorizationId: "f0e54748-c7bb-4724-ad8b-7dabb66aafa9",
           createdAt: new Date("2019-03-06T21:07:59.814Z")
         }
       )
@@ -68,7 +68,7 @@ export const grant = [
         },
         {
           recordId: "b1f8e470-4b3e-4470-a99b-f8bc235c71dd",
-          createdByTokenId: "f0e54748-c7bb-4724-ad8b-7dabb66aafa9",
+          createdByAuthorizationId: "f0e54748-c7bb-4724-ad8b-7dabb66aafa9",
           createdAt: new Date("2019-03-06T21:07:59.814Z")
         }
       )

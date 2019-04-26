@@ -3,7 +3,7 @@ import { hash } from "bcrypt";
 import v4 from "uuid/v4";
 import { Pool } from "pg";
 import bootstrap from "./util/bootstrap";
-import { User, Role, Token } from "./model";
+import { User, Role, Authorization } from "./model";
 import { PasswordAuthority, PasswordCredential } from "./strategy/password";
 
 (async () => {
@@ -58,7 +58,7 @@ import { PasswordAuthority, PasswordCredential } from "./strategy/password";
     userIds: [user.id]
   });
 
-  const token = new Token({
+  const authorization = new Authorization({
     id: v4(),
     enabled: true,
     scopes: ["**:**:**"],
@@ -82,7 +82,7 @@ import { PasswordAuthority, PasswordCredential } from "./strategy/password";
           data: user,
           metadata: {
             recordId: v4(),
-            createdByTokenId: token.id,
+            createdByAuthorizationId: authorization.id,
             createdAt: new Date()
           }
         },
@@ -90,7 +90,7 @@ import { PasswordAuthority, PasswordCredential } from "./strategy/password";
           data: authority,
           metadata: {
             recordId: v4(),
-            createdByTokenId: token.id,
+            createdByAuthorizationId: authorization.id,
             createdAt: new Date()
           }
         },
@@ -98,7 +98,7 @@ import { PasswordAuthority, PasswordCredential } from "./strategy/password";
           data: credential,
           metadata: {
             recordId: v4(),
-            createdByTokenId: token.id,
+            createdByAuthorizationId: authorization.id,
             createdAt: new Date()
           }
         },
@@ -106,15 +106,15 @@ import { PasswordAuthority, PasswordCredential } from "./strategy/password";
           data: role,
           metadata: {
             recordId: v4(),
-            createdByTokenId: token.id,
+            createdByAuthorizationId: authorization.id,
             createdAt: new Date()
           }
         },
-        token: {
-          data: token,
+        authorization: {
+          data: authorization,
           metadata: {
             recordId: v4(),
-            createdByTokenId: token.id,
+            createdByAuthorizationId: authorization.id,
             createdAt: new Date(),
             createdByCredentialId: null
           }

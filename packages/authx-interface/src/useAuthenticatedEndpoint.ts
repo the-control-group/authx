@@ -6,14 +6,14 @@ import {
   GraphQLFetchOptionsOverride
 } from "graphql-react";
 
-interface Token {
+interface Authorization {
   id: string;
   secret: string;
 }
 
 export function useAuthenticatedEndpoint(
-  token: null | Token,
-  clearToken: () => void
+  authorization: null | Authorization,
+  clearAuthorization: () => void
 ): { fetchOptionsOverride: GraphQLFetchOptionsOverride } {
   const graphql = useContext(GraphQLContext);
   if (!graphql)
@@ -21,9 +21,9 @@ export function useAuthenticatedEndpoint(
       "The hook `useAuthenticatedEndpoint` must only be called inside a `GraphQLContext`."
     );
 
-  // Clear token if we get a 401 from the server
+  // Clear authorization if we get a 401 from the server
   useEffect(() => {
-    if (!token) return;
+    if (!authorization) return;
 
     async function onCache({
       cacheValue
@@ -31,30 +31,30 @@ export function useAuthenticatedEndpoint(
       cacheValue: GraphQLCacheValue<any>;
     }): Promise<void> {
       if (cacheValue.httpError && cacheValue.httpError.status === 401) {
-        clearToken();
+        clearAuthorization();
       }
     }
 
     graphql.on("cache", onCache);
     return () => graphql.off("cache", onCache);
-  }, [token, clearToken, graphql]);
+  }, [authorization, clearAuthorization, graphql]);
 
   // Set Authorization header in fetch options
   const fetchOptionsOverride = useCallback(
     (options: GraphQLFetchOptions) => {
       options.url = "/graphql";
-      if (token) {
+      if (authorization) {
         options.headers =
           options.headers instanceof Headers
             ? options.headers
             : new Headers(options.headers);
         options.headers.append(
           "Authorization",
-          `Basic ${btoa(`${token.id}:${token.secret}`)}`
+          `Basic ${btoa(`${authorization.id}:${authorization.secret}`)}`
         );
       }
     },
-    [token]
+    [authorization]
   );
 
   return { fetchOptionsOverride };

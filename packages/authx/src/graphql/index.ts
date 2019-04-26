@@ -11,7 +11,7 @@ import { GraphQLCredential } from "./GraphQLCredential";
 import { GraphQLGrant } from "./GraphQLGrant";
 import { GraphQLRole } from "./GraphQLRole";
 import { GraphQLTimestamp } from "./GraphQLTimestamp";
-import { GraphQLToken } from "./GraphQLToken";
+import { GraphQLAuthorization } from "./GraphQLAuthorization";
 import { GraphQLUser } from "./GraphQLUser";
 import { GraphQLUserType } from "./GraphQLUserType";
 import {
@@ -37,7 +37,7 @@ export * from "./GraphQLCredential";
 export * from "./GraphQLGrant";
 export * from "./GraphQLRole";
 export * from "./GraphQLTimestamp";
-export * from "./GraphQLToken";
+export * from "./GraphQLAuthorization";
 export * from "./GraphQLUser";
 export * from "./GraphQLUserType";
 export * from "./GraphQLContact";
@@ -72,7 +72,7 @@ export default function createSchema(
       GraphQLGrant,
       GraphQLRole,
       GraphQLTimestamp,
-      GraphQLToken,
+      GraphQLAuthorization,
       GraphQLUser,
       GraphQLUserType,
       GraphQLContactName,

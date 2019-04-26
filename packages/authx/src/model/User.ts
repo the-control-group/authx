@@ -5,7 +5,7 @@ import { Role } from "./Role";
 import { Client } from "./Client";
 import { ContactInitialInput } from "./ContactInput";
 import { simplify, isSuperset, isStrictSuperset } from "scopeutils";
-import { Token } from "./Token";
+import { Authorization } from "./Authorization";
 import { NotFoundError } from "../errors";
 
 export type UserType = "human" | "bot";
@@ -37,7 +37,7 @@ export class User implements UserData {
 
   public async isAccessibleBy(
     realm: string,
-    t: Token,
+    t: Authorization,
     tx: PoolClient,
     action: string = "read.basic"
   ): Promise<boolean> {
@@ -274,7 +274,11 @@ export class User implements UserData {
   public static async write(
     tx: PoolClient,
     data: UserData,
-    metadata: { recordId: string; createdByTokenId: string; createdAt: Date }
+    metadata: {
+      recordId: string;
+      createdByAuthorizationId: string;
+      createdAt: Date;
+    }
   ): Promise<User> {
     // ensure that the entity ID exists
     await tx.query(
@@ -313,7 +317,7 @@ export class User implements UserData {
       INSERT INTO authx.user_record
       (
         record_id,
-        created_by_token_id,
+        created_by_authorization_id,
         created_at,
         entity_id,
         enabled,
@@ -330,7 +334,7 @@ export class User implements UserData {
       `,
       [
         metadata.recordId,
-        metadata.createdByTokenId,
+        metadata.createdByAuthorizationId,
         metadata.createdAt,
         data.id,
         data.enabled,

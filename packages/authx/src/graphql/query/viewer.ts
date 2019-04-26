@@ -1,14 +1,14 @@
 import { GraphQLFieldConfig } from "graphql";
 import { Context } from "../../Context";
-import { GraphQLToken } from "../GraphQLToken";
-import { Token } from "../../model";
+import { GraphQLAuthorization } from "../GraphQLAuthorization";
+import { Authorization } from "../../model";
 
 export const viewer: GraphQLFieldConfig<any, {}, Context> = {
-  type: GraphQLToken,
+  type: GraphQLAuthorization,
   description: "Fetch a user by ID.",
   args: {},
-  async resolve(source, args, context): Promise<null | Token> {
-    const { tx, token: t, realm } = context;
-    return t && (await t.isAccessibleBy(realm, t, tx)) ? t : null;
+  async resolve(source, args, context): Promise<null | Authorization> {
+    const { tx, authorization: a, realm } = context;
+    return a && (await a.isAccessibleBy(realm, a, tx)) ? a : null;
   }
 };

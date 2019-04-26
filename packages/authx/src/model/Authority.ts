@@ -1,6 +1,6 @@
 import { PoolClient } from "pg";
 import { Credential } from "./Credential";
-import { Token } from "./Token";
+import { Authorization } from "./Authorization";
 import { NotFoundError } from "../errors";
 
 export interface AuthorityData<A> {
@@ -28,7 +28,7 @@ export abstract class Authority<A> implements AuthorityData<A> {
 
   public async isAccessibleBy(
     realm: string,
-    t: Token,
+    t: Authorization,
     tx: PoolClient,
     action: string = "read.basic"
   ): Promise<boolean> {
@@ -151,7 +151,7 @@ export abstract class Authority<A> implements AuthorityData<A> {
     data: AuthorityData<any>,
     metadata: {
       recordId: string;
-      createdByTokenId: string;
+      createdByAuthorizationId: string;
       createdAt: Date;
     }
   ): Promise<T> {
@@ -194,7 +194,7 @@ export abstract class Authority<A> implements AuthorityData<A> {
       INSERT INTO authx.authority_record
       (
         record_id,
-        created_by_token_id,
+        created_by_authorization_id,
         created_at,
         entity_id,
         enabled,
@@ -213,7 +213,7 @@ export abstract class Authority<A> implements AuthorityData<A> {
       `,
       [
         metadata.recordId,
-        metadata.createdByTokenId,
+        metadata.createdByAuthorizationId,
         metadata.createdAt,
         data.id,
         data.enabled,

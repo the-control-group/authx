@@ -3,5 +3,5 @@ export * from "./client";
 export * from "./credential";
 export * from "./grant";
 export * from "./role";
-export * from "./token";
+export * from "./authorization";
 export * from "./user";

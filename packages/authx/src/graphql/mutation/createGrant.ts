@@ -46,35 +46,35 @@ export const createGrant: GraphQLFieldConfig<
     }
   },
   async resolve(source, args, context): Promise<Grant> {
-    const { tx, token: t, realm } = context;
+    const { tx, authorization: a, realm } = context;
 
-    if (!t) {
+    if (!a) {
       throw new ForbiddenError("You must be authenticated to create a grant.");
     }
 
     if (
       // can create grants for all users
-      !(await t.can(tx, `${realm}:grant.*.*:write.*`)) &&
+      !(await a.can(tx, `${realm}:grant.*.*:write.*`)) &&
       // can create grants for users with equal access
       !(
-        (await t.can(tx, `${realm}:grant.equal.*:write.*`)) &&
+        (await a.can(tx, `${realm}:grant.equal.*:write.*`)) &&
         isSuperset(
-          await (await t.user(tx)).access(tx),
+          await (await a.user(tx)).access(tx),
           await (await User.read(tx, args.userId)).access(tx)
         )
       ) &&
       // can create grants for users with lesser access
       !(
-        (await t.can(tx, `${realm}:grant.equal.lesser:write.*`)) &&
+        (await a.can(tx, `${realm}:grant.equal.lesser:write.*`)) &&
         isStrictSuperset(
-          await (await t.user(tx)).access(tx),
+          await (await a.user(tx)).access(tx),
           await (await User.read(tx, args.userId)).access(tx)
         )
       ) &&
       // can create grants for self
       !(
-        (await t.can(tx, `${realm}:grant.equal.self:write.*`)) &&
-        args.userId === t.userId
+        (await a.can(tx, `${realm}:grant.equal.self:write.*`)) &&
+        args.userId === a.userId
       )
     ) {
       throw new ForbiddenError("You do not have permission to create a grant.");
@@ -106,7 +106,7 @@ export const createGrant: GraphQLFieldConfig<
         },
         {
           recordId: v4(),
-          createdByTokenId: t.id,
+          createdByAuthorizationId: a.id,
           createdAt: new Date()
         }
       );

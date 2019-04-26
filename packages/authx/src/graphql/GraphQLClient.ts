@@ -22,9 +22,9 @@ export const GraphQLClient = new GraphQLObjectType<Client, Context>({
       async resolve(
         client,
         args,
-        { realm, token: t, tx }: Context
+        { realm, authorization: a, tx }: Context
       ): Promise<null | string[]> {
-        return t && (await client.isAccessibleBy(realm, t, tx, "read.secrets"))
+        return a && (await client.isAccessibleBy(realm, a, tx, "read.secrets"))
           ? [...client.secrets]
           : null;
       }
@@ -32,11 +32,11 @@ export const GraphQLClient = new GraphQLObjectType<Client, Context>({
     urls: { type: new GraphQLList(GraphQLString) },
     users: {
       type: new GraphQLList(GraphQLUser),
-      async resolve(client, args, { realm, token: t, tx }: Context) {
-        return t &&
-          (await client.isAccessibleBy(realm, t, tx, "read.assignments"))
+      async resolve(client, args, { realm, authorization: a, tx }: Context) {
+        return a &&
+          (await client.isAccessibleBy(realm, a, tx, "read.assignments"))
           ? filter(await client.users(tx), user =>
-              user.isAccessibleBy(realm, t, tx)
+              user.isAccessibleBy(realm, a, tx)
             )
           : [];
       }

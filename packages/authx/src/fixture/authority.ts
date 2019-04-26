@@ -60,7 +60,7 @@ Bac/x5qiUn5fh2xM+wIDAQAB
         },
         {
           recordId: "84168393-0277-4ba2-b3bd-5ad837fe7cf5",
-          createdByTokenId: "f0e54748-c7bb-4724-ad8b-7dabb66aafa9",
+          createdByAuthorizationId: "f0e54748-c7bb-4724-ad8b-7dabb66aafa9",
           createdAt: new Date("2019-03-06T21:07:59.814Z")
         }
       )
@@ -81,7 +81,7 @@ Bac/x5qiUn5fh2xM+wIDAQAB
         },
         {
           recordId: "dc4f3328-34da-4c46-94a8-2ec041d495e3",
-          createdByTokenId: "f0e54748-c7bb-4724-ad8b-7dabb66aafa9",
+          createdByAuthorizationId: "f0e54748-c7bb-4724-ad8b-7dabb66aafa9",
           createdAt: new Date("2019-03-06T21:07:59.814Z")
         }
       )

@@ -37,8 +37,8 @@ export const users: GraphQLFieldConfig<
     }
   },
   async resolve(source, args, context): Promise<User[]> {
-    const { tx, token: t, realm } = context;
-    if (!t) return [];
+    const { tx, authorization: a, realm } = context;
+    if (!a) return [];
 
     const ids = await tx.query(
       `
@@ -55,6 +55,6 @@ export const users: GraphQLFieldConfig<
     }
 
     const users = await User.read(tx, ids.rows.map(({ id }) => id));
-    return filter(users, user => user.isAccessibleBy(realm, t, tx));
+    return filter(users, user => user.isAccessibleBy(realm, a, tx));
   }
 };

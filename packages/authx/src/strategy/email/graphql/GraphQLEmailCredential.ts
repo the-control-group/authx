@@ -39,11 +39,11 @@ export const GraphQLEmailCredential = new GraphQLObjectType<
       async resolve(
         credential,
         args,
-        { realm, token: t, tx }: Context
+        { realm, authorization: a, tx }: Context
       ): Promise<null | User> {
-        if (!t) return null;
+        if (!a) return null;
         const user = await credential.user(tx);
-        return user.isAccessibleBy(realm, t, tx) ? user : null;
+        return user.isAccessibleBy(realm, a, tx) ? user : null;
       }
     },
     authority: { type: GraphQLAuthority },
@@ -53,10 +53,10 @@ export const GraphQLEmailCredential = new GraphQLObjectType<
       async resolve(
         credential,
         args,
-        { realm, token: t, tx }: Context
+        { realm, authorization: a, tx }: Context
       ): Promise<null | EmailCredentialDetails> {
-        return t &&
-          (await credential.isAccessibleBy(realm, t, tx, "read.details"))
+        return a &&
+          (await credential.isAccessibleBy(realm, a, tx, "read.details"))
           ? credential.details
           : null;
       }

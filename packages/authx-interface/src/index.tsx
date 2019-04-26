@@ -1,21 +1,28 @@
 import React, { ReactElement } from "react";
 import ReactDOM from "react-dom";
-import { useToken } from "./useToken";
+import { useAuthorization } from "./useAuthorization";
 import { useAuthenticatedEndpoint } from "./useAuthenticatedEndpoint";
 import { Authenticate } from "./Authenticate";
 import { Authorize } from "./Authorize";
 import { GraphQL, GraphQLContext } from "graphql-react";
 
 function Root(): ReactElement<{}> {
-  const { token, clearToken, setToken } = useToken();
-  const { fetchOptionsOverride } = useAuthenticatedEndpoint(token, clearToken);
+  const {
+    authorization,
+    clearAuthorization,
+    setAuthorization
+  } = useAuthorization();
+  const { fetchOptionsOverride } = useAuthenticatedEndpoint(
+    authorization,
+    clearAuthorization
+  );
 
   // We are not authenticated
-  if (!token) {
+  if (!authorization) {
     return (
       <Authenticate
         fetchOptionsOverride={fetchOptionsOverride}
-        setToken={setToken}
+        setAuthorization={setAuthorization}
       />
     );
   }
@@ -23,8 +30,8 @@ function Root(): ReactElement<{}> {
   // We are authenticated; we need to authorize the client
   return (
     <Authorize
-      token={token}
-      clearToken={clearToken}
+      authorization={authorization}
+      clearAuthorization={clearAuthorization}
       fetchOptionsOverride={fetchOptionsOverride}
     />
   );

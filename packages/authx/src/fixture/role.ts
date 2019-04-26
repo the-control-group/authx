@@ -16,7 +16,7 @@ export const role = [
         },
         {
           recordId: "cde64a26-8371-498c-a613-018bf1393790",
-          createdByTokenId: "f0e54748-c7bb-4724-ad8b-7dabb66aafa9",
+          createdByAuthorizationId: "f0e54748-c7bb-4724-ad8b-7dabb66aafa9",
           createdAt: new Date("2019-03-06T21:07:59.814Z")
         }
       )
@@ -50,7 +50,7 @@ export const role = [
         },
         {
           recordId: "3657a9b7-f617-446f-8003-a06631c79a88",
-          createdByTokenId: "f0e54748-c7bb-4724-ad8b-7dabb66aafa9",
+          createdByAuthorizationId: "f0e54748-c7bb-4724-ad8b-7dabb66aafa9",
           createdAt: new Date("2019-03-06T21:07:59.814Z")
         }
       )
@@ -73,7 +73,7 @@ export const role = [
         },
         {
           recordId: "c7270f9c-51d7-4a23-8d55-d48779e56181",
-          createdByTokenId: "f0e54748-c7bb-4724-ad8b-7dabb66aafa9",
+          createdByAuthorizationId: "f0e54748-c7bb-4724-ad8b-7dabb66aafa9",
           createdAt: new Date("2019-03-06T21:07:59.814Z")
         }
       )
@@ -95,7 +95,7 @@ export const role = [
         },
         {
           recordId: "f53acc48-e95e-48fa-911e-59fd9f59e972",
-          createdByTokenId: "f0e54748-c7bb-4724-ad8b-7dabb66aafa9",
+          createdByAuthorizationId: "f0e54748-c7bb-4724-ad8b-7dabb66aafa9",
           createdAt: new Date("2019-03-06T21:07:59.814Z")
         }
       )
@@ -114,7 +114,7 @@ export const role = [
         },
         {
           recordId: "f94c5316-ce81-46e6-932a-0ac2c8fc886b",
-          createdByTokenId: "f0e54748-c7bb-4724-ad8b-7dabb66aafa9",
+          createdByAuthorizationId: "f0e54748-c7bb-4724-ad8b-7dabb66aafa9",
           createdAt: new Date("2019-03-06T21:07:59.814Z")
         }
       )

@@ -12,10 +12,10 @@ const strategyComponentMap: {
 };
 
 export function Authenticate({
-  setToken,
+  setAuthorization,
   fetchOptionsOverride
 }: {
-  setToken: (token: { id: string; secret: string }) => void;
+  setAuthorization: (authorization: { id: string; secret: string }) => void;
   fetchOptionsOverride: GraphQLFetchOptionsOverride;
 }): ReactElement<any> {
   // Get all active authorities from the API.
@@ -106,7 +106,7 @@ export function Authenticate({
           redirect={redirect}
           authority={authority}
           authorities={authorities}
-          setToken={setToken}
+          setAuthorization={setAuthorization}
         />
       ) : (
         <div className="panel">

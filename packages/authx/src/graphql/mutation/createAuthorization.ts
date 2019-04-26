@@ -11,11 +11,11 @@ import {
 } from "graphql";
 
 import { Context } from "../../Context";
-import { GraphQLToken } from "../GraphQLToken";
-import { Token, User } from "../../model";
+import { GraphQLAuthorization } from "../GraphQLAuthorization";
+import { Authorization, User } from "../../model";
 import { ForbiddenError } from "../../errors";
 
-export const createToken: GraphQLFieldConfig<
+export const createAuthorization: GraphQLFieldConfig<
   any,
   {
     enabled: boolean;
@@ -25,8 +25,8 @@ export const createToken: GraphQLFieldConfig<
   },
   Context
 > = {
-  type: GraphQLToken,
-  description: "Create a new token.",
+  type: GraphQLAuthorization,
+  description: "Create a new authorization.",
   args: {
     enabled: {
       type: GraphQLBoolean,
@@ -44,46 +44,50 @@ export const createToken: GraphQLFieldConfig<
       )
     }
   },
-  async resolve(source, args, context): Promise<Token> {
-    const { tx, token: t, realm } = context;
+  async resolve(source, args, context): Promise<Authorization> {
+    const { tx, authorization: a, realm } = context;
 
-    if (!t) {
-      throw new ForbiddenError("You must be authenticated to create a token.");
+    if (!a) {
+      throw new ForbiddenError(
+        "You must be authenticated to create a authorization."
+      );
     }
 
     if (
-      // can create tokens for all users
-      !(await t.can(tx, `${realm}:token.*.*:write.*`)) &&
-      // can create tokens for users with equal access
+      // can create authorizations for all users
+      !(await a.can(tx, `${realm}:authorization.*.*:write.*`)) &&
+      // can create authorizations for users with equal access
       !(
-        (await t.can(tx, `${realm}:token.equal.*:write.*`)) &&
+        (await a.can(tx, `${realm}:authorization.equal.*:write.*`)) &&
         isSuperset(
-          await (await t.user(tx)).access(tx),
+          await (await a.user(tx)).access(tx),
           await (await User.read(tx, args.userId)).access(tx)
         )
       ) &&
-      // can create tokens for users with lesser access
+      // can create authorizations for users with lesser access
       !(
-        (await t.can(tx, `${realm}:token.equal.lesser:write.*`)) &&
+        (await a.can(tx, `${realm}:authorization.equal.lesser:write.*`)) &&
         isStrictSuperset(
-          await (await t.user(tx)).access(tx),
+          await (await a.user(tx)).access(tx),
           await (await User.read(tx, args.userId)).access(tx)
         )
       ) &&
-      // can create tokens for self
+      // can create authorizations for self
       !(
-        (await t.can(tx, `${realm}:token.equal.self:write.*`)) &&
-        args.userId === t.userId
+        (await a.can(tx, `${realm}:authorization.equal.self:write.*`)) &&
+        args.userId === a.userId
       )
     ) {
-      throw new ForbiddenError("You must be authenticated to create a token.");
+      throw new ForbiddenError(
+        "You must be authenticated to create a authorization."
+      );
     }
 
     await tx.query("BEGIN DEFERRABLE");
 
     try {
       const id = v4();
-      const token = await Token.write(
+      const authorization = await Authorization.write(
         tx,
         {
           id,
@@ -95,14 +99,14 @@ export const createToken: GraphQLFieldConfig<
         },
         {
           recordId: v4(),
-          createdByTokenId: t.id,
+          createdByAuthorizationId: a.id,
           createdByCredentialId: null,
           createdAt: new Date()
         }
       );
 
       await tx.query("COMMIT");
-      return token;
+      return authorization;
     } catch (error) {
       await tx.query("ROLLBACK");
       throw error;

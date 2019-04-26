@@ -10,6 +10,6 @@ export interface StrategyComponentProps {
   fetchOptionsOverride: (options: GraphQLFetchOptions) => void;
   authority: Authority;
   authorities: Authority[];
-  setToken: (token: { id: string; secret: string }) => void;
+  setAuthorization: (authorization: { id: string; secret: string }) => void;
   redirect: null | (() => void);
 }

@@ -40,9 +40,9 @@ export const createPasswordAuthority: GraphQLFieldConfig<
     }
   },
   async resolve(source, args, context): Promise<PasswordAuthority> {
-    const { tx, token: t, realm } = context;
+    const { tx, authorization: a, realm } = context;
 
-    if (!t) {
+    if (!a) {
       throw new ForbiddenError(
         "You must be authenticated to create a authority."
       );
@@ -61,7 +61,7 @@ export const createPasswordAuthority: GraphQLFieldConfig<
         }
       });
 
-      if (!(await data.isAccessibleBy(realm, t, tx, "write.*"))) {
+      if (!(await data.isAccessibleBy(realm, a, tx, "write.*"))) {
         throw new ForbiddenError(
           "You do not have permission to create an authority."
         );
@@ -69,7 +69,7 @@ export const createPasswordAuthority: GraphQLFieldConfig<
 
       const authority = await PasswordAuthority.write(tx, data, {
         recordId: v4(),
-        createdByTokenId: t.id,
+        createdByAuthorizationId: a.id,
         createdAt: new Date()
       });
 

@@ -20,13 +20,13 @@ export const authority: GraphQLFieldConfig<
   async resolve(source, args, context): Promise<null | Authority<any>> {
     const {
       tx,
-      token: t,
+      authorization: a,
       realm,
       strategies: { authorityMap }
     } = context;
-    if (!t) return null;
+    if (!a) return null;
 
     const authority = await Authority.read(tx, args.id, authorityMap);
-    return (await authority.isAccessibleBy(realm, t, tx)) ? authority : null;
+    return (await authority.isAccessibleBy(realm, a, tx)) ? authority : null;
   }
 };

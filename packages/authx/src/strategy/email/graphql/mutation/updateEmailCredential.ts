@@ -47,12 +47,12 @@ export const updateEmailCredential: GraphQLFieldConfig<
   async resolve(source, args, context): Promise<EmailCredential> {
     const {
       tx,
-      token: t,
+      authorization: a,
       realm,
       strategies: { credentialMap }
     } = context;
 
-    if (!t) {
+    if (!a) {
       throw new ForbiddenError(
         "You must be authenticated to update an credential."
       );
@@ -67,7 +67,7 @@ export const updateEmailCredential: GraphQLFieldConfig<
         throw new NotFoundError("No email credential exists with this ID.");
       }
 
-      if (!(await before.isAccessibleBy(realm, t, tx, "write.basic"))) {
+      if (!(await before.isAccessibleBy(realm, a, tx, "write.basic"))) {
         throw new ForbiddenError(
           "You do not have permission to update this credential."
         );
@@ -82,7 +82,7 @@ export const updateEmailCredential: GraphQLFieldConfig<
         },
         {
           recordId: v4(),
-          createdByTokenId: t.id,
+          createdByAuthorizationId: a.id,
           createdAt: new Date()
         }
       );

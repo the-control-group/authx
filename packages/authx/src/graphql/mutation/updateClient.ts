@@ -62,9 +62,9 @@ export const updateClient: GraphQLFieldConfig<
     }
   },
   async resolve(source, args, context): Promise<Client> {
-    const { tx, token: t, realm } = context;
+    const { tx, authorization: a, realm } = context;
 
-    if (!t) {
+    if (!a) {
       throw new ForbiddenError("You must be authenticated to update a client.");
     }
 
@@ -74,7 +74,7 @@ export const updateClient: GraphQLFieldConfig<
       const before = await Client.read(tx, args.id);
 
       // write.basic -----------------------------------------------------------
-      if (!(await before.isAccessibleBy(realm, t, tx, "write.basic"))) {
+      if (!(await before.isAccessibleBy(realm, a, tx, "write.basic"))) {
         throw new ForbiddenError(
           "You do not have permission to update this client."
         );
@@ -94,7 +94,7 @@ export const updateClient: GraphQLFieldConfig<
       }
 
       // write.secrets ---------------------------------------------------------
-      if (!(await before.isAccessibleBy(realm, t, tx, "write.secrets"))) {
+      if (!(await before.isAccessibleBy(realm, a, tx, "write.secrets"))) {
         throw new ForbiddenError(
           "You do not have permission to update this client's secrets."
         );
@@ -116,7 +116,7 @@ export const updateClient: GraphQLFieldConfig<
       }
 
       // write.assignments -----------------------------------------------------
-      if (!(await before.isAccessibleBy(realm, t, tx, "write.assignments"))) {
+      if (!(await before.isAccessibleBy(realm, a, tx, "write.assignments"))) {
         throw new ForbiddenError(
           "You do not have permission to update this client's assignments."
         );
@@ -148,7 +148,7 @@ export const updateClient: GraphQLFieldConfig<
         },
         {
           recordId: v4(),
-          createdByTokenId: t.id,
+          createdByAuthorizationId: a.id,
           createdAt: new Date()
         }
       );

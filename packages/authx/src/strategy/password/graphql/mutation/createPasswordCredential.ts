@@ -44,12 +44,12 @@ export const createPasswordCredential: GraphQLFieldConfig<
   async resolve(source, args, context): Promise<PasswordCredential> {
     const {
       tx,
-      token: t,
+      authorization: a,
       realm,
       strategies: { authorityMap }
     } = context;
 
-    if (!t) {
+    if (!a) {
       throw new ForbiddenError(
         "You must be authenticated to create a credential."
       );
@@ -76,7 +76,7 @@ export const createPasswordCredential: GraphQLFieldConfig<
         }
       });
 
-      if (!(await data.isAccessibleBy(realm, t, tx, "write.*"))) {
+      if (!(await data.isAccessibleBy(realm, a, tx, "write.*"))) {
         throw new ForbiddenError(
           "You do not have permission to create this credential."
         );
@@ -84,7 +84,7 @@ export const createPasswordCredential: GraphQLFieldConfig<
 
       const credential = await PasswordCredential.write(tx, data, {
         recordId: v4(),
-        createdByTokenId: t.id,
+        createdByAuthorizationId: a.id,
         createdAt: new Date()
       });
 

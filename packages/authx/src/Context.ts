@@ -1,5 +1,5 @@
 import { PoolClient } from "pg";
-import { Token } from "./model";
+import { Authorization } from "./model";
 import { StrategyCollection } from "./StrategyCollection";
 
 export interface Context {
@@ -18,5 +18,5 @@ export interface Context {
   }) => Promise<any>;
   tx: PoolClient;
   strategies: StrategyCollection;
-  token: null | Token;
+  authorization: null | Authorization;
 }

@@ -61,45 +61,45 @@ export const createEmailAuthority: GraphQLFieldConfig<
     authenticationEmailSubject: {
       type: GraphQLString,
       description:
-        "Authentication Email Subject. Handlebars template used to generate the email subject. Provided `token`, `credential`, and `url`.",
+        "Authentication Email Subject. Handlebars template used to generate the email subject. Provided `authorization`, `credential`, and `url`.",
       defaultValue: "Authenticate by email"
     },
     authenticationEmailText: {
       type: GraphQLString,
       description:
-        "Authentication Email Plain Text Body. Handlebars template used to generate the email plain text body. Provided `token`, `credential`, and `url`.",
+        "Authentication Email Plain Text Body. Handlebars template used to generate the email plain text body. Provided `authorization`, `credential`, and `url`.",
       defaultValue: "Please authenticate at the following URL: {{{url}}}"
     },
     authenticationEmailHtml: {
       type: GraphQLString,
       description:
-        "Authentication Email HTML Body. Handlebars template used to generate the email HTML body. Provided `token`, `credential`, and `url`.",
+        "Authentication Email HTML Body. Handlebars template used to generate the email HTML body. Provided `authorization`, `credential`, and `url`.",
       defaultValue: 'Please click <a href="{{url}}">here</a> to authenticate.'
     },
     verificationEmailSubject: {
       type: GraphQLString,
       description:
-        "Verification Email Subject. Handlebars template used to generate the email subject. Provided `token`, `credential`, and `url`.",
+        "Verification Email Subject. Handlebars template used to generate the email subject. Provided `authorization`, `credential`, and `url`.",
       defaultValue: "Verify email"
     },
     verificationEmailText: {
       type: GraphQLString,
       description:
-        "Verification Email Plain Text Body. Handlebars template used to generate the email plain text body. Provided `token`, `credential`, and `url`.",
+        "Verification Email Plain Text Body. Handlebars template used to generate the email plain text body. Provided `authorization`, `credential`, and `url`.",
       defaultValue: "Please verify this email at the following URL: {{{url}}}"
     },
     verificationEmailHtml: {
       type: GraphQLString,
       description:
-        "Verification Email HTML Body. Handlebars template used to generate the email HTML body. Provided `token`, `credential`, and `url`.",
+        "Verification Email HTML Body. Handlebars template used to generate the email HTML body. Provided `authorization`, `credential`, and `url`.",
       defaultValue:
         'Please click <a href="{{url}}">here</a> to verify this email.'
     }
   },
   async resolve(source, args, context): Promise<EmailAuthority> {
-    const { tx, token: t, realm } = context;
+    const { tx, authorization: a, realm } = context;
 
-    if (!t) {
+    if (!a) {
       throw new ForbiddenError(
         "You must be authenticated to create a authority."
       );
@@ -126,7 +126,7 @@ export const createEmailAuthority: GraphQLFieldConfig<
         }
       });
 
-      if (!(await data.isAccessibleBy(realm, t, tx, "write.*"))) {
+      if (!(await data.isAccessibleBy(realm, a, tx, "write.*"))) {
         throw new ForbiddenError(
           "You do not have permission to create an authority."
         );
@@ -134,7 +134,7 @@ export const createEmailAuthority: GraphQLFieldConfig<
 
       const authority = await EmailAuthority.write(tx, data, {
         recordId: v4(),
-        createdByTokenId: t.id,
+        createdByAuthorizationId: a.id,
         createdAt: new Date()
       });
 

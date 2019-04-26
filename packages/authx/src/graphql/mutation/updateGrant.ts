@@ -54,9 +54,9 @@ export const updateGrant: GraphQLFieldConfig<
     }
   },
   async resolve(source, args, context): Promise<Grant> {
-    const { tx, token: t, realm, codeValidityDuration } = context;
+    const { tx, authorization: a, realm, codeValidityDuration } = context;
 
-    if (!t) {
+    if (!a) {
       throw new ForbiddenError("You must be authenticated to update a grant.");
     }
 
@@ -65,7 +65,7 @@ export const updateGrant: GraphQLFieldConfig<
     try {
       const before = await Grant.read(tx, args.id);
 
-      if (!(await before.isAccessibleBy(realm, t, tx, "write.basic"))) {
+      if (!(await before.isAccessibleBy(realm, a, tx, "write.basic"))) {
         throw new ForbiddenError(
           "You do not have permission to update this grant."
         );
@@ -73,7 +73,7 @@ export const updateGrant: GraphQLFieldConfig<
 
       if (
         args.scopes &&
-        !(await before.isAccessibleBy(realm, t, tx, "write.scopes"))
+        !(await before.isAccessibleBy(realm, a, tx, "write.scopes"))
       ) {
         throw new ForbiddenError(
           "You do not have permission to update this grant's scopes."
@@ -85,7 +85,7 @@ export const updateGrant: GraphQLFieldConfig<
           args.removeSecrets ||
           args.generateCodes ||
           args.removeCodes) &&
-        !(await before.isAccessibleBy(realm, t, tx, "write.secrets"))
+        !(await before.isAccessibleBy(realm, a, tx, "write.secrets"))
       ) {
         throw new ForbiddenError(
           "You do not have permission to update this grant's secrets."
@@ -161,7 +161,7 @@ export const updateGrant: GraphQLFieldConfig<
         },
         {
           recordId: v4(),
-          createdByTokenId: t.id,
+          createdByAuthorizationId: a.id,
           createdAt: new Date()
         }
       );

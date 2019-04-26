@@ -9,7 +9,7 @@ import {
 } from "scopeutils";
 import { NotFoundError } from "../errors";
 
-export interface TokenData {
+export interface AuthorizationData {
   readonly id: string;
   readonly enabled: boolean;
   readonly userId: string;
@@ -18,7 +18,7 @@ export interface TokenData {
   readonly scopes: Iterable<string>;
 }
 
-export class Token implements TokenData {
+export class Authorization implements AuthorizationData {
   public readonly id: string;
   public readonly enabled: boolean;
   public readonly userId: string;
@@ -28,9 +28,9 @@ export class Token implements TokenData {
 
   private _user: null | Promise<User> = null;
   private _grant: null | Promise<Grant> = null;
-  private _token: null | Promise<Grant> = null;
+  private _authorization: null | Promise<Grant> = null;
 
-  public constructor(data: TokenData) {
+  public constructor(data: AuthorizationData) {
     this.id = data.id;
     this.enabled = data.enabled;
     this.userId = data.userId;
@@ -41,19 +41,19 @@ export class Token implements TokenData {
 
   public async isAccessibleBy(
     realm: string,
-    t: Token,
+    t: Authorization,
     tx: PoolClient,
     action: string = "read.basic"
   ): Promise<boolean> {
-    // can access all tokens
-    if (await t.can(tx, `${realm}:token.*.*:${action}`)) {
+    // can access all authorizations
+    if (await t.can(tx, `${realm}:authorization.*.*:${action}`)) {
       return true;
     }
 
-    // can access own tokens
+    // can access own authorizations
     if (
       this.userId === t.userId &&
-      (await t.can(tx, `${realm}:token.equal.self:${action}`))
+      (await t.can(tx, `${realm}:authorization.equal.self:${action}`))
     ) {
       return true;
     }
@@ -71,16 +71,16 @@ export class Token implements TokenData {
       }
     }
 
-    // can access the tokens of users with lesser or equal access
-    if (await t.can(tx, `${realm}:token.equal.*:${action}`)) {
+    // can access the authorizations of users with lesser or equal access
+    if (await t.can(tx, `${realm}:authorization.equal.*:${action}`)) {
       return isSuperset(
         await (await t.user(tx)).access(tx),
         await (await this.user(tx)).access(tx)
       );
     }
 
-    // can access the tokens of users with lesser access
-    if (await t.can(tx, `${realm}:token.equal.lesser:${action}`)) {
+    // can access the authorizations of users with lesser access
+    if (await t.can(tx, `${realm}:authorization.equal.lesser:${action}`)) {
       return isStrictSuperset(
         await (await t.user(tx)).access(tx),
         await (await this.user(tx)).access(tx)
@@ -138,12 +138,12 @@ export class Token implements TokenData {
     return isSuperset(await this.access(tx, refresh), scope);
   }
 
-  public static read(tx: PoolClient, id: string): Promise<Token>;
-  public static read(tx: PoolClient, id: string[]): Promise<Token[]>;
+  public static read(tx: PoolClient, id: string): Promise<Authorization>;
+  public static read(tx: PoolClient, id: string[]): Promise<Authorization[]>;
   public static async read(
     tx: PoolClient,
     id: string[] | string
-  ): Promise<Token[] | Token> {
+  ): Promise<Authorization[] | Authorization> {
     if (typeof id !== "string" && !id.length) {
       return [];
     }
@@ -157,7 +157,7 @@ export class Token implements TokenData {
         grant_id,
         secret,
         scopes
-      FROM authx.token_record
+      FROM authx.authorization_record
       WHERE
         entity_id = ANY($1)
         AND replacement_record_id IS NULL
@@ -185,28 +185,28 @@ export class Token implements TokenData {
       throw new NotFoundError();
     }
 
-    const tokens = result.rows.map(
+    const authorizations = result.rows.map(
       row =>
-        new Token({
+        new Authorization({
           ...row,
           userId: row.user_id,
           grantId: row.grant_id
         })
     );
 
-    return typeof id === "string" ? tokens[0] : tokens;
+    return typeof id === "string" ? authorizations[0] : authorizations;
   }
 
   public static async write(
     tx: PoolClient,
-    data: TokenData,
+    data: AuthorizationData,
     metadata: {
       recordId: string;
-      createdByTokenId: string;
+      createdByAuthorizationId: string;
       createdByCredentialId: null | string;
       createdAt: Date;
     }
-  ): Promise<Token> {
+  ): Promise<Authorization> {
     // ensure the credential ID shares the user ID
     if (metadata.createdByCredentialId) {
       const result = await tx.query(
@@ -222,7 +222,7 @@ export class Token implements TokenData {
 
       if (result.rows.length !== 1 || result.rows[0].user_id !== data.userId) {
         throw new Error(
-          "If a token references a credential, it must belong to the same user as the token."
+          "If a authorization references a credential, it must belong to the same user as the authorization."
         );
       }
     }
@@ -242,7 +242,7 @@ export class Token implements TokenData {
 
       if (result.rows.length !== 1 || result.rows[0].user_id !== data.userId) {
         throw new Error(
-          "If a token references a grant, it must belong to the same user as the token."
+          "If a authorization references a grant, it must belong to the same user as the authorization."
         );
       }
     }
@@ -250,7 +250,7 @@ export class Token implements TokenData {
     // ensure that the entity ID exists
     await tx.query(
       `
-      INSERT INTO authx.token
+      INSERT INTO authx.authorization
         (id)
       VALUES
         ($1)
@@ -262,7 +262,7 @@ export class Token implements TokenData {
     // replace the previous record
     const previous = await tx.query(
       `
-      UPDATE authx.token_record
+      UPDATE authx.authorization_record
       SET replacement_record_id = $2
       WHERE
         entity_id = $1
@@ -281,10 +281,10 @@ export class Token implements TokenData {
     // insert the new record
     const next = await tx.query(
       `
-      INSERT INTO authx.token_record
+      INSERT INTO authx.authorization_record
       (
         record_id,
-        created_by_token_id,
+        created_by_authorization_id,
         created_by_credential_id,
         created_at,
         entity_id,
@@ -306,7 +306,7 @@ export class Token implements TokenData {
       `,
       [
         metadata.recordId,
-        metadata.createdByTokenId,
+        metadata.createdByAuthorizationId,
         metadata.createdByCredentialId,
         metadata.createdAt,
         data.id,
@@ -323,7 +323,7 @@ export class Token implements TokenData {
     }
 
     const row = next.rows[0];
-    return new Token({
+    return new Authorization({
       ...row,
       userId: row.user_id,
       grantId: row.grant_id

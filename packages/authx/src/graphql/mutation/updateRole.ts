@@ -50,9 +50,9 @@ export const updateRole: GraphQLFieldConfig<
     }
   },
   async resolve(source, args, context): Promise<Role> {
-    const { tx, token: t, realm } = context;
+    const { tx, authorization: a, realm } = context;
 
-    if (!t) {
+    if (!a) {
       throw new ForbiddenError("You must be authenticated to update a role.");
     }
 
@@ -62,7 +62,7 @@ export const updateRole: GraphQLFieldConfig<
       const before = await Role.read(tx, args.id);
 
       // write.basic -----------------------------------------------------------
-      if (!(await before.isAccessibleBy(realm, t, tx, "write.basic"))) {
+      if (!(await before.isAccessibleBy(realm, a, tx, "write.basic"))) {
         throw new ForbiddenError(
           "You do not have permission to update this role."
         );
@@ -71,7 +71,7 @@ export const updateRole: GraphQLFieldConfig<
       // write.scopes ----------------------------------------------------------
       if (
         args.scopes &&
-        !(await before.isAccessibleBy(realm, t, tx, "write.scopes"))
+        !(await before.isAccessibleBy(realm, a, tx, "write.scopes"))
       ) {
         throw new ForbiddenError(
           "You do not have permission to update this role's scopes."
@@ -80,8 +80,8 @@ export const updateRole: GraphQLFieldConfig<
 
       if (
         args.scopes &&
-        !(await t.can(tx, `${realm}:role.*.*:write.scopes`)) &&
-        !isSuperset(await (await t.user(tx)).access(tx), args.scopes)
+        !(await a.can(tx, `${realm}:role.*.*:write.scopes`)) &&
+        !isSuperset(await (await a.user(tx)).access(tx), args.scopes)
       ) {
         throw new ForbiddenError(
           "You do not have permission to set scopes greater than your level of access."
@@ -89,7 +89,7 @@ export const updateRole: GraphQLFieldConfig<
       }
 
       // write.assignments -----------------------------------------------------
-      if (!(await before.isAccessibleBy(realm, t, tx, "write.assignments"))) {
+      if (!(await before.isAccessibleBy(realm, a, tx, "write.assignments"))) {
         throw new ForbiddenError(
           "You do not have permission to update this role's assignments."
         );
@@ -120,7 +120,7 @@ export const updateRole: GraphQLFieldConfig<
         },
         {
           recordId: v4(),
-          createdByTokenId: t.id,
+          createdByAuthorizationId: a.id,
           createdAt: new Date()
         }
       );

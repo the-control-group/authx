@@ -40,11 +40,11 @@ export const GraphQLUser: GraphQLObjectType<
       async resolve(
         user,
         args,
-        { realm, token: t, tx, strategies: { credentialMap } }: Context
+        { realm, authorization: a, tx, strategies: { credentialMap } }: Context
       ) {
-        return t
+        return a
           ? filter(await user.credentials(tx, credentialMap), credential =>
-              credential.isAccessibleBy(realm, t, tx)
+              credential.isAccessibleBy(realm, a, tx)
             )
           : null;
       }
@@ -55,11 +55,11 @@ export const GraphQLUser: GraphQLObjectType<
       async resolve(
         user,
         args,
-        { realm, token: t, tx }: Context
+        { realm, authorization: a, tx }: Context
       ): Promise<null | Grant[]> {
-        return t
+        return a
           ? filter(await user.grants(tx), grant =>
-              grant.isAccessibleBy(realm, t, tx)
+              grant.isAccessibleBy(realm, a, tx)
             )
           : null;
       }
@@ -76,23 +76,23 @@ export const GraphQLUser: GraphQLObjectType<
       async resolve(
         user,
         args,
-        { realm, token: t, tx }: Context
+        { realm, authorization: a, tx }: Context
       ): Promise<null | Grant> {
-        if (!t) return null;
+        if (!a) return null;
         const grant = await user.grant(tx, args.clientId);
-        return grant && grant.isAccessibleBy(realm, t, tx) ? grant : null;
+        return grant && grant.isAccessibleBy(realm, a, tx) ? grant : null;
       }
     },
     roles: {
       type: new GraphQLList(GraphQLRole),
       description: "List all roles to which the user is assigned.",
-      async resolve(user, args, { realm, token: t, tx }: Context) {
-        return t
+      async resolve(user, args, { realm, authorization: a, tx }: Context) {
+        return a
           ? filter(
               await user.roles(tx),
               async role =>
-                (await role.isAccessibleBy(realm, t, tx)) &&
-                (await role.isAccessibleBy(realm, t, tx, "read.assignments"))
+                (await role.isAccessibleBy(realm, a, tx)) &&
+                (await role.isAccessibleBy(realm, a, tx, "read.assignments"))
             )
           : null;
       }
@@ -100,10 +100,10 @@ export const GraphQLUser: GraphQLObjectType<
     clients: {
       type: new GraphQLList(GraphQLClient),
       description: "List all roles to which the user is assigned.",
-      async resolve(user, args, { realm, token: t, tx }: Context) {
-        return t
+      async resolve(user, args, { realm, authorization: a, tx }: Context) {
+        return a
           ? filter(await user.clients(tx), client =>
-              client.isAccessibleBy(realm, t, tx)
+              client.isAccessibleBy(realm, a, tx)
             )
           : null;
       }

@@ -8,7 +8,7 @@ import {
   credential,
   grant,
   role,
-  token,
+  authorization,
   user
 } from "./fixture/index";
 
@@ -16,7 +16,7 @@ const sql = fs.readFileSync(path.resolve(__dirname, "../schema.sql"));
 
 interface Metadata {
   recordId: string;
-  createdByTokenId: string;
+  createdByAuthorizationId: string;
   createdAt: Date;
 }
 
@@ -47,8 +47,8 @@ const fixture = async (tx: PoolClient): Promise<void> => {
       [role.map(({ id }) => id)]
     ),
     tx.query(
-      "INSERT INTO authx.token (id) SELECT id FROM UNNEST($1::uuid[]) AS id",
-      [token.map(({ id }) => id)]
+      "INSERT INTO authx.authorization (id) SELECT id FROM UNNEST($1::uuid[]) AS id",
+      [authorization.map(({ id }) => id)]
     ),
     tx.query(
       "INSERT INTO authx.user (id) SELECT id FROM UNNEST($1::uuid[]) AS id",
@@ -65,7 +65,7 @@ const fixture = async (tx: PoolClient): Promise<void> => {
     Promise.all(client.map(({ insert }) => insert(tx))),
     Promise.all(credential.map(({ insert }) => insert(tx))),
     Promise.all(role.map(({ insert }) => insert(tx))),
-    Promise.all(token.map(({ insert }) => insert(tx))),
+    Promise.all(authorization.map(({ insert }) => insert(tx))),
     Promise.all(user.map(({ insert }) => insert(tx)))
   ]);
 };

@@ -54,14 +54,14 @@ export const createEmailCredential: GraphQLFieldConfig<
   async resolve(source, args, context): Promise<EmailCredential> {
     const {
       tx,
-      token: t,
+      authorization: a,
       realm,
       strategies: { authorityMap },
       sendMail,
       base
     } = context;
 
-    if (!t) {
+    if (!a) {
       throw new ForbiddenError(
         "You must be authenticated to create a credential."
       );
@@ -109,8 +109,8 @@ export const createEmailCredential: GraphQLFieldConfig<
         );
       }
 
-      if (!(await t.can(tx, `${realm}:credential.user.*.*:write.*`))) {
-        if (!(await data.isAccessibleBy(realm, t, tx, "write.*"))) {
+      if (!(await a.can(tx, `${realm}:credential.user.*.*:write.*`))) {
+        if (!(await data.isAccessibleBy(realm, a, tx, "write.*"))) {
           throw new ForbiddenError(
             "You do not have permission to create this credential."
           );
@@ -136,7 +136,7 @@ export const createEmailCredential: GraphQLFieldConfig<
                 }
 
                 // Make sure this is for the same user
-                if ((payload as any).sub !== t.userId) {
+                if ((payload as any).sub !== a.userId) {
                   throw new ForbiddenError(
                     "This proof was generated for a different user."
                   );
@@ -170,7 +170,7 @@ export const createEmailCredential: GraphQLFieldConfig<
             {
               algorithm: "RS512",
               expiresIn: authority.details.proofValidityDuration,
-              subject: t.userId,
+              subject: a.userId,
               jwtid: proofId
             }
           );
@@ -213,7 +213,7 @@ export const createEmailCredential: GraphQLFieldConfig<
           },
           {
             recordId: v4(),
-            createdByTokenId: t.id,
+            createdByAuthorizationId: a.id,
             createdAt: new Date()
           }
         );
@@ -221,7 +221,7 @@ export const createEmailCredential: GraphQLFieldConfig<
 
       const credential = await EmailCredential.write(tx, data, {
         recordId: v4(),
-        createdByTokenId: t.id,
+        createdByAuthorizationId: a.id,
         createdAt: new Date()
       });
 

@@ -20,7 +20,7 @@ CREATE TABLE authx.credential ( id UUID PRIMARY KEY ) INHERITS (authx.entity);
 CREATE TABLE authx.grant ( id UUID PRIMARY KEY ) INHERITS (authx.entity);
 CREATE TABLE authx.role ( id UUID PRIMARY KEY ) INHERITS (authx.entity);
 CREATE TABLE authx.session ( id UUID PRIMARY KEY ) INHERITS (authx.entity);
-CREATE TABLE authx.token ( id UUID PRIMARY KEY ) INHERITS (authx.entity);
+CREATE TABLE authx.authorization ( id UUID PRIMARY KEY ) INHERITS (authx.entity);
 CREATE TABLE authx.user ( id UUID PRIMARY KEY ) INHERITS (authx.entity);
 
 
@@ -34,7 +34,7 @@ CREATE TABLE authx.record (
   replacement_record_id UUID DEFAULT NULL REFERENCES authx.record DEFERRABLE INITIALLY DEFERRED,
   entity_id UUID NOT NULL REFERENCES authx.entity,
   created_at TIMESTAMP WITHOUT TIME ZONE NOT NULL DEFAULT CURRENT_TIMESTAMP,
-  created_by_token_id UUID NOT NULL REFERENCES authx.token,
+  created_by_authorization_id UUID NOT NULL REFERENCES authx.authorization,
   enabled BOOLEAN NOT NULL,
 
   CHECK (false) NO INHERIT
@@ -51,7 +51,7 @@ CREATE TABLE authx.authority_record (
   PRIMARY KEY (record_id),
   FOREIGN KEY (replacement_record_id) REFERENCES authx.authority_record DEFERRABLE INITIALLY DEFERRED,
   FOREIGN KEY (entity_id) REFERENCES authx.authority,
-  FOREIGN KEY (created_by_token_id) REFERENCES authx.token
+  FOREIGN KEY (created_by_authorization_id) REFERENCES authx.authorization
 ) INHERITS (authx.record);
 
 CREATE UNIQUE INDEX ON authx.authority_record USING BTREE (entity_id) WHERE replacement_record_id IS NULL;
@@ -67,7 +67,7 @@ CREATE TABLE authx.client_record (
   PRIMARY KEY (record_id),
   FOREIGN KEY (replacement_record_id) REFERENCES authx.client_record DEFERRABLE INITIALLY DEFERRED,
   FOREIGN KEY (entity_id) REFERENCES authx.client,
-  FOREIGN KEY (created_by_token_id) REFERENCES authx.token
+  FOREIGN KEY (created_by_authorization_id) REFERENCES authx.authorization
 ) INHERITS (authx.record);
 
 CREATE UNIQUE INDEX ON authx.client_record USING BTREE (entity_id) WHERE replacement_record_id IS NULL;
@@ -91,7 +91,7 @@ CREATE TABLE authx.credential_record (
   PRIMARY KEY (record_id),
   FOREIGN KEY (replacement_record_id) REFERENCES authx.credential_record DEFERRABLE INITIALLY DEFERRED,
   FOREIGN KEY (entity_id) REFERENCES authx.credential,
-  FOREIGN KEY (created_by_token_id) REFERENCES authx.token
+  FOREIGN KEY (created_by_authorization_id) REFERENCES authx.authorization
 ) INHERITS (authx.record);
 
 CREATE UNIQUE INDEX ON authx.credential_record USING BTREE (entity_id) WHERE replacement_record_id IS NULL;
@@ -110,7 +110,7 @@ CREATE TABLE authx.grant_record (
   PRIMARY KEY (record_id),
   FOREIGN KEY (replacement_record_id) REFERENCES authx.grant_record DEFERRABLE INITIALLY DEFERRED,
   FOREIGN KEY (entity_id) REFERENCES authx.grant,
-  FOREIGN KEY (created_by_token_id) REFERENCES authx.token
+  FOREIGN KEY (created_by_authorization_id) REFERENCES authx.authorization
 ) INHERITS (authx.record);
 
 CREATE UNIQUE INDEX ON authx.grant_record USING BTREE (entity_id) WHERE replacement_record_id IS NULL;
@@ -126,7 +126,7 @@ CREATE TABLE authx.role_record (
   PRIMARY KEY (record_id),
   FOREIGN KEY (replacement_record_id) REFERENCES authx.role_record DEFERRABLE INITIALLY DEFERRED,
   FOREIGN KEY (entity_id) REFERENCES authx.role,
-  FOREIGN KEY (created_by_token_id) REFERENCES authx.token
+  FOREIGN KEY (created_by_authorization_id) REFERENCES authx.authorization
 ) INHERITS (authx.record);
 
 CREATE UNIQUE INDEX ON authx.role_record USING BTREE (entity_id) WHERE replacement_record_id IS NULL;
@@ -140,7 +140,7 @@ CREATE TABLE authx.role_record_user (
 
 
 
-CREATE TABLE authx.token_record (
+CREATE TABLE authx.authorization_record (
   created_by_credential_id UUID DEFAULT NULL REFERENCES authx.credential,
   user_id UUID NOT NULL REFERENCES authx.user,
   grant_id UUID DEFAULT NULL REFERENCES authx.grant,
@@ -148,12 +148,12 @@ CREATE TABLE authx.token_record (
   scopes TEXT[] NOT NULL,
 
   PRIMARY KEY (record_id),
-  FOREIGN KEY (replacement_record_id) REFERENCES authx.token_record DEFERRABLE INITIALLY DEFERRED,
-  FOREIGN KEY (entity_id) REFERENCES authx.token,
-  FOREIGN KEY (created_by_token_id) REFERENCES authx.token
+  FOREIGN KEY (replacement_record_id) REFERENCES authx.authorization_record DEFERRABLE INITIALLY DEFERRED,
+  FOREIGN KEY (entity_id) REFERENCES authx.authorization,
+  FOREIGN KEY (created_by_authorization_id) REFERENCES authx.authorization
 ) INHERITS (authx.record);
 
-CREATE UNIQUE INDEX ON authx.token_record USING BTREE (entity_id) WHERE replacement_record_id IS NULL;
+CREATE UNIQUE INDEX ON authx.authorization_record USING BTREE (entity_id) WHERE replacement_record_id IS NULL;
 
 
 
@@ -165,7 +165,7 @@ CREATE TABLE authx.user_record (
   PRIMARY KEY (record_id),
   FOREIGN KEY (replacement_record_id) REFERENCES authx.user_record DEFERRABLE INITIALLY DEFERRED,
   FOREIGN KEY (entity_id) REFERENCES authx.user,
-  FOREIGN KEY (created_by_token_id) REFERENCES authx.token
+  FOREIGN KEY (created_by_authorization_id) REFERENCES authx.authorization
 ) INHERITS (authx.record);
 
 CREATE UNIQUE INDEX ON authx.user_record USING BTREE (entity_id) WHERE replacement_record_id IS NULL;

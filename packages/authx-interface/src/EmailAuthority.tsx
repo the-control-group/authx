@@ -12,7 +12,7 @@ import { StrategyComponentProps } from "./definitions";
 
 export function EmailAuthority({
   authority,
-  setToken,
+  setAuthorization,
   redirect
 }: StrategyComponentProps): ReactElement<StrategyComponentProps> {
   // Focus the email field on mount
@@ -115,10 +115,10 @@ export function EmailAuthority({
         return;
       }
 
-      const token = result.data && result.data.authenticateEmail;
-      if (!token || !token.secret) {
+      const authorization = result.data && result.data.authenticateEmail;
+      if (!authorization || !authorization.secret) {
         setErrors([
-          "No token was returned. Contact your administrator to ensure you have sufficient access to read your own tokens and token secrets."
+          "No authorization was returned. Contact your administrator to ensure you have sufficient access to read your own authorizations and authorization secrets."
         ]);
         return;
       }
@@ -127,8 +127,8 @@ export function EmailAuthority({
       // Zero the error.
       setErrors([]);
 
-      // Set the token.
-      setToken({ id: token.id, secret: token.secret });
+      // Set the authorization.
+      setAuthorization({ id: authorization.id, secret: authorization.secret });
 
       // Redirect.
       if (redirect) {

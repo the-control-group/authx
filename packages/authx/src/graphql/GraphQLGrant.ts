@@ -10,7 +10,7 @@ import { Grant, Client, User } from "../model";
 import { Context } from "../Context";
 import { GraphQLClient } from "./GraphQLClient";
 import { GraphQLUser } from "./GraphQLUser";
-import { GraphQLToken } from "./GraphQLToken";
+import { GraphQLAuthorization } from "./GraphQLAuthorization";
 import { filter } from "../util/filter";
 
 export const GraphQLGrant: GraphQLObjectType<
@@ -26,11 +26,11 @@ export const GraphQLGrant: GraphQLObjectType<
       async resolve(
         grant,
         args,
-        { realm, token: t, tx }: Context
+        { realm, authorization: a, tx }: Context
       ): Promise<null | User> {
-        if (!t) return null;
+        if (!a) return null;
         const user = await grant.user(tx);
-        return user.isAccessibleBy(realm, t, tx) ? user : null;
+        return user.isAccessibleBy(realm, a, tx) ? user : null;
       }
     },
     client: {
@@ -38,11 +38,11 @@ export const GraphQLGrant: GraphQLObjectType<
       async resolve(
         grant,
         args,
-        { realm, token: t, tx }: Context
+        { realm, authorization: a, tx }: Context
       ): Promise<null | Client> {
-        if (!t) return null;
+        if (!a) return null;
         const client = await grant.client(tx);
-        return client.isAccessibleBy(realm, t, tx) ? client : null;
+        return client.isAccessibleBy(realm, a, tx) ? client : null;
       }
     },
     secrets: {
@@ -50,9 +50,9 @@ export const GraphQLGrant: GraphQLObjectType<
       async resolve(
         grant,
         args,
-        { realm, token: t, tx }: Context
+        { realm, authorization: a, tx }: Context
       ): Promise<null | string[]> {
-        return t && (await grant.isAccessibleBy(realm, t, tx, "read.secrets"))
+        return a && (await grant.isAccessibleBy(realm, a, tx, "read.secrets"))
           ? [...grant.secrets]
           : null;
       }
@@ -62,9 +62,9 @@ export const GraphQLGrant: GraphQLObjectType<
       async resolve(
         grant,
         args,
-        { realm, token: t, tx }: Context
+        { realm, authorization: a, tx }: Context
       ): Promise<null | string[]> {
-        return t && (await grant.isAccessibleBy(realm, t, tx, "read.secrets"))
+        return a && (await grant.isAccessibleBy(realm, a, tx, "read.secrets"))
           ? [...grant.codes]
           : null;
       }
@@ -74,19 +74,19 @@ export const GraphQLGrant: GraphQLObjectType<
       async resolve(
         grant,
         args,
-        { realm, token: t, tx }: Context
+        { realm, authorization: q, tx }: Context
       ): Promise<null | string[]> {
-        return t && (await grant.isAccessibleBy(realm, t, tx, "read.scopes"))
+        return q && (await grant.isAccessibleBy(realm, q, tx, "read.scopes"))
           ? grant.scopes
           : null;
       }
     },
-    tokens: {
-      type: new GraphQLList(GraphQLToken),
-      async resolve(grant, args, { realm, token: t, tx }: Context) {
-        return t
-          ? filter(await grant.tokens(tx), token =>
-              token.isAccessibleBy(realm, t, tx)
+    authorizations: {
+      type: new GraphQLList(GraphQLAuthorization),
+      async resolve(grant, args, { realm, authorization: a, tx }: Context) {
+        return a
+          ? filter(await grant.authorizations(tx), authorization =>
+              authorization.isAccessibleBy(realm, a, tx)
             )
           : [];
       }
