@@ -6,7 +6,7 @@ import {
   getIntersection,
   isSuperset,
   isStrictSuperset
-} from "scopeutils";
+} from "@authx/scopes";
 import { NotFoundError } from "../errors";
 
 export interface AuthorizationData {

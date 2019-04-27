@@ -5,7 +5,7 @@ import { Contact } from "./Contact";
 import { Authorization } from "./Authorization";
 import { NotFoundError } from "../errors";
 
-import { isSuperset, isStrictSuperset } from "scopeutils";
+import { isSuperset, isStrictSuperset } from "@authx/scopes";
 
 export interface CredentialData<C> {
   readonly id: string;

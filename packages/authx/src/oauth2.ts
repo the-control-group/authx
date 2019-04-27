@@ -4,7 +4,7 @@ import { randomBytes } from "crypto";
 import { Context } from "./Context";
 import { Client, Grant, Authorization } from "./model";
 import { NotFoundError } from "./errors";
-import { validate, isEqual } from "scopeutils";
+import { validate, isEqual } from "@authx/scopes";
 import { ParameterizedContext } from "koa";
 import x from "./x";
 

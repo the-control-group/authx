@@ -153,6 +153,5 @@ The following scopes must be granted for a client to take full advantage of OAut
 ```
 AuthX:grant.equal.self.granted:read.basic
 AuthX:grant.equal.self.granted:read.scopes
-AuthX:grant.equal.self.granted:read.secrets
 AuthX:authorization.equal.self.granted:write.*
 ```

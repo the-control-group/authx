@@ -4,7 +4,9 @@
     "packages/authx",
     "packages/authx-interface",
     "packages/authx-manager",
-    "packages/authx-proxy"
+    "packages/http-proxy-client",
+    "packages/http-proxy-resource",
+    "packages/scopes"
   ],
   "devDependencies": {
     "husky": "^1.1.2"

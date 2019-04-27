@@ -1,5 +1,5 @@
 import v4 from "uuid/v4";
-import { isSuperset } from "scopeutils";
+import { isSuperset } from "@authx/scopes";
 import {
   GraphQLID,
   GraphQLBoolean,

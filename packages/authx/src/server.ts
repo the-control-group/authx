@@ -1,6 +1,6 @@
 import Koa from "koa";
 import AuthX, { StrategyCollection } from ".";
-import authXInterface from "authx-interface";
+import authXInterface from "@authx/interface";
 
 import email from "./strategy/email";
 import password from "./strategy/password";

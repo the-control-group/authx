@@ -4,7 +4,7 @@ import { Grant } from "./Grant";
 import { Role } from "./Role";
 import { Client } from "./Client";
 import { ContactInitialInput } from "./ContactInput";
-import { simplify, isSuperset, isStrictSuperset } from "scopeutils";
+import { simplify, isSuperset, isStrictSuperset } from "@authx/scopes";
 import { Authorization } from "./Authorization";
 import { NotFoundError } from "../errors";
 

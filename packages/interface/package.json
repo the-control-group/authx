@@ -1,0 +1,64 @@
+{
+  "author": {
+    "email": "mike.marcacci@thecontrolgroup.com",
+    "name": "Mike Marcacci"
+  },
+  "bugs": "https://github.com/the-control-group/authx/issues",
+  "dependencies": {
+    "@types/graphql-react": "^8.1.1",
+    "@types/react": "^16.8.8",
+    "@types/react-dom": "^16.8.3",
+    "graphql-react": "^8.1.1",
+    "react": "^16.8.5",
+    "react-dom": "^16.8.5",
+    "scopeutils": "^2.2.0"
+  },
+  "description": "",
+  "devDependencies": {
+    "@typescript-eslint/eslint-plugin": "^1.5.0",
+    "@typescript-eslint/parser": "^1.5.0",
+    "ava": "^1.4.0",
+    "awesome-typescript-loader": "^5.2.1",
+    "eslint": "^5.16.0",
+    "eslint-config-prettier": "^4.0.0",
+    "eslint-plugin-prettier": "^3.0.0",
+    "eslint-plugin-react": "^7.12.4",
+    "html-webpack-plugin": "^3.2.0",
+    "prettier": "^1.16.4",
+    "source-map-loader": "^0.2.4",
+    "typescript": "^3.3.4000",
+    "webpack": "^4.29.6",
+    "webpack-cli": "^3.3.0"
+  },
+  "engines": {
+    "node": ">=6"
+  },
+  "files": [
+    "dist",
+    "!dist/test.*"
+  ],
+  "keywords": [
+    "oauth",
+    "aim",
+    "acl",
+    "access control",
+    "permissions"
+  ],
+  "license": "MIT",
+  "main": "index.js",
+  "name": "@authx/interface",
+  "peerDependencies": {},
+  "repository": "https://github.com/the-control-group/authx",
+  "scripts": {
+    "format": "prettier --list-different --write '**/*.{json,yml,md,ts}'",
+    "lint": "prettier -c '**/*.{json,yml,md,ts}' && eslint src --ext ts",
+    "prepare": "rm -rf dist && webpack",
+    "test": "npm run prepare && ava --verbose dist/test.js",
+    "watch": "rm -rf dist && webpack --watch",
+    "start:development": "NODE_ENV=development nodemon --inspect dist/server",
+    "start:production": "NODE_ENV=production node dist/server",
+    "start": "npm run start:production"
+  },
+  "types": "index.d.ts",
+  "version": "2.0.0-alpha.9"
+}

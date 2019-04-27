@@ -1,7 +1,7 @@
 import { PoolClient } from "pg";
 import { User } from "./User";
 import { Authorization } from "./Authorization";
-import { simplify, isSuperset, isStrictSuperset } from "scopeutils";
+import { simplify, isSuperset, isStrictSuperset } from "@authx/scopes";
 import { NotFoundError } from "../errors";
 
 export interface RoleData {
