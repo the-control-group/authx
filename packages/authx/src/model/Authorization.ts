@@ -41,19 +41,28 @@ export class Authorization implements AuthorizationData {
 
   public async isAccessibleBy(
     realm: string,
-    t: Authorization,
+    a: Authorization,
     tx: PoolClient,
     action: string = "read.basic"
   ): Promise<boolean> {
     // can access all authorizations
-    if (await t.can(tx, `${realm}:authorization.*.*:${action}`)) {
+    if (await a.can(tx, `${realm}:authorization.*.*.*:${action}`)) {
+      return true;
+    }
+
+    // can access own authorizations with this authorization
+    if (
+      this.userId === a.userId &&
+      this.grantId === a.grantId &&
+      (await a.can(tx, `${realm}:authorization.equal.self.*:${action}`))
+    ) {
       return true;
     }
 
     // can access own authorizations
     if (
-      this.userId === t.userId &&
-      (await t.can(tx, `${realm}:authorization.equal.self:${action}`))
+      this.userId === a.userId &&
+      (await a.can(tx, `${realm}:authorization.equal.self.*:${action}`))
     ) {
       return true;
     }
@@ -64,25 +73,25 @@ export class Authorization implements AuthorizationData {
       const grant = await this.grant(tx);
       if (
         grant &&
-        (await grant.client(tx)).userIds.has(t.userId) &&
-        (await t.can(tx, `${realm}:grant.assigned:${action}`))
+        (await grant.client(tx)).userIds.has(a.userId) &&
+        (await a.can(tx, `${realm}:grant.assigned:${action}`))
       ) {
         return true;
       }
     }
 
     // can access the authorizations of users with lesser or equal access
-    if (await t.can(tx, `${realm}:authorization.equal.*:${action}`)) {
+    if (await a.can(tx, `${realm}:authorization.equal.*.*:${action}`)) {
       return isSuperset(
-        await (await t.user(tx)).access(tx),
+        await (await a.user(tx)).access(tx),
         await (await this.user(tx)).access(tx)
       );
     }
 
     // can access the authorizations of users with lesser access
-    if (await t.can(tx, `${realm}:authorization.equal.lesser:${action}`)) {
+    if (await a.can(tx, `${realm}:authorization.equal.lesser.*:${action}`)) {
       return isStrictSuperset(
-        await (await t.user(tx)).access(tx),
+        await (await a.user(tx)).access(tx),
         await (await this.user(tx)).access(tx)
       );
     }

@@ -35,19 +35,19 @@ export class Client implements ClientData {
 
   public async isAccessibleBy(
     realm: string,
-    t: Authorization,
+    a: Authorization,
     tx: PoolClient,
     action: string = "read.basic"
   ): Promise<boolean> {
     // can access all vlients
-    if (await t.can(tx, `${realm}:client.*:${action}`)) {
+    if (await a.can(tx, `${realm}:client.*:${action}`)) {
       return true;
     }
 
     // can access assigned clients
     return (
-      this.userIds.has(t.userId) &&
-      (await t.can(tx, `${realm}:client.assigned:${action}`))
+      this.userIds.has(a.userId) &&
+      (await a.can(tx, `${realm}:client.assigned:${action}`))
     );
   }
 

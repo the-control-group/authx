@@ -54,10 +54,10 @@ export const createGrant: GraphQLFieldConfig<
 
     if (
       // can create grants for all users
-      !(await a.can(tx, `${realm}:grant.*.*:write.*`)) &&
+      !(await a.can(tx, `${realm}:grant.*.*.*:write.*`)) &&
       // can create grants for users with equal access
       !(
-        (await a.can(tx, `${realm}:grant.equal.*:write.*`)) &&
+        (await a.can(tx, `${realm}:grant.equal.*.*:write.*`)) &&
         isSuperset(
           await (await a.user(tx)).access(tx),
           await (await User.read(tx, args.userId)).access(tx)
@@ -65,7 +65,7 @@ export const createGrant: GraphQLFieldConfig<
       ) &&
       // can create grants for users with lesser access
       !(
-        (await a.can(tx, `${realm}:grant.equal.lesser:write.*`)) &&
+        (await a.can(tx, `${realm}:grant.equal.lesser.*:write.*`)) &&
         isStrictSuperset(
           await (await a.user(tx)).access(tx),
           await (await User.read(tx, args.userId)).access(tx)
@@ -73,7 +73,7 @@ export const createGrant: GraphQLFieldConfig<
       ) &&
       // can create grants for self
       !(
-        (await a.can(tx, `${realm}:grant.equal.self:write.*`)) &&
+        (await a.can(tx, `${realm}:grant.equal.self.*:write.*`)) &&
         args.userId === a.userId
       )
     ) {

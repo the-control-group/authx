@@ -81,49 +81,53 @@ role.*
 AuthX uses its own authorization system to restrict access to its resources. Below are the scopes used by AuthX internally:
 
 ```
-AuthX:authority:read.{basic|details}
+AuthX:authority:read. {      details}
 AuthX:authority:write.{basic|details|*}
 
 AuthX:client.{assigned|*}:read.{basic|secrets|assignments}
 AuthX:client.{assigned|*}:write.{basic|secrets|assignments|*}
 
-AuthX:credential.equal.self  :read.{basic|details}
-AuthX:credential.equal.lesser:read.{basic|details}
-AuthX:credential.equal.*     :read.{basic|details}
-AuthX:credential.*    .*     :read.{basic|details}
+AuthX:credential.equal.self  :read .{basic|details}
+AuthX:credential.equal.lesser:read .{basic|details}
+AuthX:credential.equal.*     :read .{basic|details}
+AuthX:credential.*    .*     :read .{basic|details}
 AuthX:credential.equal.self  :write.{basic|details|*}
 AuthX:credential.equal.lesser:write.{basic|details|*}
 AuthX:credential.equal.*     :write.{basic|details|*}
 AuthX:credential.*    .*     :write.{basic|details|*}
 
-AuthX:grant.assigned    :read.{basic|scopes|secrets}
-AuthX:grant.equal.self  :read.{basic|scopes|secrets}
-AuthX:grant.equal.lesser:read.{basic|scopes|secrets}
-AuthX:grant.equal.*     :read.{basic|scopes|secrets}
-AuthX:grant.*    .*     :read.{basic|scopes|secrets}
-AuthX:grant.equal.self  :write.{basic|scopes|secrets|*}
-AuthX:grant.equal.lesser:write.{basic|scopes|secrets|*}
-AuthX:grant.equal.*     :write.{basic|scopes|secrets|*}
-AuthX:grant.*    .*     :write.{basic|scopes|secrets|*}
-
-AuthX:role.equal.assigned:read.{basic|scopes|assignments}
-AuthX:role.equal.lesser  :read.{basic|scopes|assignments}
-AuthX:role.equal.*       :read.{basic|scopes|assignments}
-AuthX:role.*    .*       :read.{basic|scopes|assignments}
+AuthX:role.equal.assigned:read .{basic|scopes|assignments}
+AuthX:role.equal.lesser  :read .{basic|scopes|assignments}
+AuthX:role.equal.*       :read .{basic|scopes|assignments}
+AuthX:role.*    .*       :read .{basic|scopes|assignments}
 AuthX:role.equal.assigned:write.{basic|scopes|assignments|*}
 AuthX:role.equal.lesser  :write.{basic|scopes|assignments|*}
 AuthX:role.equal.*       :write.{basic|scopes|assignments|*}
 AuthX:role.*    .*       :write.{basic|scopes|assignments|*}
 
-AuthX:authorization.assigned    :read.{basic|scopes|secrets}
-AuthX:authorization.equal.self  :read.{basic|scopes|secrets}
-AuthX:authorization.equal.lesser:read.{basic|scopes|secrets}
-AuthX:authorization.equal.*     :read.{basic|scopes|secrets}
-AuthX:authorization.*    .*     :read.{basic|scopes|secrets}
-AuthX:authorization.equal.self  :write.{basic|scopes|secrets|*}
-AuthX:authorization.equal.lesser:write.{basic|scopes|secrets|*}
-AuthX:authorization.equal.*     :write.{basic|scopes|secrets|*}
-AuthX:authorization.*    .*     :write.{basic|scopes|secrets|*}
+AuthX:grant.assigned            :read .{basic|scopes|secrets}
+AuthX:grant.equal.self  .granted:read .{basic|scopes|secrets}
+AuthX:grant.equal.self  .*      :read .{basic|scopes|secrets}
+AuthX:grant.equal.lesser.*      :read .{basic|scopes|secrets}
+AuthX:grant.equal.*     .*      :read .{basic|scopes|secrets}
+AuthX:grant.*    .*     .*      :read .{basic|scopes|secrets}
+AuthX:grant.equal.self  .granted:write.{basic|scopes|secrets|*}
+AuthX:grant.equal.self  .*      :write.{basic|scopes|secrets|*}
+AuthX:grant.equal.lesser.*      :write.{basic|scopes|secrets|*}
+AuthX:grant.equal.*     .*      :write.{basic|scopes|secrets|*}
+AuthX:grant.*    .*     .*      :write.{basic|scopes|secrets|*}
+
+AuthX:authorization.assigned            :read .{basic|scopes|secrets}
+AuthX:authorization.equal.self  .granted:read .{basic|scopes|secrets}
+AuthX:authorization.equal.self  .*      :read .{basic|scopes|secrets}
+AuthX:authorization.equal.lesser.*      :read .{basic|scopes|secrets}
+AuthX:authorization.equal.*     .*      :read .{basic|scopes|secrets}
+AuthX:authorization.*    .*     .*      :read .{basic|scopes|secrets}
+AuthX:authorization.equal.self  .granted:write.{basic|scopes|secrets}
+AuthX:authorization.equal.self  .*      :write.{basic|scopes|secrets|*}
+AuthX:authorization.equal.lesser.*      :write.{basic|scopes|secrets|*}
+AuthX:authorization.equal.*     .*      :write.{basic|scopes|secrets|*}
+AuthX:authorization.*    .*     .*      :write.{basic|scopes|secrets|*}
 
 AuthX:user.equal.self  :read.{basic}
 AuthX:user.equal.lesser:read.{basic}
@@ -133,4 +137,22 @@ AuthX:user.equal.self  :write.{basic|*}
 AuthX:user.equal.lesser:write.{basic|*}
 AuthX:user.equal.*     :write.{basic|*}
 AuthX:user.*    .*     :write.{basic|*}
+```
+
+Users must have the following scopes to use OAuth:
+
+```
+AuthX:grant.equal.self.*:read.basic
+AuthX:grant.equal.self.*:read.scopes
+AuthX:grant.equal.self.*:read.secrets
+AuthX:authorization.equal.self.*:write.*
+```
+
+The following scopes must be granted for a client to take full advantage of OAuth:
+
+```
+AuthX:grant.equal.self.granted:read.basic
+AuthX:grant.equal.self.granted:read.scopes
+AuthX:grant.equal.self.granted:read.secrets
+AuthX:authorization.equal.self.granted:write.*
 ```

@@ -53,36 +53,6 @@ export default (
   [
     realm,
     {
-      "grant.assigned": "Grants for clients to which {you} are assigned."
-    },
-    {
-      "read.basic": "Read basic grant information.",
-      "read.scopes": "Read the grant scopes.",
-      "read.secrets": "Read the grant secrets."
-    }
-  ],
-  [
-    realm,
-    {
-      "grant.equal.self": "Grants {you} own.",
-      "grant.equal.lesser": "Grants of users with less access than {you}.",
-      "grant.equal.*":
-        "Grants of users with the same or less access than {you}.",
-      "grant.*.*": "Grants of all users."
-    },
-    {
-      "read.basic": "Read basic grant information.",
-      "read.scopes": "Read the grant scopes.",
-      "read.secrets": "Read the grant secrets.",
-      "write.basic": "Write basic grant information.",
-      "write.scopes": "Write the grant scopes.",
-      "write.secrets": "Write the grant secrets.",
-      "write.*": "Write or create grants."
-    }
-  ],
-  [
-    realm,
-    {
       "role.equal.assigned": "Roles to which {you} are assigned.",
       "role.equal.lesser": "Roles with less access than {you}.",
       "role.equal.*": "Roles with the same or less access than {you}.",
@@ -111,6 +81,38 @@ export default (
   [
     realm,
     {
+      "grant.assigned": "Grants for clients to which {you} are assigned."
+    },
+    {
+      "read.basic": "Read basic grant information.",
+      "read.scopes": "Read the grant scopes.",
+      "read.secrets": "Read the grant secrets."
+    }
+  ],
+  [
+    realm,
+    {
+      "grant.equal.self.granted":
+        "Grants {you} own which grant access to the acting authorization.",
+      "grant.equal.self.*": "Grants {you} own.",
+      "grant.equal.lesser.*": "Grants of users with less access than {you}.",
+      "grant.equal.*.*":
+        "Grants of users with the same or less access than {you}.",
+      "grant.*.*.*": "Grants of all users."
+    },
+    {
+      "read.basic": "Read basic grant information.",
+      "read.scopes": "Read the grant scopes.",
+      "read.secrets": "Read the grant secrets.",
+      "write.basic": "Write basic grant information.",
+      "write.scopes": "Write the grant scopes.",
+      "write.secrets": "Write the grant secrets.",
+      "write.*": "Write or create grants."
+    }
+  ],
+  [
+    realm,
+    {
       "authorization.assigned":
         "Authorizations for clients to which {you} are assigned."
     },
@@ -123,12 +125,14 @@ export default (
   [
     realm,
     {
-      "authorization.equal.self": "Authorizations {you} own.",
-      "authorization.equal.lesser":
+      "authorization.equal.self.granted":
+        "Authorizations {you} own which grant access to the acting authorization.",
+      "authorization.equal.self.*": "Authorizations {you} own.",
+      "authorization.equal.lesser.*":
         "Authorizations of users with less access than {you}.",
-      "authorization.equal.*":
+      "authorization.equal.*.*":
         "Authorizations of users with the same or less access than {you}.",
-      "authorization.*.*": "Authorizations of all users."
+      "authorization.*.*.*": "Authorizations of all users."
     },
     {
       "read.basic": "Read basic authorization information.",

@@ -40,35 +40,35 @@ export abstract class Credential<C> implements CredentialData<C> {
 
   public async isAccessibleBy(
     realm: string,
-    t: Authorization,
+    a: Authorization,
     tx: PoolClient,
     action: string = "read.basic"
   ): Promise<boolean> {
     // can access all credentials
-    if (await t.can(tx, `${realm}:credential.*.*:${action}`)) {
+    if (await a.can(tx, `${realm}:credential.*.*:${action}`)) {
       return true;
     }
 
     // can access own credentials
     if (
-      this.userId === t.userId &&
-      (await t.can(tx, `${realm}:credential.equal.self:${action}`))
+      this.userId === a.userId &&
+      (await a.can(tx, `${realm}:credential.equal.self:${action}`))
     ) {
       return true;
     }
 
     // can access the credentials of users with lesser or equal access
-    if (await t.can(tx, `${realm}:credential.equal.*:${action}`)) {
+    if (await a.can(tx, `${realm}:credential.equal.*:${action}`)) {
       return isSuperset(
-        await (await t.user(tx)).access(tx),
+        await (await a.user(tx)).access(tx),
         await (await this.user(tx)).access(tx)
       );
     }
 
     // can access the credentials of users with lesser access
-    if (await t.can(tx, `${realm}:credential.equal.lesser:${action}`)) {
+    if (await a.can(tx, `${realm}:credential.equal.lesser:${action}`)) {
       return isStrictSuperset(
-        await (await t.user(tx)).access(tx),
+        await (await a.user(tx)).access(tx),
         await (await this.user(tx)).access(tx)
       );
     }

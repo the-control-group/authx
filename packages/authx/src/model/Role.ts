@@ -31,32 +31,32 @@ export class Role implements RoleData {
 
   public async isAccessibleBy(
     realm: string,
-    t: Authorization,
+    a: Authorization,
     tx: PoolClient,
     action: string = "read.basic"
   ): Promise<boolean> {
     // can access all roles
-    if (await t.can(tx, `${realm}:role.*.*:${action}`)) {
+    if (await a.can(tx, `${realm}:role.*.*:${action}`)) {
       return true;
     }
 
     // can access assigned roles
     if (
-      this.userIds.has(t.userId) &&
-      (await t.can(tx, `${realm}:role.equal.assigned:${action}`))
+      this.userIds.has(a.userId) &&
+      (await a.can(tx, `${realm}:role.equal.assigned:${action}`))
     ) {
       return true;
     }
 
     // can access roles with lesser or equal access
-    if (await t.can(tx, `${realm}:role.equal.*:${action}`)) {
-      return isSuperset(await (await t.user(tx)).access(tx), this.access());
+    if (await a.can(tx, `${realm}:role.equal.*:${action}`)) {
+      return isSuperset(await (await a.user(tx)).access(tx), this.access());
     }
 
     // can access roles with lesser access
-    if (await t.can(tx, `${realm}:role.equal.lesser:${action}`)) {
+    if (await a.can(tx, `${realm}:role.equal.lesser:${action}`)) {
       return isStrictSuperset(
-        await (await t.user(tx)).access(tx),
+        await (await a.user(tx)).access(tx),
         this.access()
       );
     }

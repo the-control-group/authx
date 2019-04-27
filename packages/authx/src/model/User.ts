@@ -37,35 +37,35 @@ export class User implements UserData {
 
   public async isAccessibleBy(
     realm: string,
-    t: Authorization,
+    a: Authorization,
     tx: PoolClient,
     action: string = "read.basic"
   ): Promise<boolean> {
     // can access all users
-    if (await t.can(tx, `${realm}:user.*.*:${action}`)) {
+    if (await a.can(tx, `${realm}:user.*.*:${action}`)) {
       return true;
     }
 
     // can access self
     if (
-      this.id === t.userId &&
-      (await t.can(tx, `${realm}:user.equal.self:${action}`))
+      this.id === a.userId &&
+      (await a.can(tx, `${realm}:user.equal.self:${action}`))
     ) {
       return true;
     }
 
     // can access the users of users with lesser or equal access
-    if (await t.can(tx, `${realm}:user.equal.*:${action}`)) {
+    if (await a.can(tx, `${realm}:user.equal.*:${action}`)) {
       return isSuperset(
-        await (await t.user(tx)).access(tx),
+        await (await a.user(tx)).access(tx),
         await this.access(tx)
       );
     }
 
     // can access the users of users with lesser access
-    if (await t.can(tx, `${realm}:user.equal.lesser:${action}`)) {
+    if (await a.can(tx, `${realm}:user.equal.lesser:${action}`)) {
       return isStrictSuperset(
-        await (await t.user(tx)).access(tx),
+        await (await a.user(tx)).access(tx),
         await this.access(tx)
       );
     }

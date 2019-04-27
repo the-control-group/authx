@@ -45,19 +45,28 @@ export class Grant implements GrantData {
 
   public async isAccessibleBy(
     realm: string,
-    t: Authorization,
+    a: Authorization,
     tx: PoolClient,
     action: string = "read.basic"
   ): Promise<boolean> {
     // can access all grants
-    if (await t.can(tx, `${realm}:grant.*.*:${action}`)) {
+    if (await a.can(tx, `${realm}:grant.*.*.*:${action}`)) {
+      return true;
+    }
+
+    // can access own grants with this authorization
+    if (
+      this.userId === a.userId &&
+      this.id === a.grantId &&
+      (await a.can(tx, `${realm}:grant.equal.self.granted:${action}`))
+    ) {
       return true;
     }
 
     // can access own grants
     if (
-      this.userId === t.userId &&
-      (await t.can(tx, `${realm}:grant.equal.self:${action}`))
+      this.userId === a.userId &&
+      (await a.can(tx, `${realm}:grant.equal.self.*:${action}`))
     ) {
       return true;
     }
@@ -66,24 +75,24 @@ export class Grant implements GrantData {
     if (
       // "assigned" grant scopes only apply for "read" actions
       action.split(".")[0] === "read" &&
-      (await this.client(tx)).userIds.has(t.userId) &&
-      (await t.can(tx, `${realm}:grant.assigned:${action}`))
+      (await this.client(tx)).userIds.has(a.userId) &&
+      (await a.can(tx, `${realm}:grant.assigned:${action}`))
     ) {
       return true;
     }
 
     // can access the grants of users with lesser or equal access
-    if (await t.can(tx, `${realm}:grant.equal.*:${action}`)) {
+    if (await a.can(tx, `${realm}:grant.equal.*.*:${action}`)) {
       return isSuperset(
-        await (await t.user(tx)).access(tx),
+        await (await a.user(tx)).access(tx),
         await (await this.user(tx)).access(tx)
       );
     }
 
     // can access the grants of users with lesser access
-    if (await t.can(tx, `${realm}:grant.equal.lesser:${action}`)) {
+    if (await a.can(tx, `${realm}:grant.equal.lesser.*:${action}`)) {
       return isStrictSuperset(
-        await (await t.user(tx)).access(tx),
+        await (await a.user(tx)).access(tx),
         await (await this.user(tx)).access(tx)
       );
     }
