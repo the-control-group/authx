@@ -1,8 +1,7 @@
 {
-  "types": [],
   "compilerOptions": {
-    "lib": ["ES2018"],
-    "target": "ES2018",
+    "lib": ["es2018"],
+    "target": "es2018",
     "module": "commonjs",
     "outDir": "./dist",
     "declaration": true,
@@ -10,8 +9,8 @@
     "rootDir": "./src",
     "strict": true,
     "esModuleInterop": true,
-    "baseUrl": "@types",
-    "typeRoots": ["@types"]
+    "skipLibCheck": true,
+    "sourceMap": true
   },
   "include": ["./src/**/*"]
 }

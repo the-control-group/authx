@@ -33,11 +33,11 @@
     "authx-interface": "^2.0.0-alpha.9",
     "ava": "^1.4.0",
     "eslint": "^5.16.0",
-    "eslint-config-prettier": "^4.0.0",
+    "eslint-config-prettier": "^4.2.0",
     "eslint-plugin-prettier": "^3.0.0",
     "nodemon": "^1.18.10",
     "prettier": "^1.16.4",
-    "typescript": "^3.3.4000"
+    "typescript": "^3.4.5"
   },
   "engines": {
     "node": ">=6"

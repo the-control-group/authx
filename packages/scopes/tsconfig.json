@@ -1,13 +1,16 @@
 {
   "compilerOptions": {
-    "lib": ["ES2018"],
-    "target": "ES2018",
+    "lib": ["es2018"],
+    "target": "es2018",
     "module": "commonjs",
-    "outDir": "./dist",
+    "outDir": "dist",
     "declaration": true,
-    "declarationDir": "./dist",
-    "rootDir": "./src",
+    "declarationDir": "dist",
+    "rootDir": "src",
     "strict": true,
-    "esModuleInterop": true
-  }
+    "esModuleInterop": true,
+    "skipLibCheck": true,
+    "sourceMap": true
+  },
+  "include": ["src/**/*"]
 }

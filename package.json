@@ -2,14 +2,14 @@
   "private": true,
   "workspaces": [
     "packages/authx",
-    "packages/authx-interface",
-    "packages/authx-manager",
     "packages/http-proxy-client",
     "packages/http-proxy-resource",
+    "packages/interface",
+    "packages/manager",
     "packages/scopes"
   ],
   "devDependencies": {
-    "husky": "^1.1.2"
+    "husky": "^2.1.0"
   },
   "nohoist": [
     "packages/authx-interface/html-webpack-plugin"

@@ -1,8 +1,7 @@
 {
-  "types": [],
   "compilerOptions": {
-    "lib": ["ES2018", "DOM"],
-    "target": "ES2018",
+    "lib": ["es2018"],
+    "target": "es2018",
     "module": "commonjs",
     "outDir": "./dist",
     "declaration": true,
@@ -10,11 +9,12 @@
     "rootDir": "./src",
     "strict": true,
     "esModuleInterop": true,
+    "skipLibCheck": true,
+    "sourceMap": true,
     "baseUrl": "",
     "paths": {
       "graphql": ["@types/graphql"],
-      "graphql/*": ["@types/graphql/*"],
-      "graphql-api-koa": ["@types/graphql-api-koa"]
+      "graphql/*": ["@types/graphql/*"]
     }
   },
   "include": ["./src/**/*"]
