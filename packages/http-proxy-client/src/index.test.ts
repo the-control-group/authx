@@ -1,23 +1,30 @@
-import { createServer, Server, IncomingMessage, ServerResponse } from "http";
+import { IncomingMessage } from "http";
 import AuthXClientProxy from ".";
 
 // requireGrantedScopes: ["AuthX:user.equal.self:read.basic"]
 
-const proxy = new AuthXClientProxy({
+new AuthXClientProxy({
   authxUrl: "http://127.0.0.1:3001",
 
+  // These need to match the values for your client in AuthX.
   clientId: "3ac01e62-faba-4644-b4c0-7979775717ac",
   clientSecret: "279b6f23893778b5edf981867a78a86d60c9bd3d",
   clientUrl: "http://127.0.0.1:3000",
+
+  // These are the scopes your client will request from users.
   requestGrantedScopes: ["AuthX:user.equal.self:read.basic"],
+
   rules: [
+    // We want the front-end to be able to access the AuthX API without managing
+    // credentials. To do this, we create a proxy that injects a token with all
+    // the necessary scopes and nothing more.
     {
       test({ method, url }) {
         return method === "POST" && url === "/api/authx";
       },
       behavior(request: IncomingMessage) {
         // Rewrite the URL to match the API's expectations.
-        request.url = "/graphql";
+        request.url = "/v2/graphql";
 
         // Because this is an API request, we don't want to redirect the browser
         // so we will return a 407 and include a `Location` header which the
@@ -29,6 +36,18 @@ const proxy = new AuthXClientProxy({
         };
       }
     },
+    // These are static assets that we want publically cached by Google Cloud
+    // CDN or Cloudflare. We won't require any auth for these endpoints.
+    {
+      test({ method, url }) {
+        return method === "POST" && /^\/static(\/.*)?$/.test(url || "");
+      },
+      behavior: {
+        proxyTarget: "http://217.0.0.1:3003"
+      }
+    },
+    // The rest of our routes render a single-page-app. We simply want to make
+    // sure that we're
     {
       test() {
         return true;

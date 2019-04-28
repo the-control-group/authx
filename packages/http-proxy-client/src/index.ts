@@ -6,11 +6,11 @@ import { createServer, Server, IncomingMessage, ServerResponse } from "http";
 import Cookies from "cookies";
 import { createProxyServer } from "http-proxy";
 import { decode } from "jsonwebtoken";
-import { simplify, isSuperset } from "@authx/scopes";
+import { simplify } from "@authx/scopes";
 
 interface Behavior {
   readonly proxyTarget: string;
-  readonly sendAuthorizationResponseAs: 303 | 407;
+  readonly sendAuthorizationResponseAs?: 303 | 407;
   readonly sendTokenToTargetWithScopes?: string[];
 }
 
@@ -46,13 +46,13 @@ interface Config {
    * The root URL to AuthX server.
    */
   readonly authxUrl: string;
+  readonly clientId: string;
+  readonly clientSecret: string;
 
   /**
    * The exact URL as set on `IncomingMessage` at which the proxy will provide
    * the OAuth client functionality.
    */
-  readonly clientId: string;
-  readonly clientSecret: string;
   readonly clientUrl: string;
   readonly requestGrantedScopes: string[];
   readonly requireGrantedScopes?: string[];
@@ -78,9 +78,17 @@ interface Config {
   readonly rules: Rule[];
 }
 
-function send303(request: IncomingMessage, response: ServerResponse): void {}
-
-function send307(request: IncomingMessage, response: ServerResponse): void {}
+// We need a small key to identify this tokey that is safe for use as a cookie
+// key. We'll use a modified version of base64, as described by:
+// https://tools.ietf.org/html/rfc4648
+function hashScopes(scopes: string[]): string {
+  return createHash("sha1")
+    .update(scopes.join(" "))
+    .digest("base64")
+    .replace(/\+/g, "-")
+    .replace(/\//g, "_")
+    .replace(/=+$/g, "");
+}
 
 export default class AuthXClientProxy extends EventEmitter {
   private readonly _config: Config;
@@ -107,6 +115,19 @@ export default class AuthXClientProxy extends EventEmitter {
     request: IncomingMessage,
     response: ServerResponse
   ): Promise<void> => {
+    const cookies = new Cookies(request, response);
+
+    function send(data?: string): void {
+      // TODO: this shouldn't need to be cast through any
+      // https://github.com/DefinitelyTyped/DefinitelyTyped/pull/34898
+      if ((request as any).complete) {
+        response.end(data);
+      } else {
+        request.on("end", () => response.end(data));
+        request.resume();
+      }
+    }
+
     // Serve the readiness URL.
     if (
       this._config.readinessUrl &&
@@ -114,31 +135,114 @@ export default class AuthXClientProxy extends EventEmitter {
     ) {
       if (this._closed || this._closing) {
         response.statusCode = 503;
-
-        // TODO: this shouldn't need to be cast through any
-        // https://github.com/DefinitelyTyped/DefinitelyTyped/pull/34898
-        if ((request as any).complete) {
-          response.end("NOT READY");
-        } else {
-          request.on("end", () => response.end("NOT READY"));
-          request.resume();
-        }
-
-        return;
+        return send("NOT READY");
       }
 
       response.statusCode = 200;
+      return send("READY");
+    }
 
-      // TODO: this shouldn't need to be cast through any
-      // https://github.com/DefinitelyTyped/DefinitelyTyped/pull/34898
-      if ((request as any).complete) {
-        response.end("READY");
-      } else {
-        request.on("end", () => response.end("READY"));
-        request.resume();
+    // Serve the client URL.
+    if (
+      request.url &&
+      request.url.slice(0, this._config.clientUrl.length) ===
+        this._config.clientUrl
+    ) {
+      const params = new URL(request.url || "/", "http://this-does-not-matter")
+        .searchParams;
+
+      // Display an error.
+      const errors = params.getAll("error");
+      if (errors.length) {
+        const errorDescriptions = params.getAll("error_description");
+        response.statusCode = 400;
+        return send(`
+          <html>
+            <head><title>Error</title></head>
+            <body>
+              ${(errors.length === errorDescriptions.length
+                ? errorDescriptions
+                : errors
+              ).map(
+                message =>
+                  `<div>${message
+                    .replace(/&/g, "&amp;")
+                    .replace(/</g, "&lt;")
+                    .replace(/>/g, "&gt;")
+                    .replace(/"/g, "&quot;")
+                    .replace(/'/g, "&#039;")}</div>`
+              )}
+            </body>
+          </html>
+        `);
       }
 
-      return;
+      // No code was returned.
+      const code = params.get("code");
+      if (!code) {
+        response.statusCode = 400;
+        return send(`
+          <html>
+            <head><title>Error</title></head>
+            <body>
+              <div>The <span style="font-family: mono;">code</span> parameter is missing from the OAuth 2.0 response.</div>
+            </body>
+          </html>
+        `);
+      }
+
+      try {
+        const tokenResponse = await fetch(this._config.authxUrl, {
+          method: "POST",
+          body: JSON.stringify({
+            /* eslint-disable @typescript-eslint/camelcase */
+            client_id: this._config.clientId,
+            client_secret: this._config.clientSecret,
+            code: code,
+            scope: "**:**:**"
+            /* eslint-enable @typescript-eslint/camelcase */
+          }),
+          headers: {
+            "Content-Type": "application/json"
+          }
+        });
+
+        if (tokenResponse.status !== 200) {
+          throw new Error(
+            `Received status code of ${tokenResponse.status} from AuthX.`
+          );
+        }
+
+        const tokenResponseBody = await tokenResponse.json();
+
+        // Update the refresh token.
+        if (tokenResponseBody.refresh_token) {
+          cookies.set("authx.r", tokenResponseBody.refresh_token);
+        }
+
+        // Use the new access token.
+        if (tokenResponseBody.authorization_token) {
+          cookies.set(
+            `authx.t.${hashScopes(["**:**:**"])}`,
+            tokenResponseBody.authorization_token
+          );
+        }
+
+        response.setHeader("Location", cookies.get("authx.d") || "/");
+        response.statusCode = 303;
+        return send();
+      } catch (error) {
+        console.error(error);
+        response.statusCode = 500;
+        return send(`
+          <html>
+            <head><title>Error</title></head>
+            <body>
+              <div>Error fetching access token from AuthX.</div>
+            </body>
+          </html>
+        `);
+      }
     }
 
     // Proxy
@@ -159,8 +263,6 @@ export default class AuthXClientProxy extends EventEmitter {
         return;
       }
 
-      const cookies = new Cookies(request, response);
-
       // Nothing else to do; proxy the request.
       if (!behavior.sendTokenToTargetWithScopes) {
         // Strip cookies from the request.
@@ -177,15 +279,7 @@ export default class AuthXClientProxy extends EventEmitter {
         ? simplify(behavior.sendTokenToTargetWithScopes)
         : [];
 
-      // We need a small key to identify this tokey that is safe for use as a
-      // cookie key. We'll use a modified version of base64, as described by:
-      // https://tools.ietf.org/html/rfc4648
-      const hash = createHash("sha1")
-        .update(scopes.join(" "))
-        .digest("base64")
-        .replace(/\+/g, "-")
-        .replace(/\//g, "_")
-        .replace(/=+$/g, "");
+      const hash = hashScopes(scopes);
 
       try {
         const token = cookies.get(`authx.t.${hash}`);
@@ -295,18 +389,9 @@ export default class AuthXClientProxy extends EventEmitter {
       );
       location.searchParams.append("state", state);
       response.setHeader("Location", location.href);
-      response.statusCode = behavior.sendAuthorizationResponseAs;
+      response.statusCode = behavior.sendAuthorizationResponseAs || 303;
 
-      // TODO: this shouldn't need to be cast through any
-      // https://github.com/DefinitelyTyped/DefinitelyTyped/pull/34898
-      if ((request as any).complete) {
-        response.end();
-      } else {
-        request.on("end", () => response.end());
-        request.resume();
-      }
-
-      return;
+      return send();
     }
 
     console.warn(`No rules matched requested URL "${request.url}".`);
