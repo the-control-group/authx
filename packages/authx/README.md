@@ -145,6 +145,9 @@ Users must have the following scopes to use OAuth:
 AuthX:grant.equal.self.*:read.basic
 AuthX:grant.equal.self.*:read.scopes
 AuthX:grant.equal.self.*:read.secrets
+AuthX:authorization.equal.self.*:read.basic
+AuthX:authorization.equal.self.*:read.scopes
+AuthX:authorization.equal.self.*:read.secrets
 AuthX:authorization.equal.self.*:write.*
 ```
 

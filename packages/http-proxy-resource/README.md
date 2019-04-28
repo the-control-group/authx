@@ -197,6 +197,8 @@ The resource proxy accepts two kinds of access tokens from AuthX.
 
 ### Revocable
 
+> Note: This is not yet implemented!
+
 A revocable token is passed as HTTP Basic credentials in the `Authorization` header. The authorization ID is used as the "username" and the authoriztion secret is used as the "password". For each request with this type of token, the proxy makes a token introspection request to AuthX following [rfc7662](https://tools.ietf.org/html/rfc7662) to ensure that the token is active.
 
 If `revocableTokenCacheDuration` is configured, the proxy will cache the result of the introspection request for the configured number of seconds. Note that proxy instances do not share a cache, so a recently-revoked authorization may have different behavior between instances.

@@ -175,7 +175,7 @@ export class AuthX<
     // The core AuthX library supports the following OAuth2 grant types:
     //
     // - `authorization_code`
-    // - `refresh_authorization`
+    // - `refresh_token`
     //
     // Because it involves presentation elements, the core AuthX library does
     // **not** implement the `code` grant type. Instead, a compatible reference

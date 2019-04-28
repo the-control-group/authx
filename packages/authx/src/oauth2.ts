@@ -21,8 +21,8 @@ class OAuthError extends Error {
 
 // Loop through an iterable of grant secrets and select the secret that was most
 // recently issued
-function getRefreshAuthorization(secrets: Iterable<string>): null | string {
-  let refreshAuthorization = null;
+function getRefreshToken(secrets: Iterable<string>): null | string {
+  let refreshToken = null;
   let max = 0;
   for (const secret of secrets) {
     const issuedString = Buffer.from(secret, "base64")
@@ -31,12 +31,12 @@ function getRefreshAuthorization(secrets: Iterable<string>): null | string {
 
     const issuedNumber = parseInt(issuedString);
     if (issuedString && issuedNumber && issuedNumber > max) {
-      refreshAuthorization = secret;
+      refreshToken = secret;
       max = issuedNumber;
     }
   }
 
-  return refreshAuthorization;
+  return refreshToken;
 }
 
 export default async (ctx: ParameterizedContext<any, { [x]: Context }>) => {
@@ -188,9 +188,8 @@ export default async (ctx: ParameterizedContext<any, { [x]: Context }>) => {
         );
 
         const body = {
-          // eslint-disable-next-line
+          /* eslint-disable @typescript-eslint/camelcase */
           authorization_type: "bearer",
-          // eslint-disable-next-line
           access_authorization: jwt.sign(
             {
               type: "access_authorization",
@@ -205,11 +204,10 @@ export default async (ctx: ParameterizedContext<any, { [x]: Context }>) => {
               issuer: realm
             }
           ),
-          // eslint-disable-next-line
-          refresh_authorization: getRefreshAuthorization(grant.secrets),
-          // eslint-disable-next-line
+          refresh_token: getRefreshToken(grant.secrets),
           expires_in: 3600,
           scope: (await authorization.access(tx)).join(" ")
+          /* eslint-enable @typescript-eslint/camelcase */
         };
 
         await tx.query("COMMIT");
@@ -222,19 +220,14 @@ export default async (ctx: ParameterizedContext<any, { [x]: Context }>) => {
 
     // Refresh Authorization
     // =============
-    if (grantType === "refresh_authorization") {
+    if (grantType === "refresh_token") {
       tx.query("BEGIN DEFERRABLE");
       try {
         const paramsClientId: undefined | string = ctx.body.client_id;
         const paramsClientSecret: undefined | string = ctx.body.client_secret;
-        const paramsRefreshAuthorization: undefined | string =
-          ctx.body.refresh_authorization;
+        const paramsRefreshToken: undefined | string = ctx.body.refresh_token;
         const paramsScope: undefined | string = ctx.body.scope;
-        if (
-          !paramsClientId ||
-          !paramsClientSecret ||
-          !paramsRefreshAuthorization
-        ) {
+        if (!paramsClientId || !paramsClientSecret || !paramsRefreshToken) {
           throw new OAuthError("invalid_request");
         }
 
@@ -261,10 +254,7 @@ export default async (ctx: ParameterizedContext<any, { [x]: Context }>) => {
         }
 
         // Decode and validate the authorization code.
-        const [grantId, secret] = Buffer.from(
-          paramsRefreshAuthorization,
-          "base64"
-        )
+        const [grantId, secret] = Buffer.from(paramsRefreshToken, "base64")
           .toString("utf8")
           .split(":");
 
@@ -285,7 +275,7 @@ export default async (ctx: ParameterizedContext<any, { [x]: Context }>) => {
           throw new OAuthError("invalid_grant");
         }
 
-        if (!grant.secrets.has(paramsRefreshAuthorization)) {
+        if (!grant.secrets.has(paramsRefreshToken)) {
           throw new OAuthError("invalid_grant");
         }
 
@@ -326,9 +316,8 @@ export default async (ctx: ParameterizedContext<any, { [x]: Context }>) => {
             })();
 
         const body = {
-          // eslint-disable-next-line
+          /* eslint-disable @typescript-eslint/camelcase */
           authorization_type: "bearer",
-          // eslint-disable-next-line
           access_authorization: jwt.sign(
             {
               type: "access_authorization",
@@ -343,11 +332,10 @@ export default async (ctx: ParameterizedContext<any, { [x]: Context }>) => {
               issuer: realm
             }
           ),
-          // eslint-disable-next-line
-          refresh_authorization: getRefreshAuthorization(grant.secrets),
-          // eslint-disable-next-line
+          refresh_token: getRefreshToken(grant.secrets),
           expires_in: 3600,
           scope: (await authorization.access(tx)).join(" ")
+          /* eslint-enabme @typescript-eslint/camelcase */
         };
 
         await tx.query("COMMIT");
@@ -370,12 +358,12 @@ export default async (ctx: ParameterizedContext<any, { [x]: Context }>) => {
     } = { error: error.code };
 
     if (error.message !== error.code) {
-      // eslint-disable-next-line
+      // eslint-disable-next-line @typescript-eslint/camelcase
       body.error_message = error.message;
     }
 
     if (error.uri) {
-      // eslint-disable-next-line
+      // eslint-disable-next-line @typescript-eslint/camelcase
       body.error_uri = error.uri;
     }
 

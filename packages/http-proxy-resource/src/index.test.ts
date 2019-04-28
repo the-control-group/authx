@@ -1,6 +1,6 @@
 import test from "ava";
 import { createServer, Server } from "http";
-import { AuthXProxy } from ".";
+import AuthXResourceProxy from ".";
 import fetch from "node-fetch";
 
 let mockAuthX: {
@@ -14,7 +14,7 @@ let mockTarget: {
   port: number;
 };
 
-let proxy: AuthXProxy;
+let proxy: AuthXResourceProxy;
 let port: number;
 
 test.before(async () => {
@@ -92,7 +92,7 @@ test.before(async () => {
   mockAuthX = mocks[0];
   mockTarget = mocks[1];
 
-  proxy = new AuthXProxy({
+  proxy = new AuthXResourceProxy({
     authxUrl: `http://127.0.0.1:${mockAuthX.port}`,
     readinessUrl: "/_ready",
     rules: [
@@ -315,4 +315,3 @@ test("rewrite-url: no token", async t => {
     url: "/rewritten"
   });
 });
-
