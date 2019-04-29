@@ -55,7 +55,14 @@ interface Config {
    */
   readonly clientUrl: string;
   readonly requestGrantedScopes: string[];
-  readonly requireGrantedScopes?: string[];
+
+  // TODO: eventually we will want the ability to _require_ that certain scopes
+  // are granted. Take, for example, an app that required scopes A and B. Now it
+  // also wants C. Without checking the _granted_ scopes, there is no way to
+  // distinguish between someone who has no access to C, and someone who has
+  // never been asked to grant access to C.
+
+  // readonly requireGrantedScopes?: string[];
 
   /**
    * The exact URL as set on `IncomingMessage` at which the proxy will provide
@@ -267,6 +274,7 @@ export default class AuthXClientProxy extends EventEmitter {
       if (!behavior.sendTokenToTargetWithScopes) {
         // Strip cookies from the request.
         delete request.headers.cookie;
+        console.log("here goes");
 
         this._proxy.web(request, response, {
           target: behavior.proxyTarget
@@ -409,7 +417,10 @@ export default class AuthXClientProxy extends EventEmitter {
     }
 
     return new Promise(resolve => {
-      this.server.once("listening", resolve);
+      this.server.once("listening", () => {
+        this.emit("ready");
+        resolve();
+      });
       this.server.listen(port);
     });
   }
