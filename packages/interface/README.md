@@ -1,4 +1,4 @@
-This is AuthX. It's named AuthX because it's an "exchange" of sorts, consolidating identities from several upstream authorities into a single identity for downstream clients. AuthX uses the OAuth2 framework in both directions, and adds an _authorization_ layer. Authorization control is based on the [AuthX scope spec](https://github.com/the-control-group/scopeutils).
+This is AuthX. It's named AuthX because it's an "exchange" of sorts, consolidating identities from several upstream authorities into a single identity for downstream clients. AuthX uses the OAuth2 framework in both directions, and adds an _authorization_ layer. Authorization control is based on the [AuthX scope spec](../scopes).
 
 ## Concepts
 

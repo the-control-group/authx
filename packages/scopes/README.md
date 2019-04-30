@@ -26,7 +26,7 @@ role.*
 
 ## Installation
 
-Install with `npm install --save scopeutils`
+Install with `npm install --save @authx/scopes`
 
 ## Usage
 
@@ -37,7 +37,7 @@ Please see [the tests](src/index.test.ts) for complete examples.
 Validate that a scope is correctly formatted.
 
 ```js
-import { validate } from "scopeutils";
+import { validate } from "@authx/scopes";
 
 validate("realm:resource.identifier:action");
 // => true
@@ -53,7 +53,7 @@ validate("realm:resource.***:action");
 Normalize a scope into its simplest representation.
 
 ```js
-import { normalize } from "scopeutils";
+import { normalize } from "@authx/scopes";
 
 normalize("realm:**.**:action");
 // => 'realm:*.**:action'
@@ -66,7 +66,7 @@ normalize("realm:**.**:action");
 Simplify the collection of scopes in `collection` by omiting any scopes that are a made redundant by another scope in the collection. All scopes in the returned collection are normalized.
 
 ```js
-import { simplify } from "scopeutils";
+import { simplify } from "@authx/scopes";
 
 simplify(["realm:resource.*:action", "realm:**:action"]);
 // => ['realm:**:action']
@@ -79,7 +79,7 @@ simplify(["realm:resource.*:action", "realm:**:action"]);
 Check whether `scopeOrCollectionA` and `scopeOrCollectionB` are the same, ignoring redundant scopes.
 
 ```js
-import { getIntersection } from "scopeutils";
+import { getIntersection } from "@authx/scopes";
 
 getIntersection(["realm:**:*"], ["realm:**:action", "realm:**:*"]);
 // => true
@@ -92,7 +92,7 @@ getIntersection(["realm:**:*"], ["realm:**:action", "realm:**:*"]);
 Check whether `scopeOrCollectionA` is equal to, or a superset of `scopeOrCollectionB`. This is appropriate for checking if a user can perform a particular action.
 
 ```js
-import { isSuperset } from "scopeutils";
+import { isSuperset } from "@authx/scopes";
 
 isSuperset(["realm:**:*"], ["realm:**:action", "realm:**:*"]);
 // => true
@@ -105,7 +105,7 @@ isSuperset(["realm:**:*"], ["realm:**:action", "realm:**:*"]);
 Check whether `scopeOrCollectionA` is a strict superset of `scopeOrCollectionB`.
 
 ```js
-import { isStrictSuperset } from "scopeutils";
+import { isStrictSuperset } from "@authx/scopes";
 
 isStrictSuperset(["realm:**:*"], ["realm:**:action", "realm:**:*"]);
 // => false
@@ -118,7 +118,7 @@ isStrictSuperset(["realm:**:*"], ["realm:**:action", "realm:**:*"]);
 Check whether `scopeOrCollectionA` is equal to, or a subset of `scopeOrCollectionB`.
 
 ```js
-import { isSubset } from "scopeutils";
+import { isSubset } from "@authx/scopes";
 
 isSubset(["realm:**:action", "realm:**:*"], ["realm:**:*"]);
 // => true
@@ -131,7 +131,7 @@ isSubset(["realm:**:action", "realm:**:*"], ["realm:**:*"]);
 Check whether `scopeOrCollectionA` is a strict subset of `scopeOrCollectionB`.
 
 ```js
-import { isStrictSubset } from "scopeutils";
+import { isStrictSubset } from "@authx/scopes";
 
 isStrictSubset(["realm:**:action", "realm:**:*"], ["realm:**:*"]);
 // => false
@@ -144,7 +144,7 @@ isStrictSubset(["realm:**:action", "realm:**:*"], ["realm:**:*"]);
 Get the intersection of `scopeOrCollectionA` and `scopeOrCollectionB`, returning a collection of scopes that represent all intersections, or every ability common to both inputs.
 
 ```js
-import { getIntersection } from "scopeutils";
+import { getIntersection } from "@authx/scopes";
 
 getIntersection(["realm:resource.*:action.*"], ["realm:**:action.read"]);
 // => ['realm:resource.*:action.read']
@@ -157,7 +157,7 @@ getIntersection(["realm:resource.*:action.*"], ["realm:**:action.read"]);
 Check whether `scopeOrCollectionA` and `scopeOrCollectionB` intersect. This is useful when checking if a user can perform any subset of the actions represented by the `subject` scope.
 
 ```js
-import { hasIntersection } from "scopeutils";
+import { hasIntersection } from "@authx/scopes";
 
 hasIntersection(["realm:resource.*:action.*"], ["realm:**:action.read"]);
 // => true

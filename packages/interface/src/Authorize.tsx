@@ -3,8 +3,7 @@ import React, {
   ReactElement,
   useEffect,
   useContext,
-  useState,
-  FormEvent
+  useState
 } from "react";
 import {
   GraphQL,
@@ -12,7 +11,7 @@ import {
   GraphQLFetchOptionsOverride,
   GraphQLContext
 } from "graphql-react";
-import { validate, isSuperset } from "scopeutils";
+import { validate, isSuperset } from "@authx/scopes";
 
 export function Authorize({
   authorization,

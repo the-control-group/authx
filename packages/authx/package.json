@@ -5,6 +5,7 @@
   },
   "bugs": "https://github.com/the-control-group/authx/issues",
   "dependencies": {
+    "@authx/scopes": "^2.2.1",
     "@types/auth-header": "^1.0.1",
     "@types/bcrypt": "^3.0.0",
     "@types/graphql-api-koa": "^2.0.0",
@@ -23,7 +24,6 @@
     "koa-body": "^4.1.0",
     "koa-router": "^7.4.0",
     "pg": "^7.8.1",
-    "scopeutils": "^2.2.0",
     "uuid": "^3.3.2"
   },
   "description": "",
