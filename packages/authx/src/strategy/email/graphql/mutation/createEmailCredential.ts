@@ -71,7 +71,11 @@ export const createEmailCredential: GraphQLFieldConfig<
 
     try {
       const id = v4();
-      const authority = Authority.read(tx, args.authorityId, authorityMap);
+      const authority = await Authority.read(
+        tx,
+        args.authorityId,
+        authorityMap
+      );
       if (!(authority instanceof EmailAuthority)) {
         throw new NotFoundError("No email authority exists with this ID.");
       }
