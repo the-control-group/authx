@@ -190,9 +190,8 @@ export default async (ctx: ParameterizedContext<any, { [x]: Context }>) => {
         const body = {
           /* eslint-disable @typescript-eslint/camelcase */
           authorization_type: "bearer",
-          access_authorization: jwt.sign(
+          access_token: jwt.sign(
             {
-              type: "access_authorization",
               scopes: await authorization.access(tx)
             },
             privateKey,
@@ -318,9 +317,8 @@ export default async (ctx: ParameterizedContext<any, { [x]: Context }>) => {
         const body = {
           /* eslint-disable @typescript-eslint/camelcase */
           authorization_type: "bearer",
-          access_authorization: jwt.sign(
+          access_token: jwt.sign(
             {
-              type: "access_authorization",
               scopes: await authorization.access(tx)
             },
             privateKey,

@@ -228,10 +228,10 @@ export default class AuthXClientProxy extends EventEmitter {
         }
 
         // Use the new access token.
-        if (tokenResponseBody.authorization_token) {
+        if (tokenResponseBody.access_token) {
           cookies.set(
             `authx.t.${hashScopes(["**:**:**"])}`,
-            tokenResponseBody.authorization_token
+            tokenResponseBody.access_token
           );
         }
 
@@ -274,8 +274,6 @@ export default class AuthXClientProxy extends EventEmitter {
       if (!behavior.sendTokenToTargetWithScopes) {
         // Strip cookies from the request.
         delete request.headers.cookie;
-        console.log("here goes");
-
         this._proxy.web(request, response, {
           target: behavior.proxyTarget
         });
@@ -355,13 +353,10 @@ export default class AuthXClientProxy extends EventEmitter {
           }
 
           // Use the new access token.
-          if (refreshResponseBody.authorization_token) {
-            cookies.set(
-              `authx.t.${hash}`,
-              refreshResponseBody.authorization_token
-            );
+          if (refreshResponseBody.access_token) {
+            cookies.set(`authx.t.${hash}`, refreshResponseBody.access_token);
             request.headers.authorization = `Bearer ${
-              refreshResponseBody.authorization_token
+              refreshResponseBody.access_token
             }`;
 
             // Strip cookies from the request.
@@ -369,6 +364,8 @@ export default class AuthXClientProxy extends EventEmitter {
             this._proxy.web(request, response, {
               target: behavior.proxyTarget
             });
+
+            return;
           }
         } catch (error) {
           console.error(error);

@@ -1,14 +1,18 @@
 import test from "ava";
 import { URL } from "url";
-
 import { createServer, Server, IncomingMessage } from "http";
 import AuthXClientProxy from ".";
-import fetch from "node-fetch";
+import fetch, { Headers } from "node-fetch";
+
+// hashScopes(["AuthX:user.equal.self:read.basic"])
+// => JvVNJVB5EzHJcWVP-FqK-nxVIa4
+
+// hashScopes([])
+// => 2jmj7l5rSw0yVb_vlWAYkK_YBwk
 
 let mockAuthX: {
   server: Server;
   port: number;
-  enable: () => void;
 };
 
 let mockTarget: {
@@ -25,24 +29,22 @@ test.before(async () => {
     new Promise<{
       server: Server;
       port: number;
-      enable: () => void;
     }>((resolve, reject) => {
-      let queue: null | (() => void)[] = [];
-      function enable(): void {
-        if (queue) queue.forEach(r => r());
-        queue = null;
-      }
       const server = createServer((request, response) => {
-        const r = (): void => {
-          response.statusCode = 200;
-          response.setHeader("Content-Type", "application/json");
-          response.end(
-            '{"query": {"keys": ["-----BEGIN PUBLIC KEY-----\\nMIGfMA0GCSqGSIb3DQEBAQUAA4GNADCBiQKBgQCfb+nyTPFCntEXbrFPU5DeE0gC\\n4jXRcSFWDfCRgeqeQWqIW9DeMmCj13k0z6fQCiG3FATYosS64wAs+OiyGtu9q/Jy\\nUEVIBMF0upDJMA53AFFx+0Fb/i76JFPTY7SxzvioIFeKRwY8evIRWQWYO95Os6gK\\nBac/x5qiUn5fh2xM+wIDAQAB\\n-----END PUBLIC KEY-----"]}}'
-          );
-        };
-
-        if (queue) queue.push(r);
-        else r();
+        response.statusCode = 200;
+        response.setHeader("Content-Type", "application/json");
+        response.end(
+          JSON.stringify({
+            /* eslint-disable @typescript-eslint/camelcase */
+            authorization_type: "bearer",
+            access_token:
+              "eyJhbGciOiJSUzUxMiIsInR5cCI6IkpXVCJ9.eyJzY29wZXMiOlsiQXV0aFg6dXNlci5lcXVhbC5zZWxmOnJlYWQuYmFzaWMiXSwiaWF0IjoxNTU2NjAzOTU5LCJleHAiOjQ3MTAyMDM5NTksImF1ZCI6ImZlMjQ3OGI1LTdiNjAtNGNlZC1hYWY4LTZjOWI0YTJlNzNmNiIsImlzcyI6ImF1dGh4Iiwic3ViIjoiMTZhNjA3MjItZjcyZi00MmExLTg0ZjgtNWFmODBiYWFjMjg5In0.hB7N3Ibdc-LX9gTkarWPXpjr6gFPRpFVnKND2CXS1XHq6ePzhLIs-Bn3ksHOvkpDzx96z7x_8pQwgHXg_DgUNcpUP-eFuk156wxJ7rpuG5aV-wUmAAg-yLnMjXWx65VUf7J-JvVtRVHlkzahLA1n0drf4Fll-hoTJ6qaOHidUlo",
+            refresh_token: "c89900b6a34123900274e90f87f7adc0c1ab8d93",
+            expires_in: 3600,
+            scope: "AuthX:user.equal.self:read.basic"
+            /* eslint-enabme @typescript-eslint/camelcase */
+          })
+        );
       });
 
       server.once("listening", async () => {
@@ -52,7 +54,7 @@ test.before(async () => {
           return;
         }
 
-        resolve({ server, port: address.port, enable });
+        resolve({ server, port: address.port });
       });
 
       server.listen();
@@ -69,10 +71,8 @@ test.before(async () => {
         response.end(
           JSON.stringify({
             url: request.url,
-            Authorization: request.headers.authorization,
-            "X-OAuth-Scopes": request.headers["x-oauth-scopes"],
-            "X-OAuth-Required-Scopes":
-              request.headers["x-oauth-required-scopes"]
+            cookie: request.headers.cookie,
+            Authorization: request.headers.authorization
           })
         );
       });
@@ -178,6 +178,7 @@ test("readiness endpoint", async t => {
 test("anonymous - 407", async t => {
   const response = await fetch(`http://127.0.0.1:${port}/api/authx`, {
     method: "POST",
+    redirect: "manual",
     headers: {
       referer: "/foo"
     }
@@ -241,4 +242,57 @@ test("anonymous - 303", async t => {
     `authx.s=${url.searchParams.get("state") ||
       ""}; path=/; httponly, authx.d=/admin; path=/; httponly`
   );
+});
+
+test("use token from cookie", async t => {
+  const headers = new Headers();
+  headers.append(
+    "cookie",
+    "authx.r=9a64774762a4cdece006b0007e7795eaa1709a34; path=/; httponly"
+  );
+  headers.append(
+    "cookie",
+    `authx.t.2jmj7l5rSw0yVb_vlWAYkK_YBwk=eyJhbGciOiJSUzUxMiIsInR5cCI6IkpXVCJ9.eyJzY29wZXMiOltdLCJpYXQiOjE1NTY2MDMxMTAsImV4cCI6NDcxMDIwMzExMCwiYXVkIjoiZmUyNDc4YjUtN2I2MC00Y2VkLWFhZjgtNmM5YjRhMmU3M2Y2IiwiaXNzIjoiYXV0aHgiLCJzdWIiOiIxNmE2MDcyMi1mNzJmLTQyYTEtODRmOC01YWY4MGJhYWMyODkifQ.GEd75BHZP3c4NGv3te9bDLQ9hPV0B6lFxydfuBw-4k9KNP5330xQjrAY4Wu-S9thAGS2cXfHyFWR2cKfBDDno6_NivSJHszBs_ErDSAHCJsZ4Ej1VJmPXpePfXbdAmMd6Ug6dEsmmV1lO_gpICHqnVwj2KWGUPvwbN7VVdufy7g; path=/; httponly`
+  );
+  const response = await fetch(`http://127.0.0.1:${port}/admin`, {
+    redirect: "manual",
+    headers
+  });
+
+  t.is(response.status, 200);
+  t.false(response.headers.has("set-cookie"));
+
+  t.deepEqual(await response.json(), {
+    url: "/admin",
+    Authorization:
+      "Bearer eyJhbGciOiJSUzUxMiIsInR5cCI6IkpXVCJ9.eyJzY29wZXMiOltdLCJpYXQiOjE1NTY2MDMxMTAsImV4cCI6NDcxMDIwMzExMCwiYXVkIjoiZmUyNDc4YjUtN2I2MC00Y2VkLWFhZjgtNmM5YjRhMmU3M2Y2IiwiaXNzIjoiYXV0aHgiLCJzdWIiOiIxNmE2MDcyMi1mNzJmLTQyYTEtODRmOC01YWY4MGJhYWMyODkifQ.GEd75BHZP3c4NGv3te9bDLQ9hPV0B6lFxydfuBw-4k9KNP5330xQjrAY4Wu-S9thAGS2cXfHyFWR2cKfBDDno6_NivSJHszBs_ErDSAHCJsZ4Ej1VJmPXpePfXbdAmMd6Ug6dEsmmV1lO_gpICHqnVwj2KWGUPvwbN7VVdufy7g"
+  });
+});
+
+test("fetch token from authx", async t => {
+  const headers = new Headers();
+  headers.append(
+    "cookie",
+    "authx.r=9a64774762a4cdece006b0007e7795eaa1709a34; path=/; httponly"
+  );
+  headers.append(
+    "cookie",
+    `authx.t.2jmj7l5rSw0yVb_vlWAYkK_YBwk=eyJhbGciOiJSUzUxMiIsInR5cCI6IkpXVCJ9.eyJzY29wZXMiOltdLCJpYXQiOjE1NTY2MDMxMTAsImV4cCI6NDcxMDIwMzExMCwiYXVkIjoiZmUyNDc4YjUtN2I2MC00Y2VkLWFhZjgtNmM5YjRhMmU3M2Y2IiwiaXNzIjoiYXV0aHgiLCJzdWIiOiIxNmE2MDcyMi1mNzJmLTQyYTEtODRmOC01YWY4MGJhYWMyODkifQ.GEd75BHZP3c4NGv3te9bDLQ9hPV0B6lFxydfuBw-4k9KNP5330xQjrAY4Wu-S9thAGS2cXfHyFWR2cKfBDDno6_NivSJHszBs_ErDSAHCJsZ4Ej1VJmPXpePfXbdAmMd6Ug6dEsmmV1lO_gpICHqnVwj2KWGUPvwbN7VVdufy7g; path=/; httponly`
+  );
+  const response = await fetch(`http://127.0.0.1:${port}/api/authx`, {
+    method: "POST",
+    redirect: "manual",
+    headers
+  });
+
+  t.is(response.status, 200);
+  t.is(
+    response.headers.get("set-cookie"),
+    "authx.r=c89900b6a34123900274e90f87f7adc0c1ab8d93; path=/; httponly, authx.t.JvVNJVB5EzHJcWVP-FqK-nxVIa4=eyJhbGciOiJSUzUxMiIsInR5cCI6IkpXVCJ9.eyJzY29wZXMiOlsiQXV0aFg6dXNlci5lcXVhbC5zZWxmOnJlYWQuYmFzaWMiXSwiaWF0IjoxNTU2NjAzOTU5LCJleHAiOjQ3MTAyMDM5NTksImF1ZCI6ImZlMjQ3OGI1LTdiNjAtNGNlZC1hYWY4LTZjOWI0YTJlNzNmNiIsImlzcyI6ImF1dGh4Iiwic3ViIjoiMTZhNjA3MjItZjcyZi00MmExLTg0ZjgtNWFmODBiYWFjMjg5In0.hB7N3Ibdc-LX9gTkarWPXpjr6gFPRpFVnKND2CXS1XHq6ePzhLIs-Bn3ksHOvkpDzx96z7x_8pQwgHXg_DgUNcpUP-eFuk156wxJ7rpuG5aV-wUmAAg-yLnMjXWx65VUf7J-JvVtRVHlkzahLA1n0drf4Fll-hoTJ6qaOHidUlo; path=/; httponly"
+  );
+  t.deepEqual(await response.json(), {
+    url: "/v2/graphql",
+    Authorization:
+      "Bearer eyJhbGciOiJSUzUxMiIsInR5cCI6IkpXVCJ9.eyJzY29wZXMiOlsiQXV0aFg6dXNlci5lcXVhbC5zZWxmOnJlYWQuYmFzaWMiXSwiaWF0IjoxNTU2NjAzOTU5LCJleHAiOjQ3MTAyMDM5NTksImF1ZCI6ImZlMjQ3OGI1LTdiNjAtNGNlZC1hYWY4LTZjOWI0YTJlNzNmNiIsImlzcyI6ImF1dGh4Iiwic3ViIjoiMTZhNjA3MjItZjcyZi00MmExLTg0ZjgtNWFmODBiYWFjMjg5In0.hB7N3Ibdc-LX9gTkarWPXpjr6gFPRpFVnKND2CXS1XHq6ePzhLIs-Bn3ksHOvkpDzx96z7x_8pQwgHXg_DgUNcpUP-eFuk156wxJ7rpuG5aV-wUmAAg-yLnMjXWx65VUf7J-JvVtRVHlkzahLA1n0drf4Fll-hoTJ6qaOHidUlo"
+  });
 });
