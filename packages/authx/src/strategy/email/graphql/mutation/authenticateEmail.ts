@@ -136,9 +136,7 @@ export const authenticateEmail: GraphQLFieldConfig<
 
         const url =
           base +
-          `authenticate?authorityId=${authority.id}&proof=${encodeURIComponent(
-            proof
-          )}`;
+          `?authorityId=${authority.id}&proof=${encodeURIComponent(proof)}`;
 
         // TODO: Add a code to the credential
 

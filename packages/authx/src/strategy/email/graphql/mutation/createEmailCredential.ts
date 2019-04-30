@@ -181,9 +181,7 @@ export const createEmailCredential: GraphQLFieldConfig<
 
           const url =
             base +
-            `authenticate?authorityId=${
-              authority.id
-            }&proof=${encodeURIComponent(base)}`;
+            `?authorityId=${authority.id}&proof=${encodeURIComponent(base)}`;
 
           // TODO: Add a code to any existing credential with the same address
 
