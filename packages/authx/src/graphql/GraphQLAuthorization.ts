@@ -55,8 +55,6 @@ export const GraphQLAuthorization: GraphQLObjectType<
         args,
         { realm, authorization: a, tx }: Context
       ): Promise<null | string> {
-        console.log(a);
-
         return a &&
           (await authorization.isAccessibleBy(realm, a, tx, "read.secrets"))
           ? authorization.secret

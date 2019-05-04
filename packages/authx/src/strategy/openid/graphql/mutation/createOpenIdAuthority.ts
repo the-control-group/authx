@@ -16,8 +16,10 @@ export const createOpenIdAuthority: GraphQLFieldConfig<
   {
     enabled: boolean;
     name: string;
+    authorizationCodeUrl: string;
     clientId: string;
     clientSecret: string;
+    url: string;
   },
   Context
 > = {
@@ -32,13 +34,22 @@ export const createOpenIdAuthority: GraphQLFieldConfig<
       type: new GraphQLNonNull(GraphQLString),
       description: "The name of the authority."
     },
+    authorizationCodeUrl: {
+      type: new GraphQLNonNull(GraphQLString),
+      description:
+        "The URL used by AuthX to exchange an authorization code for an access token."
+    },
     clientId: {
       type: new GraphQLNonNull(GraphQLString),
-      description: "The AuthX client ID for OpenId."
+      description: "The client ID of AuthX in with OpenID provider."
     },
     clientSecret: {
       type: new GraphQLNonNull(GraphQLString),
       description: "The AuthX client secret for OpenId."
+    },
+    url: {
+      type: new GraphQLNonNull(GraphQLString),
+      description: "The URL to which a user is directed to authenticate."
     }
   },
   async resolve(source, args, context): Promise<OpenIdAuthority> {

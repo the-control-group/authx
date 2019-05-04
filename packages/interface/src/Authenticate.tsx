@@ -3,12 +3,14 @@ import { useGraphQL, GraphQLFetchOptionsOverride } from "graphql-react";
 import { Authority, StrategyComponentProps } from "./definitions";
 import { PasswordAuthority } from "./PasswordAuthority";
 import { EmailAuthority } from "./EmailAuthority";
+import { OpenIdAuthority } from "./OpenIdAuthority";
 
 const strategyComponentMap: {
   [strategy: string]: ComponentType<StrategyComponentProps>;
 } = {
   password: PasswordAuthority,
-  email: EmailAuthority
+  email: EmailAuthority,
+  openid: OpenIdAuthority
 };
 
 export function Authenticate({

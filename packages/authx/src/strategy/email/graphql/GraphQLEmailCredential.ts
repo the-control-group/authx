@@ -5,14 +5,14 @@ import {
   GraphQLObjectType
 } from "graphql";
 
-import { EmailCredential } from "../model";
+import { EmailCredential, EmailAuthority } from "../model";
 import { User } from "../../../model";
 import {
-  GraphQLAuthority,
   GraphQLCredential,
   GraphQLUser,
   GraphQLContact
 } from "../../../graphql";
+import { GraphQLEmailAuthority } from "./GraphQLEmailAuthority";
 import { Context } from "../../../Context";
 
 // Credential
@@ -39,7 +39,16 @@ export const GraphQLEmailCredential = new GraphQLObjectType<
         return user.isAccessibleBy(realm, a, tx) ? user : null;
       }
     },
-    authority: { type: GraphQLAuthority },
+    authority: {
+      type: GraphQLEmailAuthority,
+      async resolve(
+        credential,
+        args,
+        { tx }: Context
+      ): Promise<null | EmailAuthority> {
+        return credential.authority(tx);
+      }
+    },
     authorityUserId: { type: GraphQLString },
     contact: { type: GraphQLContact }
   })

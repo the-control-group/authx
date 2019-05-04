@@ -1,6 +1,6 @@
 import { PoolClient } from "pg";
-import { EmailAuthority } from "../strategy/email";
-import { PasswordAuthority } from "../strategy/password";
+import { EmailAuthority } from "../../strategy/email";
+import { PasswordAuthority } from "../../strategy/password";
 
 export const authorityIds = [
   "0d765613-e813-40e5-9aa7-89f96531364e",

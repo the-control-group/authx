@@ -6,10 +6,10 @@ import { OpenIdCredential } from "./OpenIdCredential";
 // ---------
 
 export interface OpenIdAuthorityDetails {
-  url: string;
   authorizationCodeUrl: string;
   clientId: string;
   clientSecret: string;
+  url: string;
   // emailAuthorityId: null | string;
   // assignRoleIdsByDomain: null | { [domain: string]: string[] };
   // assignRoleIds: null | string[];

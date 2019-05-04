@@ -4,10 +4,10 @@ export const GraphQLUserType = new GraphQLEnumType({
   name: "UserType",
   values: {
     HUMAN: {
-      value: "HUMAN"
+      value: "human"
     },
     BOT: {
-      value: "BOT"
+      value: "bot"
     }
   }
 });

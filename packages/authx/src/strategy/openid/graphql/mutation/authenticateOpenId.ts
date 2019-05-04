@@ -21,8 +21,7 @@ export const authenticateOpenId: GraphQLFieldConfig<
   any,
   {
     authorityId: string;
-    openid: string;
-    proof: null | string;
+    code: string;
   },
   Context
 > = {
@@ -32,11 +31,8 @@ export const authenticateOpenId: GraphQLFieldConfig<
     authorityId: {
       type: new GraphQLNonNull(GraphQLID)
     },
-    openid: {
+    code: {
       type: new GraphQLNonNull(GraphQLString)
-    },
-    proof: {
-      type: GraphQLString
     }
   },
   async resolve(source, args, context): Promise<Authorization> {

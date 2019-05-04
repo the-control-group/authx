@@ -1,4 +1,4 @@
-import { Pool, PoolClient } from "pg";
+import { PoolClient } from "pg";
 import path from "path";
 import fs from "fs";
 
@@ -12,7 +12,7 @@ import {
   user
 } from "./fixture/index";
 
-const sql = fs.readFileSync(path.resolve(__dirname, "../schema.sql"));
+const sql = fs.readFileSync(path.resolve(__dirname, "../../schema.sql"));
 
 interface Metadata {
   recordId: string;
@@ -20,7 +20,7 @@ interface Metadata {
   createdAt: Date;
 }
 
-const fixture = async (tx: PoolClient): Promise<void> => {
+export async function fixture(tx: PoolClient): Promise<void> {
   // set up the schema
   await tx.query(sql.toString("utf8"));
 
@@ -68,23 +68,4 @@ const fixture = async (tx: PoolClient): Promise<void> => {
     Promise.all(authorization.map(({ insert }) => insert(tx))),
     Promise.all(user.map(({ insert }) => insert(tx)))
   ]);
-};
-
-(async () => {
-  const pool = new Pool();
-  const tx = await pool.connect();
-
-  try {
-    await tx.query("BEGIN DEFERRABLE");
-
-    await fixture(tx);
-
-    await tx.query("COMMIT");
-  } catch (error) {
-    console.error(error);
-    tx.query("ROLLBACK");
-  } finally {
-    tx.release();
-    await pool.end();
-  }
-})();
+}

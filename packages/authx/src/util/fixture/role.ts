@@ -1,5 +1,5 @@
 import { PoolClient } from "pg";
-import { Role } from "../model";
+import { Role } from "../../model";
 
 export const role = [
   {

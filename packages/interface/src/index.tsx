@@ -17,7 +17,7 @@ function Root(): ReactElement<{}> {
     clearAuthorization
   );
 
-  // We are not authenticated
+  // We are not authenticated.
   if (!authorization) {
     return (
       <Authenticate
@@ -27,7 +27,7 @@ function Root(): ReactElement<{}> {
     );
   }
 
-  // We are authenticated; we need to authorize the client
+  // We are authenticated; we need to authorize the client.
   return (
     <Authorize
       authorization={authorization}
@@ -37,7 +37,7 @@ function Root(): ReactElement<{}> {
   );
 }
 
-// Instantiate the app
+// Instantiate the app.
 const graphql = new GraphQL();
 document.title = "Authorize";
 ReactDOM.render(

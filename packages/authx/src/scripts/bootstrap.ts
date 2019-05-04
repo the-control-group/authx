@@ -2,9 +2,9 @@ import { randomBytes } from "crypto";
 import { hash } from "bcrypt";
 import v4 from "uuid/v4";
 import { Pool } from "pg";
-import bootstrap from "./util/bootstrap";
-import { User, Role, Authorization } from "./model";
-import { PasswordAuthority, PasswordCredential } from "./strategy/password";
+import bootstrap from "../util/bootstrap";
+import { User, Role, Authorization } from "../model";
+import { PasswordAuthority, PasswordCredential } from "../strategy/password";
 
 (async () => {
   const pool = new Pool();

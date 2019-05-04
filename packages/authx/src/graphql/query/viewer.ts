@@ -5,7 +5,7 @@ import { Authorization } from "../../model";
 
 export const viewer: GraphQLFieldConfig<any, {}, Context> = {
   type: GraphQLAuthorization,
-  description: "Fetch a user by ID.",
+  description: "Returns the current authorization.",
   args: {},
   async resolve(source, args, context): Promise<null | Authorization> {
     const { tx, authorization: a, realm } = context;
