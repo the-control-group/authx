@@ -5,7 +5,7 @@ import {
   GraphQLObjectType
 } from "graphql";
 
-import { PasswordCredential } from "../model";
+import { OpenIdCredential } from "../model";
 import { User } from "../../../model";
 import {
   GraphQLAuthority,
@@ -18,13 +18,13 @@ import { Context } from "../../../Context";
 // Credential
 // ----------
 
-export const GraphQLPasswordCredential = new GraphQLObjectType<
-  PasswordCredential,
+export const GraphQLOpenIdCredential = new GraphQLObjectType<
+  OpenIdCredential,
   Context
 >({
-  name: "PasswordCredential",
+  name: "OpenIdCredential",
   interfaces: () => [GraphQLCredential],
-  isTypeOf: (value: any): boolean => value instanceof PasswordCredential,
+  isTypeOf: (value: any): boolean => value instanceof OpenIdCredential,
   fields: () => ({
     id: { type: new GraphQLNonNull(GraphQLID) },
     user: {
@@ -41,18 +41,6 @@ export const GraphQLPasswordCredential = new GraphQLObjectType<
     },
     authority: { type: GraphQLAuthority },
     authorityUserId: { type: GraphQLString },
-    contact: { type: GraphQLContact },
-    hash: {
-      type: GraphQLString,
-      async resolve(
-        credential,
-        args,
-        { realm, authorization: a, tx }: Context
-      ): Promise<null | string> {
-        return a && (await credential.isAccessibleBy(realm, a, tx, "read.*"))
-          ? credential.details.hash
-          : null;
-      }
-    }
+    contact: { type: GraphQLContact }
   })
 });

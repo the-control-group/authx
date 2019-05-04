@@ -81,20 +81,20 @@ role.*
 AuthX uses its own authorization system to restrict access to its resources. Below are the scopes used by AuthX internally:
 
 ```
-AuthX:authority:read. {      details}
-AuthX:authority:write.{basic|details|*}
+AuthX:authority:read. {      *}
+AuthX:authority:write.{basic|*}
 
 AuthX:client.{assigned|*}:read.{basic|secrets|assignments}
 AuthX:client.{assigned|*}:write.{basic|secrets|assignments|*}
 
-AuthX:credential.equal.self  :read .{basic|details}
-AuthX:credential.equal.lesser:read .{basic|details}
-AuthX:credential.equal.*     :read .{basic|details}
-AuthX:credential.*    .*     :read .{basic|details}
-AuthX:credential.equal.self  :write.{basic|details|*}
-AuthX:credential.equal.lesser:write.{basic|details|*}
-AuthX:credential.equal.*     :write.{basic|details|*}
-AuthX:credential.*    .*     :write.{basic|details|*}
+AuthX:credential.equal.self  :read .{basic}
+AuthX:credential.equal.lesser:read .{basic}
+AuthX:credential.equal.*     :read .{basic}
+AuthX:credential.*    .*     :read .{basic}
+AuthX:credential.equal.self  :write.{basic|*}
+AuthX:credential.equal.lesser:write.{basic|*}
+AuthX:credential.equal.*     :write.{basic|*}
+AuthX:credential.*    .*     :write.{basic|*}
 
 AuthX:role.equal.assigned:read .{basic|scopes|assignments}
 AuthX:role.equal.lesser  :read .{basic|scopes|assignments}

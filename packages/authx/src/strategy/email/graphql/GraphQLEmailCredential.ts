@@ -5,7 +5,7 @@ import {
   GraphQLObjectType
 } from "graphql";
 
-import { EmailCredential, EmailCredentialDetails } from "../model";
+import { EmailCredential } from "../model";
 import { User } from "../../../model";
 import {
   GraphQLAuthority,
@@ -17,13 +17,6 @@ import { Context } from "../../../Context";
 
 // Credential
 // ----------
-
-export const GraphQLEmailCredentialDetails = new GraphQLObjectType({
-  name: "EmailCredentialDetails",
-  fields: () => ({
-    hash: { type: GraphQLString }
-  })
-});
 
 export const GraphQLEmailCredential = new GraphQLObjectType<
   EmailCredential,
@@ -48,19 +41,6 @@ export const GraphQLEmailCredential = new GraphQLObjectType<
     },
     authority: { type: GraphQLAuthority },
     authorityUserId: { type: GraphQLString },
-    details: {
-      type: GraphQLEmailCredentialDetails,
-      async resolve(
-        credential,
-        args,
-        { realm, authorization: a, tx }: Context
-      ): Promise<null | EmailCredentialDetails> {
-        return a &&
-          (await credential.isAccessibleBy(realm, a, tx, "read.details"))
-          ? credential.details
-          : null;
-      }
-    },
     contact: { type: GraphQLContact }
   })
 });

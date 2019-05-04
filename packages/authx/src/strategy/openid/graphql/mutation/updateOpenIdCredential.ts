@@ -8,11 +8,11 @@ import {
 
 import { Context } from "../../../../Context";
 import { Credential } from "../../../../model";
-import { EmailCredential } from "../../model";
+import { OpenIdCredential } from "../../model";
 import { ForbiddenError, NotFoundError } from "../../../../errors";
-import { GraphQLEmailCredential } from "../GraphQLEmailCredential";
+import { GraphQLOpenIdCredential } from "../GraphQLOpenIdCredential";
 
-export const updateEmailCredential: GraphQLFieldConfig<
+export const updateOpenIdCredential: GraphQLFieldConfig<
   any,
   {
     id: string;
@@ -20,7 +20,7 @@ export const updateEmailCredential: GraphQLFieldConfig<
   },
   Context
 > = {
-  type: GraphQLEmailCredential,
+  type: GraphQLOpenIdCredential,
   description: "Update a new credential.",
   args: {
     id: {
@@ -30,7 +30,7 @@ export const updateEmailCredential: GraphQLFieldConfig<
       type: GraphQLBoolean
     }
   },
-  async resolve(source, args, context): Promise<EmailCredential> {
+  async resolve(source, args, context): Promise<OpenIdCredential> {
     const {
       tx,
       authorization: a,
@@ -40,7 +40,7 @@ export const updateEmailCredential: GraphQLFieldConfig<
 
     if (!a) {
       throw new ForbiddenError(
-        "You must be authenticated to update an credential."
+        "You must be authenticated to update a credential."
       );
     }
 
@@ -49,8 +49,8 @@ export const updateEmailCredential: GraphQLFieldConfig<
     try {
       const before = await Credential.read(tx, args.id, credentialMap);
 
-      if (!(before instanceof EmailCredential)) {
-        throw new NotFoundError("No email credential exists with this ID.");
+      if (!(before instanceof OpenIdCredential)) {
+        throw new NotFoundError("No openid credential exists with this ID.");
       }
 
       if (!(await before.isAccessibleBy(realm, a, tx, "write.basic"))) {
@@ -59,7 +59,7 @@ export const updateEmailCredential: GraphQLFieldConfig<
         );
       }
 
-      const credential = await EmailCredential.write(
+      const credential = await OpenIdCredential.write(
         tx,
         {
           ...before,

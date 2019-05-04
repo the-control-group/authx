@@ -10,10 +10,9 @@ export default (
     },
     {
       "read.basic": "Read basic authority information.",
-      "read.details": "Read the strategy-specific authority details.",
+      "read.*": "Read all authority information.",
       "write.basic": "Write basic authority information.",
-      "write.details": "Write the strategy-specific authority details.",
-      "write.*": "Write or create authority."
+      "write.*": "Write or create authorities."
     }
   ],
   [
@@ -44,9 +43,8 @@ export default (
     },
     {
       "read.basic": "Read basic credential information.",
-      "read.details": "Read the strategy-specific credential details.",
+      "read.*": "Read all credential information.",
       "write.basic": "Write basic credential information.",
-      "write.details": "Write the strategy-specific credential details.",
       "write.*": "Write or create credentials."
     }
   ],

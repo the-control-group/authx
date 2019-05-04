@@ -67,8 +67,8 @@ export const updatePasswordCredential: GraphQLFieldConfig<
       }
 
       if (
-        args.password &&
-        !(await before.isAccessibleBy(realm, a, tx, "write.details"))
+        typeof args.password === "string" &&
+        !(await before.isAccessibleBy(realm, a, tx, "write.*"))
       ) {
         throw new ForbiddenError(
           "You do not have permission to update this credential's details."

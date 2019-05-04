@@ -4,27 +4,29 @@ import {
   GraphQLFieldConfig,
   GraphQLID,
   GraphQLNonNull,
+  GraphQLList,
   GraphQLInt,
   GraphQLString
 } from "graphql";
 
 import { Context } from "../../../../Context";
 import { Authority } from "../../../../model";
-import { PasswordAuthority } from "../../model";
+import { OpenIdAuthority } from "../../model";
 import { ForbiddenError, NotFoundError } from "../../../../errors";
-import { GraphQLPasswordAuthority } from "../GraphQLPasswordAuthority";
+import { GraphQLOpenIdAuthority } from "../GraphQLOpenIdAuthority";
 
-export const updatePasswordAuthority: GraphQLFieldConfig<
+export const updateOpenIdAuthority: GraphQLFieldConfig<
   any,
   {
     id: string;
     enabled: null | boolean;
     name: null | string;
-    rounds: null | number;
+    clientId: null | string;
+    clientSecret: null | string;
   },
   Context
 > = {
-  type: GraphQLPasswordAuthority,
+  type: GraphQLOpenIdAuthority,
   description: "Update a new authority.",
   args: {
     id: {
@@ -37,13 +39,16 @@ export const updatePasswordAuthority: GraphQLFieldConfig<
       type: GraphQLString,
       description: "The name of the authority."
     },
-    rounds: {
-      type: GraphQLInt,
-      description:
-        "The number of bcrypt rounds to use when generating new hashes."
+    clientId: {
+      type: GraphQLString,
+      description: "The AuthX client ID for OpenId."
+    },
+    clientSecret: {
+      type: GraphQLString,
+      description: "The AuthX client secret for OpenId."
     }
   },
-  async resolve(source, args, context): Promise<PasswordAuthority> {
+  async resolve(source, args, context): Promise<OpenIdAuthority> {
     const {
       tx,
       authorization: a,
@@ -62,8 +67,8 @@ export const updatePasswordAuthority: GraphQLFieldConfig<
     try {
       const before = await Authority.read(tx, args.id, authorityMap);
 
-      if (!(before instanceof PasswordAuthority)) {
-        throw new NotFoundError("No password authority exists with this ID.");
+      if (!(before instanceof OpenIdAuthority)) {
+        throw new NotFoundError("No openid authority exists with this ID.");
       }
 
       if (!(await before.isAccessibleBy(realm, a, tx, "write.basic"))) {
@@ -73,15 +78,15 @@ export const updatePasswordAuthority: GraphQLFieldConfig<
       }
 
       if (
-        typeof args.rounds === "number" &&
+        (typeof args.clientId === "string" ||
+          typeof args.clientSecret === "string") &&
         !(await before.isAccessibleBy(realm, a, tx, "write.*"))
       ) {
         throw new ForbiddenError(
           "You do not have permission to update this authority's details."
         );
       }
-
-      const authority = await PasswordAuthority.write(
+      const authority = await OpenIdAuthority.write(
         tx,
         {
           ...before,
@@ -89,11 +94,14 @@ export const updatePasswordAuthority: GraphQLFieldConfig<
             typeof args.enabled === "boolean" ? args.enabled : before.enabled,
           name: typeof args.name === "string" ? args.name : before.name,
           details: {
-            ...before.details,
-            rounds:
-              typeof args.rounds === "number"
-                ? args.rounds
-                : before.details.rounds
+            clientId:
+              typeof args.clientId === "string"
+                ? args.clientId
+                : before.details.clientId,
+            clientSecret:
+              typeof args.clientSecret === "string"
+                ? args.clientSecret
+                : before.details.clientSecret
           }
         },
         {

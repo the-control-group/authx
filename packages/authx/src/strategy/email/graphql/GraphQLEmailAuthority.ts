@@ -3,64 +3,16 @@ import {
   GraphQLInt,
   GraphQLNonNull,
   GraphQLString,
+  GraphQLList,
   GraphQLObjectType
 } from "graphql";
 
-import { EmailAuthority, EmailAuthorityDetails } from "../model";
+import { EmailAuthority } from "../model";
 import { GraphQLAuthority } from "../../../graphql";
 import { Context } from "../../../Context";
 
 // Authority
 // ---------
-
-export const GraphQLEmailAuthorityDetails = new GraphQLObjectType({
-  name: "EmailAuthorityDetails",
-  fields: () => ({
-    expiresIn: {
-      type: GraphQLInt,
-      description: "Time in seconds until the email link expires.",
-      defaultValue: 900
-    },
-    authenticationEmailSubject: {
-      type: GraphQLString,
-      description:
-        "Authentication Email Subject. Handlebars template used to generate the email subject. Provided `authorization`, `credential`, and `url`.",
-      defaultValue: "Authenticate by email"
-    },
-    authenticationEmailText: {
-      type: GraphQLString,
-      description:
-        "Authentication Email Plain Text Body. Handlebars template used to generate the email plain text body. Provided `authorization`, `credential`, and `url`.",
-      defaultValue: "Please authenticate at the following URL: {{{url}}}"
-    },
-    authenticationEmailHtml: {
-      type: GraphQLString,
-      description:
-        "Authentication Email HTML Body. Handlebars template used to generate the email HTML body. Provided `authorization`, `credential`, and `url`.",
-      defaultValue: 'Please click <a href="{{url}}">here</a> to authenticate.'
-    },
-    verificationEmailSubject: {
-      type: GraphQLString,
-      description:
-        "Verification Email Subject. Handlebars template used to generate the email subject. Provided `authorization`, `credential`, and `url`.",
-      defaultValue: "Verify email"
-    },
-    verificationEmailText: {
-      type: GraphQLString,
-      description:
-        "Verification Email Plain Text Body. Handlebars template used to generate the email plain text body. Provided `authorization`, `credential`, and `url`.",
-      defaultValue: "Please verify this email at the following URL: {{{url}}}"
-    },
-    verificationEmailHtml: {
-      type: GraphQLString,
-      description:
-        "Verification Email HTML Body. Handlebars template used to generate the email HTML body. Provided `authorization`, `credential`, and `url`.",
-      defaultValue:
-        'Please click <a href="{{url}}">here</a> to verify this email.'
-    }
-  })
-});
-
 export const GraphQLEmailAuthority = new GraphQLObjectType<
   EmailAuthority,
   Context
@@ -72,16 +24,128 @@ export const GraphQLEmailAuthority = new GraphQLObjectType<
     id: { type: new GraphQLNonNull(GraphQLID) },
     strategy: { type: GraphQLString },
     name: { type: GraphQLString },
-    details: {
-      type: GraphQLEmailAuthorityDetails,
+    privateKey: {
+      type: GraphQLString,
+      description:
+        "The RS512 private key that will be used to sign the proofs sent to verify ownership of email addresses.",
       async resolve(
         authority,
         args,
         { realm, authorization: a, tx }: Context
-      ): Promise<null | EmailAuthorityDetails> {
-        return a &&
-          (await authority.isAccessibleBy(realm, a, tx, "read.details"))
-          ? authority.details
+      ): Promise<null | string> {
+        return a && (await authority.isAccessibleBy(realm, a, tx, "read.*"))
+          ? authority.details.privateKey
+          : null;
+      }
+    },
+    publicKeys: {
+      type: new GraphQLList(new GraphQLNonNull(GraphQLString)),
+      description:
+        "A list of RS512 public keys that will be used to verify the proofs sent to verify ownership of email addresses.",
+      async resolve(
+        authority,
+        args,
+        { realm, authorization: a, tx }: Context
+      ): Promise<null | string[]> {
+        return a && (await authority.isAccessibleBy(realm, a, tx, "read.*"))
+          ? authority.details.publicKeys
+          : null;
+      }
+    },
+    proofValidityDuration: {
+      type: GraphQLInt,
+      description: "Time in seconds until an email link expires.",
+      async resolve(
+        authority,
+        args,
+        { realm, authorization: a, tx }: Context
+      ): Promise<null | number> {
+        return a && (await authority.isAccessibleBy(realm, a, tx, "read.*"))
+          ? authority.details.proofValidityDuration
+          : null;
+      }
+    },
+    authenticationEmailSubject: {
+      type: GraphQLString,
+      description:
+        "Authentication Email Subject. Handlebars template used to generate the email subject. Provided `authorization`, `credential`, and `url`.",
+      async resolve(
+        authority,
+        args,
+        { realm, authorization: a, tx }: Context
+      ): Promise<null | string> {
+        return a && (await authority.isAccessibleBy(realm, a, tx, "read.*"))
+          ? authority.details.authenticationEmailSubject
+          : null;
+      }
+    },
+    authenticationEmailText: {
+      type: GraphQLString,
+      description:
+        "Authentication Email Plain Text Body. Handlebars template used to generate the email plain text body. Provided `authorization`, `credential`, and `url`.",
+      async resolve(
+        authority,
+        args,
+        { realm, authorization: a, tx }: Context
+      ): Promise<null | string> {
+        return a && (await authority.isAccessibleBy(realm, a, tx, "read.*"))
+          ? authority.details.authenticationEmailText
+          : null;
+      }
+    },
+    authenticationEmailHtml: {
+      type: GraphQLString,
+      description:
+        "Authentication Email HTML Body. Handlebars template used to generate the email HTML body. Provided `authorization`, `credential`, and `url`.",
+      async resolve(
+        authority,
+        args,
+        { realm, authorization: a, tx }: Context
+      ): Promise<null | string> {
+        return a && (await authority.isAccessibleBy(realm, a, tx, "read.*"))
+          ? authority.details.authenticationEmailHtml
+          : null;
+      }
+    },
+    verificationEmailSubject: {
+      type: GraphQLString,
+      description:
+        "Verification Email Subject. Handlebars template used to generate the email subject. Provided `authorization`, `credential`, and `url`.",
+      async resolve(
+        authority,
+        args,
+        { realm, authorization: a, tx }: Context
+      ): Promise<null | string> {
+        return a && (await authority.isAccessibleBy(realm, a, tx, "read.*"))
+          ? authority.details.verificationEmailSubject
+          : null;
+      }
+    },
+    verificationEmailText: {
+      type: GraphQLString,
+      description:
+        "Verification Email Plain Text Body. Handlebars template used to generate the email plain text body. Provided `authorization`, `credential`, and `url`.",
+      async resolve(
+        authority,
+        args,
+        { realm, authorization: a, tx }: Context
+      ): Promise<null | string> {
+        return a && (await authority.isAccessibleBy(realm, a, tx, "read.*"))
+          ? authority.details.verificationEmailText
+          : null;
+      }
+    },
+    verificationEmailHtml: {
+      type: GraphQLString,
+      description:
+        "Verification Email HTML Body. Handlebars template used to generate the email HTML body. Provided `authorization`, `credential`, and `url`.",
+      async resolve(
+        authority,
+        args,
+        { realm, authorization: a, tx }: Context
+      ): Promise<null | string> {
+        return a && (await authority.isAccessibleBy(realm, a, tx, "read.*"))
+          ? authority.details.verificationEmailHtml
           : null;
       }
     }

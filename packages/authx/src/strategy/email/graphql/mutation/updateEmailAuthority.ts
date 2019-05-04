@@ -127,17 +127,17 @@ export const updateEmailAuthority: GraphQLFieldConfig<
       }
 
       if (
-        (args.privateKey ||
+        (typeof args.privateKey === "string" ||
           args.addPublicKeys ||
           args.removePublicKeys ||
-          args.proofValidityDuration ||
-          args.authenticationEmailSubject ||
-          args.authenticationEmailText ||
-          args.authenticationEmailHtml ||
-          args.verificationEmailSubject ||
-          args.verificationEmailText ||
-          args.verificationEmailHtml) &&
-        !(await before.isAccessibleBy(realm, a, tx, "write.details"))
+          typeof args.proofValidityDuration === "number" ||
+          typeof args.authenticationEmailSubject === "string" ||
+          typeof args.authenticationEmailText === "string" ||
+          typeof args.authenticationEmailHtml === "string" ||
+          typeof args.verificationEmailSubject === "string" ||
+          typeof args.verificationEmailText === "string" ||
+          typeof args.verificationEmailHtml === "string") &&
+        !(await before.isAccessibleBy(realm, a, tx, "write.*"))
       ) {
         throw new ForbiddenError(
           "You do not have permission to update this authority's details."
