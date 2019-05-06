@@ -1,0 +1,53 @@
+{
+  "author": {
+    "email": "mike.marcacci@thecontrolgroup.com",
+    "name": "Mike Marcacci"
+  },
+  "bugs": "https://github.com/the-control-group/authx/issues",
+  "dependencies": {},
+  "description": "",
+  "devDependencies": {
+    "@typescript-eslint/eslint-plugin": "^1.4.0",
+    "@typescript-eslint/parser": "^1.4.0",
+    "ava": "^1.2.1",
+    "eslint": "^5.14.1",
+    "eslint-config-prettier": "^4.2.0",
+    "eslint-plugin-prettier": "^3.0.0",
+    "prettier": "^1.16.4",
+    "typescript": "^3.3.3333"
+  },
+  "engines": {
+    "node": ">=6"
+  },
+  "files": [
+    "dist",
+    "!dist/test.*"
+  ],
+  "keywords": [
+    "oauth",
+    "aim",
+    "acl",
+    "access control",
+    "permissions",
+    "scopes",
+    "glob",
+    "pattern"
+  ],
+  "license": "MIT",
+  "main": "dist",
+  "name": "@authx/scopes",
+  "repository": "https://github.com/the-control-group/authx",
+  "scripts": {
+    "bootstrap": "node dist/bootstrap.js",
+    "format": "prettier --list-different --write '**/*.{json,yml,md,ts}'",
+    "lint": "prettier -c '**/*.{json,yml,md,ts}' && eslint src --ext ts",
+    "prepare": "rm -rf dist && tsc",
+    "test": "ava --verbose dist/*.test.js",
+    "watch": "rm -rf dist && tsc --watch",
+    "start:development": "yarn watch & NODE_ENV=development nodemon --delay 2 --inspect dist/server",
+    "start:production": "NODE_ENV=production npm start",
+    "start": "node dist/server"
+  },
+  "types": "dist/index.d.ts",
+  "version": "2.2.1"
+}

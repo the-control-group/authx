@@ -1,47 +1,22 @@
 {
-  "name": "authx",
-  "version": "1.2.4",
-  "description": "",
-  "main": "src/index.js",
-  "repository": "https://github.com/the-control-group/authx",
-  "scripts": {
-    "bootstrap": "node bin/bootstrap.js",
-    "lint": "eslint src",
-    "start": "nodemon --harmony_async_await server.js",
-    "test": "node_modules/mocha/bin/mocha --harmony_async_await test/tests/*"
-  },
-  "author": "",
-  "license": "UNLICENSED",
-  "dependencies": {
-    "basic-auth": "^1.0.3",
-    "bcrypt": "^0.8.5",
-    "bluebird": "^3.0.6",
-    "generic-pool": "^2.2.0",
-    "handlebars": "^4.0.3",
-    "jjv": "^1.0.2",
-    "jsonwebtoken": "^5.4.0",
-    "koa-router": "^7.0.1",
-    "lodash": "^4.17.10",
-    "nodemailer": "^1.8.0",
-    "raw-body": "^2.1.5",
-    "request-promise": "^1.0.1",
-    "rethinkdb": "^2.2.0",
-    "saml2-js": "^1.10.0",
-    "scim-query-filter-parser": "^1.1.0",
-    "scopeutils": "^1.0.0",
-    "uuid": "^2.0.1"
-  },
+  "private": true,
+  "workspaces": [
+    "packages/authx",
+    "packages/http-proxy-client",
+    "packages/http-proxy-resource",
+    "packages/interface",
+    "packages/manager",
+    "packages/scopes"
+  ],
   "devDependencies": {
-    "async": "^1.5.0",
-    "chai": "^3.3.0",
-    "eslint": "^3.11.1",
-    "koa": "^2.0.0",
-    "koa-send": "^3.2.0",
-    "mocha": "^2.3.3",
-    "nodemon": "^1.11.0",
-    "supertest": "^1.1.0"
+    "husky": "^2.1.0"
   },
-  "peerDependencies": {
-    "koa": "^2.0.0"
+  "nohoist": [
+    "packages/authx-interface/html-webpack-plugin"
+  ],
+  "scripts": {
+    "format": "for P in packages/*/; do echo \"\n\n---------- $P\" && cd $P && if ! (yarn format); then exit 1; fi; cd ../..; done",
+    "lint": "for P in packages/*/; do echo \"\n\n---------- $P\" && cd $P && if ! (yarn lint); then exit 1; fi; cd ../..; done",
+    "prepare": "for P in packages/*/; do echo \"\n\n---------- $P\" && cd $P && if ! (yarn prepare); then exit 1; fi; cd ../..; done"
   }
 }

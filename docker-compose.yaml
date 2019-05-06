@@ -1,0 +1,21 @@
+version: "3"
+services:
+  authx:
+    build: .
+    ports:
+    - "80:80"
+    - "9229:9229"
+    volumes:
+    - .:/workspace
+    environment:
+      PGHOST: postgres
+      PGUSER: postgres
+      PGPASSWORD: authx
+    links:
+    - postgres
+  postgres:
+    image: postgres:11
+    ports:
+    - "5432:5432"
+    environment:
+      POSTGRES_PASSWORD: authx
