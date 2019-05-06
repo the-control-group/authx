@@ -3,6 +3,7 @@ import {
   GraphQLList,
   GraphQLNonNull,
   GraphQLString,
+  GraphQLBoolean,
   GraphQLObjectType
 } from "graphql";
 
@@ -16,6 +17,9 @@ export const GraphQLRole = new GraphQLObjectType<Role, Context>({
   interfaces: () => [],
   fields: () => ({
     id: { type: new GraphQLNonNull(GraphQLID) },
+    enabled: {
+      type: new GraphQLNonNull(GraphQLBoolean)
+    },
     name: { type: GraphQLString },
     users: {
       type: new GraphQLList(GraphQLUser),

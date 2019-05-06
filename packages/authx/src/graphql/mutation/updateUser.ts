@@ -3,13 +3,13 @@ import {
   GraphQLID,
   GraphQLBoolean,
   GraphQLFieldConfig,
+  GraphQLString,
   GraphQLNonNull
 } from "graphql";
 
 import { Context } from "../../Context";
 import { GraphQLUser } from "../GraphQLUser";
-import { GraphQLContactInput } from "../GraphQLContactInput";
-import { User, ContactInput } from "../../model";
+import { User } from "../../model";
 import { ForbiddenError } from "../../errors";
 
 export const updateUser: GraphQLFieldConfig<
@@ -17,7 +17,7 @@ export const updateUser: GraphQLFieldConfig<
   {
     id: string;
     enabled: null | boolean;
-    contact: null | ContactInput;
+    name: null | string;
   },
   Context
 > = {
@@ -30,8 +30,8 @@ export const updateUser: GraphQLFieldConfig<
     enabled: {
       type: GraphQLBoolean
     },
-    contact: {
-      type: GraphQLContactInput
+    name: {
+      type: GraphQLString
     }
   },
   async resolve(source, args, context): Promise<User> {
@@ -60,87 +60,7 @@ export const updateUser: GraphQLFieldConfig<
           ...before,
           enabled:
             typeof args.enabled === "boolean" ? args.enabled : before.enabled,
-          contact: {
-            displayName:
-              args.contact && typeof args.contact.displayName === "string"
-                ? args.contact.displayName
-                : before.contact.displayName,
-            name:
-              args.contact && args.contact.name
-                ? {
-                    formatted:
-                      args.contact &&
-                      typeof args.contact.name.formatted === "string"
-                        ? args.contact.name.formatted || null
-                        : before.contact.name
-                        ? before.contact.name.formatted
-                        : null,
-                    familyName:
-                      args.contact &&
-                      typeof args.contact.name.familyName === "string"
-                        ? args.contact.name.familyName || null
-                        : before.contact.name
-                        ? before.contact.name.familyName
-                        : null,
-                    givenName:
-                      args.contact &&
-                      typeof args.contact.name.givenName === "string"
-                        ? args.contact.name.givenName || null
-                        : before.contact.name
-                        ? before.contact.name.givenName
-                        : null,
-                    middleName:
-                      args.contact &&
-                      typeof args.contact.name.middleName === "string"
-                        ? args.contact.name.middleName || null
-                        : before.contact.name
-                        ? before.contact.name.middleName
-                        : null,
-                    honorificPrefix:
-                      args.contact &&
-                      typeof args.contact.name.honorificPrefix === "string"
-                        ? args.contact.name.honorificPrefix || null
-                        : before.contact.name
-                        ? before.contact.name.honorificPrefix
-                        : null,
-                    honorificSuffix:
-                      args.contact &&
-                      typeof args.contact.name.honorificSuffix === "string"
-                        ? args.contact.name.honorificSuffix || null
-                        : before.contact.name
-                        ? before.contact.name.honorificSuffix
-                        : null
-                  }
-                : before.contact.name,
-            nickname:
-              args.contact && typeof args.contact.nickname === "string"
-                ? args.contact.nickname || null
-                : before.contact.nickname,
-            birthday:
-              args.contact && typeof args.contact.birthday === "string"
-                ? args.contact.birthday || null
-                : before.contact.birthday,
-            anniversary:
-              args.contact && typeof args.contact.anniversary === "string"
-                ? args.contact.anniversary || null
-                : before.contact.anniversary,
-            gender:
-              args.contact && typeof args.contact.gender === "string"
-                ? args.contact.gender || null
-                : before.contact.gender,
-            note:
-              args.contact && typeof args.contact.note === "string"
-                ? args.contact.note || null
-                : before.contact.note,
-            preferredUsername:
-              args.contact && typeof args.contact.preferredUsername === "string"
-                ? args.contact.preferredUsername || null
-                : before.contact.preferredUsername,
-            utcOffset:
-              args.contact && typeof args.contact.utcOffset === "string"
-                ? args.contact.utcOffset || null
-                : before.contact.utcOffset
-          }
+          name: typeof args.name === "string" ? args.name : before.name
         },
         {
           recordId: v4(),

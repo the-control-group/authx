@@ -2,12 +2,13 @@ import {
   GraphQLID,
   GraphQLList,
   GraphQLNonNull,
-  GraphQLObjectType
+  GraphQLObjectType,
+  GraphQLBoolean,
+  GraphQLString
 } from "graphql";
 
 import { User, Grant } from "../model";
 import { Context } from "../Context";
-import { GraphQLContact } from "./GraphQLContact";
 import { GraphQLCredential } from "./GraphQLCredential";
 import { GraphQLRole } from "./GraphQLRole";
 import { GraphQLUserType } from "./GraphQLUserType";
@@ -23,17 +24,13 @@ export const GraphQLUser: GraphQLObjectType<
   interfaces: () => [],
   fields: () => ({
     id: { type: new GraphQLNonNull(GraphQLID) },
-    type: { type: GraphQLUserType },
-    contact: {
-      type: GraphQLContact,
-      description:
-        "User information formatted according to the Portable Contact spec.",
-      resolve: user => ({
-        ...user.contact,
-        id: user.id,
-        connected: false
-      })
+    enabled: {
+      type: new GraphQLNonNull(GraphQLBoolean)
     },
+    name: {
+      type: GraphQLString
+    },
+    type: { type: GraphQLUserType },
     credentials: {
       type: new GraphQLList(GraphQLCredential),
       description: "List all of the user's credentials.",

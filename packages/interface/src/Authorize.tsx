@@ -55,9 +55,7 @@ export function Authorize({
       viewer: null | {
         user: null | {
           id: string;
-          contact: null | {
-            displayName: string;
-          };
+          name: null | string;
           grant: null | {
             id: string;
             scopes: null | string[];
@@ -78,9 +76,7 @@ export function Authorize({
         query($clientId: ID!) {
           viewer {
             user {
-              contact {
-                displayName
-              }
+              name
               grant(clientId: $clientId) {
                 id
                 scopes
@@ -323,7 +319,7 @@ export function Authorize({
           <div>
             <p>
               Welcome
-              {user && user.contact ? ` ${user.contact.displayName}` : ""}!
+              {(user && user.name) || ""}!
               <button
                 onClick={e => {
                   e.preventDefault();

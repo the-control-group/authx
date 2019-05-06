@@ -65,10 +65,20 @@ export default async (ctx: ParameterizedContext<any, { [x]: Context }>) => {
       tx.query("BEGIN DEFERRABLE");
       try {
         const now = Math.floor(Date.now() / 1000);
-        const paramsClientId: undefined | string = ctx.body.client_id;
-        const paramsClientSecret: undefined | string = ctx.body.client_secret;
-        const paramsCode: undefined | string = ctx.body.code;
-        const paramsScope: undefined | string = ctx.body.scope;
+        const paramsClientId: undefined | string =
+          typeof ctx.body.client_id === "string"
+            ? ctx.body.client_id
+            : undefined;
+        const paramsClientSecret: undefined | string =
+          typeof ctx.body.client_secret === "string"
+            ? ctx.body.client_secret
+            : undefined;
+        const paramsCode: undefined | string =
+          typeof ctx.body.code === "string" ? ctx.body.code : undefined;
+        const paramsScope: undefined | string =
+          typeof ctx.body.scope === "string" ? ctx.body.scope : undefined;
+        const paramsNonce: undefined | string =
+          typeof ctx.body.nonce === "string" ? ctx.body.nonce : undefined;
         if (!paramsClientId || !paramsClientSecret || !paramsCode) {
           throw new OAuthError("invalid_request");
         }
@@ -192,7 +202,8 @@ export default async (ctx: ParameterizedContext<any, { [x]: Context }>) => {
           authorization_type: "bearer",
           access_token: jwt.sign(
             {
-              scopes: await authorization.access(tx)
+              scopes: await authorization.access(tx),
+              nonce: paramsNonce
             },
             privateKey,
             {
@@ -222,10 +233,22 @@ export default async (ctx: ParameterizedContext<any, { [x]: Context }>) => {
     if (grantType === "refresh_token") {
       tx.query("BEGIN DEFERRABLE");
       try {
-        const paramsClientId: undefined | string = ctx.body.client_id;
-        const paramsClientSecret: undefined | string = ctx.body.client_secret;
-        const paramsRefreshToken: undefined | string = ctx.body.refresh_token;
-        const paramsScope: undefined | string = ctx.body.scope;
+        const paramsClientId: undefined | string =
+          typeof ctx.body.client_id === "string"
+            ? ctx.body.client_id
+            : undefined;
+        const paramsClientSecret: undefined | string =
+          typeof ctx.body.client_secret === "string"
+            ? ctx.body.client_secret
+            : undefined;
+        const paramsRefreshToken: undefined | string =
+          typeof ctx.body.refresh_token === "string"
+            ? ctx.body.refresh_token
+            : undefined;
+        const paramsScope: undefined | string =
+          typeof ctx.body.scope === "string" ? ctx.body.scope : undefined;
+        const paramsNonce: undefined | string =
+          typeof ctx.body.nonce === "string" ? ctx.body.nonce : undefined;
         if (!paramsClientId || !paramsClientSecret || !paramsRefreshToken) {
           throw new OAuthError("invalid_request");
         }
@@ -319,7 +342,8 @@ export default async (ctx: ParameterizedContext<any, { [x]: Context }>) => {
           authorization_type: "bearer",
           access_token: jwt.sign(
             {
-              scopes: await authorization.access(tx)
+              scopes: await authorization.access(tx),
+              nonce: paramsNonce
             },
             privateKey,
             {

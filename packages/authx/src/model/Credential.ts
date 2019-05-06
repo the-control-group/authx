@@ -1,7 +1,6 @@
 import { PoolClient } from "pg";
 import { Authority } from "./Authority";
 import { User } from "./User";
-import { Contact } from "./Contact";
 import { Authorization } from "./Authorization";
 import { NotFoundError } from "../errors";
 
@@ -13,7 +12,6 @@ export interface CredentialData<C> {
   readonly authorityId: string;
   readonly authorityUserId: string;
   readonly userId: string;
-  readonly contact: null | Contact;
   readonly details: C;
 }
 
@@ -23,7 +21,6 @@ export abstract class Credential<C> implements CredentialData<C> {
   public readonly authorityId: string;
   public readonly authorityUserId: string;
   public readonly userId: string;
-  public readonly contact: null | Contact;
   public readonly details: C;
 
   private _user: null | Promise<User> = null;
@@ -34,7 +31,6 @@ export abstract class Credential<C> implements CredentialData<C> {
     this.authorityId = data.authorityId;
     this.authorityUserId = data.authorityUserId;
     this.userId = data.userId;
-    this.contact = data.contact;
     this.details = data.details;
   }
 
@@ -141,7 +137,6 @@ export abstract class Credential<C> implements CredentialData<C> {
         authx.credential_record.authority_id,
         authx.credential_record.authority_user_id,
         authx.credential_record.user_id,
-        authx.credential_record.contact,
         authx.credential_record.details,
         authx.authority_record.strategy
       FROM authx.credential_record
@@ -250,18 +245,16 @@ export abstract class Credential<C> implements CredentialData<C> {
         authority_id,
         authority_user_id,
         user_id,
-        contact,
         details
       )
       VALUES
-        ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10)
+        ($1, $2, $3, $4, $5, $6, $7, $8, $9)
       RETURNING
         entity_id AS id,
         enabled,
         authority_id,
         authority_user_id,
         user_id,
-        contact,
         details
       `,
       [
@@ -273,7 +266,6 @@ export abstract class Credential<C> implements CredentialData<C> {
         data.authorityId,
         data.authorityUserId,
         data.userId,
-        data.contact,
         data.details
       ]
     );

@@ -7,14 +7,17 @@ import React, {
   FormEvent
 } from "react";
 
-import { GraphQL, GraphQLContext, useGraphQL } from "graphql-react";
-import { StrategyComponentProps } from "./definitions";
+import { GraphQL, GraphQLContext } from "graphql-react";
+
+interface Props {
+  authority: EmailAuthorityFragmentData;
+  setAuthorization: (authorization: { id: string; secret: string }) => void;
+}
 
 export function EmailAuthority({
   authority,
-  setAuthorization,
-  redirect
-}: StrategyComponentProps): ReactElement<StrategyComponentProps> {
+  setAuthorization
+}: Props): ReactElement<Props> {
   // Focus the email field on mount
   const focusElement = useRef<HTMLInputElement>(null);
   const [mounted, setMounted] = useState<boolean>(false);
@@ -129,11 +132,6 @@ export function EmailAuthority({
 
       // Set the authorization.
       setAuthorization({ id: authorization.id, secret: authorization.secret });
-
-      // Redirect.
-      if (redirect) {
-        redirect();
-      }
     } catch (error) {
       setErrors([error.message]);
       return;
@@ -185,3 +183,17 @@ export function EmailAuthority({
     </form>
   );
 }
+
+export interface EmailAuthorityFragmentData {
+  __typename: "EmailAuthority";
+  id: string;
+  name?: null | string;
+}
+
+export const EmailAuthorityFragment = `
+  fragment EmailAuthorityFragment on EmailAuthority {
+    __typename
+    id
+    name
+  }
+`;

@@ -88,15 +88,17 @@ test("Deep query on viewer.", async t => {
         data: {
           viewer: {
             id: "c70da498-27ed-4c3b-a318-38bb220cef48",
-            name: null,
             enabled: true,
+            name: null,
             grant: {
               id: "e4670762-beb7-435c-94af-055b951f97e6",
+              enabled: true,
               user: {
                 id: "a6a0946d-eeb4-45cd-83c6-c7920f2272eb"
               },
               client: {
                 id: "17436d83-6022-4101-bf9f-997f1550f57c",
+                enabled: true,
                 name: "Dunder Mifflin Inventory Portal",
                 secrets: [
                   "1f1bb71ebe4341418dbeab6e8e693ec27336425fb2c021219305593ad12043a2"
@@ -120,20 +122,19 @@ test("Deep query on viewer.", async t => {
             },
             user: {
               id: "a6a0946d-eeb4-45cd-83c6-c7920f2272eb",
+              enabled: true,
               type: "HUMAN",
-              contact: {
-                id: "a6a0946d-eeb4-45cd-83c6-c7920f2272eb",
-                displayName: "Michael Scott"
-              },
+              name: "Michael Scott",
               credentials: [
                 {
                   id: "540128ad-7a55-423e-a85c-103677df333c",
+                  enabled: true,
                   user: {
                     id: "a6a0946d-eeb4-45cd-83c6-c7920f2272eb"
                   },
                   authority: {
                     id: "0d765613-e813-40e5-9aa7-89f96531364e",
-                    strategy: "email",
+                    enabled: true,
                     name: "Email",
                     privateKey:
                       "-----BEGIN RSA PRIVATE KEY-----\nMIICXAIBAAKBgQCfb+nyTPFCntEXbrFPU5DeE0gC4jXRcSFWDfCRgeqeQWqIW9De\nMmCj13k0z6fQCiG3FATYosS64wAs+OiyGtu9q/JyUEVIBMF0upDJMA53AFFx+0Fb\n/i76JFPTY7SxzvioIFeKRwY8evIRWQWYO95Os6gKBac/x5qiUn5fh2xM+wIDAQAB\nAoGAeOPGo24r0LPTHs1TrC5Uvc4o3+bdn70D5dgT/IBhgTVgrZvQt2nDVPfgc2aw\ne1HzVnnbYteoC3xrea4R4lnzGpgcvLYyJ+LEAeRNT66u12EHnCjl8OM5Ods79RO2\npSaGBiAlntq9E86DBJ9ma9lL9NXiokCx4h1ph9rqr6T+DMECQQD7zM56evJj8JyV\nkyu7m3PGpepqgMtO4LjHlkU9ZP2HRfrq+bl4yWps1TyCTPzaRujXW+hHJBPsTYar\nTmsLcDepAkEAohi3FmYiAMhppgPMFqIr15tY04dKDw4kPgbaQLXT59v9e16alj+2\nhsBvMWA/juLuk/2JRuNutY0WBmtkkS42AwJBAKEjS++txniWfl5qNE53CPxTKVTG\n31S3EwkG7YCApI5xBkZhUYQuwWCshXCNfDLjthY7xsXgHK/YXRo7sN09DyECQD2W\n0HIFSmQrweCfTrtG0Qux7dUpcV05DVI3/lNaAvL05mIqtufhu3OFyHnlTSD4XpgC\nXFd/8L+wpK65vVNgUIsCQFO6/fma+fjXx9kG+/zy4C/VwJWFUcpo5Z3R2TF7FheW\n5N6OERXoA+Qu+ew7xS6WrAp33dHncIyr9ekkvGc01FU=\n-----END RSA PRIVATE KEY-----",
@@ -152,22 +153,21 @@ test("Deep query on viewer.", async t => {
                     verificationEmailHtml:
                       'Please <a href="{{url}}">follow this link</a> to prove your control of this email address.'
                   },
-                  authorityUserId: "michael.scott@dundermifflin.com",
-                  contact: null
+                  authorityUserId: "michael.scott@dundermifflin.com"
                 },
                 {
                   id: "c1a8cc41-66d5-4aef-8b97-e5f97d2bc699",
+                  enabled: true,
                   user: {
                     id: "a6a0946d-eeb4-45cd-83c6-c7920f2272eb"
                   },
                   authority: {
                     id: "725f9c3b-4a72-4021-9066-c89e534df5be",
-                    strategy: "password",
+                    enabled: true,
                     name: "Password",
                     rounds: 4
                   },
                   authorityUserId: "a6a0946d-eeb4-45cd-83c6-c7920f2272eb",
-                  contact: null,
                   hash:
                     "$2a$04$j.W.ev.hBuIZZEKRZRpcPOmHz6SjaYtg/cO8vnBlq3lHHnFh2B1N2"
                 }
@@ -183,34 +183,44 @@ test("Deep query on viewer.", async t => {
               roles: [
                 {
                   id: "e833c8b8-acf1-42a1-9809-2bedab7d58c7",
+                  enabled: true,
                   name: "Default User",
                   users: [
                     {
-                      id: "0cbd3783-0424-4f35-be51-b42f07a2a987"
+                      id: "0cbd3783-0424-4f35-be51-b42f07a2a987",
+                      enabled: true
                     },
                     {
-                      id: "1691f38d-92c8-4d86-9a89-da99528cfcb5"
+                      id: "1691f38d-92c8-4d86-9a89-da99528cfcb5",
+                      enabled: true
                     },
                     {
-                      id: "306eabbb-cc2b-4f88-be19-4bb6ec98e5c3"
+                      id: "306eabbb-cc2b-4f88-be19-4bb6ec98e5c3",
+                      enabled: true
                     },
                     {
-                      id: "51192909-3664-44d5-be62-c6b45f0b0ee6"
+                      id: "51192909-3664-44d5-be62-c6b45f0b0ee6",
+                      enabled: true
                     },
                     {
-                      id: "9ad4b34b-781d-44fe-ac39-9b7ac43dde21"
+                      id: "9ad4b34b-781d-44fe-ac39-9b7ac43dde21",
+                      enabled: false
                     },
                     {
-                      id: "a6a0946d-eeb4-45cd-83c6-c7920f2272eb"
+                      id: "a6a0946d-eeb4-45cd-83c6-c7920f2272eb",
+                      enabled: true
                     },
                     {
-                      id: "d0fc4c64-a3d6-4d97-9341-07de24439bb1"
+                      id: "d0fc4c64-a3d6-4d97-9341-07de24439bb1",
+                      enabled: true
                     },
                     {
-                      id: "dc396449-2c7d-4a23-a159-e6415ded71d2"
+                      id: "dc396449-2c7d-4a23-a159-e6415ded71d2",
+                      enabled: false
                     },
                     {
-                      id: "eaa9fa5e-088a-4ae2-a6ab-f120006b20a9"
+                      id: "eaa9fa5e-088a-4ae2-a6ab-f120006b20a9",
+                      enabled: true
                     }
                   ],
                   scopes: [
@@ -222,10 +232,12 @@ test("Deep query on viewer.", async t => {
                 },
                 {
                   id: "ee37605c-5834-40c9-bd80-bac16d9e62a4",
+                  enabled: true,
                   name: "AuthX Administrator",
                   users: [
                     {
-                      id: "a6a0946d-eeb4-45cd-83c6-c7920f2272eb"
+                      id: "a6a0946d-eeb4-45cd-83c6-c7920f2272eb",
+                      enabled: true
                     }
                   ],
                   scopes: ["AuthX:**:**"]
@@ -254,15 +266,18 @@ test("Deep query on viewer.", async t => {
           query {
             viewer {
               id
+              enabled
               name
               enabled
               grant {
                 id
+                enabled
                 user {
                   id
                 }
                 client {
                   id
+                  enabled
                   name
                   secrets
                   urls
@@ -279,19 +294,18 @@ test("Deep query on viewer.", async t => {
               }
               user {
                 id
+                enabled
                 type
-                contact {
-                  id
-                  displayName
-                }
+                name
                 credentials {
                   id
+                  enabled
                   user {
                     id
                   }
                   authority {
                     id
-                    strategy
+                    enabled
                     name
 
                     ... on EmailAuthority {
@@ -311,14 +325,10 @@ test("Deep query on viewer.", async t => {
                     }
                   }
                   authorityUserId
-                  contact {
-                    id
-                    displayName
-                  }
 
                   authority {
                     id
-                    strategy
+                    enabled
                     name
                   }
 
@@ -351,9 +361,11 @@ test("Deep query on viewer.", async t => {
                 }
                 roles {
                   id
+                  enabled
                   name
                   users {
                     id
+                    enabled
                   }
                   scopes
                 }

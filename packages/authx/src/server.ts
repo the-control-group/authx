@@ -4,6 +4,7 @@ import authXInterface from "@authx/interface";
 
 import email from "./strategy/email";
 import password from "./strategy/password";
+import openid from "./strategy/openid";
 
 const __DEV__ = process.env.NODE_ENV !== "production";
 
@@ -17,7 +18,7 @@ app.use(authXInterface);
 // create a new instanciate of AuthX
 const authx = new AuthX({
   realm: "AuthX",
-  base: "http://localhost/",
+  base: `http://localhost${process.env.PORT ? `:${process.env.PORT}` : ""}/`,
   codeValidityDuration: 60,
   jwtValidityDuration: 5 * 60,
   privateKey:
@@ -57,7 +58,7 @@ Bac/x5qiUn5fh2xM+wIDAQAB
     console.log("--- SENDING EMAIL MESSAGE -------------------------");
     console.log(options);
   },
-  strategies: new StrategyCollection([email, password]),
+  strategies: new StrategyCollection([email, password, openid]),
   pg: {
     database: process.env.PGDATABASE || undefined,
     host: process.env.PGHOST || undefined,

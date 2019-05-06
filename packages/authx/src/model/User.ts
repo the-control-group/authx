@@ -3,7 +3,6 @@ import { Credential, CredentialData } from "./Credential";
 import { Grant } from "./Grant";
 import { Role } from "./Role";
 import { Client } from "./Client";
-import { ContactInitialInput } from "./ContactInput";
 import { simplify, isSuperset, isStrictSuperset } from "@authx/scopes";
 import { Authorization } from "./Authorization";
 import { NotFoundError } from "../errors";
@@ -14,14 +13,14 @@ export interface UserData {
   readonly id: string;
   readonly enabled: boolean;
   readonly type: UserType;
-  readonly contact: ContactInitialInput;
+  readonly name: string;
 }
 
 export class User implements UserData {
   public readonly id: string;
   public readonly enabled: boolean;
   public readonly type: UserType;
-  public readonly contact: ContactInitialInput;
+  public readonly name: string;
 
   private _credentials: null | Promise<Credential<any>[]> = null;
   private _roles: null | Promise<Role[]> = null;
@@ -32,7 +31,7 @@ export class User implements UserData {
     this.id = data.id;
     this.enabled = data.enabled;
     this.type = data.type;
-    this.contact = data.contact;
+    this.name = data.name;
   }
 
   public async isAccessibleBy(
@@ -242,7 +241,7 @@ export class User implements UserData {
         entity_id AS id,
         enabled,
         type,
-        contact
+        name
       FROM authx.user_record
       WHERE
         entity_id = ANY($1)
@@ -322,7 +321,7 @@ export class User implements UserData {
         entity_id,
         enabled,
         type,
-        contact
+        name
       )
       VALUES
         ($1, $2, $3, $4, $5, $6, $7)
@@ -330,7 +329,7 @@ export class User implements UserData {
         entity_id AS id,
         enabled,
         type,
-        contact
+        name
       `,
       [
         metadata.recordId,
@@ -339,7 +338,7 @@ export class User implements UserData {
         data.id,
         data.enabled,
         data.type,
-        data.contact
+        data.name
       ]
     );
 
@@ -348,10 +347,7 @@ export class User implements UserData {
     }
 
     return new User({
-      ...next.rows[0],
-      displayName: next.rows[0].display_name,
-      preferredUsername: next.rows[0].preferred_username,
-      utcOffset: next.rows[0].utc_offset
+      ...next.rows[0]
     });
   }
 }

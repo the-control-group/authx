@@ -1,17 +1,20 @@
-import React, { useState, useEffect, ComponentType, ReactElement } from "react";
+import React, { useState, useEffect, ReactElement } from "react";
 import { useGraphQL, GraphQLFetchOptionsOverride } from "graphql-react";
-import { Authority, StrategyComponentProps } from "./definitions";
-import { PasswordAuthority } from "./PasswordAuthority";
-import { EmailAuthority } from "./EmailAuthority";
-import { OpenIdAuthority } from "./OpenIdAuthority";
-
-const strategyComponentMap: {
-  [strategy: string]: ComponentType<StrategyComponentProps>;
-} = {
-  password: PasswordAuthority,
-  email: EmailAuthority,
-  openid: OpenIdAuthority
-};
+import {
+  PasswordAuthority,
+  PasswordAuthorityFragment,
+  PasswordAuthorityFragmentData
+} from "./strategy/PasswordAuthority";
+import {
+  EmailAuthority,
+  EmailAuthorityFragment,
+  EmailAuthorityFragmentData
+} from "./strategy/EmailAuthority";
+import {
+  OpenIdAuthority,
+  OpenIdAuthorityFragment,
+  OpenIdAuthorityFragmentData
+} from "./strategy/OpenIdAuthority";
 
 export function Authenticate({
   setAuthorization,
@@ -29,18 +32,28 @@ export function Authenticate({
         query {
           authorities {
             id
-            strategy
-            name
-          }  
+
+            ...PasswordAuthorityFragment
+            ...EmailAuthorityFragment
+            ...OpenIdAuthorityFragment
+          }
         }
+
+        ${PasswordAuthorityFragment}
+        ${EmailAuthorityFragment}
+        ${OpenIdAuthorityFragment}
       `
     }
   });
 
   // Sort authorities by name.
-  const authorities: Authority[] =
+  const authorities: (
+    | PasswordAuthorityFragmentData
+    | EmailAuthorityFragmentData
+    | OpenIdAuthorityFragmentData)[] =
     (cacheValue &&
       cacheValue.data &&
+      cacheValue.data.authorities &&
       [...cacheValue.data.authorities].sort((a, b) =>
         a.name < b.name ? -1 : a.name > b.name ? 1 : 0
       )) ||
@@ -75,48 +88,62 @@ export function Authenticate({
 
   if (authorities.length && authorityId === null) {
     const firstPasswordAuthority = authorities.find(
-      a => a.strategy === "password"
+      a => a.__typename === "PasswordAuthority"
     );
     const authority = firstPasswordAuthority || authorities[0];
-    setActiveAuthorityId(authority.id, authority.name);
+    setActiveAuthorityId(authority.id, authority.name || undefined);
   }
   const authority =
     (authorityId && authorities.find(a => a.id === authorityId)) || null;
-  const Strategy =
-    (authority && strategyComponentMap[authority.strategy]) || null;
-
-  const redirect = null;
+  const strategy =
+    (authority &&
+      (authority.__typename === "PasswordAuthority" ? (
+        <PasswordAuthority
+          authority={authority}
+          authorities={authorities}
+          setAuthorization={setAuthorization}
+        />
+      ) : authority.__typename === "EmailAuthority" ? (
+        <EmailAuthority
+          authority={authority}
+          setAuthorization={setAuthorization}
+        />
+      ) : authority.__typename === "OpenIdAuthority" ? (
+        <OpenIdAuthority
+          authority={authority}
+          setAuthorization={setAuthorization}
+        />
+      ) : null)) ||
+    null;
 
   return (
     <div>
       <h1>Authenticate</h1>
       <div className="tabs">
-        {authorities
-          .filter(a => typeof strategyComponentMap[a.strategy] !== "undefined")
-          .map(a => (
-            <div key={a.id} className={a.id === authorityId ? "active" : ""}>
-              <button type="button" onClick={() => setActiveAuthorityId(a.id)}>
-                {a.name}
-              </button>
-              <div />
-            </div>
-          ))}
+        {authorities.map(a => (
+          <div key={a.id} className={a.id === authorityId ? "active" : ""}>
+            <button type="button" onClick={() => setActiveAuthorityId(a.id)}>
+              {a.name}
+            </button>
+            <div />
+          </div>
+        ))}
       </div>
-      {authority && Strategy ? (
-        <Strategy
-          fetchOptionsOverride={fetchOptionsOverride}
-          redirect={redirect}
-          authority={authority}
-          authorities={authorities}
-          setAuthorization={setAuthorization}
-        />
-      ) : (
+      {(authority && strategy) || (
         <div className="panel">
           {loading
             ? "Loading"
             : !authorities.length
             ? authorityId
-              ? "The authority failed to load."
+              ? cacheValue &&
+                cacheValue.graphQLErrors &&
+                cacheValue.graphQLErrors.length
+                ? cacheValue.graphQLErrors.map(({ message }, i) => (
+                    <div className="error" key={i}>
+                      {message}
+                    </div>
+                  ))
+                : "The authority failed to load."
               : "Unable to load authorities."
             : null}
         </div>

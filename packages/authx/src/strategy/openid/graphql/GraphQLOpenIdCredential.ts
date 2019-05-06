@@ -2,16 +2,13 @@ import {
   GraphQLID,
   GraphQLNonNull,
   GraphQLString,
+  GraphQLBoolean,
   GraphQLObjectType
 } from "graphql";
 
 import { OpenIdCredential, OpenIdAuthority } from "../model";
 import { User } from "../../../model";
-import {
-  GraphQLCredential,
-  GraphQLUser,
-  GraphQLContact
-} from "../../../graphql";
+import { GraphQLCredential, GraphQLUser } from "../../../graphql";
 import { GraphQLOpenIdAuthority } from "./GraphQLOpenIdAuthority";
 import { Context } from "../../../Context";
 
@@ -27,6 +24,9 @@ export const GraphQLOpenIdCredential = new GraphQLObjectType<
   isTypeOf: (value: any): boolean => value instanceof OpenIdCredential,
   fields: () => ({
     id: { type: new GraphQLNonNull(GraphQLID) },
+    enabled: {
+      type: new GraphQLNonNull(GraphQLBoolean)
+    },
     user: {
       type: GraphQLUser,
       async resolve(
@@ -49,7 +49,6 @@ export const GraphQLOpenIdCredential = new GraphQLObjectType<
         return credential.authority(tx);
       }
     },
-    authorityUserId: { type: GraphQLString },
-    contact: { type: GraphQLContact }
+    authorityUserId: { type: GraphQLString }
   })
 });

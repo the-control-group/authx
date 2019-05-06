@@ -2,16 +2,13 @@ import {
   GraphQLID,
   GraphQLNonNull,
   GraphQLString,
+  GraphQLBoolean,
   GraphQLObjectType
 } from "graphql";
 
 import { PasswordCredential, PasswordAuthority } from "../model";
 import { User } from "../../../model";
-import {
-  GraphQLCredential,
-  GraphQLUser,
-  GraphQLContact
-} from "../../../graphql";
+import { GraphQLCredential, GraphQLUser } from "../../../graphql";
 import { GraphQLPasswordAuthority } from "./GraphQLPasswordAuthority";
 import { Context } from "../../../Context";
 
@@ -27,6 +24,9 @@ export const GraphQLPasswordCredential = new GraphQLObjectType<
   isTypeOf: (value: any): boolean => value instanceof PasswordCredential,
   fields: () => ({
     id: { type: new GraphQLNonNull(GraphQLID) },
+    enabled: {
+      type: new GraphQLNonNull(GraphQLBoolean)
+    },
     user: {
       type: GraphQLUser,
       async resolve(
@@ -50,7 +50,6 @@ export const GraphQLPasswordCredential = new GraphQLObjectType<
       }
     },
     authorityUserId: { type: GraphQLString },
-    contact: { type: GraphQLContact },
     hash: {
       type: GraphQLString,
       async resolve(

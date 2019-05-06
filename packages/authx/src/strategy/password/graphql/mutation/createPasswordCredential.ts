@@ -70,7 +70,6 @@ export const createPasswordCredential: GraphQLFieldConfig<
         authorityId: args.authorityId,
         userId: args.userId,
         authorityUserId: args.userId,
-        contact: null,
         details: {
           hash: await hash(args.password, authority.details.rounds)
         }

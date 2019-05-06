@@ -5,5 +5,3 @@ export * from "./Grant";
 export * from "./Role";
 export * from "./Authorization";
 export * from "./User";
-export * from "./Contact";
-export * from "./ContactInput";

@@ -86,7 +86,6 @@ export const createEmailCredential: GraphQLFieldConfig<
         authorityId: args.authorityId,
         userId: args.userId,
         authorityUserId: args.email,
-        contact: null,
         details: {}
       });
 

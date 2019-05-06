@@ -11,7 +11,8 @@
     "@types/react-dom": "^16.8.3",
     "graphql-react": "^8.1.1",
     "react": "^16.8.5",
-    "react-dom": "^16.8.5"
+    "react-dom": "^16.8.5",
+    "uuid": "^3.3.2"
   },
   "description": "",
   "devDependencies": {

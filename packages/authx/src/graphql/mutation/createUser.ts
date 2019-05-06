@@ -1,19 +1,23 @@
 import v4 from "uuid/v4";
-import { GraphQLBoolean, GraphQLFieldConfig, GraphQLNonNull } from "graphql";
+import {
+  GraphQLBoolean,
+  GraphQLFieldConfig,
+  GraphQLNonNull,
+  GraphQLString
+} from "graphql";
 
 import { Context } from "../../Context";
 import { GraphQLUser } from "../GraphQLUser";
-import { GraphQLContactInput } from "../GraphQLContactInput";
 import { GraphQLUserType } from "../GraphQLUserType";
-import { User, UserType, ContactInitialInput } from "../../model";
+import { User, UserType } from "../../model";
 import { ForbiddenError } from "../../errors";
 
 export const createUser: GraphQLFieldConfig<
   any,
   {
-    enabled: boolean;
     type: UserType;
-    contact: ContactInitialInput;
+    enabled: boolean;
+    name: string;
   },
   Context
 > = {
@@ -27,8 +31,8 @@ export const createUser: GraphQLFieldConfig<
     type: {
       type: new GraphQLNonNull(GraphQLUserType)
     },
-    contact: {
-      type: new GraphQLNonNull(GraphQLContactInput)
+    name: {
+      type: new GraphQLNonNull(GraphQLString)
     }
   },
   async resolve(source, args, context): Promise<User> {
@@ -57,7 +61,7 @@ export const createUser: GraphQLFieldConfig<
           id,
           enabled: args.enabled,
           type: args.type,
-          contact: args.contact
+          name: args.name
         },
         {
           recordId: v4(),

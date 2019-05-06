@@ -2,6 +2,7 @@ import {
   GraphQLID,
   GraphQLNonNull,
   GraphQLString,
+  GraphQLBoolean,
   GraphQLInterfaceType
 } from "graphql";
 
@@ -9,7 +10,9 @@ export const GraphQLAuthority = new GraphQLInterfaceType({
   name: "Authority",
   fields: () => ({
     id: { type: new GraphQLNonNull(GraphQLID) },
-    strategy: { type: GraphQLString },
+    enabled: {
+      type: new GraphQLNonNull(GraphQLBoolean)
+    },
     name: { type: GraphQLString }
   })
 });

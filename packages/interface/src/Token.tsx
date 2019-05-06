@@ -42,7 +42,7 @@ export function Authorization({
     {
       viewer: null | {
         id: string;
-        user: null | { id: string; contact: null | { displayName: string } };
+        user: null | { id: string; name: null | string };
       };
     },
     {}
@@ -56,9 +56,7 @@ export function Authorization({
             id
             user {
               id
-              contact {
-                displayName
-              }
+              name
             }
           }  
         }
@@ -71,8 +69,7 @@ export function Authorization({
     cacheValue.data &&
     cacheValue.data.viewer &&
     cacheValue.data.viewer.user &&
-    cacheValue.data.viewer.user.contact &&
-    cacheValue.data.viewer.user.contact.displayName;
+    cacheValue.data.viewer.user.name;
 
   // API and errors
   const graphql = useContext<GraphQL>(GraphQLContext);

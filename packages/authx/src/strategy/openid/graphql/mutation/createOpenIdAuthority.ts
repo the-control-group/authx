@@ -3,7 +3,9 @@ import {
   GraphQLBoolean,
   GraphQLFieldConfig,
   GraphQLNonNull,
-  GraphQLString
+  GraphQLString,
+  GraphQLID,
+  GraphQLList
 } from "graphql";
 
 import { Context } from "../../../../Context";
@@ -16,10 +18,15 @@ export const createOpenIdAuthority: GraphQLFieldConfig<
   {
     enabled: boolean;
     name: string;
-    authorizationCodeUrl: string;
+    authUrl: string;
+    tokenUrl: string;
     clientId: string;
     clientSecret: string;
-    url: string;
+    restrictToHostedDomains: string[];
+    emailAuthorityId: null | string;
+    matchUsersByEmail: boolean;
+    createUnmatchedUsers: boolean;
+    assignCreatedUsersToRoleIds: string[];
   },
   Context
 > = {
@@ -34,7 +41,11 @@ export const createOpenIdAuthority: GraphQLFieldConfig<
       type: new GraphQLNonNull(GraphQLString),
       description: "The name of the authority."
     },
-    authorizationCodeUrl: {
+    authUrl: {
+      type: new GraphQLNonNull(GraphQLString),
+      description: "The URL to which a user is directed to authenticate."
+    },
+    tokenUrl: {
       type: new GraphQLNonNull(GraphQLString),
       description:
         "The URL used by AuthX to exchange an authorization code for an access token."
@@ -45,11 +56,37 @@ export const createOpenIdAuthority: GraphQLFieldConfig<
     },
     clientSecret: {
       type: new GraphQLNonNull(GraphQLString),
-      description: "The AuthX client secret for OpenId."
+      description: "The AuthX client secret with the OpenID provider."
     },
-    url: {
-      type: new GraphQLNonNull(GraphQLString),
-      description: "The URL to which a user is directed to authenticate."
+    restrictToHostedDomains: {
+      type: new GraphQLNonNull(
+        new GraphQLList(new GraphQLNonNull(GraphQLString))
+      ) as any,
+      description: "Restrict to accounts controlled by these hosted domains.",
+      defaultValue: []
+    },
+    emailAuthorityId: {
+      type: GraphQLID,
+      description: "The ID of the email authority."
+    },
+    matchUsersByEmail: {
+      type: GraphQLBoolean,
+      description:
+        "If no credential exists for the given OpenID provider, should we lookup the user by email address?",
+      defaultValue: false
+    },
+    createUnmatchedUsers: {
+      type: GraphQLBoolean,
+      description:
+        "If no credential exists for the given OpenID provider, should we create a new one?",
+      defaultValue: false
+    },
+    assignCreatedUsersToRoleIds: {
+      type: new GraphQLNonNull(
+        new GraphQLList(new GraphQLNonNull(GraphQLID))
+      ) as any,
+      description: "When a user is created, assign to these roles.",
+      defaultValue: []
     }
   },
   async resolve(source, args, context): Promise<OpenIdAuthority> {
@@ -70,8 +107,15 @@ export const createOpenIdAuthority: GraphQLFieldConfig<
         enabled: args.enabled,
         name: args.name,
         details: {
+          authUrl: args.authUrl,
+          tokenUrl: args.tokenUrl,
           clientId: args.clientId,
-          clientSecret: args.clientSecret
+          clientSecret: args.clientSecret,
+          restrictToHostedDomains: args.restrictToHostedDomains,
+          emailAuthorityId: args.emailAuthorityId,
+          matchUsersByEmail: args.matchUsersByEmail,
+          createUnmatchedUsers: args.createUnmatchedUsers,
+          assignCreatedUsersToRoleIds: args.assignCreatedUsersToRoleIds
         }
       });
 

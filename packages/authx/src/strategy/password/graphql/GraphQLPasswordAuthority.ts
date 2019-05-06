@@ -3,6 +3,7 @@ import {
   GraphQLInt,
   GraphQLNonNull,
   GraphQLString,
+  GraphQLBoolean,
   GraphQLObjectType
 } from "graphql";
 
@@ -22,7 +23,9 @@ export const GraphQLPasswordAuthority = new GraphQLObjectType<
   isTypeOf: (value: any): boolean => value instanceof PasswordAuthority,
   fields: () => ({
     id: { type: new GraphQLNonNull(GraphQLID) },
-    strategy: { type: GraphQLString },
+    enabled: {
+      type: new GraphQLNonNull(GraphQLBoolean)
+    },
     name: { type: GraphQLString },
     rounds: {
       type: GraphQLInt,

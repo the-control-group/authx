@@ -5,7 +5,6 @@ import {
   GraphQLID,
   GraphQLNonNull,
   GraphQLList,
-  GraphQLInt,
   GraphQLString
 } from "graphql";
 
@@ -21,8 +20,15 @@ export const updateOpenIdAuthority: GraphQLFieldConfig<
     id: string;
     enabled: null | boolean;
     name: null | string;
+    authUrl: null | string;
+    tokenUrl: null | string;
     clientId: null | string;
     clientSecret: null | string;
+    restrictToHostedDomains: null | string[];
+    emailAuthorityId: null | string;
+    matchUsersByEmail: null | boolean;
+    createUnmatchedUsers: null | boolean;
+    assignCreatedUsersToRoleIds: null | string[];
   },
   Context
 > = {
@@ -39,13 +45,44 @@ export const updateOpenIdAuthority: GraphQLFieldConfig<
       type: GraphQLString,
       description: "The name of the authority."
     },
+    authUrl: {
+      type: GraphQLString,
+      description: "The URL to which a user is directed to authenticate."
+    },
+    tokenUrl: {
+      type: GraphQLString,
+      description:
+        "The URL used by AuthX to exchange an authorization code for an access token."
+    },
     clientId: {
       type: GraphQLString,
-      description: "The AuthX client ID for OpenId."
+      description: "The client ID of AuthX in with OpenID provider."
     },
     clientSecret: {
       type: GraphQLString,
-      description: "The AuthX client secret for OpenId."
+      description: "The AuthX client secret with the OpenID provider."
+    },
+    restrictToHostedDomains: {
+      type: new GraphQLList(new GraphQLNonNull(GraphQLString)),
+      description: "Restrict to accounts controlled by these hosted domains."
+    },
+    emailAuthorityId: {
+      type: GraphQLString,
+      description: "The ID of the email authority."
+    },
+    matchUsersByEmail: {
+      type: GraphQLBoolean,
+      description:
+        "If no credential exists for the given OpenID provider, should we lookup the user by email address?"
+    },
+    createUnmatchedUsers: {
+      type: GraphQLBoolean,
+      description:
+        "If no credential exists for the given OpenID provider, should we create a new one?"
+    },
+    assignCreatedUsersToRoleIds: {
+      type: new GraphQLList(new GraphQLNonNull(GraphQLID)),
+      description: "When a user is created, assign to these roles."
     }
   },
   async resolve(source, args, context): Promise<OpenIdAuthority> {
@@ -94,6 +131,14 @@ export const updateOpenIdAuthority: GraphQLFieldConfig<
             typeof args.enabled === "boolean" ? args.enabled : before.enabled,
           name: typeof args.name === "string" ? args.name : before.name,
           details: {
+            authUrl:
+              typeof args.authUrl === "string"
+                ? args.authUrl
+                : before.details.authUrl,
+            tokenUrl:
+              typeof args.tokenUrl === "string"
+                ? args.tokenUrl
+                : before.details.tokenUrl,
             clientId:
               typeof args.clientId === "string"
                 ? args.clientId
@@ -101,7 +146,29 @@ export const updateOpenIdAuthority: GraphQLFieldConfig<
             clientSecret:
               typeof args.clientSecret === "string"
                 ? args.clientSecret
-                : before.details.clientSecret
+                : before.details.clientSecret,
+            restrictToHostedDomains: Array.isArray(args.restrictToHostedDomains)
+              ? args.restrictToHostedDomains
+              : before.details.restrictToHostedDomains,
+            emailAuthorityId:
+              typeof args.emailAuthorityId === "string"
+                ? args.emailAuthorityId === ""
+                  ? null
+                  : args.emailAuthorityId
+                : before.details.emailAuthorityId,
+            matchUsersByEmail:
+              typeof args.matchUsersByEmail === "boolean"
+                ? args.matchUsersByEmail
+                : before.details.matchUsersByEmail,
+            createUnmatchedUsers:
+              typeof args.createUnmatchedUsers === "boolean"
+                ? args.createUnmatchedUsers
+                : before.details.createUnmatchedUsers,
+            assignCreatedUsersToRoleIds: Array.isArray(
+              args.assignCreatedUsersToRoleIds
+            )
+              ? args.assignCreatedUsersToRoleIds
+              : before.details.assignCreatedUsersToRoleIds
           }
         },
         {

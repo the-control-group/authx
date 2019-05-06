@@ -14,17 +14,7 @@ import { PasswordAuthority, PasswordCredential } from "../strategy/password";
     id: v4(),
     enabled: true,
     type: "human",
-    contact: {
-      displayName: "AuthX Root User",
-      name: null,
-      nickname: null,
-      birthday: null,
-      anniversary: null,
-      gender: null,
-      note: null,
-      preferredUsername: null,
-      utcOffset: null
-    }
+    name: "AuthX Root User"
   });
 
   const authority = new PasswordAuthority({
@@ -44,7 +34,6 @@ import { PasswordAuthority, PasswordCredential } from "../strategy/password";
     authorityId: authority.id,
     authorityUserId: user.id,
     userId: user.id,
-    contact: null,
     details: {
       hash: await hash(password, authority.details.rounds)
     }

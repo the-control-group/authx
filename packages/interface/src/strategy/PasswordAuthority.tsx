@@ -8,14 +8,18 @@ import React, {
 } from "react";
 
 import { GraphQL, GraphQLContext } from "graphql-react";
-import { StrategyComponentProps } from "./definitions";
+
+interface Props {
+  authority: PasswordAuthorityFragmentData;
+  authorities: { __typename: string; id: string; name?: null | string }[];
+  setAuthorization: (authorization: { id: string; secret: string }) => void;
+}
 
 export function PasswordAuthority({
   authority,
   authorities,
-  setAuthorization,
-  redirect
-}: StrategyComponentProps): ReactElement {
+  setAuthorization
+}: Props): ReactElement<Props> {
   // Focus the email field on mount
   const focusElement = useRef<HTMLInputElement>(null);
   const [mounted, setMounted] = useState<boolean>(false);
@@ -41,7 +45,9 @@ export function PasswordAuthority({
 
   // Default to using an email address
   if (!identityAuthorityId) {
-    const firstEmailAuthority = authorities.find(a => a.strategy === "email");
+    const firstEmailAuthority = authorities.find(
+      a => a.__typename === "EmailAuthority"
+    );
     if (firstEmailAuthority) {
       setIdentityAuthorityId(firstEmailAuthority.id);
     } else if (authorities.length) {
@@ -130,11 +136,6 @@ export function PasswordAuthority({
 
       // Set the authorization.
       setAuthorization({ id: authorization.id, secret: authorization.secret });
-
-      // Redirect.
-      if (redirect) {
-        redirect();
-      }
     } catch (error) {
       setErrors([error.message]);
       return;
@@ -156,7 +157,7 @@ export function PasswordAuthority({
           >
             <option value={authority.id}>User ID</option>
             {authorities
-              .filter(a => a.strategy === "email")
+              .filter(a => a.__typename === "EmailAuthority")
               .map(a => (
                 <option key={a.id} value={a.id}>
                   {a.name}
@@ -167,16 +168,16 @@ export function PasswordAuthority({
             ref={focusElement}
             name={
               (identityAuthority &&
-                (identityAuthority.strategy === "password"
+                (identityAuthority.__typename === "PasswordAuthority"
                   ? "id"
-                  : identityAuthority.strategy)) ||
+                  : identityAuthority.__typename)) ||
               "id"
             }
             type={
               (identityAuthority &&
-                (identityAuthority.strategy === "email"
+                (identityAuthority.__typename === "EmailAuthority"
                   ? "email"
-                  : identityAuthority.strategy === "phone"
+                  : identityAuthority.__typename === "PhoneAuthority"
                   ? "tel"
                   : null)) ||
               "text"
@@ -213,3 +214,17 @@ export function PasswordAuthority({
     </form>
   );
 }
+
+export interface PasswordAuthorityFragmentData {
+  __typename: "PasswordAuthority";
+  id: string;
+  name?: null | string;
+}
+
+export const PasswordAuthorityFragment = `
+  fragment PasswordAuthorityFragment on PasswordAuthority {
+    __typename
+    id
+    name
+  }
+`;

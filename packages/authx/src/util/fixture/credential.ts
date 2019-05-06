@@ -19,8 +19,7 @@ export const credential: {
           userId: "a6a0946d-eeb4-45cd-83c6-c7920f2272eb",
           details: {
             proof: null
-          },
-          contact: null
+          }
         },
         {
           recordId: "43f7df35-4c00-4baf-b175-1914869897d5",
@@ -42,8 +41,7 @@ export const credential: {
           userId: "0cbd3783-0424-4f35-be51-b42f07a2a987",
           details: {
             proof: null
-          },
-          contact: null
+          }
         },
         {
           recordId: "a773bff0-ada1-43b9-b724-85b85dfcd2e3",
@@ -65,8 +63,7 @@ export const credential: {
           userId: "d0fc4c64-a3d6-4d97-9341-07de24439bb1",
           details: {
             proof: null
-          },
-          contact: null
+          }
         },
         {
           recordId: "d6e44a92-8841-48f1-8d9b-0f1d54ee1262",
@@ -88,8 +85,7 @@ export const credential: {
           userId: "eaa9fa5e-088a-4ae2-a6ab-f120006b20a9",
           details: {
             proof: null
-          },
-          contact: null
+          }
         },
         {
           recordId: "80a5449b-c08e-4ee5-8f4f-bd6f16b716af",
@@ -111,8 +107,7 @@ export const credential: {
           userId: "306eabbb-cc2b-4f88-be19-4bb6ec98e5c3",
           details: {
             proof: null
-          },
-          contact: null
+          }
         },
         {
           recordId: "4c33b324-6b53-4163-8e25-d3ebaa863913",
@@ -134,8 +129,7 @@ export const credential: {
           userId: "dc396449-2c7d-4a23-a159-e6415ded71d2",
           details: {
             proof: null
-          },
-          contact: null
+          }
         },
         {
           recordId: "f3601f1e-2af0-4454-b30c-4658746d1be4",
@@ -157,8 +151,7 @@ export const credential: {
           userId: "51192909-3664-44d5-be62-c6b45f0b0ee6",
           details: {
             proof: null
-          },
-          contact: null
+          }
         },
         {
           recordId: "8579853d-db37-4212-8cac-3fe42f1e8c42",
@@ -180,8 +173,7 @@ export const credential: {
           userId: "9ad4b34b-781d-44fe-ac39-9b7ac43dde21",
           details: {
             proof: null
-          },
-          contact: null
+          }
         },
         {
           recordId: "af713259-e3a6-4a66-96a7-284cb3bac2cb",
@@ -203,8 +195,7 @@ export const credential: {
           userId: "a6a0946d-eeb4-45cd-83c6-c7920f2272eb",
           details: {
             hash: "$2a$04$j.W.ev.hBuIZZEKRZRpcPOmHz6SjaYtg/cO8vnBlq3lHHnFh2B1N2" // password: 123456
-          },
-          contact: null
+          }
         },
         {
           recordId: "f160eda8-aa01-4fd3-b66c-8a06352e3dd1",
@@ -226,8 +217,7 @@ export const credential: {
           userId: "0cbd3783-0424-4f35-be51-b42f07a2a987",
           details: {
             hash: "$2a$04$VAAR33JYHsDALax5e0DO2eVkqitvn5UZOL0awZk90e7CwoxJvbrOW" // password: beets are awesome
-          },
-          contact: null
+          }
         },
         {
           recordId: "5a389b50-c2df-4361-a1de-235a3505f43c",
@@ -249,8 +239,7 @@ export const credential: {
           userId: "d0fc4c64-a3d6-4d97-9341-07de24439bb1",
           details: {
             hash: "$2a$04$9AqH/83kt7Tid5n01ysLBOs2u23S/2PUWXKf9vOzOUzyk6.kwT4R2" // password: baseball
-          },
-          contact: null
+          }
         },
         {
           recordId: "3f589ed1-5e09-4e74-919d-318bb7935fcd",
@@ -272,8 +261,7 @@ export const credential: {
           userId: "eaa9fa5e-088a-4ae2-a6ab-f120006b20a9",
           details: {
             hash: "$2a$04$EnRptYjQNyS5zo16RyuOie5QJGAuq492YhQVzoWZe96y9LYjJEU8K" // password: i love jim
-          },
-          contact: null
+          }
         },
         {
           recordId: "f2971365-2428-455c-984d-e454fc89d6b3",
@@ -295,8 +283,7 @@ export const credential: {
           userId: "306eabbb-cc2b-4f88-be19-4bb6ec98e5c3",
           details: {
             hash: "$2a$04$bEApeUnCL0pMAZf6fNym9OO/z6SJsyN6CY773Fx1O7ZTSzgwu1pXG" // password: costa rica
-          },
-          contact: null
+          }
         },
         {
           recordId: "5cb8a994-5c76-4551-891e-f9720a4be423",
@@ -318,8 +305,7 @@ export const credential: {
           userId: "dc396449-2c7d-4a23-a159-e6415ded71d2",
           details: {
             hash: "$2a$04$GM8OJ7/Oq4H2Q.d9Yk3Ga.ffKmrUez7EYTHmEoX7jHpkDmmepl1/W" // password: you can get through today
-          },
-          contact: null
+          }
         },
         {
           recordId: "d9d6e7dc-640e-492a-9f87-1bd80be2fe6d",
@@ -341,8 +327,7 @@ export const credential: {
           userId: "51192909-3664-44d5-be62-c6b45f0b0ee6",
           details: {
             hash: "$2a$04$cVcd/QO4.LxGRTi7g4iON.HAiFsmuKBqcIp9WvTTTWTBhbnjHMRbe" // password: whatever
-          },
-          contact: null
+          }
         },
         {
           recordId: "c0692098-9909-4771-a79d-3702814c9f92",
@@ -364,8 +349,7 @@ export const credential: {
           userId: "9ad4b34b-781d-44fe-ac39-9b7ac43dde21",
           details: {
             hash: "$2a$04$R/nz0oaq8l4Ba0CNznZ3v.P2CRZEN/z4jN/2s1VFMPFVTQ9qQL/WO" // password: art sucks
-          },
-          contact: null
+          }
         },
         {
           recordId: "a7a9153b-48f7-4082-9abc-ae90e5719fde",
@@ -388,8 +372,7 @@ export const credential: {
           details: {
             secret:
               "$2a$04$SPRITTeZvQ9hI.TPkvoE0Op19wAgBlObKRQ6sz.ahjVVDFBajjFrO" // password: da8ad1c19e0f
-          },
-          contact: null
+          }
         },
         {
           recordId: "de790793-ac98-43b7-8ac6-1ddcf0cd5898",

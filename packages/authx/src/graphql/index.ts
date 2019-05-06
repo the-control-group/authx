@@ -14,20 +14,6 @@ import { GraphQLTimestamp } from "./GraphQLTimestamp";
 import { GraphQLAuthorization } from "./GraphQLAuthorization";
 import { GraphQLUser } from "./GraphQLUser";
 import { GraphQLUserType } from "./GraphQLUserType";
-import {
-  GraphQLContactName,
-  GraphQLContactAddress,
-  GraphQLContactOrganization,
-  GraphQLContactAccount,
-  GraphQLContactEmail,
-  GraphQLContactUrl,
-  GraphQLContactPhoneNumber,
-  GraphQLContactIm,
-  GraphQLContactPhoto,
-  GraphQLContactTag,
-  GraphQLContactRelationship,
-  GraphQLContact
-} from "./GraphQLContact";
 
 export * from "./GraphQLAuthority";
 export * from "./GraphQLCredential";
@@ -40,8 +26,6 @@ export * from "./GraphQLTimestamp";
 export * from "./GraphQLAuthorization";
 export * from "./GraphQLUser";
 export * from "./GraphQLUserType";
-export * from "./GraphQLContact";
-export * from "./GraphQLContactInput";
 
 export default function createSchema(
   strategies: StrategyCollection
@@ -75,18 +59,6 @@ export default function createSchema(
       GraphQLAuthorization,
       GraphQLUser,
       GraphQLUserType,
-      GraphQLContactName,
-      GraphQLContactAddress,
-      GraphQLContactOrganization,
-      GraphQLContactAccount,
-      GraphQLContactEmail,
-      GraphQLContactUrl,
-      GraphQLContactPhoneNumber,
-      GraphQLContactIm,
-      GraphQLContactPhoto,
-      GraphQLContactTag,
-      GraphQLContactRelationship,
-      GraphQLContact,
 
       ...mutationTypes,
 

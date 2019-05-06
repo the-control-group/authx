@@ -4,6 +4,7 @@ import {
   GraphQLNonNull,
   GraphQLString,
   GraphQLList,
+  GraphQLBoolean,
   GraphQLObjectType
 } from "graphql";
 
@@ -22,7 +23,9 @@ export const GraphQLEmailAuthority = new GraphQLObjectType<
   isTypeOf: (value: any): boolean => value instanceof EmailAuthority,
   fields: () => ({
     id: { type: new GraphQLNonNull(GraphQLID) },
-    strategy: { type: GraphQLString },
+    enabled: {
+      type: new GraphQLNonNull(GraphQLBoolean)
+    },
     name: { type: GraphQLString },
     privateKey: {
       type: GraphQLString,

@@ -13,7 +13,6 @@ import { Authority } from "../../../../model";
 import { OpenIdCredential, OpenIdAuthority } from "../../model";
 import { ForbiddenError, NotFoundError } from "../../../../errors";
 import { GraphQLOpenIdCredential } from "../GraphQLOpenIdCredential";
-import { substitute } from "../../substitute";
 
 export const createOpenIdCredential: GraphQLFieldConfig<
   any,
@@ -86,7 +85,6 @@ export const createOpenIdCredential: GraphQLFieldConfig<
         authorityId: args.authorityId,
         userId: args.userId,
         authorityUserId: args.openid,
-        contact: null,
         details: {}
       });
 

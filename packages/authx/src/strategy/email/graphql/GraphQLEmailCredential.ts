@@ -1,17 +1,14 @@
 import {
   GraphQLID,
   GraphQLNonNull,
+  GraphQLBoolean,
   GraphQLString,
   GraphQLObjectType
 } from "graphql";
 
 import { EmailCredential, EmailAuthority } from "../model";
 import { User } from "../../../model";
-import {
-  GraphQLCredential,
-  GraphQLUser,
-  GraphQLContact
-} from "../../../graphql";
+import { GraphQLCredential, GraphQLUser } from "../../../graphql";
 import { GraphQLEmailAuthority } from "./GraphQLEmailAuthority";
 import { Context } from "../../../Context";
 
@@ -27,6 +24,9 @@ export const GraphQLEmailCredential = new GraphQLObjectType<
   isTypeOf: (value: any): boolean => value instanceof EmailCredential,
   fields: () => ({
     id: { type: new GraphQLNonNull(GraphQLID) },
+    enabled: {
+      type: new GraphQLNonNull(GraphQLBoolean)
+    },
     user: {
       type: GraphQLUser,
       async resolve(
@@ -49,7 +49,6 @@ export const GraphQLEmailCredential = new GraphQLObjectType<
         return credential.authority(tx);
       }
     },
-    authorityUserId: { type: GraphQLString },
-    contact: { type: GraphQLContact }
+    authorityUserId: { type: GraphQLString }
   })
 });

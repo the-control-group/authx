@@ -3,6 +3,7 @@ import {
   GraphQLList,
   GraphQLNonNull,
   GraphQLString,
+  GraphQLBoolean,
   GraphQLObjectType
 } from "graphql";
 
@@ -21,6 +22,9 @@ export const GraphQLGrant: GraphQLObjectType<
   interfaces: () => [],
   fields: () => ({
     id: { type: new GraphQLNonNull(GraphQLID) },
+    enabled: {
+      type: new GraphQLNonNull(GraphQLBoolean)
+    },
     user: {
       type: GraphQLUser,
       async resolve(

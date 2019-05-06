@@ -20,10 +20,10 @@ export const GraphQLAuthorization: GraphQLObjectType<
   interfaces: () => [],
   fields: () => ({
     id: { type: new GraphQLNonNull(GraphQLID) },
-    name: { type: GraphQLString },
     enabled: {
-      type: GraphQLBoolean
+      type: new GraphQLNonNull(GraphQLBoolean)
     },
+    name: { type: GraphQLString },
     grant: {
       type: GraphQLGrant,
       async resolve(

@@ -6,13 +6,17 @@ import { OpenIdCredential } from "./OpenIdCredential";
 // ---------
 
 export interface OpenIdAuthorityDetails {
-  authorizationCodeUrl: string;
+  authUrl: string;
+  tokenUrl: string;
   clientId: string;
   clientSecret: string;
-  url: string;
-  // emailAuthorityId: null | string;
-  // assignRoleIdsByDomain: null | { [domain: string]: string[] };
-  // assignRoleIds: null | string[];
+
+  restrictToHostedDomains: string[];
+
+  emailAuthorityId: null | string;
+  matchUsersByEmail: boolean;
+  createUnmatchedUsers: boolean;
+  assignCreatedUsersToRoleIds: string[];
 }
 
 export class OpenIdAuthority extends Authority<OpenIdAuthorityDetails> {
