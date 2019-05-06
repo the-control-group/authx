@@ -53,11 +53,11 @@ export default async (ctx: ParameterizedContext<any, { [x]: Context }>) => {
 
   try {
     // Make sure the body is an object.
-    if (!ctx.body || typeof ctx.body !== "object") {
+    if (!ctx.request.body || typeof ctx.request.body !== "object") {
       throw new OAuthError("invalid_request");
     }
 
-    const grantType: undefined | string = ctx.body.grant_type;
+    const grantType: undefined | string = ctx.request.body.grant_type;
 
     // Authorization Code
     // ==================
@@ -66,19 +66,25 @@ export default async (ctx: ParameterizedContext<any, { [x]: Context }>) => {
       try {
         const now = Math.floor(Date.now() / 1000);
         const paramsClientId: undefined | string =
-          typeof ctx.body.client_id === "string"
-            ? ctx.body.client_id
+          typeof ctx.request.body.client_id === "string"
+            ? ctx.request.body.client_id
             : undefined;
         const paramsClientSecret: undefined | string =
-          typeof ctx.body.client_secret === "string"
-            ? ctx.body.client_secret
+          typeof ctx.request.body.client_secret === "string"
+            ? ctx.request.body.client_secret
             : undefined;
         const paramsCode: undefined | string =
-          typeof ctx.body.code === "string" ? ctx.body.code : undefined;
+          typeof ctx.request.body.code === "string"
+            ? ctx.request.body.code
+            : undefined;
         const paramsScope: undefined | string =
-          typeof ctx.body.scope === "string" ? ctx.body.scope : undefined;
+          typeof ctx.request.body.scope === "string"
+            ? ctx.request.body.scope
+            : undefined;
         const paramsNonce: undefined | string =
-          typeof ctx.body.nonce === "string" ? ctx.body.nonce : undefined;
+          typeof ctx.request.body.nonce === "string"
+            ? ctx.request.body.nonce
+            : undefined;
         if (!paramsClientId || !paramsClientSecret || !paramsCode) {
           throw new OAuthError("invalid_request");
         }
@@ -222,6 +228,7 @@ export default async (ctx: ParameterizedContext<any, { [x]: Context }>) => {
 
         await tx.query("COMMIT");
         ctx.response.body = body;
+        return;
       } catch (error) {
         await tx.query("ROLLBACK");
         throw error;
@@ -234,21 +241,25 @@ export default async (ctx: ParameterizedContext<any, { [x]: Context }>) => {
       tx.query("BEGIN DEFERRABLE");
       try {
         const paramsClientId: undefined | string =
-          typeof ctx.body.client_id === "string"
-            ? ctx.body.client_id
+          typeof ctx.request.body.client_id === "string"
+            ? ctx.request.body.client_id
             : undefined;
         const paramsClientSecret: undefined | string =
-          typeof ctx.body.client_secret === "string"
-            ? ctx.body.client_secret
+          typeof ctx.request.body.client_secret === "string"
+            ? ctx.request.body.client_secret
             : undefined;
         const paramsRefreshToken: undefined | string =
-          typeof ctx.body.refresh_token === "string"
-            ? ctx.body.refresh_token
+          typeof ctx.request.body.refresh_token === "string"
+            ? ctx.request.body.refresh_token
             : undefined;
         const paramsScope: undefined | string =
-          typeof ctx.body.scope === "string" ? ctx.body.scope : undefined;
+          typeof ctx.request.body.scope === "string"
+            ? ctx.request.body.scope
+            : undefined;
         const paramsNonce: undefined | string =
-          typeof ctx.body.nonce === "string" ? ctx.body.nonce : undefined;
+          typeof ctx.request.body.nonce === "string"
+            ? ctx.request.body.nonce
+            : undefined;
         if (!paramsClientId || !paramsClientSecret || !paramsRefreshToken) {
           throw new OAuthError("invalid_request");
         }
@@ -361,8 +372,8 @@ export default async (ctx: ParameterizedContext<any, { [x]: Context }>) => {
         };
 
         await tx.query("COMMIT");
-
         ctx.response.body = body;
+        return;
       } catch (error) {
         await tx.query("ROLLBACK");
         throw error;

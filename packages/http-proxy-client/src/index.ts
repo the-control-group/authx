@@ -108,6 +108,7 @@ export default class AuthXClientProxy extends EventEmitter {
     super();
     this._config = config;
     this._proxy = createProxyServer({});
+    this._proxy.on("error", error => this.emit("error", error));
     this.server = createServer(this._callback);
     this.server.on("listening", () => {
       this._closed = false;
@@ -150,13 +151,13 @@ export default class AuthXClientProxy extends EventEmitter {
     }
 
     // Serve the client URL.
-    if (
-      request.url &&
-      request.url.slice(0, this._config.clientUrl.length) ===
-        this._config.clientUrl
-    ) {
-      const params = new URL(request.url || "/", "http://this-does-not-matter")
-        .searchParams;
+    const requestUrl = new URL(
+      request.url || "/",
+      "http://this-does-not-matter"
+    );
+    const clientUrl = new URL(this._config.clientUrl);
+    if (requestUrl.pathname === clientUrl.pathname) {
+      const params = requestUrl.searchParams;
 
       // Display an error.
       const errors = params.getAll("error");
@@ -203,6 +204,7 @@ export default class AuthXClientProxy extends EventEmitter {
           method: "POST",
           body: JSON.stringify({
             /* eslint-disable @typescript-eslint/camelcase */
+            grant_type: "authorization_code",
             client_id: this._config.clientId,
             client_secret: this._config.clientSecret,
             code: code,
@@ -221,6 +223,10 @@ export default class AuthXClientProxy extends EventEmitter {
         }
 
         const tokenResponseBody = await tokenResponse.json();
+
+        if (tokenResponseBody.error) {
+          throw new Error(tokenResponseBody.error);
+        }
 
         // Update the refresh token.
         if (tokenResponseBody.refresh_token) {

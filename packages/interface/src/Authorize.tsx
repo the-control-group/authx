@@ -59,12 +59,13 @@ export function Authorize({
           grant: null | {
             id: string;
             scopes: null | string[];
-            client: null | {
-              name: string;
-              urls: string[];
-            };
           };
         };
+      };
+      client: null | {
+        id: string;
+        name: string;
+        urls: string[];
       };
     },
     { clientId: string }
@@ -76,16 +77,19 @@ export function Authorize({
         query($clientId: ID!) {
           viewer {
             user {
+              id
               name
               grant(clientId: $clientId) {
                 id
                 scopes
-                client {
-                  name
-                  urls
-                }
               }
             }
+          }
+
+          client(id: $clientId) {
+            id
+            name
+            urls
           }
         }
       `,
@@ -98,31 +102,34 @@ export function Authorize({
     cacheValue.data &&
     cacheValue.data.viewer &&
     cacheValue.data.viewer.user;
+  const client = cacheValue && cacheValue.data && cacheValue.data.client;
   const grant = user && user.grant;
-  const client = grant && grant.client;
   const urls = client && client.urls;
 
   // API and errors
   const graphql = useContext<GraphQL>(GraphQLContext);
   const [errors, setErrors] = useState<string[]>([]);
   async function onGrantAccess(): Promise<void> {
-    if (!grant || !paramsRedirectUri) return;
+    if (!paramsRedirectUri) return;
+    if (!user || !client) return;
 
-    const operation = graphql.operate<
-      {
-        updateGrant: null | {
-          codes: null | string[];
-          scopes: null | string[];
-        };
-      },
-      {
-        id: string;
-        scopes: string[];
-      }
-    >({
-      fetchOptionsOverride,
-      operation: {
-        query: `
+    const operation = grant
+      ? graphql.operate<
+          {
+            createGrant?: undefined;
+            updateGrant: null | {
+              codes: null | string[];
+              scopes: null | string[];
+            };
+          },
+          {
+            id: string;
+            scopes: string[];
+          }
+        >({
+          fetchOptionsOverride,
+          operation: {
+            query: `
           mutation($id: ID!, $scopes: [String!]!) {
             updateGrant(id: $id, scopes: $scopes, generateCodes: 1) {
               codes
@@ -130,12 +137,43 @@ export function Authorize({
             }
           }
         `,
-        variables: {
-          id: grant.id,
-          scopes: [...(grant.scopes || []), ...(requestedScopes || [])]
-        }
-      }
-    });
+            variables: {
+              id: grant.id,
+              scopes: [...(grant.scopes || []), ...(requestedScopes || [])]
+            }
+          }
+        })
+      : graphql.operate<
+          {
+            updateGrant?: undefined;
+            createGrant: null | {
+              codes: null | string[];
+              scopes: null | string[];
+            };
+          },
+          {
+            clientId: string;
+            userId: string;
+            scopes: string[];
+          }
+        >({
+          fetchOptionsOverride,
+          operation: {
+            query: `
+          mutation($clientId: ID!, $userId: ID!, $scopes: [String!]!) {
+            createGrant(clientId: $clientId, userId: $userId, scopes: $scopes) {
+              codes
+              scopes
+            }
+          }
+        `,
+            variables: {
+              clientId: client.id,
+              userId: user.id,
+              scopes: [...(requestedScopes || [])]
+            }
+          }
+        });
 
     try {
       const result = await operation.cacheValuePromise;
@@ -149,12 +187,11 @@ export function Authorize({
         return;
       }
 
+      const final =
+        result.data && (result.data.updateGrant || result.data.createGrant);
+
       const code =
-        (result.data &&
-          result.data.updateGrant &&
-          result.data.updateGrant.codes &&
-          [...result.data.updateGrant.codes].sort().reverse()[0]) ||
-        null;
+        (final && final.codes && [...final.codes].sort().reverse()[0]) || null;
 
       if (!code) {
         setErrors([
@@ -280,7 +317,7 @@ export function Authorize({
   }
 
   // Internal error
-  if (!user || !grant || !client) {
+  if (!user || !client) {
     return (
       <div>
         <h1>Authorize</h1>
@@ -290,13 +327,7 @@ export function Authorize({
           ) : (
             <Fragment>
               {!user ? <div className="error">Unable to load user.</div> : null}
-              {user && !grant ? (
-                <div className="error">
-                  Unable to load grant. Make sure you have access to read your
-                  own grants.
-                </div>
-              ) : null}
-              {user && grant && !client ? (
+              {user && !client ? (
                 <div className="error">
                   Unable to load client. Make sure you have access to read
                   clients.
@@ -319,7 +350,7 @@ export function Authorize({
           <div>
             <p>
               Welcome
-              {(user && user.name) || ""}!
+              {" " + (user && user.name) || ""}!
               <button
                 onClick={e => {
                   e.preventDefault();
