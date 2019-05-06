@@ -1,4 +1,6 @@
 import v4 from "uuid/v4";
+import fetch from "node-fetch";
+import FormData from "form-data";
 import jwt from "jsonwebtoken";
 import {
   GraphQLBoolean,
@@ -11,7 +13,12 @@ import {
 import { Context } from "../../../../Context";
 import { Authority } from "../../../../model";
 import { OpenIdCredential, OpenIdAuthority } from "../../model";
-import { ForbiddenError, NotFoundError } from "../../../../errors";
+import {
+  ForbiddenError,
+  NotFoundError,
+  ValidationError,
+  AuthenticationError
+} from "../../../../errors";
 import { GraphQLOpenIdCredential } from "../GraphQLOpenIdCredential";
 
 export const createOpenIdCredential: GraphQLFieldConfig<
@@ -20,8 +27,8 @@ export const createOpenIdCredential: GraphQLFieldConfig<
     enabled: boolean;
     userId: string;
     authorityId: string;
-    openid: string;
-    proof: null | string;
+    code: null | string;
+    subject: null | string;
   },
   Context
 > = {
@@ -40,14 +47,15 @@ export const createOpenIdCredential: GraphQLFieldConfig<
       description:
         "The ID of the AuthX openid authority that can verify this credential."
     },
-    openid: {
-      type: new GraphQLNonNull(GraphQLID),
-      description: "The openid address of the user."
-    },
-    proof: {
+    code: {
       type: GraphQLString,
       description:
-        "This is a unique code that was sent by the authority to prove control of the openid address."
+        "The OAuth authorization code provided by the OpenID exchange."
+    },
+    subject: {
+      type: GraphQLString,
+      description:
+        "The subject according to ID tokens signed by the OpenID provider."
     }
   },
   async resolve(source, args, context): Promise<OpenIdCredential> {
@@ -56,7 +64,6 @@ export const createOpenIdCredential: GraphQLFieldConfig<
       authorization: a,
       realm,
       strategies: { authorityMap },
-      sendMail,
       base
     } = context;
 
@@ -70,13 +77,126 @@ export const createOpenIdCredential: GraphQLFieldConfig<
 
     try {
       const id = v4();
+
+      // Fetch the authority.
       const authority = await Authority.read(
         tx,
         args.authorityId,
         authorityMap
       );
+
       if (!(authority instanceof OpenIdAuthority)) {
-        throw new NotFoundError("No openid authority exists with this ID.");
+        throw new NotFoundError(
+          "The authority uses a strategy other than openid."
+        );
+      }
+
+      if (!args.code && !args.subject) {
+        throw new ValidationError(
+          "Either a `code` or `subject` must be provided."
+        );
+      }
+
+      if (typeof args.code === "string" && typeof args.subject === "string") {
+        throw new ValidationError(
+          "Only one of `code` or `subject` may be provided."
+        );
+      }
+
+      let subject = args.subject;
+
+      // Exchange the authorization code for an ID token.
+      if (!subject && args.code) {
+        const requestBody = new FormData();
+        requestBody.append("grant_type", "authorization_code");
+        requestBody.append("client_id", authority.details.clientId);
+        requestBody.append("client_secret", authority.details.clientSecret);
+        requestBody.append("code", args.code);
+        requestBody.append(
+          "redirect_uri",
+          `${base}?authorityId=${args.authorityId}`
+        );
+
+        const response = await fetch(authority.details.tokenUrl, {
+          method: "POST",
+          body: requestBody
+        });
+
+        const responseBody = (await response.json()) as {
+          access_token: string;
+          id_token: string;
+          expires_in: number;
+          token_type: string;
+          refresh_token?: string;
+          error?: string;
+        };
+
+        if (!responseBody || !responseBody.id_token) {
+          throw new Error(
+            (responseBody && responseBody.error) ||
+              "Invalid response returned by authority."
+          );
+        }
+
+        // Decode the ID token.
+        const token = jwt.decode(responseBody.id_token) as {
+          sub: string;
+          iss: string;
+          azp?: string;
+          aud: string;
+          iat: number;
+          exp: number;
+          name?: string;
+          given_name?: string;
+          family_name?: string;
+          middle_name?: string;
+          nickname?: string;
+          preferred_username?: string;
+          profile?: string;
+          picture?: string;
+          website?: string;
+          email?: string;
+          email_verified?: boolean;
+          gender?: string;
+          birthdate?: string;
+          zoneinfo?: string;
+          locale?: string;
+          phone_number?: string;
+          phone_number_verified?: boolean;
+          address?: {
+            formatted?: string;
+            street_address?: string;
+            locality?: string;
+            region?: string;
+            postal_code?: string;
+            country?: string;
+          };
+          updated_at?: number;
+
+          // This is a google-specific claim for "hosted domain".
+          hd?: string;
+        };
+
+        if (!token || typeof token.sub !== "string" || !token.sub) {
+          throw new Error("Invalid token returned by authority.");
+        }
+
+        // Restrict user based to hosted domain.
+        if (
+          authority.details.restrictToHostedDomains.length &&
+          (!token.hd ||
+            !authority.details.restrictToHostedDomains.includes(token.hd))
+        ) {
+          throw new AuthenticationError(
+            `The hosted domain "${token.hd || ""}" is not allowed.`
+          );
+        }
+
+        subject = token.sub;
+      }
+
+      if (!subject) {
+        throw new Error("No subject was provided.");
       }
 
       const data = new OpenIdCredential({
@@ -84,7 +204,7 @@ export const createOpenIdCredential: GraphQLFieldConfig<
         enabled: args.enabled,
         authorityId: args.authorityId,
         userId: args.userId,
-        authorityUserId: args.openid,
+        authorityUserId: subject,
         details: {}
       });
 
@@ -119,86 +239,11 @@ export const createOpenIdCredential: GraphQLFieldConfig<
         }
 
         // The user doesn't have permission to change the credentials of all
-        // users, but has passed a proof that she controls the openid address, so
-        // we can treat it as hers.
-        const { proof } = args;
-        if (proof) {
-          if (
-            !authority.details.publicKeys.some(key => {
-              try {
-                const payload = jwt.verify(proof, key, {
-                  algorithms: ["RS512"]
-                });
-
-                // Make sure we're using the same openid
-                if ((payload as any).openid !== args.openid) {
-                  throw new ForbiddenError(
-                    "This proof was generated for a different openid address."
-                  );
-                }
-
-                // Make sure this is for the same user
-                if ((payload as any).sub !== a.userId) {
-                  throw new ForbiddenError(
-                    "This proof was generated for a different user."
-                  );
-                }
-
-                return true;
-              } catch (error) {
-                if (error instanceof ForbiddenError) {
-                  throw error;
-                }
-
-                return false;
-              }
-            })
-          ) {
-            throw new ForbiddenError("The proof is invalid.");
-          }
-        }
-
-        // The user doesn't have permission to change the credentials of all
-        // users, so she needs to prove control of the openid address.
-        else {
-          const proofId = v4();
-
-          // Generate a new proof
-          const proof = jwt.sign(
-            {
-              openid: args.openid
-            },
-            authority.details.privateKey,
-            {
-              algorithm: "RS512",
-              expiresIn: authority.details.proofValidityDuration,
-              subject: a.userId,
-              jwtid: proofId
-            }
-          );
-
-          const url =
-            base +
-            `?authorityId=${authority.id}&proof=${encodeURIComponent(base)}`;
-
-          // TODO: Add a code to any existing credential with the same address
-
-          // Send an openid
-          await sendMail({
-            to: args.openid,
-            subject: authority.details.verificationOpenIdSubject,
-            text: substitute(
-              { proof, url },
-              authority.details.verificationOpenIdText
-            ),
-            html: substitute(
-              { proof, url },
-              authority.details.verificationOpenIdHtml
-            )
-          });
-
+        // users, so in order to save this credential, she must prove control of
+        // the account with the OpenID provider.
+        if (!args.code) {
           throw new ForbiddenError(
-            "An openid has been sent to this address with a code that can be used to prove control."
+            "You do not have permission to create this credential without passing a valid `code`."
           );
         }
       }

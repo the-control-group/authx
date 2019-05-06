@@ -57,7 +57,9 @@ export const updatePasswordCredential: GraphQLFieldConfig<
       const before = await Credential.read(tx, args.id, credentialMap);
 
       if (!(before instanceof PasswordCredential)) {
-        throw new NotFoundError("No password credential exists with this ID.");
+        throw new NotFoundError(
+          "The authority uses a strategy other than password."
+        );
       }
 
       if (!(await before.isAccessibleBy(realm, a, tx, "write.basic"))) {

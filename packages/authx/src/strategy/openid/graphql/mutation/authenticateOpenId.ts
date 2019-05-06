@@ -34,7 +34,9 @@ export const authenticateOpenId: GraphQLFieldConfig<
       type: new GraphQLNonNull(GraphQLID)
     },
     code: {
-      type: new GraphQLNonNull(GraphQLString)
+      type: new GraphQLNonNull(GraphQLString),
+      description:
+        "The OAuth authorization code provided by the OpenID exchange."
     }
   },
   async resolve(source, args, context): Promise<Authorization> {
@@ -62,9 +64,7 @@ export const authenticateOpenId: GraphQLFieldConfig<
 
       if (!(authority instanceof OpenIdAuthority)) {
         throw new AuthenticationError(
-          __DEV__
-            ? "The authority uses a strategy other than openid."
-            : undefined
+          "The authority uses a strategy other than openid."
         );
       }
 
@@ -139,7 +139,7 @@ export const authenticateOpenId: GraphQLFieldConfig<
         hd?: string;
       };
 
-      if (!token) {
+      if (!token || typeof token.sub !== "string" || !token.sub) {
         throw new Error("Invalid token returned by authority.");
       }
 

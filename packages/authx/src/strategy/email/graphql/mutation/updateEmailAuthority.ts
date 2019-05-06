@@ -117,7 +117,9 @@ export const updateEmailAuthority: GraphQLFieldConfig<
       const before = await Authority.read(tx, args.id, authorityMap);
 
       if (!(before instanceof EmailAuthority)) {
-        throw new NotFoundError("No email authority exists with this ID.");
+        throw new NotFoundError(
+          "The authority uses a strategy other than email."
+        );
       }
 
       if (!(await before.isAccessibleBy(realm, a, tx, "write.basic"))) {
