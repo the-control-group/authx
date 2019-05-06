@@ -17,8 +17,6 @@ import { ForbiddenError, AuthenticationError } from "../../../../errors";
 import { OpenIdAuthority, OpenIdCredential } from "../../model";
 import { EmailAuthority } from "../../../email";
 
-const __DEV__ = process.env.NODE_ENV !== "production";
-
 export const authenticateOpenId: GraphQLFieldConfig<
   any,
   {
