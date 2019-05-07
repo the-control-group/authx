@@ -1,8 +1,8 @@
-This is AuthX. It's named AuthX because it's an "exchange" of sorts, consolidating identities from several upstream authorities into a single identity for downstream clients. AuthX uses the OAuth2 framework in both directions, and adds an _authorization_ layer. Authorization control is based on the [AuthX scope spec](../scopes).
+This is AuthX. It's named AuthX because it's an "exchange" of sorts, consolidating identities from several upstream authorities into a single identity for downstream clients. AuthX uses the OAuth2 framework in both directions, and adds a robust access control system, based on the [AuthX scope spec](../scopes).
 
 ## Concepts
 
-AuthX is designed for a scenario in which a **RESOURCE** needs to restrict access to all or part of its functionality. A **CLIENT** app, acting on behalf of a **User** can retreive an OAuth authorization from AuthX, which can be passed to the **RESOURCE** with any request.
+AuthX is designed for a scenario in which a **RESOURCE** needs to restrict access to all or part of its functionality. A **CLIENT** app, acting on behalf of a **User** can retreive an OAuth token from AuthX, which can be passed to the **RESOURCE** with any request.
 
 ```
 ╔══════════════════════════════════════════╗
@@ -29,7 +29,27 @@ AuthX is designed for a scenario in which a **RESOURCE** needs to restrict acces
 
 ### User
 
-The user is (obviously) the primary component. It consists of a unique ID and profile information in the format of [Portable Contacts](http://portablecontacts.net/draft-spec.html). Information in the profile is **not** verified, and is not directly used by AuthX system for authentication.
+A user is the central component, and represents a source of agency, either `human` or `machine`.
+
+### Resource
+
+A resource is anything which requires an AuthX token to perform an action.
+
+### Client
+
+A client uses AuthX to act on behalf of a user.
+
+### Grant
+
+A grant contains the set of scopes for which a client's can act on a user's behalf.
+
+### Authorization
+
+An authorization contains the set of scopes that will be encoded in a token and passed to a resource by a client.
+
+### Role
+
+A role bestows its scopes to every user it includes.
 
 ### Authority
 
@@ -37,24 +57,11 @@ An authority is a mechanism for authentication, and provides the configuration f
 
 1. **email** - use an email address to verify a visitor's identity (most people call this "reset your password")
 2. **password** - verify your identity with a password (which is protected with bcrypt)
-3. **google** - connect to one or more Google and Google Apps accounts
-4. **onelogin** - connect to one or more OneLogin accounts through SAML
+3. **openid** - connect to an OpenID provider, such as Google
 
 ### Credential
 
-Credentials connect users to authorities. A user can typically have multiple authorities of the same authority (multiple emails, for example).
-
-### Client
-
-Clients are downstream applications that uses AuthX for authentication/authorization.
-
-### Grant
-
-A user gives a client permission to act on her behalf via a grant.
-
-### Role
-
-A role bestows its permissions to every user it includes.
+Credentials connect users to authorities. A user can have multiple credentials of the some authorities (multiple emails, for example), or be limited to one (such as a password).
 
 ## Anatomy of a scope
 
