@@ -6,8 +6,8 @@ export const GraphQLUserType = new GraphQLEnumType({
     HUMAN: {
       value: "human"
     },
-    BOT: {
-      value: "bot"
+    MACHINE: {
+      value: "machine"
     }
   }
 });

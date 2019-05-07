@@ -70,9 +70,7 @@
     "prepare": "rm -rf dist && tsc",
     "test": "ava --verbose dist/**/*.test.js",
     "watch": "rm -rf dist && tsc --watch",
-    "start:development": "yarn watch & NODE_ENV=development nodemon --delay 2 --inspect dist/server",
-    "start:production": "NODE_ENV=production npm start",
-    "start": "node dist/server"
+    "start:development": "yarn watch & NODE_ENV=development nodemon --delay 2 --inspect dist/server"
   },
   "types": "dist/index.d.ts",
   "version": "2.0.0-alpha.12"
