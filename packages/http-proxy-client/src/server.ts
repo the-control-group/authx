@@ -29,7 +29,7 @@ const proxy = new AuthXClientProxy({
         // so we will return a 407 and include a `Location` header which the
         // front-end can use to redirect the user.
         return {
-          proxyTarget: `http://127.0.0.1:3000`,
+          proxyTarget: `https://www.google.com`,
           sendAuthorizationResponseAs: 407,
           sendTokenToTargetWithScopes: ["authx.prod:**:**"]
         };
@@ -42,7 +42,7 @@ const proxy = new AuthXClientProxy({
         return method === "GET" && /^\/static(\/.*)?$/.test(url || "");
       },
       behavior: {
-        proxyTarget: `http://127.0.0.1:3002`
+        proxyTarget: `https://www.google.com`
       }
     },
     // The rest of our routes render a single-page-app. We simply want to make
@@ -59,7 +59,7 @@ const proxy = new AuthXClientProxy({
       // the user is authenticated and has granted us scopes that are necessary
       // for the app to work, so we will set `requireGrantedScopes`.
       behavior: {
-        proxyTarget: `http://127.0.0.1:3002`,
+        proxyTarget: `https://www.google.com`,
         sendAuthorizationResponseAs: 303,
         sendTokenToTargetWithScopes: []
       }
