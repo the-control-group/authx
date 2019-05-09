@@ -210,3 +210,41 @@ If `revocableTokenCacheDuration` is configured, the proxy will cache the result 
 A self-contained token is passed as an HTTP Bearer token in the `Authorization` header. The signature is verified using the AuthX instance's public keys, which are cached for _at least_ the configured `authxPublicKeyRefreshInterval`. Note that if attempts to refresh the public keys fail, the proxy will continue to use its cached public keys to avoid downtime.
 
 The `sub` field of the JWT payload must be the user ID, and authorized scopes must be present as an array of strings in the `scopes` field.
+
+## Development
+
+### Scripts
+
+#### `yarn format`
+
+Use prettier to format the code in this package.
+
+#### `yarn lint`
+
+Check the contents of this package against prettier and eslint rules.
+
+#### `yarn prepare`
+
+Build the files from `/src` to the `/dist` directory with optimizations.
+
+#### `yarn prepare:development`
+
+Build the files from `/src` to the `/dist` directory, and re-build as changes are made to source files.
+
+#### `yarn test`
+
+Run all tests from the `/dist` directory.
+
+#### `yarn test:development`
+
+Run all tests from the `/dist` directory, and re-run a test when it changes.
+
+### Files
+
+#### `/src`
+
+This holds the source code for the proxy.
+
+#### `/dist`
+
+The compiled and bundled code ends up here for distribution. This is ignored by git.

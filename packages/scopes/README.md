@@ -160,3 +160,41 @@ import { hasIntersection } from "@authx/scopes";
 hasIntersection(["realm:resource.*:action.*"], ["realm:**:action.read"]);
 // => true
 ```
+
+## Development
+
+### Scripts
+
+#### `yarn format`
+
+Use prettier to format the code in this package.
+
+#### `yarn lint`
+
+Check the contents of this package against prettier and eslint rules.
+
+#### `yarn prepare`
+
+Build the files from `/src` to the `/dist` directory with optimizations.
+
+#### `yarn prepare:development`
+
+Build the files from `/src` to the `/dist` directory, and re-build as changes are made to source files.
+
+#### `yarn test`
+
+Run all tests from the `/dist` directory.
+
+#### `yarn test:development`
+
+Run all tests from the `/dist` directory, and re-run a test when it changes.
+
+### Files
+
+#### `/src`
+
+This holds the source code for the library.
+
+#### `/dist`
+
+The compiled and bundled code ends up here for distribution. This is ignored by git.
