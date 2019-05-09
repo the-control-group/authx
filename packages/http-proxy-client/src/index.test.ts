@@ -4,11 +4,13 @@ import { createServer, Server, IncomingMessage } from "http";
 import AuthXClientProxy from ".";
 import fetch, { Headers } from "node-fetch";
 
+// These static values are derived as such:
+//
 // hashScopes(["AuthX:user.equal.self:read.basic"])
-// => JvVNJVB5EzHJcWVP-FqK-nxVIa4
-
+//   => JvVNJVB5EzHJcWVP-FqK-nxVIa4
+//
 // hashScopes([])
-// => 2jmj7l5rSw0yVb_vlWAYkK_YBwk
+//   => 2jmj7l5rSw0yVb_vlWAYkK_YBwk
 
 let mockAuthX: {
   server: Server;
@@ -96,7 +98,7 @@ test.before(async () => {
 
   proxy = new AuthXClientProxy({
     authxUrl: `http://127.0.0.1:${mockAuthX.port}`,
-    readinessUrl: "/_ready",
+    readinessEndpoint: "/_ready",
 
     // These need to match the values for your client in AuthX.
     clientId: "3ac01e62-faba-4644-b4c0-7979775717ac",
@@ -116,7 +118,7 @@ test.before(async () => {
         },
         behavior(request: IncomingMessage) {
           // Rewrite the URL to match the API's expectations.
-          request.url = "/v2/graphql";
+          request.url = "/graphql";
 
           // Because this is an API request, we don't want to redirect the browser
           // so we will return a 407 and include a `Location` header which the
@@ -291,7 +293,7 @@ test("fetch token from authx", async t => {
     "authx.r=c89900b6a34123900274e90f87f7adc0c1ab8d93; path=/; httponly, authx.t.JvVNJVB5EzHJcWVP-FqK-nxVIa4=eyJhbGciOiJSUzUxMiIsInR5cCI6IkpXVCJ9.eyJzY29wZXMiOlsiQXV0aFg6dXNlci5lcXVhbC5zZWxmOnJlYWQuYmFzaWMiXSwiaWF0IjoxNTU2NjAzOTU5LCJleHAiOjQ3MTAyMDM5NTksImF1ZCI6ImZlMjQ3OGI1LTdiNjAtNGNlZC1hYWY4LTZjOWI0YTJlNzNmNiIsImlzcyI6ImF1dGh4Iiwic3ViIjoiMTZhNjA3MjItZjcyZi00MmExLTg0ZjgtNWFmODBiYWFjMjg5In0.hB7N3Ibdc-LX9gTkarWPXpjr6gFPRpFVnKND2CXS1XHq6ePzhLIs-Bn3ksHOvkpDzx96z7x_8pQwgHXg_DgUNcpUP-eFuk156wxJ7rpuG5aV-wUmAAg-yLnMjXWx65VUf7J-JvVtRVHlkzahLA1n0drf4Fll-hoTJ6qaOHidUlo; path=/; httponly"
   );
   t.deepEqual(await response.json(), {
-    url: "/v2/graphql",
+    url: "/graphql",
     Authorization:
       "Bearer eyJhbGciOiJSUzUxMiIsInR5cCI6IkpXVCJ9.eyJzY29wZXMiOlsiQXV0aFg6dXNlci5lcXVhbC5zZWxmOnJlYWQuYmFzaWMiXSwiaWF0IjoxNTU2NjAzOTU5LCJleHAiOjQ3MTAyMDM5NTksImF1ZCI6ImZlMjQ3OGI1LTdiNjAtNGNlZC1hYWY4LTZjOWI0YTJlNzNmNiIsImlzcyI6ImF1dGh4Iiwic3ViIjoiMTZhNjA3MjItZjcyZi00MmExLTg0ZjgtNWFmODBiYWFjMjg5In0.hB7N3Ibdc-LX9gTkarWPXpjr6gFPRpFVnKND2CXS1XHq6ePzhLIs-Bn3ksHOvkpDzx96z7x_8pQwgHXg_DgUNcpUP-eFuk156wxJ7rpuG5aV-wUmAAg-yLnMjXWx65VUf7J-JvVtRVHlkzahLA1n0drf4Fll-hoTJ6qaOHidUlo"
   });

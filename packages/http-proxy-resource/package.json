@@ -48,12 +48,10 @@
     "format": "prettier --list-different --write '**/*.{json,yml,md,ts}'",
     "lint": "prettier -c '**/*.{json,yml,md,ts}' && eslint src --ext ts",
     "prepare": "rm -rf dist && tsc",
+    "prepare:development": "rm -rf dist && tsc --watch",
     "test": "ava --verbose dist/*.test.js",
-    "watch": "rm -rf dist && tsc --watch",
-    "start:development": "NODE_ENV=development nodemon --inspect dist/server",
-    "start:production": "NODE_ENV=production node dist/server",
-    "start": "npm run start:production"
+    "test:development": "ava --verbose dist/*.test.js --watch"
   },
   "types": "./dist/index.d.ts",
-  "version": "1.0.0-beta.1"
+  "version": "1.0.0-beta.2"
 }

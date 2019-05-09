@@ -94,7 +94,7 @@ test.before(async () => {
 
   proxy = new AuthXResourceProxy({
     authxUrl: `http://127.0.0.1:${mockAuthX.port}`,
-    readinessUrl: "/_ready",
+    readinessEndpoint: "/_ready",
     rules: [
       {
         test({ url }) {

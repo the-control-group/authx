@@ -11,6 +11,7 @@ We have a resource – often an API – which is accessed by a client. The route
 ```js
 new AuthXProxy({
   authxUrl: "https://authx.example.com/",
+
   rules: [
     // We want to make sure any GET request to /something has been authorized
     // for the `example.resource:something:read` scope:
@@ -94,18 +95,19 @@ interface Config {
   readonly revocableTokenCacheDuration?: number;
 
   /**
-   * The exact URL as set on `IncomingMessage` to which the proxy will reply
-   * with a readiness check.
+   * The pathname at which the proxy will provide a readiness check.
    *
    * @remarks
-   * If set, requests to this URL will return a 200 with the body "READY" when
-   * the proxy is ready to accept incoming connections, and a 503 with the body
+   * Requests to this path will return a 200 with the body "READY" when the
+   * proxy is ready to accept incoming connections, and a 503 with the body
    * "NOT READY" otherwise.
    *
    * When closing the proxy, readiness checks will immediately begin failing,
    * even before the proxy stops accepting requests.
+   *
+   * If not set, the path `/_ready` will be used.
    */
-  readonly readinessUrl?: string;
+  readonly readinessEndpoint?: string;
 
   /**
    * The rules the proxy will use to handle a request.

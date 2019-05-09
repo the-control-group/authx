@@ -9,8 +9,47 @@ import { decode } from "jsonwebtoken";
 import { simplify } from "@authx/scopes";
 
 interface Behavior {
+  /**
+   * The string URL to which requests will be proxied.
+   */
   readonly proxyTarget: string;
+
+  /**
+   * The HTTP status to use if the proxy requires authorization.
+   *
+   * @remarks
+   * 303 - This will return a 303 to redirect the browser to AuthX for
+   * authorization. After authorizing the proxy, the user will be returned to
+   * the requested page if the initial request was a GET request, or to the URL
+   * set in the referer header. Use this for endpoints with which a human user
+   * directly interacts.
+   *
+   * 407 - This will return a 407 with a `Location` header designating the AuthX
+   * URL to which the user should be directed for authorization. After
+   * authorizing the proxy, the user will be returned to the URL set in the
+   * referer header. Use this for endpoints with which a client-side app
+   * interacts using `fetch` or `XMLHttpRequest`.
+   */
   readonly sendAuthorizationResponseAs?: 303 | 407;
+
+  /**
+   * Pass a token to the target, restricting scopes to those provided.
+   *
+   * @remarks
+   * If unspecified, the proxy will forward the request to the target without a
+   * token, whether the user has authenticated the client or not. To only ensure
+   * the user is authenticated and has authorized the client in some capacity,
+   * use an empty array here.
+   *
+   * This is generally used to limit the token to the scopes needed by the
+   * request. For example, if we are authorized to:
+   *
+   * - lunch:apple:eat
+   * - recess:ball:throw
+   *
+   * ...and we want to send a token to the "cafeteria" resource that _only_ has
+   * access to "lunch" resources, we can limit it with: [ "lunch:**:**" ]
+   */
   readonly sendTokenToTargetWithScopes?: string[];
 }
 
@@ -46,14 +85,25 @@ interface Config {
    * The root URL to AuthX server.
    */
   readonly authxUrl: string;
+
+  /**
+   * The ID assigned to this client by AuthX.
+   */
   readonly clientId: string;
+
+  /**
+   * A secret assigned to this client by AuthX.
+   */
   readonly clientSecret: string;
 
   /**
-   * The exact URL as set on `IncomingMessage` at which the proxy will provide
-   * the OAuth client functionality.
+   * The URL at which the proxy will provide the OAuth client functionality.
    */
   readonly clientUrl: string;
+
+  /**
+   * The scopes to request from the user.
+   */
   readonly requestGrantedScopes: string[];
 
   // TODO: eventually we will want the ability to _require_ that certain scopes
@@ -65,18 +115,27 @@ interface Config {
   // readonly requireGrantedScopes?: string[];
 
   /**
-   * The exact URL as set on `IncomingMessage` at which the proxy will provide
-   * a readiness check.
+   * The pathname at which the proxy will provide a readiness check.
    *
    * @remarks
-   * If set, requests to this URL will return a 200 with the body "READY" when
-   * the proxy is ready to accept incoming connections, and a 503 with the body
+   * Requests to this path will return a 200 with the body "READY" when the
+   * proxy is ready to accept incoming connections, and a 503 with the body
    * "NOT READY" otherwise.
    *
    * When closing the proxy, readiness checks will immediately begin failing,
    * even before the proxy stops accepting requests.
+   *
+   * If unspecified, the path `/_ready` will be used.
    */
-  readonly readinessUrl?: string;
+  readonly readinessEndpoint?: string;
+
+  /**
+   * When the proxy injects a token into a request, it makes sure that the token
+   * will remain valid for this amount of time in seconds; otherwise it will
+   * request a new token from AuthX to use.
+   *
+   * If unspecified, 30 seconds will be used.
+   */
   readonly tokenMinimumRemainingLife?: number;
 
   /**
@@ -137,10 +196,7 @@ export default class AuthXClientProxy extends EventEmitter {
     }
 
     // Serve the readiness URL.
-    if (
-      this._config.readinessUrl &&
-      request.url === this._config.readinessUrl
-    ) {
+    if (request.url === (this._config.readinessEndpoint || "/_ready")) {
       if (this._closed || this._closing) {
         response.statusCode = 503;
         return send("NOT READY");
