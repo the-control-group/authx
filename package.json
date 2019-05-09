@@ -8,9 +8,6 @@
     "packages/manager",
     "packages/scopes"
   ],
-  "devDependencies": {
-    "husky": "^2.2.0"
-  },
   "nohoist": [
     "packages/authx-interface/html-webpack-plugin"
   ],
