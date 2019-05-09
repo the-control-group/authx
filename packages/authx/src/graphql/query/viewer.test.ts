@@ -70,7 +70,7 @@ test.before(async () => {
   // Add fixtures to the database.
   const tx = await pool.connect();
   try {
-    await fixture(tx);
+    await fixture(tx, true);
   } finally {
     tx.release();
   }

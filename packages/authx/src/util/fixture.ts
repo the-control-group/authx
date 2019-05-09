@@ -12,17 +12,23 @@ import {
   user
 } from "./fixture/index";
 
-const sql = fs.readFileSync(path.resolve(__dirname, "../../schema.sql"));
-
 interface Metadata {
   recordId: string;
   createdByAuthorizationId: string;
   createdAt: Date;
 }
 
-export async function fixture(tx: PoolClient): Promise<void> {
+export async function fixture(
+  tx: PoolClient,
+  schema: boolean = false
+): Promise<void> {
   // set up the schema
-  await tx.query(sql.toString("utf8"));
+  if (schema)
+    await tx.query(
+      fs
+        .readFileSync(path.resolve(__dirname, "../../schema.sql"))
+        .toString("utf8")
+    );
 
   // add entities to satisfy foreign key constraints
   await Promise.all([

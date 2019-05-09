@@ -32,7 +32,7 @@
   "devDependencies": {
     "@typescript-eslint/eslint-plugin": "^1.5.0",
     "@typescript-eslint/parser": "^1.5.0",
-    "authx-interface": "^2.0.0-alpha.11",
+    "@authx/interface": "^2.0.0-beta.3",
     "ava": "^1.4.0",
     "eslint": "^5.16.0",
     "eslint-config-prettier": "^4.2.0",
@@ -42,11 +42,13 @@
     "typescript": "^3.4.5"
   },
   "engines": {
-    "node": ">=6"
+    "node": ">=10"
   },
   "files": [
     "dist",
-    "!dist/test.*"
+    "!dist/**.test.js",
+    "!dist/**.test.js.map",
+    "!dist/**.test.d.ts"
   ],
   "keywords": [
     "oauth",
@@ -68,10 +70,12 @@
     "format": "prettier --list-different --write '**/*.{json,yml,md,ts}'",
     "lint": "prettier -c '**/*.{json,yml,md,ts}' && eslint src --ext ts",
     "prepare": "rm -rf dist && tsc",
+    "prepare:development": "rm -rf dist && tsc --watch",
+    "start": "NODE_ENV=production node dist/server",
+    "start:development": "NODE_ENV=development nodemon --delay 2 --inspect dist/server",
     "test": "ava --verbose dist/**/*.test.js",
-    "watch": "rm -rf dist && tsc --watch",
-    "start:development": "yarn watch & NODE_ENV=development nodemon --delay 2 --inspect dist/server"
+    "test:development": "ava --verbose --watch dist/**/*.test.js"
   },
   "types": "dist/index.d.ts",
-  "version": "2.0.0-alpha.12"
+  "version": "2.0.0-beta.1"
 }

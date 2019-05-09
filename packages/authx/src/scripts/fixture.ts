@@ -8,7 +8,7 @@ import { fixture } from "../util/fixture";
   try {
     await tx.query("BEGIN DEFERRABLE");
 
-    await fixture(tx);
+    await fixture(tx, process.argv.includes("--schema"));
 
     await tx.query("COMMIT");
   } catch (error) {

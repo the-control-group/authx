@@ -63,25 +63,69 @@ An authority is a mechanism for authentication, and provides the configuration f
 
 Credentials connect users to authorities. A user can have multiple credentials of the some authorities (multiple emails, for example), or be limited to one (such as a password).
 
-## Anatomy of a scope
+## Development
 
-Scopes are composed of 3 domains, separated by the `:` character:
+### Scripts
 
-```
-AuthX:role.abc:read
-|___| |______| |__|
-  |      |       |
-realm resource  action
+- `PGHOST`: postgres host
+- `PGPORT`: postgres port
+- `PGUSER`: postgres user
+- `PGPASSWORD`: postgres password
+- `PORT`: HTTP port to listen
 
-```
+#### `yarn bootstrap`
 
-Each domain can contain parts, separated by the `.` character. Domain parts can be `/[a-zA-Z0-9_]*/` strings or glob pattern identifiers `*` or `**`:
+Bootstrap a database by creating an initial root user and admin role, returning the user ID and password as JSON. Use the above environment variables to configure the postgres connection.
 
-```
-role.abc
-role.*
-**
-```
+Pass the `--schema` argument to also create the database schema.
+
+#### `yarn fixture`
+
+Add test fixtures to the database. Use the above environment variables to configure the postgres connection.
+
+Pass the `--schema` argument to also create the database schema.
+
+#### `yarn format`
+
+Use prettier to format the code in this package.
+
+#### `yarn lint`
+
+Check the contents of this package against prettier and eslint rules.
+
+#### `yarn prepare`
+
+Build the files from `/src` to the `/dist` directory with optimizations.
+
+#### `yarn prepare:development`
+
+Build the files from `/src` to the `/dist` directory, and re-build as changes are made to source files.
+
+#### `yarn start`
+
+Start a web server that runs AuthX.
+
+#### `yarn start:development`
+
+Start a web server that runs AuthX and reloads as its source files change. Use the `PORT` environment variable to specify a port.
+
+#### `yarn test`
+
+Run all tests from the `/dist` directory.
+
+#### `yarn test:development`
+
+Run all tests from the `/dist` directory, and re-run a test when it changes.
+
+### Files
+
+#### `/src`
+
+This holds the source code for AuthX.
+
+#### `/dist`
+
+The compiled and bundled code ends up here for distribution. This is ignored by git.
 
 ## AuthX Scopes
 

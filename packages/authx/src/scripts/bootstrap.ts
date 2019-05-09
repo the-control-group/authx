@@ -56,10 +56,7 @@ import { PasswordAuthority, PasswordCredential } from "../strategy/password";
     secret: randomBytes(16).toString("hex")
   });
 
-  console.log(`Bootstrapping the following user:
-  User ID: ${user.id}
-  Password: ${password}
-`);
+  console.log(JSON.stringify({ id: user.id, password: password }));
 
   try {
     await tx.query("BEGIN DEFERRABLE");
