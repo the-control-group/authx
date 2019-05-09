@@ -49,7 +49,7 @@ module.exports = [
       "server/server": "./src/server/server.ts"
     },
     output: {
-      libraryTarget: "commonjs",
+      libraryTarget: "commonjs2",
       filename: "[name].js",
       chunkFilename: "[name]-[id].js",
       path: __dirname + "/dist"
@@ -79,7 +79,7 @@ module.exports = [
       return acc;
     }, {}),
     output: {
-      libraryTarget: "commonjs",
+      libraryTarget: "commonjs2",
       filename: "[name].js",
       chunkFilename: "[name]-[id].js",
       path: __dirname + "/dist"
