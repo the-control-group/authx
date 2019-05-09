@@ -6,17 +6,17 @@ It is responsible for the entire user-facing portion of the OAuth flow, from aut
 
 The app is written in TypeScript with JSX extensions for react.
 
-## Building
+## Development
 
 ### Scripts
 
 #### `yarn format`
 
-Use prettierjs to format the code in `/src`.
+Use prettier to format the code in this package.
 
 #### `yarn lint`
 
-Check the contents of `/src` against eslint rules.
+Check the contents of this package against prettier and eslint rules.
 
 #### `yarn prepare`
 
@@ -28,11 +28,11 @@ Build the files from `/src` to the `/dist` directory, and re-build as changes ar
 
 #### `yarn start`
 
-Run a web server that serves the contents of `/dist`. Use the `PORT` environment variable to specify a port.
+Start a web server that serves the contents of `/dist`. Use the `PORT` environment variable to specify a port.
 
 #### `yarn start:development`
 
-Run a web server that serves the contents of `/dist` and reload as files change. Use the `PORT` environment variable to specify a port.
+Start a web server that serves the contents of `/dist` and reload as files change. Use the `PORT` environment variable to specify a port.
 
 #### `yarn test`
 
