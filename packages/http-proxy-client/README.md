@@ -2,6 +2,12 @@
 
 The AuthX proxy for clients is a flexible HTTP proxy designed to sit in front of a client and manage the entire OAuth flow.
 
+---
+
+[Example](#example) | [Configuration](#configuration) | [Development](#development)
+
+---
+
 ## Example
 
 Here is a typical use case:
@@ -223,37 +229,37 @@ interface Behavior {
 
 ### Scripts
 
-#### `yarn format`
+#### `format`
 
 Use prettier to format the code in this package.
 
-#### `yarn lint`
+#### `lint`
 
 Check the contents of this package against prettier and eslint rules.
 
-#### `yarn prepare`
+#### `prepare`
 
 Build the files from `/src` to the `/dist` directory with optimizations.
 
-#### `yarn prepare:development`
+#### `prepare:development`
 
 Build the files from `/src` to the `/dist` directory, and re-build as changes are made to source files.
 
-#### `yarn test`
+#### `test`
 
 Run all tests from the `/dist` directory.
 
-#### `yarn test:development`
+#### `test:development`
 
 Run all tests from the `/dist` directory, and re-run a test when it changes.
 
 ### Files
 
-#### `/src`
+#### [/src](src/)
 
 This holds the source code for the proxy.
 
-#### `/dist`
+#### [/dist](dist/)
 
 The compiled and bundled code ends up here for distribution. This is ignored by git.
 

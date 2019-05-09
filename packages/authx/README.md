@@ -1,4 +1,12 @@
+# AuthX
+
 This is AuthX. It's named AuthX because it's an "exchange" of sorts, consolidating identities from several upstream authorities into a single identity for downstream clients. AuthX uses the OAuth2 framework in both directions, and adds a robust access control system, based on the [AuthX scope spec](../scopes).
+
+---
+
+[Concepts](#concepts) | [Development](#development) | [Scopes](#scopes)
+
+---
 
 ## Concepts
 
@@ -67,67 +75,69 @@ Credentials connect users to authorities. A user can have multiple credentials o
 
 ### Scripts
 
+These scripts can be run using `npm run <script>` or `yarn <script>`; when relevant, the following environment variables can be set to modify their behavior:
+
+- `PORT`: HTTP port to listen
 - `PGHOST`: postgres host
 - `PGPORT`: postgres port
 - `PGUSER`: postgres user
 - `PGPASSWORD`: postgres password
-- `PORT`: HTTP port to listen
 
-#### `yarn bootstrap`
+#### `bootstrap`
 
 Bootstrap a database by creating an initial root user and admin role, returning the user ID and password as JSON. Use the above environment variables to configure the postgres connection.
 
 Pass the `--schema` argument to also create the database schema.
 
-#### `yarn fixture`
+#### `fixture`
 
 Add test fixtures to the database. Use the above environment variables to configure the postgres connection.
 
 Pass the `--schema` argument to also create the database schema.
 
-#### `yarn format`
+#### `format`
 
 Use prettier to format the code in this package.
 
-#### `yarn lint`
+#### `lint`
 
 Check the contents of this package against prettier and eslint rules.
 
-#### `yarn prepare`
+#### `prepare`
 
 Build the files from `/src` to the `/dist` directory with optimizations.
 
-#### `yarn prepare:development`
+#### `prepare:development`
 
 Build the files from `/src` to the `/dist` directory, and re-build as changes are made to source files.
 
-#### `yarn start`
+#### `start`
 
 Start a web server that runs AuthX.
 
-#### `yarn start:development`
+#### `start:development`
 
 Start a web server that runs AuthX and reloads as its source files change. Use the `PORT` environment variable to specify a port.
 
-#### `yarn test`
+#### `test`
 
 Run all tests from the `/dist` directory.
 
-#### `yarn test:development`
+#### `test:development`
 
 Run all tests from the `/dist` directory, and re-run a test when it changes.
 
 ### Files
 
-#### `/src`
+#### [/src](src/)
 
 This holds the source code for AuthX.
 
-#### `/dist`
+#### [/dist](dist/)
 
 The compiled and bundled code ends up here for distribution. This is ignored by git.
 
-## AuthX Scopes
+## Scopes
 
 AuthX uses its own authorization system to restrict access to its resources. Below are the scopes used by AuthX internally:
 

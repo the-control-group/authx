@@ -6,52 +6,60 @@ It is responsible for the entire user-facing portion of the OAuth flow, from aut
 
 The app is written in TypeScript with JSX extensions for react.
 
+---
+
+[Development](#development)
+
+---
+
 ## Development
 
 ### Scripts
 
-#### `yarn format`
+These scripts can be run using `npm run <script>` or `yarn <script>`.
+
+#### `format`
 
 Use prettier to format the code in this package.
 
-#### `yarn lint`
+#### `lint`
 
 Check the contents of this package against prettier and eslint rules.
 
-#### `yarn prepare`
+#### `prepare`
 
 Build the files from `/src` to the `/dist` directory with optimizations.
 
-#### `yarn prepare:development`
+#### `prepare:development`
 
 Build the files from `/src` to the `/dist` directory, and re-build as changes are made to source files.
 
-#### `yarn start`
+#### `start`
 
 Start a web server that serves the contents of `/dist`. Use the `PORT` environment variable to specify a port.
 
-#### `yarn start:development`
+#### `start:development`
 
 Start a web server that serves the contents of `/dist` and reload as files change. Use the `PORT` environment variable to specify a port.
 
-#### `yarn test`
+#### `test`
 
 Run all tests from the `/dist` directory.
 
-#### `yarn test:development`
+#### `test:development`
 
 Run all tests from the `/dist` directory, and re-run a test when it changes.
 
 ### Files
 
-#### `/src/client`
+#### [/src/client](src/client/)
 
 This holds the source code for the client-side interface.
 
-#### `/src/server`
+#### [/src/server](src/server/)
 
 This holds the source code for a Koa middleware that serves the contents from `/dist/client`
 
-#### `/dist`
+#### [/dist](dist/)
 
 The compiled and bundled code ends up here for distribution. This is ignored by git.

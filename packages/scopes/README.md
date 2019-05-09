@@ -2,7 +2,13 @@
 
 This is a small collection of utility functions for AuthX scopes. These scopes are human-readable, fully OAuth2-compatible, and support both pattern matching and set algebra.
 
-## Anatomy of a scope
+---
+
+[Anatomy of a Scope](#anatomy-of-a-scope) | [Installation](#installation) | [Usage](#usage) | [Development](#development)
+
+---
+
+## Anatomy of a Scope
 
 Scopes are composed of 3 domains, separated by the `:` character:
 
@@ -165,36 +171,38 @@ hasIntersection(["realm:resource.*:action.*"], ["realm:**:action.read"]);
 
 ### Scripts
 
-#### `yarn format`
+These scripts can be run using `npm run <script>` or `yarn <script>`.
+
+#### `format`
 
 Use prettier to format the code in this package.
 
-#### `yarn lint`
+#### `lint`
 
 Check the contents of this package against prettier and eslint rules.
 
-#### `yarn prepare`
+#### `prepare`
 
 Build the files from `/src` to the `/dist` directory with optimizations.
 
-#### `yarn prepare:development`
+#### `prepare:development`
 
 Build the files from `/src` to the `/dist` directory, and re-build as changes are made to source files.
 
-#### `yarn test`
+#### `test`
 
 Run all tests from the `/dist` directory.
 
-#### `yarn test:development`
+#### `test:development`
 
 Run all tests from the `/dist` directory, and re-run a test when it changes.
 
 ### Files
 
-#### `/src`
+#### [/src](src/)
 
 This holds the source code for the library.
 
-#### `/dist`
+#### [/dist](dist/)
 
 The compiled and bundled code ends up here for distribution. This is ignored by git.
