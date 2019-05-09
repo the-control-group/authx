@@ -10,7 +10,7 @@ Scopes are composed of 3 domains, separated by the `:` character:
 AuthX:role.abc:read
 |___| |______| |__|
   |      |       |
-realm  resource  action
+realm  context  action
 
 ```
 
@@ -37,10 +37,10 @@ Validate that a scope is correctly formatted.
 ```js
 import { validate } from "@authx/scopes";
 
-validate("realm:resource.identifier:action");
+validate("realm:context.identifier:action");
 // => true
 
-validate("realm:resource.***:action");
+validate("realm:context.***:action");
 // => false
 ```
 

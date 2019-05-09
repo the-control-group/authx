@@ -9,14 +9,15 @@
     "packages/scopes"
   ],
   "devDependencies": {
-    "husky": "^2.1.0"
+    "husky": "^2.2.0"
   },
   "nohoist": [
     "packages/authx-interface/html-webpack-plugin"
   ],
   "scripts": {
-    "format": "for P in packages/*/; do echo \"\n\n---------- $P\" && cd $P && if ! (yarn format); then exit 1; fi; cd ../..; done",
-    "lint": "for P in packages/*/; do echo \"\n\n---------- $P\" && cd $P && if ! (yarn lint); then exit 1; fi; cd ../..; done",
-    "prepare": "for P in packages/*/; do echo \"\n\n---------- $P\" && cd $P && if ! (yarn prepare); then exit 1; fi; cd ../..; done"
+    "format": "for P in packages/*/; do echo \"\n\n---------- $P\" && if ! (cd $P && yarn format); then exit 1; fi; done",
+    "lint": "for P in packages/*/; do echo \"\n\n---------- $P\" && if ! (cd $P && yarn lint); then exit 1; fi; done",
+    "prepare": "for P in packages/*/; do echo \"\n\n---------- $P\" && if ! (cd $P && yarn prepare); then exit 1; fi; done",
+    "test": "for P in packages/*/; do echo \"\n\n---------- $P\" && if ! (cd $P && yarn test); then exit 1; fi; done"
   }
 }

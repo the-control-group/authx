@@ -1,23 +1,26 @@
-// eslint-disable-next-line @typescript-eslint/no-var-requires
-const { createReadStream, open } = require("fs");
-// eslint-disable-next-line @typescript-eslint/no-var-requires
-const { join, basename, extname } = require("path");
+import { createReadStream, open } from "fs";
+import { join, basename, extname } from "path";
 
-module.exports = async (ctx, next) => {
-  // Remove any prefix of a koa router
+export default async (ctx: any, next: () => void) => {
+  // Remove any prefix of a koa router.
   const path = ctx._matchedRoute
     ? ctx.request.path.replace(RegExp(`^${ctx._matchedRoute}`), "")
     : ctx.request.path;
 
-  // Default to `index.html` if an extension is omitted
+  // Don't serve TypeScript definitions or test files.
+  if (/\.d\.ts$/.test(path) || /test\.js(\.map)?$/.test(path)) {
+    return next();
+  }
+
+  // Default to `index.html` if an extension is omitted.
   const filePath = join(
     __dirname,
-    "dist",
+    "../client/",
     extname(path) ? path : join(path, "index.html")
   );
 
-  // Check to see if the file exists by trying to open a file handler
-  const fd = await new Promise((resolve, reject) =>
+  // Check to see if the file exists by trying to open a file handler.
+  const fd = await new Promise<null | number>((resolve, reject) =>
     open(filePath, "r", (error, fd) => {
       if (error) {
         if (error.code !== "ENOENT") return reject(error);
@@ -32,7 +35,7 @@ module.exports = async (ctx, next) => {
   // The requested file does not exist.
   if (fd === null) return next();
 
-  // The request uses a directory style, bue it missing a trailing slash.
+  // The request uses a directory style, but it missing a trailing slash.
   // Redirect to ensure relative assets will resolve correctly.
   if (!extname(path) && path[path.length - 1] !== "/") {
     ctx.response.redirect(`${ctx.request.path}/${ctx.request.search}`);
@@ -57,9 +60,10 @@ module.exports = async (ctx, next) => {
       break;
   }
 
-  // files that begin with "$" are idempotent and can be cached forever
-  if (basename(path).indexOf("_") === 0) {
+  // Files that begin with "$" are idempotent and can be cached forever.
+  if (basename(path).indexOf("$") === 0) {
     ctx.response.set("Cache-Control", "max-age=2592000, public, idempotent");
   }
+
   return next();
 };

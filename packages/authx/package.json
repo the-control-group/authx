@@ -19,7 +19,7 @@
     "auth-header": "^1.0.0",
     "bcrypt": "^3.0.5",
     "form-data": "^2.3.3",
-    "graphql": "^14.1.1",
+    "graphql": "^14.3.0",
     "graphql-api-koa": "^2.0.0",
     "jsonwebtoken": "^8.5.0",
     "koa": "^2.7.0",
@@ -37,7 +37,7 @@
     "eslint": "^5.16.0",
     "eslint-config-prettier": "^4.2.0",
     "eslint-plugin-prettier": "^3.0.0",
-    "nodemon": "^1.18.10",
+    "nodemon": "^1.19.0",
     "prettier": "^1.16.4",
     "typescript": "^3.4.5"
   },

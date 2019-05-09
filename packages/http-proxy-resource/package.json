@@ -12,7 +12,7 @@
     "abort-controller": "^3.0.0",
     "http-proxy": "^1.17.0",
     "jsonwebtoken": "^8.5.1",
-    "node-fetch": "^2.4.1"
+    "node-fetch": "^2.5.0"
   },
   "description": "",
   "devDependencies": {
@@ -55,5 +55,5 @@
     "start": "npm run start:production"
   },
   "types": "./dist/index.d.ts",
-  "version": "1.0.0-alpha.1"
+  "version": "1.0.0-beta.1"
 }
