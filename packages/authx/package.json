@@ -25,14 +25,15 @@
     "koa": "^2.7.0",
     "koa-body": "^4.1.0",
     "koa-router": "^7.4.0",
+    "node-fetch": "^2.5.0",
     "pg": "^7.8.1",
     "uuid": "^3.3.2"
   },
   "description": "",
   "devDependencies": {
+    "@authx/interface": "^2.0.0-beta.4",
     "@typescript-eslint/eslint-plugin": "^1.5.0",
     "@typescript-eslint/parser": "^1.5.0",
-    "@authx/interface": "^2.0.0-beta.4",
     "ava": "^1.4.0",
     "eslint": "^5.16.0",
     "eslint-config-prettier": "^4.2.0",
