@@ -4,7 +4,7 @@ This is a small collection of utility functions for AuthX scopes. These scopes a
 
 ---
 
-[Anatomy of a Scope](#anatomy-of-a-scope) | [Installation](#installation) | [Usage](#usage) | [Development](#development)
+[Anatomy of a Scope](#anatomy-of-a-scope) | [Installation](#installation) | [API](#api) | [Development](#development)
 
 ---
 
@@ -32,11 +32,15 @@ role.*
 
 Install with `npm install --save @authx/scopes`
 
-## Usage
+## API
 
 Please see [the tests](src/index.test.ts) for complete examples.
 
-### `validate(scope: string): boolean`
+### validate
+
+- ```ts
+  validate(scope: string): boolean`
+  ```
 
 Validate that a scope is correctly formatted.
 
@@ -50,8 +54,11 @@ validate("realm:context.***:action");
 // => false
 ```
 
-### `normalize(scope: string): string`
+### normalize
 
+- ```ts
+  normalize(scope: string): string
+  ```
 - **_throws `InvalidScopeError` if the scope is invalid._**
 
 Normalize a scope into its simplest representation.
@@ -63,8 +70,11 @@ normalize("realm:**.**:action");
 // => 'realm:*.**:action'
 ```
 
-### `simplify(collection: string[]): string[]`
+### simplify
 
+- ```ts
+  simplify(collection: string[]): string[]
+  ```
 - **_throws `InvalidScopeError` if any scopes in `collection` are invalid._**
 
 Simplify the collection of scopes in `collection` by omiting any scopes that are a made redundant by another scope in the collection. All scopes in the returned collection are normalized.
@@ -76,8 +86,11 @@ simplify(["realm:resource.*:action", "realm:**:action"]);
 // => ['realm:**:action']
 ```
 
-### `isEqual(scopeOrCollectionA: string[] | string, scopeOrCollectionB: string[] | string): boolean`
+### isEqual
 
+- ```ts
+  isEqual(scopeOrCollectionA: string[] | string, scopeOrCollectionB: string[] | string): boolean
+  ```
 - **_throws `InvalidScopeError` if any scopes in `scopeOrCollectionA` or `scopeOrCollectionB` are invalid._**
 
 Check whether `scopeOrCollectionA` and `scopeOrCollectionB` are the same, ignoring redundant scopes.
@@ -89,8 +102,11 @@ getIntersection(["realm:**:*"], ["realm:**:action", "realm:**:*"]);
 // => true
 ```
 
-### `isSuperset(scopeOrCollectionA: string[] | string, scopeOrCollectionB: string[] | string): boolean`
+### isSuperset
 
+- ```ts
+  isSuperset(scopeOrCollectionA: string[] | string, scopeOrCollectionB: string[] | string): boolean
+  ```
 - **_throws `InvalidScopeError` if any scopes in `scopeOrCollectionA` or `scopeOrCollectionB` are invalid._**
 
 Check whether `scopeOrCollectionA` is equal to, or a superset of `scopeOrCollectionB`. This is appropriate for checking if a user can perform a particular action.
@@ -102,8 +118,11 @@ isSuperset(["realm:**:*"], ["realm:**:action", "realm:**:*"]);
 // => true
 ```
 
-### `isStrictSuperset(scopeOrCollectionA: string[] | string, scopeOrCollectionB: string[] | string): boolean`
+### isStrictSuperset
 
+- ```ts
+  isStrictSuperset(scopeOrCollectionA: string[] | string, scopeOrCollectionB: string[] | string): boolean
+  ```
 - **_throws `InvalidScopeError` if any scopes in `scopeOrCollectionA` or `scopeOrCollectionB` are invalid._**
 
 Check whether `scopeOrCollectionA` is a strict superset of `scopeOrCollectionB`.
@@ -115,8 +134,11 @@ isStrictSuperset(["realm:**:*"], ["realm:**:action", "realm:**:*"]);
 // => false
 ```
 
-### `isSubset(scopeOrCollectionA: string[] | string, scopeOrCollectionB: string[] | string): boolean`
+### isSubset
 
+- ```ts
+  isSubset(scopeOrCollectionA: string[] | string, scopeOrCollectionB: string[] | string): boolean
+  ```
 - **_throws `InvalidScopeError` if any scopes in `scopeOrCollectionA` or `scopeOrCollectionB` are invalid._**
 
 Check whether `scopeOrCollectionA` is equal to, or a subset of `scopeOrCollectionB`.
@@ -128,8 +150,11 @@ isSubset(["realm:**:action", "realm:**:*"], ["realm:**:*"]);
 // => true
 ```
 
-### `isStrictSubset(scopeOrCollectionA: string[] | string, scopeOrCollectionB: string[] | string): boolean`
+### isStrictSubset
 
+- ```ts
+  isStrictSubset(scopeOrCollectionA: string[] | string, scopeOrCollectionB: string[] | string): boolean
+  ```
 - **_throws `InvalidScopeError` if any scopes in `scopeOrCollectionA` or `scopeOrCollectionB` are invalid._**
 
 Check whether `scopeOrCollectionA` is a strict subset of `scopeOrCollectionB`.
@@ -141,8 +166,11 @@ isStrictSubset(["realm:**:action", "realm:**:*"], ["realm:**:*"]);
 // => false
 ```
 
-### `getIntersection(scopeOrCollectionA: string[] | string, scopeOrCollectionB: string[] | string): string[]`
+### getIntersection
 
+- ```ts
+  getIntersection(scopeOrCollectionA: string[] | string, scopeOrCollectionB: string[] | string): string[]
+  ```
 - **_throws `InvalidScopeError` if any scopes in `scopeOrCollectionA` or `scopeOrCollectionB` are invalid._**
 
 Get the intersection of `scopeOrCollectionA` and `scopeOrCollectionB`, returning a collection of scopes that represent all intersections, or every ability common to both inputs.
@@ -154,8 +182,11 @@ getIntersection(["realm:resource.*:action.*"], ["realm:**:action.read"]);
 // => ['realm:resource.*:action.read']
 ```
 
-### `hasIntersection(scopeOrCollectionA: string[] | string, scopeOrCollectionB: string[] | string): string[]`
+### hasIntersection
 
+- ```ts
+  hasIntersection(scopeOrCollectionA: string[] | string, scopeOrCollectionB: string[] | string): string[]
+  ```
 - **_throws `InvalidScopeError` if any scopes in `scopeOrCollectionA` or `scopeOrCollectionB` are invalid._**
 
 Check whether `scopeOrCollectionA` and `scopeOrCollectionB` intersect. This is useful when checking if a user can perform any subset of the actions represented by the `subject` scope.
