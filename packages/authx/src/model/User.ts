@@ -4,7 +4,7 @@ import { Grant } from "./Grant";
 import { Role } from "./Role";
 import { Client } from "./Client";
 import { simplify, isSuperset, isStrictSuperset } from "@authx/scopes";
-import { Authorization } from "./Authorization";
+import { Authorization, AuthorizationData } from "./Authorization";
 import { NotFoundError } from "../errors";
 
 export type UserType = "human" | "bot";
@@ -22,6 +22,7 @@ export class User implements UserData {
   public readonly type: UserType;
   public readonly name: string;
 
+  private _authorizations: null | Promise<Authorization[]> = null;
   private _credentials: null | Promise<Credential<any>[]> = null;
   private _roles: null | Promise<Role[]> = null;
   private _grants: null | Promise<Grant[]> = null;
@@ -70,6 +71,30 @@ export class User implements UserData {
     }
 
     return false;
+  }
+
+  public async authorizations(
+    tx: PoolClient,
+    refresh: boolean = false
+  ): Promise<Authorization[]> {
+    if (!refresh && this._authorizations) {
+      return this._authorizations;
+    }
+
+    return (this._authorizations = (async () =>
+      Authorization.read(
+        tx,
+        (await tx.query(
+          `
+          SELECT entity_id AS id
+          FROM authx.authorization_record
+          WHERE
+            user_id = $1
+            AND replacement_record_id IS NULL
+          `,
+          [this.id]
+        )).rows.map(({ id }) => id)
+      ))());
   }
 
   public async credentials(

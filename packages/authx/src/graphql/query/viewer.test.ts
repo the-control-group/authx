@@ -125,6 +125,11 @@ test("Deep query on viewer.", async t => {
               enabled: true,
               type: "HUMAN",
               name: "Michael Scott",
+              authorizations: [
+                {
+                  id: "c70da498-27ed-4c3b-a318-38bb220cef48"
+                }
+              ],
               credentials: [
                 {
                   id: "540128ad-7a55-423e-a85c-103677df333c",
@@ -297,6 +302,9 @@ test("Deep query on viewer.", async t => {
                 enabled
                 type
                 name
+                authorizations {
+                  id
+                }
                 credentials {
                   id
                   enabled

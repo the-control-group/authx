@@ -9,6 +9,7 @@ import {
 
 import { User, Grant } from "../model";
 import { Context } from "../Context";
+import { GraphQLAuthorization } from "./GraphQLAuthorization";
 import { GraphQLCredential } from "./GraphQLCredential";
 import { GraphQLRole } from "./GraphQLRole";
 import { GraphQLUserType } from "./GraphQLUserType";
@@ -31,6 +32,17 @@ export const GraphQLUser: GraphQLObjectType<
       type: GraphQLString
     },
     type: { type: GraphQLUserType },
+    authorizations: {
+      type: new GraphQLList(GraphQLAuthorization),
+      description: "List all of the user's authorizations.",
+      async resolve(user, args, { realm, authorization: a, tx }: Context) {
+        return a
+          ? filter(await user.authorizations(tx), authorization =>
+              authorization.isAccessibleBy(realm, a, tx)
+            )
+          : null;
+      }
+    },
     credentials: {
       type: new GraphQLList(GraphQLCredential),
       description: "List all of the user's credentials.",
