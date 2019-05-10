@@ -16,12 +16,12 @@ We have a resource – often an API – which is accessed by a client. The route
 
 ```js
 proxy = new AuthXClientProxy({
-  authxUrl: `http://127.0.0.1:${mockAuthX.port}`,
+  authxUrl: `htts://authx.example.com`,
 
   // These need to match the values for your client in AuthX.
   clientId: "3ac01e62-faba-4644-b4c0-7979775717ac",
   clientSecret: "279b6f23893778b5edf981867a78a86d60c9bd3d",
-  clientUrl: "http://127.0.0.1:5734",
+  clientUrl: "https://client.example.com",
 
   // These are the scopes your client will request from users.
   requestGrantedScopes: ["AuthX:user.equal.self:read.basic"],
@@ -42,7 +42,7 @@ proxy = new AuthXClientProxy({
         // so we will return a 407 and include a `Location` header which the
         // front-end can use to redirect the user.
         return {
-          proxyTarget: `http://127.0.0.1:${mockTarget.port}`,
+          proxyTarget: `https://authx.example.com`,
           sendAuthorizationResponseAs: 407,
           sendTokenToTargetWithScopes: ["authx.prod:**:**"]
         };
@@ -55,11 +55,10 @@ proxy = new AuthXClientProxy({
         return method === "GET" && /^\/static(\/.*)?$/.test(url || "");
       },
       behavior: {
-        proxyTarget: `http://127.0.0.1:${mockTarget.port}`
+        proxyTarget: `http://127.0.0.1:3001`
       }
     },
-    // The rest of our routes render a single-page-app. We simply want to make
-    // sure that we're
+    // The rest of our routes render a single-page-app.
     {
       test() {
         return true;
@@ -72,7 +71,7 @@ proxy = new AuthXClientProxy({
       // the user is authenticated and has granted us scopes that are necessary
       // for the app to work, so we will set `requireGrantedScopes`.
       behavior: {
-        proxyTarget: `http://127.0.0.1:${mockTarget.port}`,
+        proxyTarget: `http://127.0.0.1:3000`,
         sendAuthorizationResponseAs: 303,
         sendTokenToTargetWithScopes: []
       }

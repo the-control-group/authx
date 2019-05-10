@@ -17,7 +17,7 @@ app.use(authXInterface);
 
 // create a new instanciate of AuthX
 const authx = new AuthX({
-  realm: "AuthX",
+  realm: "authx",
   base: `http://localhost${process.env.PORT ? `:${process.env.PORT}` : ""}/`,
   codeValidityDuration: 60,
   jwtValidityDuration: 5 * 60,
