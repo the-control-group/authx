@@ -299,6 +299,11 @@ export default class AuthXClientProxy extends EventEmitter {
 
         response.setHeader("Location", cookies.get("authx.d") || "/");
         response.statusCode = 303;
+
+        // Delete state and destination cookies.
+        cookies.set("authx.s");
+        cookies.set("authx.d");
+
         return send();
       } catch (error) {
         console.error(error);
