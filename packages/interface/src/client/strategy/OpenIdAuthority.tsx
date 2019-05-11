@@ -140,7 +140,7 @@ export function OpenIdAuthority({
 
     // Strip all search params except authorityId from the redirect URL.
     const redirect = new URL(window.location.href);
-    redirect.searchParams.forEach(
+    new URL(window.location.href).searchParams.forEach(
       (v, k) => k !== "authorityId" && redirect.searchParams.delete(k)
     );
 
