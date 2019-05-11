@@ -49,7 +49,12 @@ export const GraphQLPasswordCredential = new GraphQLObjectType<
         return credential.authority(tx);
       }
     },
-    authorityUserId: { type: GraphQLString },
+    subject: {
+      type: GraphQLString,
+      resolve(credential): string {
+        return credential.authorityUserId;
+      }
+    },
     hash: {
       type: GraphQLString,
       async resolve(

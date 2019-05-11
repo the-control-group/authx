@@ -49,6 +49,11 @@ export const GraphQLEmailCredential = new GraphQLObjectType<
         return credential.authority(tx);
       }
     },
-    authorityUserId: { type: GraphQLString }
+    email: {
+      type: GraphQLString,
+      resolve(credential): string {
+        return credential.authorityUserId;
+      }
+    }
   })
 });

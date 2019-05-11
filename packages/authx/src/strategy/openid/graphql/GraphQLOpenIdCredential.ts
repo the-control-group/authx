@@ -48,7 +48,6 @@ export const GraphQLOpenIdCredential = new GraphQLObjectType<
       ): Promise<null | OpenIdAuthority> {
         return credential.authority(tx);
       }
-    },
-    authorityUserId: { type: GraphQLString }
+    }
   })
 });

@@ -1,7 +1,6 @@
 import {
   GraphQLID,
   GraphQLNonNull,
-  GraphQLString,
   GraphQLBoolean,
   GraphQLInterfaceType
 } from "graphql";
@@ -17,7 +16,6 @@ export const GraphQLCredential = new GraphQLInterfaceType({
       type: new GraphQLNonNull(GraphQLBoolean)
     },
     user: { type: GraphQLUser },
-    authority: { type: GraphQLAuthority },
-    authorityUserId: { type: GraphQLString }
+    authority: { type: GraphQLAuthority }
   })
 });

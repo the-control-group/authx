@@ -158,7 +158,7 @@ test("Deep query on viewer.", async t => {
                     verificationEmailHtml:
                       'Please <a href="{{url}}">follow this link</a> to prove your control of this email address.'
                   },
-                  authorityUserId: "michael.scott@dundermifflin.com"
+                  email: "michael.scott@dundermifflin.com"
                 },
                 {
                   id: "c1a8cc41-66d5-4aef-8b97-e5f97d2bc699",
@@ -172,7 +172,6 @@ test("Deep query on viewer.", async t => {
                     name: "Password",
                     rounds: 4
                   },
-                  authorityUserId: "a6a0946d-eeb4-45cd-83c6-c7920f2272eb",
                   hash:
                     "$2a$04$j.W.ev.hBuIZZEKRZRpcPOmHz6SjaYtg/cO8vnBlq3lHHnFh2B1N2"
                 }
@@ -332,7 +331,6 @@ test("Deep query on viewer.", async t => {
                       rounds
                     }
                   }
-                  authorityUserId
 
                   authority {
                     id
@@ -341,6 +339,7 @@ test("Deep query on viewer.", async t => {
                   }
 
                   ... on EmailCredential {
+                    email
                     authority {
                       privateKey
                       publicKeys
