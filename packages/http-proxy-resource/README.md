@@ -20,7 +20,7 @@ new AuthXProxy({
         return method === "GET" && /^\/something\/.+$/.test(url);
       },
       behavior: {
-        proxyTarget: "http://127.0.0.1:3000",
+        proxyOptions: { target: "http://127.0.0.1:3000" },
         sendTokenToTarget: false,
         requireScopes: ["example.resource:something:read"]
       }
@@ -36,7 +36,7 @@ new AuthXProxy({
         );
       },
       behavior: {
-        proxyTarget: "http://127.0.0.1:3000",
+        proxyOptions: { target: "http://127.0.0.1:3000" },
         sendTokenToTarget: false,
         requireScopes: ["example.resource:something:write"]
       }
@@ -49,7 +49,7 @@ new AuthXProxy({
         return true;
       },
       behavior: {
-        proxyTarget: "http://127.0.0.1:3000",
+        proxyOptions: { target: "http://127.0.0.1:3000" },
         sendTokenToTarget: false
       }
     }
@@ -152,7 +152,7 @@ interface Rule {
 ```ts
 interface Behavior {
   /**
-   * The string URL to which requests will be proxied.
+   * The options to pass to node-proxy.
    *
    * @remarks
    * The HTTP header `X-OAuth-Scopes` will be set on both the request and
@@ -165,7 +165,7 @@ interface Behavior {
    * If no token exists, or the token is invalid, the `X-OAuth-Scopes` will be
    * removed from both the request and response.
    */
-  readonly proxyTarget: string;
+  readonly proxyOptions: ServerOptions;
 
   /**
    * If set to true, proxied requests will retain the token in their HTTP

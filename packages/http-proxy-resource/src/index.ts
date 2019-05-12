@@ -2,13 +2,13 @@ import AbortController from "abort-controller";
 import EventEmitter from "events";
 import fetch from "node-fetch";
 import { createServer, Server, IncomingMessage, ServerResponse } from "http";
-import { createProxyServer } from "http-proxy";
+import { createProxyServer, ServerOptions } from "http-proxy";
 import { verify, TokenExpiredError } from "jsonwebtoken";
 import { validate, isSuperset } from "@authx/scopes";
 
 interface Behavior {
   /**
-   * The string URL to which requests will be proxied.
+   * The options to pass to node-proxy.
    *
    * @remarks
    * The HTTP header `X-OAuth-Scopes` will be set on both the request and
@@ -21,7 +21,7 @@ interface Behavior {
    * If no token exists, or the token is invalid, the `X-OAuth-Scopes` will be
    * removed from both the request and response.
    */
-  readonly proxyTarget: string;
+  readonly proxyOptions: ServerOptions;
 
   /**
    * If set to true, proxied requests will retain the token in their HTTP
@@ -374,9 +374,7 @@ export default class AuthXResourceProxy extends EventEmitter {
       }
 
       // Proxy the request.
-      this._proxy.web(request, response, {
-        target: behavior.proxyTarget
-      });
+      this._proxy.web(request, response, behavior.proxyOptions);
 
       return;
     }

@@ -101,7 +101,7 @@ test.before(async () => {
           return url === "/passthrough";
         },
         behavior: {
-          proxyTarget: `http://127.0.0.1:${mockTarget.port}`
+          proxyOptions: { target: `http://127.0.0.1:${mockTarget.port}` }
         }
       },
       {
@@ -109,7 +109,7 @@ test.before(async () => {
           return url === "/passthrough-with-token";
         },
         behavior: {
-          proxyTarget: `http://127.0.0.1:${mockTarget.port}`,
+          proxyOptions: { target: `http://127.0.0.1:${mockTarget.port}` },
           sendTokenToTarget: true
         }
       },
@@ -118,7 +118,7 @@ test.before(async () => {
           return url === "/restrict-empty";
         },
         behavior: {
-          proxyTarget: `http://127.0.0.1:${mockTarget.port}`,
+          proxyOptions: { target: `http://127.0.0.1:${mockTarget.port}` },
           requireScopes: []
         }
       },
@@ -127,7 +127,7 @@ test.before(async () => {
           return url === "/restrict-scopes";
         },
         behavior: {
-          proxyTarget: `http://127.0.0.1:${mockTarget.port}`,
+          proxyOptions: { target: `http://127.0.0.1:${mockTarget.port}` },
           requireScopes: ["realm2:foo:bar"]
         }
       },
@@ -138,7 +138,7 @@ test.before(async () => {
         behavior(request) {
           request.url = "/rewritten";
           return {
-            proxyTarget: `http://127.0.0.1:${mockTarget.port}`
+            proxyOptions: { target: `http://127.0.0.1:${mockTarget.port}` }
           };
         }
       }
