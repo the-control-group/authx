@@ -31,7 +31,7 @@
   },
   "description": "",
   "devDependencies": {
-    "@authx/interface": "^2.0.0-beta.5",
+    "@authx/interface": "^2.0.0-beta.6",
     "@typescript-eslint/eslint-plugin": "^1.5.0",
     "@typescript-eslint/parser": "^1.5.0",
     "ava": "^1.4.0",
@@ -78,5 +78,5 @@
     "test:development": "ava --verbose --watch dist/**/*.test.js"
   },
   "types": "dist/index.d.ts",
-  "version": "2.0.0-beta.5"
+  "version": "2.0.0-beta.6"
 }
