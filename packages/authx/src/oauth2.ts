@@ -208,6 +208,7 @@ export default async (ctx: ParameterizedContext<any, { [x]: Context }>) => {
           authorization_type: "bearer",
           access_token: jwt.sign(
             {
+              aid: authorization.id,
               scopes: await authorization.access(tx),
               nonce: paramsNonce
             },
@@ -353,6 +354,7 @@ export default async (ctx: ParameterizedContext<any, { [x]: Context }>) => {
           authorization_type: "bearer",
           access_token: jwt.sign(
             {
+              aid: authorization.id,
               scopes: await authorization.access(tx),
               nonce: paramsNonce
             },

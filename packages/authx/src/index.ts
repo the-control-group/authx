@@ -11,15 +11,10 @@ import graphiql from "./graphiql";
 
 import { Config, assertConfig } from "./Config";
 import { Context } from "./Context";
-import { Authorization } from "./model";
 import { parse } from "auth-header";
-import {
-  NotFoundError,
-  AuthenticationError,
-  UnsupportedMediaTypeError
-} from "./errors";
+import { UnsupportedMediaTypeError } from "./errors";
 
-const __DEV__ = process.env.NODE_ENV !== "production";
+import { fromBasic, fromBearer } from "./util/getAuthorization";
 
 import { StrategyCollection } from "./StrategyCollection";
 
@@ -60,55 +55,24 @@ export class AuthX<
           ? parse(ctx.request.header.authorization)
           : null;
 
+        // HTTP Basic Authorization
         const basic =
           auth && auth.scheme === "Basic" && typeof auth.token === "string"
             ? auth.token
             : null;
 
         if (basic) {
-          const [id, secret] = new Buffer(basic, "base64")
-            .toString()
-            .split(":", 2);
+          authorization = await fromBasic(tx, basic);
+        }
 
-          try {
-            authorization = await Authorization.read(tx, id);
-          } catch (error) {
-            if (!(error instanceof NotFoundError)) throw error;
-            throw new AuthenticationError(
-              __DEV__
-                ? "Unable to find the authorization specified in the HTTP authorization header."
-                : undefined
-            );
-          }
+        // Bearer Token Authorization
+        const bearer =
+          auth && auth.scheme === "Bearer" && typeof auth.token === "string"
+            ? auth.token
+            : null;
 
-          if (!authorization.enabled)
-            throw new AuthenticationError(
-              __DEV__
-                ? "The authorization specified in HTTP authorization header is disabled."
-                : undefined
-            );
-
-          if (authorization.secret !== secret)
-            throw new AuthenticationError(
-              __DEV__
-                ? "The secret specified in HTTP authorization header was incorrect."
-                : undefined
-            );
-
-          const grant = await authorization.user(tx);
-          if (grant && !grant.enabled)
-            throw new AuthenticationError(
-              __DEV__
-                ? "The grant of the authorization specified in HTTP authorization header is disabled."
-                : undefined
-            );
-
-          if (!(await authorization.user(tx)).enabled)
-            throw new AuthenticationError(
-              __DEV__
-                ? "The user of the authorization specified in HTTP authorization header is disabled."
-                : undefined
-            );
+        if (bearer) {
+          authorization = await fromBearer(tx, config.publicKeys, bearer);
         }
 
         const context: Context = {
