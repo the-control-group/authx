@@ -12,7 +12,7 @@ let database: string;
 let pool: Pool;
 
 const baseContext = {
-  realm: "AuthX",
+  realm: "authx",
   base: "http://localhost/",
   codeValidityDuration: 60,
   jwtValidityDuration: 5 * 60,
@@ -228,10 +228,9 @@ test("Deep query on viewer.", async t => {
                     }
                   ],
                   scopes: [
-                    "AuthX:credential.*.me:*",
-                    "AuthX:grant.*.me:*",
-                    "AuthX:me:read",
-                    "AuthX:me:update"
+                    "authx:authorization.equal.self.*:**",
+                    "authx:grant.equal.self.*:**",
+                    "authx:user.equal.self:**"
                   ]
                 },
                 {
@@ -244,7 +243,7 @@ test("Deep query on viewer.", async t => {
                       enabled: true
                     }
                   ],
-                  scopes: ["AuthX:**:**"]
+                  scopes: ["authx:**:**"]
                 }
               ],
               clients: [

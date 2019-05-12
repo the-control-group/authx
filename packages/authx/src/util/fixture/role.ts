@@ -12,7 +12,7 @@ export const role = [
           enabled: true,
           name: "AuthX Administrator",
           userIds: ["a6a0946d-eeb4-45cd-83c6-c7920f2272eb"],
-          scopes: ["AuthX:**:**"]
+          scopes: ["authx:**:**"]
         },
         {
           recordId: "cde64a26-8371-498c-a613-018bf1393790",
@@ -42,10 +42,9 @@ export const role = [
             "1691f38d-92c8-4d86-9a89-da99528cfcb5"
           ],
           scopes: [
-            "AuthX:me:read",
-            "AuthX:me:update",
-            "AuthX:credential.*.me:*",
-            "AuthX:grant.*.me:*"
+            "authx:authorization.equal.self.*:**",
+            "authx:grant.equal.self.*:**",
+            "authx:user.equal.self:**"
           ]
         },
         {
@@ -110,7 +109,7 @@ export const role = [
           enabled: true,
           name: "HR",
           userIds: ["306eabbb-cc2b-4f88-be19-4bb6ec98e5c3"],
-          scopes: ["AuthX:user:**", "AuthX:credential.*.user:**"]
+          scopes: ["authx:user.**:**"]
         },
         {
           recordId: "f94c5316-ce81-46e6-932a-0ac2c8fc886b",

@@ -203,9 +203,11 @@ authx:user.*    .*     :write.{basic|*}
 Users must have the following scopes to use OAuth:
 
 ```
+authx:user.equal.self:read.basic
 authx:grant.equal.self.*:read.basic
 authx:grant.equal.self.*:read.scopes
 authx:grant.equal.self.*:read.secrets
+authx:grant.equal.self.*:write.*
 authx:authorization.equal.self.*:read.basic
 authx:authorization.equal.self.*:read.scopes
 authx:authorization.equal.self.*:read.secrets
