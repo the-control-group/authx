@@ -42,7 +42,7 @@ proxy = new AuthXClientProxy({
         // so we will return a 401 and include a `Location` header which the
         // front-end can use to redirect the user.
         return {
-          proxyTarget: `https://authx.example.com`,
+          proxyOptions: { target: `https://authx.example.com` },
           sendAuthorizationResponseAs: 401,
           sendTokenToTargetWithScopes: ["authx.prod:**:**"]
         };
@@ -55,7 +55,7 @@ proxy = new AuthXClientProxy({
         return method === "GET" && /^\/static(\/.*)?$/.test(url || "");
       },
       behavior: {
-        proxyTarget: `http://127.0.0.1:3001`
+        proxyOptions: { target: `http://127.0.0.1:3001` }
       }
     },
     // The rest of our routes render a single-page-app.
@@ -71,7 +71,7 @@ proxy = new AuthXClientProxy({
       // the user is authenticated and has granted us scopes that are necessary
       // for the app to work, so we will set `requireGrantedScopes`.
       behavior: {
-        proxyTarget: `http://127.0.0.1:3000`,
+        proxyOptions: { target: `http://127.0.0.1:3000` },
         sendAuthorizationResponseAs: 303,
         sendTokenToTargetWithScopes: []
       }
@@ -180,9 +180,9 @@ interface Rule {
 ```ts
 interface Behavior {
   /**
-   * The string URL to which requests will be proxied.
+   * The options to pass to node-proxy.
    */
-  readonly proxyTarget: string;
+  readonly proxyOptions: ServerOptions;
 
   /**
    * The HTTP status to use if the proxy requires authorization.

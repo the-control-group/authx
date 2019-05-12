@@ -124,7 +124,7 @@ test.before(async () => {
           // so we will return a 401 and include a `Location` header which the
           // front-end can use to redirect the user.
           return {
-            proxyTarget: `http://127.0.0.1:${mockTarget.port}`,
+            proxyOptions: { target: `http://127.0.0.1:${mockTarget.port}` },
             sendAuthorizationResponseAs: 401,
             sendTokenToTargetWithScopes: ["authx.prod:**:**"]
           };
@@ -137,7 +137,7 @@ test.before(async () => {
           return method === "GET" && /^\/static(\/.*)?$/.test(url || "");
         },
         behavior: {
-          proxyTarget: `http://127.0.0.1:${mockTarget.port}`
+          proxyOptions: { target: `http://127.0.0.1:${mockTarget.port}` }
         }
       },
       // The rest of our routes render a single-page-app. We simply want to make
@@ -154,7 +154,7 @@ test.before(async () => {
         // the user is authenticated and has granted us scopes that are necessary
         // for the app to work, so we will set `requireGrantedScopes`.
         behavior: {
-          proxyTarget: `http://127.0.0.1:${mockTarget.port}`,
+          proxyOptions: { target: `http://127.0.0.1:${mockTarget.port}` },
           sendAuthorizationResponseAs: 303,
           sendTokenToTargetWithScopes: []
         }

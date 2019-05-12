@@ -4,15 +4,15 @@ import EventEmitter from "events";
 import fetch from "node-fetch";
 import { createServer, Server, IncomingMessage, ServerResponse } from "http";
 import Cookies from "cookies";
-import { createProxyServer } from "http-proxy";
+import { createProxyServer, ServerOptions } from "http-proxy";
 import { decode } from "jsonwebtoken";
 import { simplify } from "@authx/scopes";
 
 interface Behavior {
   /**
-   * The string URL to which requests will be proxied.
+   * The options to pass to node-proxy.
    */
-  readonly proxyTarget: string;
+  readonly proxyOptions: ServerOptions;
 
   /**
    * The HTTP status to use if the proxy requires authorization.
@@ -195,6 +195,35 @@ export default class AuthXClientProxy extends EventEmitter {
       }
     }
 
+    const forward = (options: ServerOptions): void => {
+      // Merge `set-cookie` header values with those set by the proxy. ONLY do
+      // this if the behavior has configured cookiePathRewrite rules, or else
+      // we risk leaking credentials between targets.
+      if (options.cookiePathRewrite) {
+        const setHeader = response.setHeader;
+        response.setHeader = function(name, value) {
+          if (name.toLowerCase() === "set-cookie" && Array.isArray(value)) {
+            const setCookie = response.getHeader("set-cookie");
+            if (Array.isArray(setCookie)) {
+              value = [...value, ...setCookie];
+            }
+          }
+
+          return setHeader.call(response, name, value);
+        };
+      }
+
+      // Strip out cookies belonging to the proxy.
+      if (request.headers.cookie) {
+        request.headers.cookie = request.headers.cookie
+          .split("; ")
+          .filter(cookie => !/^authx\./.test(cookie.split("=")[0]))
+          .join("; ");
+      }
+
+      this._proxy.web(request, response, options);
+    };
+
     // Serve the readiness URL.
     if (request.url === (this._config.readinessEndpoint || "/_ready")) {
       if (this._closed || this._closing) {
@@ -339,12 +368,7 @@ export default class AuthXClientProxy extends EventEmitter {
 
       // Nothing else to do; proxy the request.
       if (!behavior.sendTokenToTargetWithScopes) {
-        // Strip cookies from the request.
-        delete request.headers.cookie;
-        this._proxy.web(request, response, {
-          target: behavior.proxyTarget
-        });
-
+        forward(behavior.proxyOptions);
         return;
       }
 
@@ -366,13 +390,7 @@ export default class AuthXClientProxy extends EventEmitter {
         ) {
           // We already have a valid token.
           request.headers.authorization = `Bearer ${token}`;
-
-          // Strip cookies from the request.
-          delete request.headers.cookie;
-          this._proxy.web(request, response, {
-            target: behavior.proxyTarget
-          });
-
+          forward(behavior.proxyOptions);
           return;
         }
       } catch (error) {
@@ -426,12 +444,7 @@ export default class AuthXClientProxy extends EventEmitter {
               refreshResponseBody.access_token
             }`;
 
-            // Strip cookies from the request.
-            delete request.headers.cookie;
-            this._proxy.web(request, response, {
-              target: behavior.proxyTarget
-            });
-
+            forward(behavior.proxyOptions);
             return;
           }
         } catch (error) {
