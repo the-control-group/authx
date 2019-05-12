@@ -4,6 +4,7 @@ import { useAuthorization } from "./useAuthorization";
 import { useAuthenticatedEndpoint } from "./useAuthenticatedEndpoint";
 import { Authenticate } from "./Authenticate";
 import { Authorize } from "./Authorize";
+import { Default } from "./Default";
 import { GraphQL, GraphQLContext } from "graphql-react";
 
 function Root(): ReactElement<{}> {
@@ -27,12 +28,22 @@ function Root(): ReactElement<{}> {
     );
   }
 
-  // We are authenticated; we need to authorize the client.
+  // We need to authorize a client.
+  const url = new URL(window.location.href);
+  if (url.searchParams.has("response_type")) {
+    return (
+      <Authorize
+        fetchOptionsOverride={fetchOptionsOverride}
+        clearAuthorization={clearAuthorization}
+      />
+    );
+  }
+
+  // We need to allow the user to log out.
   return (
-    <Authorize
-      authorization={authorization}
-      clearAuthorization={clearAuthorization}
+    <Default
       fetchOptionsOverride={fetchOptionsOverride}
+      clearAuthorization={clearAuthorization}
     />
   );
 }

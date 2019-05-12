@@ -29,7 +29,6 @@ export function useAuthorization(): {
   // Listen for changes to the authorization in localStorage
   useEffect(() => {
     function onChange(e: StorageEvent): void {
-      console.log(e);
       if (e.key === "authx-interface.authorization") {
         const [authorizationId, authorizationSecret] = (
           e.newValue || ":"

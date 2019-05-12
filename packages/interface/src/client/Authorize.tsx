@@ -14,11 +14,9 @@ import {
 import { validate, isSuperset } from "@authx/scopes";
 
 export function Authorize({
-  authorization,
   clearAuthorization,
   fetchOptionsOverride
 }: {
-  authorization: { id: string; secret: string };
   clearAuthorization: () => void;
   fetchOptionsOverride: GraphQLFetchOptionsOverride;
 }): ReactElement<any> {
@@ -36,20 +34,7 @@ export function Authorize({
     ? requestedScopes.every(validate)
     : null;
 
-  // We are not authenticated, redirect to the authentication page
-  if (!authorization) {
-    const url = new URL(window.location.href);
-    const segments = url.pathname.split("/");
-    url.pathname = [
-      ...segments.slice(0, segments.length - 2),
-      "authenticate",
-      ""
-    ].join("/");
-
-    window.location.replace(url.href);
-  }
-
-  // Get all active authorities from the API.
+  // Get the user, grant, and client from the API.
   const { loading, cacheValue } = useGraphQL<
     {
       viewer: null | {
