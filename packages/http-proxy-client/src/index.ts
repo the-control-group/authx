@@ -196,22 +196,24 @@ export default class AuthXClientProxy extends EventEmitter {
     }
 
     const forward = (options: ServerOptions): void => {
-      // Merge `set-cookie` header values with those set by the proxy. ONLY do
-      // this if the behavior has configured cookiePathRewrite rules, or else
-      // we risk leaking credentials between targets.
-      if (options.cookiePathRewrite) {
-        const setHeader = response.setHeader;
-        response.setHeader = function(name, value) {
-          if (name.toLowerCase() === "set-cookie" && Array.isArray(value)) {
-            const setCookie = response.getHeader("set-cookie");
-            if (Array.isArray(setCookie)) {
-              value = [...value, ...setCookie];
-            }
-          }
+      // Merge `set-cookie` header values with those set by the proxy.
 
-          return setHeader.call(response, name, value);
-        };
-      }
+      const setHeader = response.setHeader;
+      response.setHeader = function(name, value) {
+        if (name.toLowerCase() === "set-cookie") {
+          const setCookie = response.getHeader("set-cookie");
+
+          // Only write the `set-cookie` header if cookiePathRewrite is
+          // configured, or else we risk leaking credentials between targets.
+          if (Array.isArray(value) && options.cookiePathRewrite) {
+            value = Array.isArray(setCookie) ? [...value, ...setCookie] : value;
+          } else {
+            value = Array.isArray(setCookie) ? setCookie : [];
+          }
+        }
+
+        return setHeader.call(response, name, value);
+      };
 
       // Strip out cookies belonging to the proxy.
       if (request.headers.cookie) {
@@ -219,6 +221,8 @@ export default class AuthXClientProxy extends EventEmitter {
           .split("; ")
           .filter(cookie => !/^authx\./.test(cookie.split("=")[0]))
           .join("; ");
+
+        if (!request.headers.cookie) delete request.headers.cookie;
       }
 
       this._proxy.web(request, response, options);
