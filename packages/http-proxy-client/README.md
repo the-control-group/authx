@@ -39,11 +39,11 @@ proxy = new AuthXClientProxy({
         request.url = "/graphql";
 
         // Because this is an API request, we don't want to redirect the browser
-        // so we will return a 407 and include a `Location` header which the
+        // so we will return a 401 and include a `Location` header which the
         // front-end can use to redirect the user.
         return {
           proxyTarget: `https://authx.example.com`,
-          sendAuthorizationResponseAs: 407,
+          sendAuthorizationResponseAs: 401,
           sendTokenToTargetWithScopes: ["authx.prod:**:**"]
         };
       }
@@ -194,13 +194,13 @@ interface Behavior {
    * set in the referer header. Use this for endpoints with which a human user
    * directly interacts.
    *
-   * 407 - This will return a 407 with a `Location` header designating the AuthX
+   * 401 - This will return a 401 with a `Location` header designating the AuthX
    * URL to which the user should be directed for authorization. After
    * authorizing the proxy, the user will be returned to the URL set in the
    * referer header. Use this for endpoints with which a client-side app
    * interacts using `fetch` or `XMLHttpRequest`.
    */
-  readonly sendAuthorizationResponseAs?: 303 | 407;
+  readonly sendAuthorizationResponseAs?: 303 | 401;
 
   /**
    * Pass a token to the target, restricting scopes to those provided.

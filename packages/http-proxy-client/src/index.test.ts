@@ -121,11 +121,11 @@ test.before(async () => {
           request.url = "/graphql";
 
           // Because this is an API request, we don't want to redirect the browser
-          // so we will return a 407 and include a `Location` header which the
+          // so we will return a 401 and include a `Location` header which the
           // front-end can use to redirect the user.
           return {
             proxyTarget: `http://127.0.0.1:${mockTarget.port}`,
-            sendAuthorizationResponseAs: 407,
+            sendAuthorizationResponseAs: 401,
             sendTokenToTargetWithScopes: ["authx.prod:**:**"]
           };
         }
@@ -177,7 +177,7 @@ test("readiness endpoint", async t => {
   t.is(await response.text(), "READY");
 });
 
-test("anonymous - 407", async t => {
+test("anonymous - 401", async t => {
   const response = await fetch(`http://127.0.0.1:${port}/api/authx`, {
     method: "POST",
     redirect: "manual",
@@ -185,7 +185,7 @@ test("anonymous - 407", async t => {
       referer: "/foo"
     }
   });
-  t.is(response.status, 407);
+  t.is(response.status, 401);
   const location = response.headers.get("Location");
   t.assert(location, "Location header must be in response.");
   const url = new URL(location || "");

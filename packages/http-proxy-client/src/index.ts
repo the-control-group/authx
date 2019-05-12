@@ -24,13 +24,13 @@ interface Behavior {
    * set in the referer header. Use this for endpoints with which a human user
    * directly interacts.
    *
-   * 407 - This will return a 407 with a `Location` header designating the AuthX
+   * 401 - This will return a 401 with a `Location` header designating the AuthX
    * URL to which the user should be directed for authorization. After
    * authorizing the proxy, the user will be returned to the URL set in the
    * referer header. Use this for endpoints with which a client-side app
    * interacts using `fetch` or `XMLHttpRequest`.
    */
-  readonly sendAuthorizationResponseAs?: 303 | 407;
+  readonly sendAuthorizationResponseAs?: 303 | 401;
 
   /**
    * Pass a token to the target, restricting scopes to those provided.
@@ -442,7 +442,7 @@ export default class AuthXClientProxy extends EventEmitter {
       // We need to authorize the client.
       const state = randomBytes(16).toString("hex");
       const destination =
-        behavior.sendAuthorizationResponseAs === 407
+        behavior.sendAuthorizationResponseAs === 401
           ? request.headers.referer || "/"
           : (request.method !== "GET" && request.headers.referer) ||
             request.url ||
