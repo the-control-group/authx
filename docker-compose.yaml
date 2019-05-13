@@ -5,8 +5,6 @@ services:
     ports:
     - "80:80"
     - "9229:9229"
-    volumes:
-    - .:/workspace
     environment:
       PGHOST: postgres
       PGUSER: postgres
