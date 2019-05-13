@@ -7,5 +7,6 @@ before_install:
 install:
   - docker-compose up -d
 script:
+  - docker-compose exec authx yarn build
   - docker-compose exec authx yarn lint
   - docker-compose exec authx yarn test

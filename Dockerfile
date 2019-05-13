@@ -26,7 +26,4 @@ RUN cd /workspace && yarn install --frozen-lockfile
 # Add in the entire working directory
 ADD . /workspace
 
-# Build the packages
-RUN yarn build
-
-CMD ["yarn", "start"]
+CMD ["tail", "-f", "/dev/null"]

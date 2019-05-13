@@ -4,7 +4,7 @@ import { Grant } from "./Grant";
 import { Role } from "./Role";
 import { Client } from "./Client";
 import { simplify, isSuperset, isStrictSuperset } from "@authx/scopes";
-import { Authorization, AuthorizationData } from "./Authorization";
+import { Authorization } from "./Authorization";
 import { NotFoundError } from "../errors";
 
 export type UserType = "human" | "bot";
