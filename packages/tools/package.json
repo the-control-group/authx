@@ -8,7 +8,8 @@
   },
   "bugs": "https://github.com/the-control-group/authx/issues",
   "dependencies": {
-    "@authx/authx": "2.0.0-beta.8",
+    "@authx/authx": "^2.0.0-beta.0",
+    "@authx/strategy-password": "^1.0.0-beta.0",
     "@types/pg": "^7.4.14",
     "@types/uuid": "^3.4.4",
     "pg": "^7.8.1",
@@ -49,8 +50,8 @@
   "scripts": {
     "format": "prettier --list-different --write '**/*.{json,yml,md,ts,tsx}'",
     "lint": "prettier -c '**/*.{json,yml,md,ts,tsx}' && eslint src --ext ts --ext tsx",
-    "prepare": "rm -rf dist && tsc && chmod +x dist/authx.js",
-    "prepare:development": "rm -rf dist && tsc --watch",
+    "build": "rm -rf dist && tsc && chmod +x dist/authx.js",
+    "build:development": "rm -rf dist && tsc --watch",
     "test": "ava --verbose dist/**/*.test.js",
     "test:development": "ava --verbose --watch dist/**/*.test.js"
   },

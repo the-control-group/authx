@@ -53,13 +53,13 @@
   "scripts": {
     "format": "prettier --list-different --write '**/*.{json,yml,md,ts,tsx}'",
     "lint": "prettier -c '**/*.{json,yml,md,ts,tsx}' && eslint src --ext ts --ext tsx",
-    "prepare": "rm -rf dist && tsc",
-    "prepare:development": "rm -rf dist && tsc --watch",
+    "build": "rm -rf dist && tsc",
+    "build:development": "rm -rf dist && tsc --watch",
     "start": "NODE_ENV=production node dist/server",
     "start:development": "NODE_ENV=development nodemon --delay 2 --inspect dist/server",
     "test": "ava --verbose dist/**/*.test.js",
     "test:development": "ava --verbose --watch dist/**/*.test.js"
   },
   "types": "dist/server/index.d.ts",
-  "version": "2.0.0-beta.7"
+  "version": "1.0.0-beta.1"
 }

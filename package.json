@@ -18,19 +18,19 @@
   "scripts": {
     "packages:format": "for p in packages/*/; do echo \"\n\n---------- $p\" && if ! (cd $p && yarn format); then exit 1; fi; done",
     "packages:lint": "for p in packages/*/; do echo \"\n\n---------- $p\" && if ! (cd $p && yarn lint); then exit 1; fi; done",
-    "packages:prepare": "for p in $(echo \"scopes\\nauthx\\n$(ls packages | grep -v scopes | grep -v authx)\" | sed 's/^/packages\\//'); do echo \"\n\n---------- $p\" && if ! (cd $p && yarn prepare); then exit 1; fi; done",
+    "packages:build": "for p in $(echo \"scopes\\nauthx\\n$(ls packages | grep -v scopes | grep -v authx)\" | sed 's/^/packages\\//'); do echo \"\n\n---------- $p\" && if ! (cd $p && yarn build); then exit 1; fi; done",
     "packages:test": "for p in packages/*/; do echo \"\n\n---------- $p\" && if ! (cd $p && yarn test); then exit 1; fi; done",
     "root:format": "prettier --list-different --write '**/*.{json,yml,md,ts}'",
     "root:lint": "prettier -c '**/*.{json,yml,md,ts}' && eslint src --ext ts",
-    "root:prepare": "rm -rf dist && tsc",
-    "root:prepare:development": "rm -rf dist && tsc --watch",
+    "root:build": "rm -rf dist && tsc",
+    "root:build:development": "rm -rf dist && tsc --watch",
     "root:start": "NODE_ENV=production node dist/server",
     "root:start:development": "NODE_ENV=development nodemon --delay 2 --inspect dist/server",
     "root:test": "ava --verbose dist/**/*.test.js",
     "root:test:development": "ava --verbose --watch dist/**/*.test.js",
     "format": "yarn packages:format && yarn root:format",
     "lint": "yarn packages:lint && yarn root:lint",
-    "prepare": "yarn packages:prepare && yarn root:prepare",
+    "build": "yarn packages:build && yarn root:build",
     "test": "yarn packages:test && yarn root:test"
   },
   "devDependencies": {
