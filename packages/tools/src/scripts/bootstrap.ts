@@ -2,14 +2,14 @@ import { randomBytes } from "crypto";
 import { hash } from "bcrypt";
 import v4 from "uuid/v4";
 import { Pool } from "pg";
-import bootstrap from "../util/bootstrap";
-import { User, Role, Authorization } from "../model";
+import { bootstrap } from "../lib/bootstrap";
+import { User, Role, Authorization } from "@authx/authx";
 import {
   PasswordAuthority,
   PasswordCredential
 } from "@authx/strategy-password";
 
-(async () => {
+export default async () => {
   const pool = new Pool();
   const tx = await pool.connect();
 
@@ -64,53 +64,49 @@ import {
   try {
     await tx.query("BEGIN DEFERRABLE");
 
-    await bootstrap(
-      tx,
-      {
-        user: {
-          data: user,
-          metadata: {
-            recordId: v4(),
-            createdByAuthorizationId: authorization.id,
-            createdAt: new Date()
-          }
-        },
-        authority: {
-          data: authority,
-          metadata: {
-            recordId: v4(),
-            createdByAuthorizationId: authorization.id,
-            createdAt: new Date()
-          }
-        },
-        credential: {
-          data: credential,
-          metadata: {
-            recordId: v4(),
-            createdByAuthorizationId: authorization.id,
-            createdAt: new Date()
-          }
-        },
-        role: {
-          data: role,
-          metadata: {
-            recordId: v4(),
-            createdByAuthorizationId: authorization.id,
-            createdAt: new Date()
-          }
-        },
-        authorization: {
-          data: authorization,
-          metadata: {
-            recordId: v4(),
-            createdByAuthorizationId: authorization.id,
-            createdAt: new Date(),
-            createdByCredentialId: null
-          }
+    await bootstrap(tx, {
+      user: {
+        data: user,
+        metadata: {
+          recordId: v4(),
+          createdByAuthorizationId: authorization.id,
+          createdAt: new Date()
         }
       },
-      process.argv.includes("--schema")
-    );
+      authority: {
+        data: authority,
+        metadata: {
+          recordId: v4(),
+          createdByAuthorizationId: authorization.id,
+          createdAt: new Date()
+        }
+      },
+      credential: {
+        data: credential,
+        metadata: {
+          recordId: v4(),
+          createdByAuthorizationId: authorization.id,
+          createdAt: new Date()
+        }
+      },
+      role: {
+        data: role,
+        metadata: {
+          recordId: v4(),
+          createdByAuthorizationId: authorization.id,
+          createdAt: new Date()
+        }
+      },
+      authorization: {
+        data: authorization,
+        metadata: {
+          recordId: v4(),
+          createdByAuthorizationId: authorization.id,
+          createdAt: new Date(),
+          createdByCredentialId: null
+        }
+      }
+    });
 
     await tx.query("COMMIT");
   } catch (error) {
@@ -120,4 +116,4 @@ import {
     tx.release();
     await pool.end();
   }
-})().catch(error => console.error(error));
+};

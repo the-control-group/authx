@@ -9,7 +9,8 @@
     "packages/scopes",
     "packages/strategy-email",
     "packages/strategy-openid",
-    "packages/strategy-password"
+    "packages/strategy-password",
+    "packages/tools"
   ],
   "nohoist": [
     "packages/authx-interface/html-webpack-plugin"

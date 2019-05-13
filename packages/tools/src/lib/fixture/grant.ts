@@ -1,5 +1,5 @@
 import { PoolClient } from "pg";
-import { Grant } from "../../model";
+import { Grant } from "@authx/authx";
 
 export const grant = [
   {

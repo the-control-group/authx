@@ -1,14 +1,14 @@
 import { Pool } from "pg";
-import { fixture } from "../util/fixture";
+import { schema } from "../lib/schema";
 
-(async () => {
+export default async () => {
   const pool = new Pool();
   const tx = await pool.connect();
 
   try {
     await tx.query("BEGIN DEFERRABLE");
 
-    await fixture(tx, process.argv.includes("--schema"));
+    await schema(tx);
 
     await tx.query("COMMIT");
   } catch (error) {
@@ -18,4 +18,4 @@ import { fixture } from "../util/fixture";
     tx.release();
     await pool.end();
   }
-})();
+};

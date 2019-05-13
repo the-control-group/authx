@@ -66,8 +66,6 @@
   },
   "repository": "https://github.com/the-control-group/authx",
   "scripts": {
-    "bootstrap": "node dist/scripts/bootstrap.js",
-    "fixture": "node dist/scripts/fixture.js",
     "format": "prettier --list-different --write '**/*.{json,yml,md,ts}'",
     "lint": "prettier -c '**/*.{json,yml,md,ts}' && eslint src --ext ts",
     "prepare": "rm -rf dist && tsc",

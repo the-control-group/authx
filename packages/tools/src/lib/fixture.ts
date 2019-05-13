@@ -1,6 +1,4 @@
 import { PoolClient } from "pg";
-import path from "path";
-import fs from "fs";
 
 import {
   authority,
@@ -18,18 +16,7 @@ interface Metadata {
   createdAt: Date;
 }
 
-export async function fixture(
-  tx: PoolClient,
-  schema: boolean = false
-): Promise<void> {
-  // set up the schema
-  if (schema)
-    await tx.query(
-      fs
-        .readFileSync(path.resolve(__dirname, "../../schema.sql"))
-        .toString("utf8")
-    );
-
+export async function fixture(tx: PoolClient): Promise<void> {
   // add entities to satisfy foreign key constraints
   await Promise.all([
     tx.query(

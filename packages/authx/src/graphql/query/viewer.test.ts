@@ -1,7 +1,7 @@
 import test from "ava";
 import { parse, execute } from "graphql";
 import { Pool, Client } from "pg";
-import { fixture } from "../../util/fixture";
+import * as tools from "@authx/tools";
 import createSchema from "../";
 import { StrategyCollection } from "../../StrategyCollection";
 import { Authorization } from "../../model";
@@ -70,7 +70,8 @@ test.before(async () => {
   // Add fixtures to the database.
   const tx = await pool.connect();
   try {
-    await fixture(tx, true);
+    await tools.schema(tx);
+    await tools.fixture(tx);
   } finally {
     tx.release();
   }

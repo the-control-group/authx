@@ -3,15 +3,14 @@
     "email": "mike.marcacci@thecontrolgroup.com",
     "name": "Mike Marcacci"
   },
+  "bin": {
+    "authx": "dist/authx.js"
+  },
   "bugs": "https://github.com/the-control-group/authx/issues",
   "dependencies": {
-    "@authx/scopes": "^2.2.1",
     "@authx/authx": "*",
-    "@types/bcrypt": "^3.0.0",
     "@types/pg": "^7.4.14",
     "@types/uuid": "^3.4.4",
-    "bcrypt": "^3.0.5",
-    "graphql": "^14.3.0",
     "pg": "^7.8.1",
     "uuid": "^3.3.2"
   },
@@ -44,22 +43,17 @@
     "permissions"
   ],
   "license": "MIT",
-  "main": "dist/server",
-  "name": "@authx/strategy-email",
-  "peerDependencies": {
-    "@authx/authx": "*"
-  },
+  "main": "dist",
+  "name": "@authx/tools",
   "repository": "https://github.com/the-control-group/authx",
   "scripts": {
     "format": "prettier --list-different --write '**/*.{json,yml,md,ts,tsx}'",
     "lint": "prettier -c '**/*.{json,yml,md,ts,tsx}' && eslint src --ext ts --ext tsx",
-    "prepare": "rm -rf dist && tsc",
+    "prepare": "rm -rf dist && tsc && chmod +x dist/authx.js",
     "prepare:development": "rm -rf dist && tsc --watch",
-    "start": "NODE_ENV=production node dist/server",
-    "start:development": "NODE_ENV=development nodemon --delay 2 --inspect dist/server",
     "test": "ava --verbose dist/**/*.test.js",
     "test:development": "ava --verbose --watch dist/**/*.test.js"
   },
-  "types": "dist/server/index.d.ts",
-  "version": "2.0.0-beta.7"
+  "types": "dist/index.d.ts",
+  "version": "2.0.0-beta.1"
 }

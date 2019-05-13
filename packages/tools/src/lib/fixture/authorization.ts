@@ -1,5 +1,5 @@
 import { PoolClient } from "pg";
-import { Authorization } from "../../model";
+import { Authorization } from "@authx/authx";
 
 export const authorization = [
   {

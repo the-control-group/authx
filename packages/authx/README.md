@@ -83,18 +83,6 @@ These scripts can be run using `npm run <script>` or `yarn <script>`; when relev
 - `PGUSER`: postgres user
 - `PGPASSWORD`: postgres password
 
-#### `bootstrap`
-
-Bootstrap a database by creating an initial root user and admin role, returning the user ID and password as JSON. Use the above environment variables to configure the postgres connection.
-
-Pass the `--schema` argument to also create the database schema.
-
-#### `fixture`
-
-Add test fixtures to the database. Use the above environment variables to configure the postgres connection.
-
-Pass the `--schema` argument to also create the database schema.
-
 #### `format`
 
 Use prettier to format the code in this package.

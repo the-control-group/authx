@@ -47,7 +47,7 @@
   "main": "dist/server",
   "name": "@authx/strategy-password",
   "peerDependencies": {
-    "koa": "^2.0.0"
+    "@authx/authx": "*"
   },
   "repository": "https://github.com/the-control-group/authx",
   "scripts": {

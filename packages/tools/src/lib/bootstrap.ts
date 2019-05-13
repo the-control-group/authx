@@ -1,8 +1,6 @@
 import { PoolClient } from "pg";
-import path from "path";
-import fs from "fs";
 
-import { User, Role, Authorization } from "../model";
+import { User, Role, Authorization } from "@authx/authx";
 import {
   PasswordAuthority,
   PasswordCredential
@@ -14,7 +12,7 @@ interface Metadata {
   createdAt: Date;
 }
 
-export default async (
+export async function bootstrap(
   tx: PoolClient,
   {
     user,
@@ -31,17 +29,8 @@ export default async (
       data: Authorization;
       metadata: Metadata & { createdByCredentialId: null | string };
     };
-  },
-  schema: boolean = false
-) => {
-  // set up the schema
-  if (schema)
-    await tx.query(
-      fs
-        .readFileSync(path.resolve(__dirname, "../../schema.sql"))
-        .toString("utf8")
-    );
-
+  }
+): Promise<void> {
   // add entities to satisfy foreign key constraints
   await Promise.all([
     tx.query("INSERT INTO authx.user (id) VALUES ($1)", [user.data.id]),
@@ -65,4 +54,4 @@ export default async (
     Role.write(tx, role.data, role.metadata),
     Authorization.write(tx, authorization.data, authorization.metadata)
   ]);
-};
+}

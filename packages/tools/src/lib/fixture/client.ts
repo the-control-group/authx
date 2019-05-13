@@ -1,5 +1,5 @@
 import { PoolClient } from "pg";
-import { Client } from "../../model";
+import { Client } from "@authx/authx";
 
 export const client = [
   {
