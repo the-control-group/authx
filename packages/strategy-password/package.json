@@ -6,7 +6,7 @@
   "bugs": "https://github.com/the-control-group/authx/issues",
   "dependencies": {
     "@authx/scopes": "^2.2.1",
-    "@authx/authx": "*",
+    "@authx/authx": "^2.0.0-beta.0",
     "@types/bcrypt": "^3.0.0",
     "@types/pg": "^7.4.14",
     "@types/uuid": "^3.4.4",
@@ -47,7 +47,7 @@
   "main": "dist/server",
   "name": "@authx/strategy-password",
   "peerDependencies": {
-    "@authx/authx": "*"
+    "@authx/authx": "2.0.0-beta.8"
   },
   "repository": "https://github.com/the-control-group/authx",
   "scripts": {
