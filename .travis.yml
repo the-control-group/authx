@@ -5,8 +5,6 @@ addons:
     packages:
       - postgresql-11
       - postgresql-client-11
-services:
-  - postgresql
 node_js:
   - "10"
   - "11"
