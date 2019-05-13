@@ -1,0 +1,11 @@
+services: docker
+
+before_install:
+  - docker -v
+  - sudo /etc/init.d/postgresql stop
+  - sudo service mysql stop
+install:
+  - docker-compose up -d
+script:
+  - docker-compose exec authx yarn lint
+  - docker-compose exec authx yarn test

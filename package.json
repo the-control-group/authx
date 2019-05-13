@@ -24,13 +24,13 @@
     "root:lint": "prettier -c '**/*.{json,yml,md,ts}' && eslint src --ext ts",
     "root:build": "rm -rf dist && tsc",
     "root:build:development": "rm -rf dist && tsc --watch",
-    "root:start": "NODE_ENV=production node dist/server",
-    "root:start:development": "NODE_ENV=development nodemon --delay 2 --inspect dist/server",
     "root:test": "ava --verbose dist/**/*.test.js",
     "root:test:development": "ava --verbose --watch dist/**/*.test.js",
     "format": "yarn packages:format && yarn root:format",
     "lint": "yarn packages:lint && yarn root:lint",
     "build": "yarn packages:build && yarn root:build",
+    "start": "node dist/server",
+    "start:development": "nodemon --delay 2 --inspect dist/server",
     "test": "yarn packages:test && yarn root:test"
   },
   "devDependencies": {
