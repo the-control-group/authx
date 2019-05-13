@@ -2,9 +2,7 @@ import test from "ava";
 import { parse, execute } from "graphql";
 import { Pool, Client } from "pg";
 import * as tools from "@authx/tools";
-import createSchema from "../";
-import { StrategyCollection } from "../../StrategyCollection";
-import { Authorization } from "../../model";
+import { createSchema, StrategyCollection, Authorization } from "@authx/authx";
 import email from "@authx/strategy-email";
 import password from "@authx/strategy-password";
 

@@ -5,7 +5,7 @@ import body from "koa-body";
 import { errorHandler, execute } from "graphql-api-koa";
 import x from "./x";
 
-import createSchema from "./graphql";
+import { createSchema } from "./graphql";
 import oauth2 from "./oauth2";
 import graphiql from "./graphiql";
 

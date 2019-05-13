@@ -31,7 +31,6 @@
   },
   "description": "",
   "devDependencies": {
-    "@authx/interface": "^2.0.0-beta.6",
     "@typescript-eslint/eslint-plugin": "^1.5.0",
     "@typescript-eslint/parser": "^1.5.0",
     "ava": "^1.4.0",
@@ -70,8 +69,6 @@
     "lint": "prettier -c '**/*.{json,yml,md,ts}' && eslint src --ext ts",
     "prepare": "rm -rf dist && tsc",
     "prepare:development": "rm -rf dist && tsc --watch",
-    "start": "NODE_ENV=production node dist/server",
-    "start:development": "NODE_ENV=development nodemon --delay 2 --inspect dist/server",
     "test": "ava --verbose dist/**/*.test.js",
     "test:development": "ava --verbose --watch dist/**/*.test.js"
   },

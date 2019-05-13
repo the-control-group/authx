@@ -16,9 +16,33 @@
     "packages/authx-interface/html-webpack-plugin"
   ],
   "scripts": {
-    "format": "for P in packages/*/; do echo \"\n\n---------- $P\" && if ! (cd $P && yarn format); then exit 1; fi; done",
-    "lint": "for P in packages/*/; do echo \"\n\n---------- $P\" && if ! (cd $P && yarn lint); then exit 1; fi; done",
-    "prepare": "for P in packages/*/; do echo \"\n\n---------- $P\" && if ! (cd $P && yarn prepare); then exit 1; fi; done",
-    "test": "for P in packages/*/; do echo \"\n\n---------- $P\" && if ! (cd $P && yarn test); then exit 1; fi; done"
+    "packages:format": "for P in packages/*/; do echo \"\n\n---------- $P\" && if ! (cd $P && yarn format); then exit 1; fi; done",
+    "packages:lint": "for P in packages/*/; do echo \"\n\n---------- $P\" && if ! (cd $P && yarn lint); then exit 1; fi; done",
+    "packages:prepare": "for P in packages/*/; do echo \"\n\n---------- $P\" && if ! (cd $P && yarn prepare); then exit 1; fi; done",
+    "packages:test": "for P in packages/*/; do echo \"\n\n---------- $P\" && if ! (cd $P && yarn test); then exit 1; fi; done",
+    "root:format": "prettier --list-different --write '**/*.{json,yml,md,ts}'",
+    "root:lint": "prettier -c '**/*.{json,yml,md,ts}' && eslint src --ext ts",
+    "root:prepare": "rm -rf dist && tsc",
+    "root:prepare:development": "rm -rf dist && tsc --watch",
+    "root:start": "NODE_ENV=production node dist/server",
+    "root:start:development": "NODE_ENV=development nodemon --delay 2 --inspect dist/server",
+    "root:test": "ava --verbose dist/**/*.test.js",
+    "root:test:development": "ava --verbose --watch dist/**/*.test.js",
+    "format": "yarn packages:format && yarn root:format",
+    "lint": "yarn packages:lint && yarn root:lint",
+    "prepare": "yarn packages:prepare && yarn root:prepare",
+    "test": "yarn packages:test && yarn root:test"
+  },
+  "devDependencies": {
+    "@authx/interface": "^2.0.0-beta.6",
+    "@typescript-eslint/eslint-plugin": "^1.5.0",
+    "@typescript-eslint/parser": "^1.5.0",
+    "ava": "^1.4.0",
+    "eslint": "^5.16.0",
+    "eslint-config-prettier": "^4.2.0",
+    "eslint-plugin-prettier": "^3.0.0",
+    "nodemon": "^1.19.0",
+    "prettier": "^1.16.4",
+    "typescript": "^3.4.5"
   }
 }

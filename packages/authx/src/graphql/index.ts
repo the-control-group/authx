@@ -27,9 +27,7 @@ export * from "./GraphQLAuthorization";
 export * from "./GraphQLUser";
 export * from "./GraphQLUserType";
 
-export default function createSchema(
-  strategies: StrategyCollection
-): GraphQLSchema {
+export function createSchema(strategies: StrategyCollection): GraphQLSchema {
   const query = new GraphQLObjectType<any, Context>({
     name: "Query",
     description: "The query root of AuthX's GraphQL interface.",
