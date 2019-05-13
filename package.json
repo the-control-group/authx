@@ -6,7 +6,10 @@
     "packages/http-proxy-resource",
     "packages/interface",
     "packages/manager",
-    "packages/scopes"
+    "packages/scopes",
+    "packages/strategy-email",
+    "packages/strategy-openid",
+    "packages/strategy-password"
   ],
   "nohoist": [
     "packages/authx-interface/html-webpack-plugin"

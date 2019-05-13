@@ -5,8 +5,8 @@ import { fixture } from "../../util/fixture";
 import createSchema from "../";
 import { StrategyCollection } from "../../StrategyCollection";
 import { Authorization } from "../../model";
-import email from "../../strategy/email";
-import password from "../../strategy/password";
+import email from "@authx/strategy-email";
+import password from "@authx/strategy-password";
 
 let database: string;
 let pool: Pool;

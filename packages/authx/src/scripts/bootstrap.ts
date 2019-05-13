@@ -4,7 +4,10 @@ import v4 from "uuid/v4";
 import { Pool } from "pg";
 import bootstrap from "../util/bootstrap";
 import { User, Role, Authorization } from "../model";
-import { PasswordAuthority, PasswordCredential } from "../strategy/password";
+import {
+  PasswordAuthority,
+  PasswordCredential
+} from "@authx/strategy-password";
 
 (async () => {
   const pool = new Pool();

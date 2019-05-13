@@ -1,0 +1,1 @@
+# AuthX Strategy – OpenID

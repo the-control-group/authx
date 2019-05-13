@@ -3,7 +3,10 @@ import path from "path";
 import fs from "fs";
 
 import { User, Role, Authorization } from "../model";
-import { PasswordAuthority, PasswordCredential } from "../strategy/password";
+import {
+  PasswordAuthority,
+  PasswordCredential
+} from "@authx/strategy-password";
 
 interface Metadata {
   recordId: string;

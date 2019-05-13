@@ -13,10 +13,8 @@
     "sourceMap": true,
     "baseUrl": "",
     "paths": {
-      "graphql": ["@types/graphql"],
-      "graphql/*": ["@types/graphql/*"],
-      "@authx/strategy-email": ["../strategy-email/src/server/index.ts"],
-      "@authx/strategy-password": ["../strategy-password/src/server/index.ts"]
+      "graphql": ["../authx/@types/graphql"],
+      "graphql/*": ["../authx/@types/graphql/*"]
     }
   },
   "include": ["./src/**/*"]

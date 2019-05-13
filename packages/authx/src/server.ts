@@ -2,9 +2,9 @@ import Koa from "koa";
 import AuthX, { StrategyCollection } from ".";
 import authXInterface from "@authx/interface";
 
-import email from "./strategy/email";
-import password from "./strategy/password";
-import openid from "./strategy/openid";
+import email from "@authx/strategy-email";
+import password from "@authx/strategy-password";
+import openid from "@authx/strategy-openid";
 
 const __DEV__ = process.env.NODE_ENV !== "production";
 

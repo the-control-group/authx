@@ -1,6 +1,6 @@
 import { PoolClient } from "pg";
-import { EmailCredential } from "../../strategy/email";
-import { PasswordCredential } from "../../strategy/password";
+import { EmailCredential } from "@authx/strategy-email";
+import { PasswordCredential } from "@authx/strategy-password";
 
 export const credential: {
   id: string;
