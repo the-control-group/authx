@@ -1,0 +1,7 @@
+language: node_js
+services:
+  - postgresql
+node_js:
+  - "10"
+  - "11"
+  - "12"
