@@ -1,6 +1,8 @@
 # AuthX
 
-This is AuthX. It's named AuthX because it's an "exchange" of sorts, consolidating identities from several upstream authorities into a single identity for downstream clients. AuthX uses the OAuth2 framework in both directions, and adds a robust _authorization_ layer.
+This is AuthX. It's named AuthX because it's an "exchange" of sorts, consolidating identities from several upstream authorities into a single identity for downstream clients. AuthX uses the OAuth2 framework in both directions, and adds a robust access control system, based on the [AuthX scope spec](packages/scopes#README.md).
+
+---
 
 This is a monorepo that contains several useful node packages:
 
@@ -41,3 +43,27 @@ The small, react-powered app features a pluggable architecture that can be used 
 This package contains a small collection of utility functions for AuthX scopes. These scopes are human-readable, fully OAuth2-compatible, and support both pattern matching and set algebra.
 
 [Read More](packages/scopes#README.md)
+
+## Strategy - Email
+
+This package contains the email authentication strategy.
+
+[Read More](packages/strategy-email#README.md)
+
+## Strategy - OpenID
+
+This package contains the OpenID authentication strategy.
+
+[Read More](packages/strategy-openid#README.md)
+
+## Strategy - Password
+
+This package contains the password authentication strategy.
+
+[Read More](packages/strategy-password#README.md)
+
+## Tools
+
+This package contains a CLI and small collection of utility functions for interacting with an AuthX instance.
+
+[Read More](packages/tools#README.md)

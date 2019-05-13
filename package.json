@@ -18,7 +18,7 @@
   "scripts": {
     "packages:format": "for P in packages/*/; do echo \"\n\n---------- $P\" && if ! (cd $P && yarn format); then exit 1; fi; done",
     "packages:lint": "for P in packages/*/; do echo \"\n\n---------- $P\" && if ! (cd $P && yarn lint); then exit 1; fi; done",
-    "packages:prepare": "for P in packages/*/; do echo \"\n\n---------- $P\" && if ! (cd $P && yarn prepare); then exit 1; fi; done",
+    "packages:prepare": "for P in packages/{scopes,authx,*}/; do echo \"\n\n---------- $P\" && if ! (cd $P && yarn prepare); then exit 1; fi; done",
     "packages:test": "for P in packages/*/; do echo \"\n\n---------- $P\" && if ! (cd $P && yarn test); then exit 1; fi; done",
     "root:format": "prettier --list-different --write '**/*.{json,yml,md,ts}'",
     "root:lint": "prettier -c '**/*.{json,yml,md,ts}' && eslint src --ext ts",
