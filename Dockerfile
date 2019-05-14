@@ -17,7 +17,7 @@ ADD packages/manager/package.json /workspace/packages/manager/package.json
 ADD packages/scopes/package.json /workspace/packages/scopes/package.json
 ADD packages/strategy-email/package.json /workspace/packages/strategy-email/package.json
 ADD packages/strategy-openid/package.json /workspace/packages/strategy-openid/package.json
-ADD packages/strategy-password/package.json /workspace/packages/authx/strategy-password.json
+ADD packages/strategy-password/package.json /workspace/packages/strategy-password/package.json
 ADD packages/tools/package.json /workspace/packages/tools/package.json
 
 # Install all dependencies
