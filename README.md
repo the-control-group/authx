@@ -2,6 +2,8 @@
 
 This is AuthX. It's named AuthX because it's an "exchange" of sorts, consolidating identities from several upstream authorities into a single identity for downstream clients. AuthX uses the OAuth2 framework in both directions, and adds a robust access control system, based on the [AuthX scope spec](packages/scopes#README.md).
 
+[![Build Status](https://travis-ci.org/the-control-group/authx.svg?branch=master)](https://travis-ci.org/the-control-group/authx)
+
 ---
 
 This is a monorepo that contains several useful node packages:
