@@ -168,6 +168,9 @@ export default class AuthXResourceProxy extends EventEmitter {
         {
           // signal: this._fetchAbortController.signal,
           method: "POST",
+          headers: {
+            "Content-Type": "application/json"
+          },
           body: "query { keys }"
         }
       )).json()).query.keys;

@@ -291,6 +291,9 @@ export default class AuthXClientProxy extends EventEmitter {
       try {
         const tokenResponse = await fetch(this._config.authxUrl, {
           method: "POST",
+          headers: {
+            "Content-Type": "application/json"
+          },
           body: JSON.stringify({
             /* eslint-disable @typescript-eslint/camelcase */
             grant_type: "authorization_code",
@@ -299,10 +302,7 @@ export default class AuthXClientProxy extends EventEmitter {
             code: code,
             scope: "**:**:**"
             /* eslint-enable @typescript-eslint/camelcase */
-          }),
-          headers: {
-            "Content-Type": "application/json"
-          }
+          })
         });
 
         if (tokenResponse.status !== 200) {
