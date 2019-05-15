@@ -163,17 +163,24 @@ export default class AuthXResourceProxy extends EventEmitter {
 
     try {
       // Fetch the keys from AuthX.
-      const keys: string[] = (await (await fetch(
-        this._config.authxUrl + "/graphql",
-        {
-          // signal: this._fetchAbortController.signal,
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json"
-          },
-          body: "query { keys }"
-        }
-      )).json()).query.keys;
+      const response = await (await fetch(this._config.authxUrl + "/graphql", {
+        // signal: this._fetchAbortController.signal,
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json"
+        },
+        body: '{"query": "query { keys }"}'
+      })).json();
+
+      // Make sure we don't have any errors.
+      if (response.errors && response.errors[0])
+        throw new Error(response.errors[0]);
+
+      if (!response.data || !response.data.keys) {
+        throw new Error("The response from AuthX is missing keys.");
+      }
+
+      const keys: string[] = response.data.keys;
 
       // Ensure that there is at least one valid key in the response.
       if (
