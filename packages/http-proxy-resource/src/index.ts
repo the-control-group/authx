@@ -140,6 +140,7 @@ export default class AuthXResourceProxy extends EventEmitter {
     super();
     this._config = config;
     this._proxy = createProxyServer({});
+    this._proxy.on("error", error => this.emit("error", error));
     this.server = createServer(this._callback);
     this.server.on("listening", () => {
       this._closed = false;
