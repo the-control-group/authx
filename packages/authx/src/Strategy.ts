@@ -9,6 +9,4 @@ export interface Strategy {
   mutationFields: { [field: string]: GraphQLFieldConfig<any, any, Context> };
   authorityModel: { new (data: any): Authority<any> };
   credentialModel: { new (data: any): Credential<any> };
-  interfaceAuthorityFragment: string;
-  interfaceAuthenticateComponent: any;
 }

@@ -1,2 +1,6 @@
-import { OpenIdAuthority } from "./OpenIdAuthority";
-export default OpenIdAuthority;
+import { OpenIdAuthority, OpenIdAuthorityFragment } from "./OpenIdAuthority";
+export * from "./OpenIdAuthority";
+export default {
+  component: OpenIdAuthority,
+  fragment: OpenIdAuthorityFragment
+};
