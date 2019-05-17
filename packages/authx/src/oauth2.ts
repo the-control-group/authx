@@ -205,7 +205,7 @@ export default async (ctx: ParameterizedContext<any, { [x]: Context }>) => {
 
         const body = {
           /* eslint-disable @typescript-eslint/camelcase */
-          authorization_type: "bearer",
+          token_type: "bearer",
           access_token: jwt.sign(
             {
               aid: authorization.id,
@@ -351,7 +351,7 @@ export default async (ctx: ParameterizedContext<any, { [x]: Context }>) => {
 
         const body = {
           /* eslint-disable @typescript-eslint/camelcase */
-          authorization_type: "bearer",
+          token_type: "bearer",
           access_token: jwt.sign(
             {
               aid: authorization.id,
