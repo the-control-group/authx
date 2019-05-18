@@ -7,7 +7,7 @@ import x from "./x";
 
 import { createSchema } from "./graphql";
 import oauth2 from "./oauth2";
-import graphiql from "./graphiql";
+import createCraphiqlMiddleware from "graphql-playground-middleware-koa";
 
 import { Config, assertConfig } from "./Config";
 import { Context } from "./Context";
@@ -129,10 +129,7 @@ export class AuthX<
     // GraphiQL
     // ========
     // This is a graphical (get it, graph-i-QL) interface to the AuthX API.
-    this.get("/graphiql", async (ctx, next) => {
-      ctx.body = graphiql;
-      await next();
-    });
+    this.all("/graphiql", createCraphiqlMiddleware({ endpoint: "/graphql" }));
 
     // OAuth
     // =====

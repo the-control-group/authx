@@ -2893,6 +2893,18 @@ graphql-api-koa@^2.0.0:
   dependencies:
     http-errors "^1.7.1"
 
+graphql-playground-html@1.6.13:
+  version "1.6.13"
+  resolved "https://registry.yarnpkg.com/graphql-playground-html/-/graphql-playground-html-1.6.13.tgz#16d61416161d96f2725bc37b0b64d135a189f252"
+  integrity sha512-5DNtVeaWrfxrobA2Vp3ypWjAQYGPIXyZ3rdQXy4m4nDJnc4UALPSZRh9y+U4kp8GaoPp1aCgIJerDSRBOT9HnA==
+
+graphql-playground-middleware-koa@^1.6.12:
+  version "1.6.12"
+  resolved "https://registry.yarnpkg.com/graphql-playground-middleware-koa/-/graphql-playground-middleware-koa-1.6.12.tgz#f75e456026fe3dd2a34ec33899e7a85ef99ec748"
+  integrity sha512-ofacd4B+FFSkKLPHsC/vUVg5XI3T+RPFNClOru1e0mgFNnoX5PM32AxYEe4Q3Yt3R8ayFQmoztBJrKXJCCZ1Kg==
+  dependencies:
+    graphql-playground-html "1.6.13"
+
 graphql-react@^8.1.1:
   version "8.2.0"
   resolved "https://registry.yarnpkg.com/graphql-react/-/graphql-react-8.2.0.tgz#4cb9c72595404a7bc328da5f1f9cbfb8df874579"
