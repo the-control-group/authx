@@ -2,6 +2,7 @@
   "private": true,
   "workspaces": [
     "packages/authx",
+    "packages/http-proxy-authorization",
     "packages/http-proxy-client",
     "packages/http-proxy-resource",
     "packages/interface",

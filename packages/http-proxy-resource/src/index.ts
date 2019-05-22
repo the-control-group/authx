@@ -90,6 +90,14 @@ interface Config {
   readonly authxPublicKeyRefreshInterval?: number;
 
   /**
+   * The number of seconds to wait before aborting and retrying a request for
+   * public keys from the AuthX server.
+   *
+   * @defaultValue `30`
+   */
+  readonly authxPublicKeyRefreshRequestTimeout?: number;
+
+  /**
    * The number of seconds between failed attempts at refreshing public keys
    * from the AuthX server.
    *
@@ -116,7 +124,7 @@ interface Config {
    * When closing the proxy, readiness checks will immediately begin failing,
    * even before the proxy stops accepting requests.
    *
-   * If not set, the path `/_ready` will be used.
+   * @defaultValue `"/_ready"`
    */
   readonly readinessEndpoint?: string;
 
@@ -134,6 +142,7 @@ export default class AuthXResourceProxy extends EventEmitter {
   private _keys: null | ReadonlyArray<string> = null;
   private _fetchTimeout: null | ReturnType<typeof setTimeout> = null;
   private _fetchAbortController: null | AbortController = null;
+  private _fetchAbortTimeout: null | ReturnType<typeof setTimeout> = null;
   public readonly server: Server;
 
   public constructor(config: Config) {
@@ -161,11 +170,17 @@ export default class AuthXResourceProxy extends EventEmitter {
     }
 
     this._fetchAbortController = new AbortController();
+    this._fetchAbortTimeout = setTimeout(() => {
+      if (this._fetchAbortController) {
+        this._fetchAbortController.abort();
+      }
+    }, this._config.authxPublicKeyRefreshRequestTimeout || 30);
 
     try {
       // Fetch the keys from AuthX.
       const response = await (await fetch(this._config.authxUrl + "/graphql", {
-        // signal: this._fetchAbortController.signal,
+        // See https://github.com/DefinitelyTyped/DefinitelyTyped/pull/35636
+        signal: this._fetchAbortController.signal,
         method: "POST",
         headers: {
           "Content-Type": "application/json"
@@ -216,6 +231,8 @@ export default class AuthXResourceProxy extends EventEmitter {
       );
     } finally {
       this._fetchAbortController = null;
+      clearTimeout(this._fetchAbortTimeout);
+      this._fetchAbortTimeout = null;
     }
   };
 
@@ -316,8 +333,11 @@ export default class AuthXResourceProxy extends EventEmitter {
               // - The AuthX server generated a malformed token.
               // - The private key has been compromised and was used to sign
               //   a malformed token.
-              console.warn(
-                "A cryptographically verified token contained a malformed payload."
+              this.emit(
+                "error",
+                new Error(
+                  "A cryptographically verified token contained a malformed payload."
+                )
               );
               break;
             }
@@ -351,7 +371,7 @@ export default class AuthXResourceProxy extends EventEmitter {
           ? rule.behavior(request, response)
           : rule.behavior;
 
-      // If behavior is `void`, then the custom function will handle responding
+      // If behavior is `undefined`, then the custom function will handle responding
       // to the request.
       if (!behavior) {
         return;
@@ -390,7 +410,10 @@ export default class AuthXResourceProxy extends EventEmitter {
       return;
     }
 
-    console.warn(`No rules matched requested URL "${request.url}".`);
+    this.emit(
+      "error",
+      new Error(`No rules matched requested URL "${request.url}".`)
+    );
     response.statusCode = 404;
     response.end();
   };

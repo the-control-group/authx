@@ -147,9 +147,9 @@ interface Config {
 // We need a small key to identify this tokey that is safe for use as a cookie
 // key. We'll use a modified version of base64, as described by:
 // https://tools.ietf.org/html/rfc4648
-function hashScopes(scopes: string[]): string {
+function hashScopes(scopes: ReadonlyArray<string>): string {
   return createHash("sha1")
-    .update(scopes.join(" "))
+    .update([...scopes].sort().join(" "))
     .digest("base64")
     .replace(/\+/g, "-")
     .replace(/\//g, "_")
@@ -339,7 +339,7 @@ export default class AuthXClientProxy extends EventEmitter {
 
         return send();
       } catch (error) {
-        console.error(error);
+        this.emit("error", error);
         response.statusCode = 500;
         return send(`
           <html>
@@ -364,7 +364,7 @@ export default class AuthXClientProxy extends EventEmitter {
           ? rule.behavior(request, response)
           : rule.behavior;
 
-      // If behavior is `void`, then the custom function will handle responding
+      // If behavior is `undefined`, then the custom function will handle responding
       // to the request.
       if (!behavior) {
         return;
@@ -398,7 +398,7 @@ export default class AuthXClientProxy extends EventEmitter {
           return;
         }
       } catch (error) {
-        console.error(error);
+        this.emit("error", error);
       }
 
       const refreshToken = cookies.get("authx.r");
@@ -452,7 +452,7 @@ export default class AuthXClientProxy extends EventEmitter {
             return;
           }
         } catch (error) {
-          console.error(error);
+          this.emit("error", error);
         }
       }
 
@@ -483,7 +483,10 @@ export default class AuthXClientProxy extends EventEmitter {
       return send();
     }
 
-    console.warn(`No rules matched requested URL "${request.url}".`);
+    this.emit(
+      "error",
+      new Error(`No rules matched requested URL "${request.url}".`)
+    );
     response.statusCode = 404;
     response.end();
   };

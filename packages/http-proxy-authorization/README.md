@@ -1,61 +1,10 @@
 # HTTP Proxy - Resource
 
-The AuthX proxy for resources is a flexible HTTP proxy designed to sit in front of a resource.
+The AuthX proxy for resources is a flexible HTTP proxy that can inject access tokens into a request. It is designed to be deployed alongside an app or worker, and maintains an in-memory cache of fresh access tokens to add the minimun amount of latency. It relies on refresh tokens specified in the configuration or provided by rules.
 
 ## Example
 
-Here is a typical use case:
-
-We have a resource – often an API – which is accessed by a client. The route `/something` is special, and we only want to give access to authorized users.
-
-```js
-new AuthXProxy({
-  authxUrl: "https://authx.example.com/",
-
-  rules: [
-    // We want to make sure any GET request to /something has been authorized
-    // for the `example.resource:something:read` scope:
-    {
-      test({ url, method }) {
-        return method === "GET" && /^\/something\/.+$/.test(url);
-      },
-      behavior: {
-        proxyOptions: { target: "http://127.0.0.1:3000" },
-        sendTokenToTarget: false,
-        requireScopes: ["example.resource:something:read"]
-      }
-    },
-
-    // We want to make sure any POST or PUT request to /something has been
-    // authorized for the `example.resource:something:write` scope:
-    {
-      test({ url, method }) {
-        return (
-          (method === "POST" || method === "PUT") &&
-          /^\/something\/.+$/.test(url)
-        );
-      },
-      behavior: {
-        proxyOptions: { target: "http://127.0.0.1:3000" },
-        sendTokenToTarget: false,
-        requireScopes: ["example.resource:something:write"]
-      }
-    },
-
-    // For all other paths, we want to let all requests through, but validate
-    // any tokens that are present. Here we use the `resource-augment` behavior:
-    {
-      test() {
-        return true;
-      },
-      behavior: {
-        proxyOptions: { target: "http://127.0.0.1:3000" },
-        sendTokenToTarget: false
-      }
-    }
-  ]
-});
-```
+TODO:
 
 ## Configuration
 
@@ -71,36 +20,14 @@ interface Config {
   readonly authxUrl: string;
 
   /**
-   * The number of seconds between successful attempts at refreshing public keys
-   * from the AuthX server.
-   *
-   * @defaultValue `60`
+   * The ID assigned to this client by AuthX.
    */
-  readonly authxPublicKeyRefreshInterval?: number;
+  readonly clientId: string;
 
   /**
-   * The number of seconds to wait before aborting and retrying a request for
-   * public keys from the AuthX server.
-   *
-   * @defaultValue `30`
+   * A secret assigned to this client by AuthX.
    */
-  readonly authxPublicKeyRefreshRequestTimeout?: number;
-
-  /**
-   * The number of seconds between failed attempts at refreshing public keys
-   * from the AuthX server.
-   *
-   * @defaultValue `10`
-   */
-  readonly authxPublicKeyRetryInterval?: number;
-
-  /**
-   * The number of seconds for which the proxy will cache the AuthX server's
-   * token introspection response for a revocable token.
-   *
-   * @defaultValue `60`
-   */
-  readonly revocableTokenCacheDuration?: number;
+  readonly clientSecret: string;
 
   /**
    * The pathname at which the proxy will provide a readiness check.
@@ -113,9 +40,41 @@ interface Config {
    * When closing the proxy, readiness checks will immediately begin failing,
    * even before the proxy stops accepting requests.
    *
-   * @defaultValue `"/_ready"`
+   * If not set, the path `/_ready` will be used.
    */
   readonly readinessEndpoint?: string;
+
+  /**
+   * Cached access tokens will be refreshed this amount of time in seconds
+   * before they would otherwise expire.
+   *
+   * @defaultValue `60`
+   */
+  readonly refreshCachedTokensAtRemainingLife?: number;
+
+  /**
+   * The number of seconds to wait before aborting and retrying a request for
+   * an access token from the AuthX server.
+   *
+   * @defaultValue `30`
+   */
+  readonly refreshCachedTokensRequestTimeout?: number;
+
+  /**
+   * The number of seconds between failed attempts at refreshing access tokens
+   * from the AuthX server.
+   *
+   * @defaultValue `10`
+   */
+  readonly refreshCachedTokensRetryInterval?: number;
+
+  /**
+   * When a token is unused for this amount of time in seconds, it will be
+   * removed from the cache, and no longer kept fresh.
+   *
+   * @defaultValue `600`
+   */
+  readonly evictDormantCachedTokensThreshold?: number;
 
   /**
    * The rules the proxy will use to handle a request.
@@ -176,28 +135,29 @@ interface Behavior {
   readonly proxyOptions: ServerOptions;
 
   /**
-   * If set to true, proxied requests will retain the token in their HTTP
-   * `Authorization` header. Only valid tokens will be sent to the target.
-   *
-   * @defaultValue `false`
+   * The refresh token to use when requesting an access token from AuthX.
    */
-  readonly sendTokenToTarget?: boolean;
+  readonly refreshToken?: string;
 
   /**
-   * The minimum scopes required for a request to be proxied.
+   * Pass a token to the target, restricting scopes to those provided.
    *
    * @remarks
-   * If one or more scopes are configured, the proxy will ensure that they are
-   * provided by a valid token, returning a 401 for a missing or invalid token,
-   * and a 403 for a valid token that is missing required scopes. The header
-   * `X-OAuth-Required-Scopes` will be set on both the request and response,
-   * containing a space-deliminated list of the required scopes.
+   * If unspecified, the proxy will forward the request to the target without a
+   * token, whether the user has authenticated the client or not. To only ensure
+   * the user is authenticated and has authorized the client in some capacity,
+   * use an empty array here.
    *
-   * To ensure that a valid token is present, use an empty array.
+   * This is generally used to limit the token to the scopes needed by the
+   * request. For example, if we are authorized to:
    *
-   * If this option is not set, all requests will be proxied to the target.
+   * - lunch:apple:eat
+   * - recess:ball:throw
+   *
+   * ...and we want to send a token to the "cafeteria" resource that _only_ has
+   * access to "lunch" resources, we can limit it with: [ "lunch:**:**" ]
    */
-  readonly requireScopes?: string[];
+  readonly sendTokenToTargetWithScopes?: string[];
 }
 ```
 
