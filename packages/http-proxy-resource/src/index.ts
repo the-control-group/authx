@@ -178,15 +178,16 @@ export default class AuthXResourceProxy extends EventEmitter {
 
     try {
       // Fetch the keys from AuthX.
+      // FIXME: This should not need to be cast through any. See:
+      // https://github.com/DefinitelyTyped/DefinitelyTyped/pull/35636
       const response = await (await fetch(this._config.authxUrl + "/graphql", {
-        // See https://github.com/DefinitelyTyped/DefinitelyTyped/pull/35636
         signal: this._fetchAbortController.signal,
         method: "POST",
         headers: {
           "Content-Type": "application/json"
         },
         body: '{"query": "query { keys }"}'
-      })).json();
+      } as any)).json();
 
       // Make sure we don't have any errors.
       if (response.errors && response.errors[0])

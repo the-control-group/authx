@@ -453,9 +453,10 @@ export default class AuthXAuthorizationProxy extends EventEmitter {
       timeout,
       promise: (async () => {
         try {
+          // FIXME: This should not need to be cast through any. See:
+          // https://github.com/DefinitelyTyped/DefinitelyTyped/pull/35636
           const refreshResponse = await fetch(this._config.authxUrl, {
             method: "POST",
-            // See https://github.com/DefinitelyTyped/DefinitelyTyped/pull/35636
             signal: controller.signal,
             headers: {
               "Content-Type": "application/json"
@@ -469,7 +470,7 @@ export default class AuthXAuthorizationProxy extends EventEmitter {
               scope: scopes.join(" ")
               /* eslint-enabme @typescript-eslint/camelcase */
             })
-          });
+          } as any);
 
           if (refreshResponse.status !== 200) {
             throw new Error(
