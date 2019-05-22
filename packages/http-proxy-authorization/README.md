@@ -161,24 +161,6 @@ interface Behavior {
 }
 ```
 
-## Details
-
-The resource proxy accepts two kinds of access tokens from AuthX.
-
-### Revocable
-
-> Note: This is not yet implemented!
-
-A revocable token is passed as HTTP Basic credentials in the `Authorization` header. The authorization ID is used as the "username" and the authoriztion secret is used as the "password". For each request with this type of token, the proxy makes a token introspection request to AuthX following [rfc7662](https://tools.ietf.org/html/rfc7662) to ensure that the token is active.
-
-If `revocableTokenCacheDuration` is configured, the proxy will cache the result of the introspection request for the configured number of seconds. Note that proxy instances do not share a cache, so a recently-revoked authorization may have different behavior between instances.
-
-### Self-Contained
-
-A self-contained token is passed as an HTTP Bearer token in the `Authorization` header. The signature is verified using the AuthX instance's public keys, which are cached for _at least_ the configured `authxPublicKeyRefreshInterval`. Note that if attempts to refresh the public keys fail, the proxy will continue to use its cached public keys to avoid downtime.
-
-The `sub` field of the JWT payload must be the user ID, and authorized scopes must be present as an array of strings in the `scopes` field.
-
 ## Development
 
 ### Scripts

@@ -45,6 +45,8 @@ interface Behavior {
    *
    * ...and we want to send a token to the "cafeteria" resource that _only_ has
    * access to "lunch" resources, we can limit it with: [ "lunch:**:**" ]
+   *
+   * * @defaultValue `[]`
    */
   readonly sendTokenToTargetWithScopes?: string[];
 }
@@ -489,7 +491,7 @@ export default class AuthXAuthorizationProxy extends EventEmitter {
           }
 
           const accessToken = refreshResponseBody.access_token;
-          if (accessToken) {
+          if (!accessToken) {
             throw new Error("No access token returned.");
           }
 
