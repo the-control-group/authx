@@ -4,7 +4,62 @@ The AuthX proxy for resources is a flexible HTTP proxy that can inject access to
 
 ## Example
 
-TODO:
+Here is a typical use case:
+
+We have a resource – often an API – which is accessed by a client. The route `/something` is special, and we only want to give access to authorized users.
+
+```js
+import AuthXAuthorizationProxy from "@authx/http-proxy-authorization";
+proxy = new AuthXAuthorizationProxy({
+  authxUrl: `http://127.0.0.1:${mockAuthX.port}`,
+  clientId: "b22282bf-1b78-4ffc-a0d6-2da5465895d0",
+  clientSecret: "de2c693f-b654-4cf2-b3db-eb37a36bc7a9",
+  readinessEndpoint: "/_ready",
+  rules: [
+    // For this route, we will proxy the request without injecting a token into
+    // the request.
+    {
+      test({ url }) {
+        return url === "/no-token";
+      },
+      behavior: {
+        proxyOptions: { target: `http://127.0.0.1:${mockTarget.port}` }
+      }
+    },
+
+    // For this route, we will inject a token that is fetched using a single
+    // refresh token specified in an environment variable.
+    {
+      test({ url }) {
+        return url === "/with-static-token-and-scopes";
+      },
+      behavior: {
+        proxyOptions: { target: `http://127.0.0.1:${mockTarget.port}` },
+        refreshToken: process.env.REFRESH_TOKEN,
+        sendTokenToTargetWithScopes: ["foo:**:**"]
+      }
+    },
+
+    // For this route, we will inject a token that is fetched using a refresh
+    // token specified in the incoming request. We will also take care to remove
+    // the refresh token from the proxied request.
+    {
+      test({ url }) {
+        return url === "/with-dynamic-token-and-scopes";
+      },
+      behavior(request) {
+        const refreshToken = request.headers["x-oauth-refresh-token"];
+        delete request.headers["x-oauth-refresh-token"];
+        return {
+          proxyOptions: { target: `http://127.0.0.1:${mockTarget.port}` },
+          refreshToken,
+          sendTokenToTargetWithScopes: ["**:**:**"]
+        };
+      }
+    }
+  ]
+});
+```
 
 ## Configuration
 
