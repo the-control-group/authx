@@ -3,6 +3,8 @@ import { createServer, Server } from "http";
 import AuthXAuthorizationProxy from ".";
 import fetch from "node-fetch";
 
+const nowInSeconds = Math.floor(Date.now() / 1000);
+
 let mockAuthX: {
   server: Server;
   port: number;
@@ -49,7 +51,7 @@ test.before(async () => {
                 JSON.stringify({
                   aid: "810348aa-d295-4d42-a264-7c6c4861367f",
                   scopes: body.scope.split(" ").filter((s: string) => !!s),
-                  exp: 1558570218,
+                  exp: nowInSeconds + 3600,
                   iss: "authx",
                   sub: "c79a01a2-0ed7-45c5-93b8-bc921d5cf368",
                   aud: body.client_id
@@ -212,7 +214,7 @@ test("with static token", async t => {
     token: {
       aid: "810348aa-d295-4d42-a264-7c6c4861367f",
       scopes: [],
-      exp: 1558570218,
+      exp: nowInSeconds + 3600,
       iss: "authx",
       sub: "c79a01a2-0ed7-45c5-93b8-bc921d5cf368",
       aud: "b22282bf-1b78-4ffc-a0d6-2da5465895d0"
@@ -230,7 +232,7 @@ test("with static token and scopes", async t => {
     token: {
       aid: "810348aa-d295-4d42-a264-7c6c4861367f",
       scopes: ["foo:**:**"],
-      exp: 1558570218,
+      exp: nowInSeconds + 3600,
       iss: "authx",
       sub: "c79a01a2-0ed7-45c5-93b8-bc921d5cf368",
       aud: "b22282bf-1b78-4ffc-a0d6-2da5465895d0"
@@ -248,7 +250,7 @@ test("with dynamic token and scopes", async t => {
     token: {
       aid: "810348aa-d295-4d42-a264-7c6c4861367f",
       scopes: ["**:**:**"],
-      exp: 1558570218,
+      exp: nowInSeconds + 3600,
       iss: "authx",
       sub: "c79a01a2-0ed7-45c5-93b8-bc921d5cf368",
       aud: "b22282bf-1b78-4ffc-a0d6-2da5465895d0"
