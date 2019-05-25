@@ -144,6 +144,14 @@ interface Config {
   readonly rules: Rule[];
 }
 
+export interface Metadata {
+  request: IncomingMessage;
+  response: ServerResponse;
+  rule: undefined | Rule;
+  behavior: undefined | Behavior;
+  message: string;
+}
+
 // We need a small key to identify this tokey that is safe for use as a cookie
 // key. We'll use a modified version of base64, as described by:
 // https://tools.ietf.org/html/rfc4648
@@ -182,6 +190,22 @@ export default class AuthXClientProxy extends EventEmitter {
     request: IncomingMessage,
     response: ServerResponse
   ): Promise<void> => {
+    const meta: Metadata = {
+      request: request,
+      response: response,
+      rule: undefined,
+      behavior: undefined,
+      message: "Request received."
+    };
+
+    // Emit meta on request start.
+    this.emit("request.start", meta);
+
+    // Emit meta again on request finish.
+    response.on("finish", () => {
+      this.emit("request.finish", meta);
+    });
+
     const cookies = new Cookies(request, response);
 
     function send(data?: string): void {
@@ -226,13 +250,9 @@ export default class AuthXClientProxy extends EventEmitter {
         if (!request.headers.cookie) delete request.headers.cookie;
       }
 
-      this.emit("handle", {
-        request: request,
-        response: response,
-        rule,
-        behavior,
-        message: "Request proxied."
-      });
+      meta.message = "Request proxied.";
+      meta.rule = rule;
+      meta.behavior = behavior;
       this._proxy.web(request, response, options);
     };
 
@@ -240,23 +260,11 @@ export default class AuthXClientProxy extends EventEmitter {
     if (request.url === (this._config.readinessEndpoint || "/_ready")) {
       if (this._closed || this._closing) {
         response.statusCode = 503;
-        this.emit("handle", {
-          request: request,
-          response: response,
-          rule: undefined,
-          behavior: undefined,
-          message: "Handled by readiness endpoint: NOT READY."
-        });
+        meta.message = "Request handled by readiness endpoint: NOT READY.";
         return send("NOT READY");
       }
 
-      this.emit("handle", {
-        request: request,
-        response: response,
-        rule: undefined,
-        behavior: undefined,
-        message: "Handled by readiness endpoint: READY."
-      });
+      meta.message = "Request handled by readiness endpoint: READY.";
       response.statusCode = 200;
       return send("READY");
     }
@@ -275,13 +283,8 @@ export default class AuthXClientProxy extends EventEmitter {
       if (errors.length) {
         const errorDescriptions = params.getAll("error_description");
         response.statusCode = 400;
-        this.emit("handle", {
-          request: request,
-          response: response,
-          rule: undefined,
-          behavior: undefined,
-          message: "Handled by client endpoint: display oauth errors."
-        });
+        meta.message =
+          "Request handled by client endpoint: display oauth errors.";
         return send(`
           <html>
             <head><title>Error</title></head>
@@ -307,13 +310,8 @@ export default class AuthXClientProxy extends EventEmitter {
       const code = params.get("code");
       if (!code) {
         response.statusCode = 400;
-        this.emit("handle", {
-          request: request,
-          response: response,
-          rule: undefined,
-          behavior: undefined,
-          message: "Handled by client endpoint: display missing code error."
-        });
+        meta.message =
+          "Request handled by client endpoint: display missing code error.";
         return send(`
           <html>
             <head><title>Error</title></head>
@@ -373,24 +371,14 @@ export default class AuthXClientProxy extends EventEmitter {
         cookies.set("authx.s");
         cookies.set("authx.d");
 
-        this.emit("handle", {
-          request: request,
-          response: response,
-          rule: undefined,
-          behavior: undefined,
-          message: "Handled by client endpoint: redirect after successful auth."
-        });
+        meta.message =
+          "Request handled by client endpoint: redirect after successful auth.";
         return send();
       } catch (error) {
         this.emit("error", error);
         response.statusCode = 500;
-        this.emit("handle", {
-          request: request,
-          response: response,
-          rule: undefined,
-          behavior: undefined,
-          message: "Handled by client endpoint: display fetch error."
-        });
+        meta.message =
+          "Request handled by client endpoint: display fetch error.";
         return send(`
           <html>
             <head><title>Error</title></head>
@@ -417,6 +405,8 @@ export default class AuthXClientProxy extends EventEmitter {
       // If behavior is `undefined`, then the custom function will handle responding
       // to the request.
       if (!behavior) {
+        meta.message = "Request handled by custom behavior function.";
+        meta.rule = rule;
         return;
       }
 
@@ -529,13 +519,9 @@ export default class AuthXClientProxy extends EventEmitter {
       location.searchParams.append("state", state);
       response.setHeader("Location", location.href);
       response.statusCode = behavior.sendAuthorizationResponseAs || 303;
-      this.emit("handle", {
-        request: request,
-        response: response,
-        rule,
-        behavior,
-        message: "Restricting access."
-      });
+      meta.message = "Restricting access.";
+      meta.rule = rule;
+      meta.behavior = behavior;
       return send();
     }
 
@@ -544,12 +530,7 @@ export default class AuthXClientProxy extends EventEmitter {
       new Error(`No rules matched requested URL "${request.url}".`)
     );
 
-    this.emit("handle", {
-      request: request,
-      response: response,
-      behavior: undefined,
-      message: "No rules matched requested URL."
-    });
+    meta.message = "No rules matched requested URL.";
     response.statusCode = 404;
     send();
   };

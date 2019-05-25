@@ -134,6 +134,14 @@ interface Config {
   readonly rules: Rule[];
 }
 
+export interface Metadata {
+  request: IncomingMessage;
+  response: ServerResponse;
+  rule: undefined | Rule;
+  behavior: undefined | Behavior;
+  message: string;
+}
+
 export default class AuthXResourceProxy extends EventEmitter {
   private readonly _config: Config;
   private readonly _proxy: ReturnType<typeof createProxyServer>;
@@ -241,6 +249,22 @@ export default class AuthXResourceProxy extends EventEmitter {
     request: IncomingMessage,
     response: ServerResponse
   ): Promise<void> => {
+    const meta: Metadata = {
+      request: request,
+      response: response,
+      rule: undefined,
+      behavior: undefined,
+      message: "Request received."
+    };
+
+    // Emit meta on request start.
+    this.emit("request.start", meta);
+
+    // Emit meta again on request finish.
+    response.on("finish", () => {
+      this.emit("request.finish", meta);
+    });
+
     function send(data?: string): void {
       if (request.complete) {
         response.end(data);
@@ -254,26 +278,13 @@ export default class AuthXResourceProxy extends EventEmitter {
     if (request.url === (this._config.readinessEndpoint || "/_ready")) {
       if (this._closed || this._closing || !this._keys) {
         response.statusCode = 503;
-
-        this.emit("handle", {
-          request: request,
-          response: response,
-          rule: undefined,
-          behavior: undefined,
-          message: "Handled by readiness endpoint: NOT READY."
-        });
+        meta.message = "Request handled by readiness endpoint: NOT READY.";
         send("NOT READY");
         return;
       }
 
       response.statusCode = 200;
-      this.emit("handle", {
-        request: request,
-        response: response,
-        rule: undefined,
-        behavior: undefined,
-        message: "Handled by readiness endpoint: READY."
-      });
+      meta.message = "Request handled by readiness endpoint: READY.";
       send("READY");
       return;
     }
@@ -281,13 +292,7 @@ export default class AuthXResourceProxy extends EventEmitter {
     const keys = this._keys;
     if (!keys) {
       response.statusCode = 503;
-      this.emit("handle", {
-        request: request,
-        response: response,
-        rule: undefined,
-        behavior: undefined,
-        message: "Unable to find keys."
-      });
+      meta.message = "Unable to find keys.";
       send();
       return;
     }
@@ -363,9 +368,11 @@ export default class AuthXResourceProxy extends EventEmitter {
           ? rule.behavior(request, response)
           : rule.behavior;
 
-      // If behavior is `undefined`, then the custom function will handle responding
-      // to the request.
+      // If behavior is undefined, then the custom behavior function will handle
+      // responding to the request.
       if (!behavior) {
+        meta.message = "Request handled by custom behavior function.";
+        meta.rule = rule;
         return;
       }
 
@@ -381,13 +388,9 @@ export default class AuthXResourceProxy extends EventEmitter {
         // There is no valid token.
         if (!scopes) {
           response.statusCode = 401;
-          this.emit("handle", {
-            request: request,
-            response: response,
-            rule,
-            behavior,
-            message: "Restricting access."
-          });
+          meta.message = "Restricting access.";
+          meta.rule = rule;
+          meta.behavior = behavior;
           send();
           return;
         }
@@ -395,13 +398,9 @@ export default class AuthXResourceProxy extends EventEmitter {
         // The token is valid, but lacks required scopes.
         if (!isSuperset(scopes, behavior.requireScopes)) {
           response.statusCode = 403;
-          this.emit("handle", {
-            request: request,
-            response: response,
-            rule,
-            behavior,
-            message: "Restricting access."
-          });
+          meta.message = "Restricting access.";
+          meta.rule = rule;
+          meta.behavior = behavior;
           send();
           return;
         }
@@ -413,6 +412,9 @@ export default class AuthXResourceProxy extends EventEmitter {
       }
 
       // Proxy the request.
+      meta.message = "Request proxied.";
+      meta.rule = rule;
+      meta.behavior = behavior;
       this._proxy.web(request, response, behavior.proxyOptions);
 
       return;
@@ -423,12 +425,7 @@ export default class AuthXResourceProxy extends EventEmitter {
       new Error(`No rules matched requested URL "${request.url}".`)
     );
     response.statusCode = 404;
-    this.emit("handle", {
-      request: request,
-      response: response,
-      behavior: undefined,
-      message: "No rules matched requested URL."
-    });
+    meta.message = "No rules matched requested URL.";
     send();
   };
 

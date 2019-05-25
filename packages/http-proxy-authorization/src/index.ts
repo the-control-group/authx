@@ -147,6 +147,14 @@ interface Config {
   readonly rules: Rule[];
 }
 
+export interface Metadata {
+  request: IncomingMessage;
+  response: ServerResponse;
+  rule: undefined | Rule;
+  behavior: undefined | Behavior;
+  message: string;
+}
+
 /**
  * Generate a consistent string representation of a scopes array.
  */
@@ -241,6 +249,22 @@ export default class AuthXAuthorizationProxy extends EventEmitter {
     request: IncomingMessage,
     response: ServerResponse
   ): Promise<void> => {
+    const meta: Metadata = {
+      request: request,
+      response: response,
+      rule: undefined,
+      behavior: undefined,
+      message: "Request received."
+    };
+
+    // Emit meta on request start.
+    this.emit("request.start", meta);
+
+    // Emit meta again on request finish.
+    response.on("finish", () => {
+      this.emit("request.finish", meta);
+    });
+
     function send(data?: string): void {
       if (request.complete) {
         response.end(data);
@@ -254,25 +278,13 @@ export default class AuthXAuthorizationProxy extends EventEmitter {
     if (request.url === (this._config.readinessEndpoint || "/_ready")) {
       if (this._closed || this._closing) {
         response.statusCode = 503;
-        this.emit("handle", {
-          request: request,
-          response: response,
-          rule: undefined,
-          behavior: undefined,
-          message: "Handled by readiness endpoint: NOT READY."
-        });
+        meta.message = "Request handled by readiness endpoint: NOT READY.";
         send("NOT READY");
         return;
       }
 
       response.statusCode = 200;
-      this.emit("handle", {
-        request: request,
-        response: response,
-        rule: undefined,
-        behavior: undefined,
-        message: "Handled by readiness endpoint: READY."
-      });
+      meta.message = "Request handled by readiness endpoint: READY.";
       send("READY");
       return;
     }
@@ -292,13 +304,8 @@ export default class AuthXAuthorizationProxy extends EventEmitter {
       // If behavior is undefined, then the custom behavior function will handle
       // responding to the request.
       if (!behavior) {
-        this.emit("handle", {
-          request: request,
-          response: response,
-          rule,
-          behavior: undefined,
-          message: "Response handled by behavior."
-        });
+        meta.message = "Request handled by custom behavior function.";
+        meta.rule = rule;
         return;
       }
 
@@ -313,26 +320,21 @@ export default class AuthXAuthorizationProxy extends EventEmitter {
           this.emit("error", error);
 
           response.statusCode = 503;
-          this.emit("handle", {
-            request: request,
-            response: response,
-            rule,
-            behavior,
-            message: error instanceof Error ? error.message : undefined
-          });
+          meta.message =
+            error instanceof Error
+              ? `ERROR: ${error.message}`
+              : "Error fetching access token.";
+          meta.rule = rule;
+          meta.behavior = behavior;
           send();
           return;
         }
       }
 
       // Proxy the request.
-      this.emit("handle", {
-        request: request,
-        response: response,
-        rule,
-        behavior,
-        message: "Request proxied."
-      });
+      meta.message = "Request proxied.";
+      meta.rule = rule;
+      meta.behavior = behavior;
       this._proxy.web(request, response, behavior.proxyOptions);
 
       return;
@@ -344,12 +346,7 @@ export default class AuthXAuthorizationProxy extends EventEmitter {
     );
 
     response.statusCode = 404;
-    this.emit("handle", {
-      request: request,
-      response: response,
-      behavior: undefined,
-      message: "No rules matched requested URL."
-    });
+    meta.message = "No rules matched requested URL.";
     send();
     return;
   };
