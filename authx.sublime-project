@@ -1,9 +1,54 @@
 {
-	"folders":
-	[
-		{
-			"path": ".",
+  "folders":
+  [
+    {
+      "path": "packages/authx",
       "folder_exclude_patterns": ["**/node_modules", "**/dist"]
-		}
-	]
+    },
+    {
+      "path": "packages/http-proxy-authorization",
+      "folder_exclude_patterns": ["**/node_modules", "**/dist"]
+    },
+    {
+      "path": "packages/http-proxy-client",
+      "folder_exclude_patterns": ["**/node_modules", "**/dist"]
+    },
+    {
+      "path": "packages/http-proxy-resource",
+      "folder_exclude_patterns": ["**/node_modules", "**/dist"]
+    },
+    {
+      "path": "packages/interface",
+      "folder_exclude_patterns": ["**/node_modules", "**/dist"]
+    },
+    {
+      "path": "packages/manager",
+      "folder_exclude_patterns": ["**/node_modules", "**/dist"]
+    },
+    {
+      "path": "packages/scopes",
+      "folder_exclude_patterns": ["**/node_modules", "**/dist"]
+    },
+    {
+      "path": "packages/strategy-email",
+      "folder_exclude_patterns": ["**/node_modules", "**/dist"]
+    },
+    {
+      "path": "packages/strategy-openid",
+      "folder_exclude_patterns": ["**/node_modules", "**/dist"]
+    },
+    {
+      "path": "packages/strategy-password",
+      "folder_exclude_patterns": ["**/node_modules", "**/dist"]
+    },
+    {
+      "path": "packages/tools",
+      "folder_exclude_patterns": ["**/node_modules", "**/dist"]
+    },
+    {
+      "path": ".",
+      "folder_exclude_patterns": ["**/node_modules", "**/dist", "packages"],
+      "name": "root"
+    }
+  ]
 }

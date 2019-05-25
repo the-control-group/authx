@@ -79,6 +79,14 @@ interface Config {
   readonly authxPublicKeyRefreshInterval?: number;
 
   /**
+   * The number of seconds to wait before aborting and retrying a request for
+   * public keys from the AuthX server.
+   *
+   * @defaultValue `30`
+   */
+  readonly authxPublicKeyRefreshRequestTimeout?: number;
+
+  /**
    * The number of seconds between failed attempts at refreshing public keys
    * from the AuthX server.
    *
@@ -105,7 +113,7 @@ interface Config {
    * When closing the proxy, readiness checks will immediately begin failing,
    * even before the proxy stops accepting requests.
    *
-   * If not set, the path `/_ready` will be used.
+   * @defaultValue `"/_ready"`
    */
   readonly readinessEndpoint?: string;
 

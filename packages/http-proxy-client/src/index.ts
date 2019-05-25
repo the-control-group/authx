@@ -144,12 +144,20 @@ interface Config {
   readonly rules: Rule[];
 }
 
+export interface Metadata {
+  request: IncomingMessage;
+  response: ServerResponse;
+  rule: undefined | Rule;
+  behavior: undefined | Behavior;
+  message: string;
+}
+
 // We need a small key to identify this tokey that is safe for use as a cookie
 // key. We'll use a modified version of base64, as described by:
 // https://tools.ietf.org/html/rfc4648
-function hashScopes(scopes: string[]): string {
+function hashScopes(scopes: ReadonlyArray<string>): string {
   return createHash("sha1")
-    .update(scopes.join(" "))
+    .update([...scopes].sort().join(" "))
     .digest("base64")
     .replace(/\+/g, "-")
     .replace(/\//g, "_")
@@ -182,12 +190,26 @@ export default class AuthXClientProxy extends EventEmitter {
     request: IncomingMessage,
     response: ServerResponse
   ): Promise<void> => {
+    const meta: Metadata = {
+      request: request,
+      response: response,
+      rule: undefined,
+      behavior: undefined,
+      message: "Request received."
+    };
+
+    // Emit meta on request start.
+    this.emit("request.start", meta);
+
+    // Emit meta again on request finish.
+    response.on("finish", () => {
+      this.emit("request.finish", meta);
+    });
+
     const cookies = new Cookies(request, response);
 
     function send(data?: string): void {
-      // TODO: this shouldn't need to be cast through any
-      // https://github.com/DefinitelyTyped/DefinitelyTyped/pull/34898
-      if ((request as any).complete) {
+      if (request.complete) {
         response.end(data);
       } else {
         request.on("end", () => response.end(data));
@@ -195,9 +217,12 @@ export default class AuthXClientProxy extends EventEmitter {
       }
     }
 
-    const forward = (options: ServerOptions): void => {
+    const forward = (
+      options: ServerOptions,
+      rule: Rule,
+      behavior: Behavior
+    ): void => {
       // Merge `set-cookie` header values with those set by the proxy.
-
       const setHeader = response.setHeader;
       response.setHeader = function(name, value) {
         if (name.toLowerCase() === "set-cookie") {
@@ -225,6 +250,9 @@ export default class AuthXClientProxy extends EventEmitter {
         if (!request.headers.cookie) delete request.headers.cookie;
       }
 
+      meta.message = "Request proxied.";
+      meta.rule = rule;
+      meta.behavior = behavior;
       this._proxy.web(request, response, options);
     };
 
@@ -232,9 +260,11 @@ export default class AuthXClientProxy extends EventEmitter {
     if (request.url === (this._config.readinessEndpoint || "/_ready")) {
       if (this._closed || this._closing) {
         response.statusCode = 503;
+        meta.message = "Request handled by readiness endpoint: NOT READY.";
         return send("NOT READY");
       }
 
+      meta.message = "Request handled by readiness endpoint: READY.";
       response.statusCode = 200;
       return send("READY");
     }
@@ -253,6 +283,8 @@ export default class AuthXClientProxy extends EventEmitter {
       if (errors.length) {
         const errorDescriptions = params.getAll("error_description");
         response.statusCode = 400;
+        meta.message =
+          "Request handled by client endpoint: display oauth errors.";
         return send(`
           <html>
             <head><title>Error</title></head>
@@ -278,6 +310,8 @@ export default class AuthXClientProxy extends EventEmitter {
       const code = params.get("code");
       if (!code) {
         response.statusCode = 400;
+        meta.message =
+          "Request handled by client endpoint: display missing code error.";
         return send(`
           <html>
             <head><title>Error</title></head>
@@ -337,10 +371,14 @@ export default class AuthXClientProxy extends EventEmitter {
         cookies.set("authx.s");
         cookies.set("authx.d");
 
+        meta.message =
+          "Request handled by client endpoint: redirect after successful auth.";
         return send();
       } catch (error) {
-        console.error(error);
+        this.emit("error", error);
         response.statusCode = 500;
+        meta.message =
+          "Request handled by client endpoint: display fetch error.";
         return send(`
           <html>
             <head><title>Error</title></head>
@@ -364,15 +402,17 @@ export default class AuthXClientProxy extends EventEmitter {
           ? rule.behavior(request, response)
           : rule.behavior;
 
-      // If behavior is `void`, then the custom function will handle responding
+      // If behavior is `undefined`, then the custom function will handle responding
       // to the request.
       if (!behavior) {
+        meta.message = "Request handled by custom behavior function.";
+        meta.rule = rule;
         return;
       }
 
       // Nothing else to do; proxy the request.
       if (!behavior.sendTokenToTargetWithScopes) {
-        forward(behavior.proxyOptions);
+        forward(behavior.proxyOptions, rule, behavior);
         return;
       }
 
@@ -394,11 +434,11 @@ export default class AuthXClientProxy extends EventEmitter {
         ) {
           // We already have a valid token.
           request.headers.authorization = `Bearer ${token}`;
-          forward(behavior.proxyOptions);
+          forward(behavior.proxyOptions, rule, behavior);
           return;
         }
       } catch (error) {
-        console.error(error);
+        this.emit("error", error);
       }
 
       const refreshToken = cookies.get("authx.r");
@@ -448,11 +488,11 @@ export default class AuthXClientProxy extends EventEmitter {
               refreshResponseBody.access_token
             }`;
 
-            forward(behavior.proxyOptions);
+            forward(behavior.proxyOptions, rule, behavior);
             return;
           }
         } catch (error) {
-          console.error(error);
+          this.emit("error", error);
         }
       }
 
@@ -479,13 +519,20 @@ export default class AuthXClientProxy extends EventEmitter {
       location.searchParams.append("state", state);
       response.setHeader("Location", location.href);
       response.statusCode = behavior.sendAuthorizationResponseAs || 303;
-
+      meta.message = "Restricting access.";
+      meta.rule = rule;
+      meta.behavior = behavior;
       return send();
     }
 
-    console.warn(`No rules matched requested URL "${request.url}".`);
+    this.emit(
+      "error",
+      new Error(`No rules matched requested URL "${request.url}".`)
+    );
+
+    meta.message = "No rules matched requested URL.";
     response.statusCode = 404;
-    response.end();
+    send();
   };
 
   public async listen(port?: number): Promise<void> {

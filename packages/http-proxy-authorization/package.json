@@ -5,28 +5,13 @@
   },
   "bugs": "https://github.com/the-control-group/authx/issues",
   "dependencies": {
-    "@authx/scopes": "^2.2.1",
-    "@types/auth-header": "^1.0.1",
-    "@types/form-data": "^2.2.1",
-    "@types/graphql-api-koa": "^2.0.0",
+    "@types/http-proxy": "^1.17.0",
     "@types/jsonwebtoken": "^8.3.2",
-    "@types/koa": "^2.0.48",
-    "@types/koa-router": "^7.0.40",
-    "@types/koa-send": "^4.1.2",
-    "@types/pg": "^7.4.14",
-    "@types/uuid": "^3.4.4",
-    "auth-header": "^1.0.0",
-    "form-data": "^2.3.3",
-    "graphql": "^14.3.0",
-    "graphql-api-koa": "^2.0.0",
-    "graphql-playground-middleware-koa": "^1.6.12",
-    "jsonwebtoken": "^8.5.0",
-    "koa": "^2.7.0",
-    "koa-body": "^4.1.0",
-    "koa-router": "^7.4.0",
-    "node-fetch": "^2.5.0",
-    "pg": "^7.8.1",
-    "uuid": "^3.3.2"
+    "@types/node-fetch": "^2.3.3",
+    "abort-controller": "^3.0.0",
+    "http-proxy": "^1.17.0",
+    "jsonwebtoken": "^8.5.1",
+    "node-fetch": "^2.5.0"
   },
   "description": "",
   "devDependencies": {
@@ -36,18 +21,15 @@
     "eslint": "^5.16.0",
     "eslint-config-prettier": "^4.2.0",
     "eslint-plugin-prettier": "^3.0.0",
-    "nodemon": "^1.19.0",
     "prettier": "^1.16.4",
     "typescript": "^3.4.5"
   },
   "engines": {
-    "node": ">=10"
+    "node": ">=6"
   },
   "files": [
     "dist",
-    "!dist/**.test.js",
-    "!dist/**.test.js.map",
-    "!dist/**.test.d.ts"
+    "!dist/test.*"
   ],
   "keywords": [
     "oauth",
@@ -58,19 +40,17 @@
   ],
   "license": "MIT",
   "main": "dist",
-  "name": "@authx/authx",
-  "peerDependencies": {
-    "koa": "^2.0.0"
-  },
+  "name": "@authx/http-proxy-authorization",
+  "peerDependencies": {},
   "repository": "https://github.com/the-control-group/authx",
   "scripts": {
     "format": "prettier --list-different --write '**/*.{json,yml,md,ts}'",
     "lint": "prettier -c '**/*.{json,yml,md,ts}' && eslint src --ext ts",
     "build": "rm -rf dist && tsc",
     "build:development": "rm -rf dist && tsc --watch",
-    "test": "ava --verbose dist/**/*.test.js",
-    "test:development": "ava --verbose --watch dist/**/*.test.js"
+    "test": "ava --verbose dist/*.test.js",
+    "test:development": "ava --verbose dist/*.test.js --watch"
   },
-  "types": "dist/index.d.ts",
-  "version": "2.0.0-beta.10"
+  "types": "./dist/index.d.ts",
+  "version": "1.0.0-beta.1"
 }

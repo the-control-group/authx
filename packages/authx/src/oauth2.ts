@@ -222,7 +222,7 @@ export default async (ctx: ParameterizedContext<any, { [x]: Context }>) => {
             }
           ),
           refresh_token: getRefreshToken(grant.secrets),
-          expires_in: 3600,
+          expires_in: jwtValidityDuration,
           scope: (await authorization.access(tx)).join(" ")
           /* eslint-enable @typescript-eslint/camelcase */
         };
