@@ -3,6 +3,10 @@ import MemoryFileSystem from "memory-fs";
 import HtmlWebpackPlugin from "html-webpack-plugin";
 import webpack from "webpack";
 
+class BuildError extends Error {
+  public errors: ReadonlyArray<string | Error> = [];
+}
+
 export default function createInterface(
   strategies: ReadonlyArray<string>
 ): (ctx: any, next: () => void) => void {
@@ -44,20 +48,25 @@ export default function createInterface(
   // Output directly to memory.
   compiler.outputFileSystem = fs;
 
-  //
-  compiler.run((err, stats) => {
-    if (err || stats.hasErrors()) {
-      console.error("ERROR", err);
-    }
+  const build = new Promise((resolve, reject) => {
+    compiler.run((error, stats) => {
+      if (error) {
+        return reject(error);
+      }
 
-    // done processing
-    console.log(stats.compilation.errors);
+      if (stats.hasErrors()) {
+        const error = new BuildError("Failed to build bundle.");
+        error.errors = stats.compilation.errors;
+        return reject(error);
+      }
 
-    console.log(
-      fs.readdirSync(
-        join("/Users/mike/Code/authx/packages/interface/dist/client")
-      )
-    );
+      resolve();
+    });
+  });
+
+  // Crash the app on build failure.
+  build.catch(error => {
+    throw error;
   });
 
   return async (ctx: any, next: () => void) => {
@@ -78,7 +87,8 @@ export default function createInterface(
       extname(path) ? path : join(path, "index.html")
     );
 
-    // Check to see if the file exists by trying to open a file handler.
+    // Wait for the build.
+    await build;
 
     // The requested file does not exist.
     if (!fs.existsSync(filePath)) return next();
