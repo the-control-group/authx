@@ -1,59 +1,34 @@
-import React, { ReactElement } from "react";
+import React from "react";
 import ReactDOM from "react-dom";
-import { useAuthorization } from "./useAuthorization";
-import { useAuthenticatedEndpoint } from "./useAuthenticatedEndpoint";
-import { Authenticate } from "./Authenticate";
-import { Authorize } from "./Authorize";
-import { Default } from "./Default";
+import { Root } from "./Root";
+import { Strategy } from "../Strategy";
 import { GraphQL, GraphQLContext } from "graphql-react";
 
-function Root(): ReactElement<{}> {
-  const {
-    authorization,
-    clearAuthorization,
-    setAuthorization
-  } = useAuthorization();
-  const { fetchOptionsOverride } = useAuthenticatedEndpoint(
-    authorization,
-    clearAuthorization
-  );
+declare var __STRATEGIES__: ReadonlyArray<Strategy>;
 
-  // We are not authenticated.
-  if (!authorization) {
-    return (
-      <Authenticate
-        fetchOptionsOverride={fetchOptionsOverride}
-        setAuthorization={setAuthorization}
-      />
+const strategies = __STRATEGIES__.reduce<{ [name: string]: Strategy }>(
+  (map, strategy) => {
+    const match = strategy.fragment.match(
+      /^\s*fragment\s+([A-Z][A-Za-z0-9_]*)/
     );
-  }
+    if (!match || !match[1]) {
+      throw new Error(
+        `INVARIANT: Failed to extract fragment name from:\n${strategy.fragment}`
+      );
+    }
+    map[match[1]] = strategy;
 
-  // We need to authorize a client.
-  const url = new URL(window.location.href);
-  if (url.searchParams.has("response_type")) {
-    return (
-      <Authorize
-        fetchOptionsOverride={fetchOptionsOverride}
-        clearAuthorization={clearAuthorization}
-      />
-    );
-  }
-
-  // We need to allow the user to log out.
-  return (
-    <Default
-      fetchOptionsOverride={fetchOptionsOverride}
-      clearAuthorization={clearAuthorization}
-    />
-  );
-}
+    return map;
+  },
+  {}
+);
 
 // Instantiate the app.
 const graphql = new GraphQL();
 document.title = "Authorize";
 ReactDOM.render(
   <GraphQLContext.Provider value={graphql}>
-    <Root />
+    <Root strategies={strategies} />
   </GraphQLContext.Provider>,
   document.getElementById("root")
 );

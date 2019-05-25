@@ -1,50 +1,32 @@
 import React, { useState, useEffect, ReactElement } from "react";
 import { useGraphQL, GraphQLFetchOptionsOverride } from "graphql-react";
-import preval from "preval.macro";
 
-const strategies = preval`module.exports=__STRATEGIES__.reduce(
-  (map, p) => {
-    const strategy = require(p).default;
-    const match = strategy.fragment.match(
-      /^\\s*fragment\\s+([A-Z][A-Za-z0-9_]*)/
-    );
-    if (!match || !match[1]) {
-      throw new Error(
-        \`INVARIANT: Failed to extract fragment name from:\\n\${strategy.fragment}\`
-      );
-    }
-    map[match[1]] = strategy;
-
-    console.log(match[1])
-    return map;
-  },
-  {}
-);
-`;
-
-console.log(strategies);
-
-const query = `
-  query {
-    authorities {
-      id
-
-      ${Object.keys(strategies).map(name => {
-        return `...${name}\n`;
-      })}
-    }
-  }
-
-  ${Object.values(strategies).map(({ fragment }) => `${fragment}\n\n`)}
-`;
+import { Strategy } from "../Strategy";
 
 export function Authenticate({
   setAuthorization,
-  fetchOptionsOverride
+  fetchOptionsOverride,
+  strategies
 }: {
   setAuthorization: (authorization: { id: string; secret: string }) => void;
   fetchOptionsOverride: GraphQLFetchOptionsOverride;
+  strategies: { [name: string]: Strategy };
 }): ReactElement<any> {
+  // Inject strategy fragments into the query.
+  const query = `
+    query {
+      authorities {
+        id
+
+        ${Object.keys(strategies).map(name => {
+          return `...${name}\n`;
+        })}
+      }
+    }
+
+    ${Object.values(strategies).map(({ fragment }) => `${fragment}\n\n`)}
+  `;
+
   // Get all active authorities from the API.
   const { loading, cacheValue } = useGraphQL<any, {}>({
     fetchOptionsOverride,
@@ -102,7 +84,7 @@ export function Authenticate({
   const authority =
     (authorityId && authorities.find(a => a.id === authorityId)) || null;
 
-  const Strategy =
+  const StrategyComponent =
     authority &&
     strategies[authority.__typename] &&
     strategies[authority.__typename].component;
@@ -120,8 +102,8 @@ export function Authenticate({
           </div>
         ))}
       </div>
-      {(authority && Strategy && (
-        <Strategy
+      {(authority && StrategyComponent && (
+        <StrategyComponent
           authority={authority}
           authorities={authorities}
           setAuthorization={setAuthorization}

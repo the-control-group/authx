@@ -1,8 +1,13 @@
 import Koa from "koa";
-import middleware from ".";
+import createInterfaceMiddleware from ".";
 
 const app = new Koa();
-app.use(middleware);
+app.use(
+  createInterfaceMiddleware([
+    "@authx/strategy-email/client",
+    "@authx/strategy-password/client"
+  ])
+);
 const server = app.listen(
   (process.env.PORT && parseInt(process.env.PORT)) || undefined,
   () => {
