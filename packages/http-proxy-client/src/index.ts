@@ -185,9 +185,7 @@ export default class AuthXClientProxy extends EventEmitter {
     const cookies = new Cookies(request, response);
 
     function send(data?: string): void {
-      // TODO: this shouldn't need to be cast through any
-      // https://github.com/DefinitelyTyped/DefinitelyTyped/pull/34898
-      if ((request as any).complete) {
+      if (request.complete) {
         response.end(data);
       } else {
         request.on("end", () => response.end(data));
@@ -195,9 +193,12 @@ export default class AuthXClientProxy extends EventEmitter {
       }
     }
 
-    const forward = (options: ServerOptions): void => {
+    const forward = (
+      options: ServerOptions,
+      rule: Rule,
+      behavior: Behavior
+    ): void => {
       // Merge `set-cookie` header values with those set by the proxy.
-
       const setHeader = response.setHeader;
       response.setHeader = function(name, value) {
         if (name.toLowerCase() === "set-cookie") {
@@ -225,6 +226,13 @@ export default class AuthXClientProxy extends EventEmitter {
         if (!request.headers.cookie) delete request.headers.cookie;
       }
 
+      this.emit("handle", {
+        request: request,
+        response: response,
+        rule,
+        behavior,
+        message: "Request proxied."
+      });
       this._proxy.web(request, response, options);
     };
 
@@ -232,9 +240,23 @@ export default class AuthXClientProxy extends EventEmitter {
     if (request.url === (this._config.readinessEndpoint || "/_ready")) {
       if (this._closed || this._closing) {
         response.statusCode = 503;
+        this.emit("handle", {
+          request: request,
+          response: response,
+          rule: undefined,
+          behavior: undefined,
+          message: "Handled by readiness endpoint: NOT READY."
+        });
         return send("NOT READY");
       }
 
+      this.emit("handle", {
+        request: request,
+        response: response,
+        rule: undefined,
+        behavior: undefined,
+        message: "Handled by readiness endpoint: READY."
+      });
       response.statusCode = 200;
       return send("READY");
     }
@@ -253,6 +275,13 @@ export default class AuthXClientProxy extends EventEmitter {
       if (errors.length) {
         const errorDescriptions = params.getAll("error_description");
         response.statusCode = 400;
+        this.emit("handle", {
+          request: request,
+          response: response,
+          rule: undefined,
+          behavior: undefined,
+          message: "Handled by client endpoint: display oauth errors."
+        });
         return send(`
           <html>
             <head><title>Error</title></head>
@@ -278,6 +307,13 @@ export default class AuthXClientProxy extends EventEmitter {
       const code = params.get("code");
       if (!code) {
         response.statusCode = 400;
+        this.emit("handle", {
+          request: request,
+          response: response,
+          rule: undefined,
+          behavior: undefined,
+          message: "Handled by client endpoint: display missing code error."
+        });
         return send(`
           <html>
             <head><title>Error</title></head>
@@ -337,10 +373,24 @@ export default class AuthXClientProxy extends EventEmitter {
         cookies.set("authx.s");
         cookies.set("authx.d");
 
+        this.emit("handle", {
+          request: request,
+          response: response,
+          rule: undefined,
+          behavior: undefined,
+          message: "Handled by client endpoint: redirect after successful auth."
+        });
         return send();
       } catch (error) {
         this.emit("error", error);
         response.statusCode = 500;
+        this.emit("handle", {
+          request: request,
+          response: response,
+          rule: undefined,
+          behavior: undefined,
+          message: "Handled by client endpoint: display fetch error."
+        });
         return send(`
           <html>
             <head><title>Error</title></head>
@@ -372,7 +422,7 @@ export default class AuthXClientProxy extends EventEmitter {
 
       // Nothing else to do; proxy the request.
       if (!behavior.sendTokenToTargetWithScopes) {
-        forward(behavior.proxyOptions);
+        forward(behavior.proxyOptions, rule, behavior);
         return;
       }
 
@@ -394,7 +444,7 @@ export default class AuthXClientProxy extends EventEmitter {
         ) {
           // We already have a valid token.
           request.headers.authorization = `Bearer ${token}`;
-          forward(behavior.proxyOptions);
+          forward(behavior.proxyOptions, rule, behavior);
           return;
         }
       } catch (error) {
@@ -448,7 +498,7 @@ export default class AuthXClientProxy extends EventEmitter {
               refreshResponseBody.access_token
             }`;
 
-            forward(behavior.proxyOptions);
+            forward(behavior.proxyOptions, rule, behavior);
             return;
           }
         } catch (error) {
@@ -479,7 +529,13 @@ export default class AuthXClientProxy extends EventEmitter {
       location.searchParams.append("state", state);
       response.setHeader("Location", location.href);
       response.statusCode = behavior.sendAuthorizationResponseAs || 303;
-
+      this.emit("handle", {
+        request: request,
+        response: response,
+        rule,
+        behavior,
+        message: "Restricting access."
+      });
       return send();
     }
 
@@ -487,8 +543,15 @@ export default class AuthXClientProxy extends EventEmitter {
       "error",
       new Error(`No rules matched requested URL "${request.url}".`)
     );
+
+    this.emit("handle", {
+      request: request,
+      response: response,
+      behavior: undefined,
+      message: "No rules matched requested URL."
+    });
     response.statusCode = 404;
-    response.end();
+    send();
   };
 
   public async listen(port?: number): Promise<void> {

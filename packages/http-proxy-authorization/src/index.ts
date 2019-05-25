@@ -241,34 +241,39 @@ export default class AuthXAuthorizationProxy extends EventEmitter {
     request: IncomingMessage,
     response: ServerResponse
   ): Promise<void> => {
+    function send(data?: string): void {
+      if (request.complete) {
+        response.end(data);
+      } else {
+        request.on("end", () => response.end(data));
+        request.resume();
+      }
+    }
+
     // Serve the readiness URL.
     if (request.url === (this._config.readinessEndpoint || "/_ready")) {
       if (this._closed || this._closing) {
         response.statusCode = 503;
-
-        // TODO: this shouldn't need to be cast through any
-        // https://github.com/DefinitelyTyped/DefinitelyTyped/pull/34898
-        if ((request as any).complete) {
-          response.end("NOT READY");
-        } else {
-          request.on("end", () => response.end("NOT READY"));
-          request.resume();
-        }
-
+        this.emit("handle", {
+          request: request,
+          response: response,
+          rule: undefined,
+          behavior: undefined,
+          message: "Handled by readiness endpoint: NOT READY."
+        });
+        send("NOT READY");
         return;
       }
 
       response.statusCode = 200;
-
-      // TODO: this shouldn't need to be cast through any
-      // https://github.com/DefinitelyTyped/DefinitelyTyped/pull/34898
-      if ((request as any).complete) {
-        response.end("READY");
-      } else {
-        request.on("end", () => response.end("READY"));
-        request.resume();
-      }
-
+      this.emit("handle", {
+        request: request,
+        response: response,
+        rule: undefined,
+        behavior: undefined,
+        message: "Handled by readiness endpoint: READY."
+      });
+      send("READY");
       return;
     }
 
@@ -284,9 +289,16 @@ export default class AuthXAuthorizationProxy extends EventEmitter {
           ? rule.behavior(request, response)
           : rule.behavior;
 
-      // If behavior is `void`, then the custom function will handle responding
-      // to the request.
+      // If behavior is undefined, then the custom behavior function will handle
+      // responding to the request.
       if (!behavior) {
+        this.emit("handle", {
+          request: request,
+          response: response,
+          rule,
+          behavior: undefined,
+          message: "Response handled by behavior."
+        });
         return;
       }
 
@@ -299,22 +311,28 @@ export default class AuthXAuthorizationProxy extends EventEmitter {
           )}`;
         } catch (error) {
           this.emit("error", error);
+
           response.statusCode = 503;
-
-          // TODO: this shouldn't need to be cast through any
-          // https://github.com/DefinitelyTyped/DefinitelyTyped/pull/34898
-          if ((request as any).complete) {
-            response.end();
-          } else {
-            request.on("end", () => response.end("READY"));
-            request.resume();
-          }
-
+          this.emit("handle", {
+            request: request,
+            response: response,
+            rule,
+            behavior,
+            message: error instanceof Error ? error.message : undefined
+          });
+          send();
           return;
         }
       }
 
       // Proxy the request.
+      this.emit("handle", {
+        request: request,
+        response: response,
+        rule,
+        behavior,
+        message: "Request proxied."
+      });
       this._proxy.web(request, response, behavior.proxyOptions);
 
       return;
@@ -324,8 +342,16 @@ export default class AuthXAuthorizationProxy extends EventEmitter {
       "error",
       new Error(`No rules matched requested URL "${request.url}".`)
     );
+
     response.statusCode = 404;
-    response.end();
+    this.emit("handle", {
+      request: request,
+      response: response,
+      behavior: undefined,
+      message: "No rules matched requested URL."
+    });
+    send();
+    return;
   };
 
   private _evict(refreshToken: string, hash: string): void {

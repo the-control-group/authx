@@ -241,64 +241,55 @@ export default class AuthXResourceProxy extends EventEmitter {
     request: IncomingMessage,
     response: ServerResponse
   ): Promise<void> => {
+    function send(data?: string): void {
+      if (request.complete) {
+        response.end(data);
+      } else {
+        request.on("end", () => response.end(data));
+        request.resume();
+      }
+    }
+
     // Serve the readiness URL.
     if (request.url === (this._config.readinessEndpoint || "/_ready")) {
       if (this._closed || this._closing || !this._keys) {
         response.statusCode = 503;
 
-        // TODO: this shouldn't need to be cast through any
-        // https://github.com/DefinitelyTyped/DefinitelyTyped/pull/34898
-        if ((request as any).complete) {
-          response.end("NOT READY");
-        } else {
-          request.on("end", () => response.end("NOT READY"));
-          request.resume();
-        }
-
+        this.emit("handle", {
+          request: request,
+          response: response,
+          rule: undefined,
+          behavior: undefined,
+          message: "Handled by readiness endpoint: NOT READY."
+        });
+        send("NOT READY");
         return;
       }
 
       response.statusCode = 200;
-
-      // TODO: this shouldn't need to be cast through any
-      // https://github.com/DefinitelyTyped/DefinitelyTyped/pull/34898
-      if ((request as any).complete) {
-        response.end("READY");
-      } else {
-        request.on("end", () => response.end("READY"));
-        request.resume();
-      }
-
+      this.emit("handle", {
+        request: request,
+        response: response,
+        rule: undefined,
+        behavior: undefined,
+        message: "Handled by readiness endpoint: READY."
+      });
+      send("READY");
       return;
     }
 
     const keys = this._keys;
     if (!keys) {
       response.statusCode = 503;
-
-      // TODO: this shouldn't need to be cast through any
-      // https://github.com/DefinitelyTyped/DefinitelyTyped/pull/34898
-      if ((request as any).complete) {
-        response.end();
-      } else {
-        request.on("end", () => response.end());
-        request.resume();
-      }
-
+      this.emit("handle", {
+        request: request,
+        response: response,
+        rule: undefined,
+        behavior: undefined,
+        message: "Unable to find keys."
+      });
+      send();
       return;
-    }
-
-    function restrict(statusCode: number): void {
-      response.statusCode = statusCode;
-
-      // TODO: this shouldn't need to be cast through any
-      // https://github.com/DefinitelyTyped/DefinitelyTyped/pull/34898
-      if ((request as any).complete) {
-        response.end();
-      } else {
-        request.once("end", () => response.end());
-        request.resume();
-      }
     }
 
     // Proxy
@@ -389,13 +380,29 @@ export default class AuthXResourceProxy extends EventEmitter {
 
         // There is no valid token.
         if (!scopes) {
-          restrict(401);
+          response.statusCode = 401;
+          this.emit("handle", {
+            request: request,
+            response: response,
+            rule,
+            behavior,
+            message: "Restricting access."
+          });
+          send();
           return;
         }
 
         // The token is valid, but lacks required scopes.
         if (!isSuperset(scopes, behavior.requireScopes)) {
-          restrict(403);
+          response.statusCode = 403;
+          this.emit("handle", {
+            request: request,
+            response: response,
+            rule,
+            behavior,
+            message: "Restricting access."
+          });
+          send();
           return;
         }
       }
@@ -416,7 +423,13 @@ export default class AuthXResourceProxy extends EventEmitter {
       new Error(`No rules matched requested URL "${request.url}".`)
     );
     response.statusCode = 404;
-    response.end();
+    this.emit("handle", {
+      request: request,
+      response: response,
+      behavior: undefined,
+      message: "No rules matched requested URL."
+    });
+    send();
   };
 
   public async listen(port?: number): Promise<void> {
