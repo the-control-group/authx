@@ -4,7 +4,8 @@ export default function(
   this: loader.LoaderContext,
   source: string | Buffer
 ): string {
-  const strategies = (this.query && this.query.strategies) || [];
+  const strategies: ReadonlyArray<string> =
+    (this.query && this.query.strategies) || [];
   source = typeof source === "string" ? source : source.toString();
   return source.replace(
     "__STRATEGIES__",
