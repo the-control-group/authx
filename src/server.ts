@@ -1,6 +1,6 @@
 import Koa from "koa";
 import AuthX, { StrategyCollection } from "@authx/authx";
-import authXInterface from "@authx/interface";
+import createAuthXInterface from "@authx/interface";
 
 import email from "@authx/strategy-email";
 import password from "@authx/strategy-password";
@@ -13,7 +13,13 @@ const app = new Koa();
 app.proxy = true;
 
 // add the AuthX user interface
-app.use(authXInterface);
+app.use(
+  createAuthXInterface([
+    "@authx/strategy-email/client",
+    "@authx/strategy-password/client",
+    "@authx/strategy-openid/client"
+  ])
+);
 
 // create a new instanciate of AuthX
 const authx = new AuthX({

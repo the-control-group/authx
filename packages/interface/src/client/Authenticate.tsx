@@ -1,56 +1,43 @@
 import React, { useState, useEffect, ReactElement } from "react";
 import { useGraphQL, GraphQLFetchOptionsOverride } from "graphql-react";
-import {
-  PasswordAuthority,
-  PasswordAuthorityFragment,
-  PasswordAuthorityFragmentData
-} from "./strategy/PasswordAuthority";
-import {
-  EmailAuthority,
-  EmailAuthorityFragment,
-  EmailAuthorityFragmentData
-} from "./strategy/EmailAuthority";
-import {
-  OpenIdAuthority,
-  OpenIdAuthorityFragment,
-  OpenIdAuthorityFragmentData
-} from "./strategy/OpenIdAuthority";
+
+import { Strategy } from "../Strategy";
 
 export function Authenticate({
   setAuthorization,
-  fetchOptionsOverride
+  fetchOptionsOverride,
+  strategies
 }: {
   setAuthorization: (authorization: { id: string; secret: string }) => void;
   fetchOptionsOverride: GraphQLFetchOptionsOverride;
+  strategies: { [name: string]: Strategy };
 }): ReactElement<any> {
+  // Inject strategy fragments into the query.
+  const query = `
+    query {
+      authorities {
+        id
+
+        ${Object.keys(strategies).map(name => {
+          return `...${name}\n`;
+        })}
+      }
+    }
+
+    ${Object.values(strategies).map(({ fragment }) => `${fragment}\n\n`)}
+  `;
+
   // Get all active authorities from the API.
   const { loading, cacheValue } = useGraphQL<any, {}>({
     fetchOptionsOverride,
     operation: {
       variables: {},
-      query: `
-        query {
-          authorities {
-            id
-
-            ...PasswordAuthorityFragment
-            ...EmailAuthorityFragment
-            ...OpenIdAuthorityFragment
-          }
-        }
-
-        ${PasswordAuthorityFragment}
-        ${EmailAuthorityFragment}
-        ${OpenIdAuthorityFragment}
-      `
+      query
     }
   });
 
   // Sort authorities by name.
-  const authorities: (
-    | PasswordAuthorityFragmentData
-    | EmailAuthorityFragmentData
-    | OpenIdAuthorityFragmentData)[] =
+  const authorities: any[] =
     (cacheValue &&
       cacheValue.data &&
       cacheValue.data.authorities &&
@@ -93,28 +80,14 @@ export function Authenticate({
     const authority = firstPasswordAuthority || authorities[0];
     setActiveAuthorityId(authority.id, authority.name || undefined);
   }
+
   const authority =
     (authorityId && authorities.find(a => a.id === authorityId)) || null;
-  const strategy =
-    (authority &&
-      (authority.__typename === "PasswordAuthority" ? (
-        <PasswordAuthority
-          authority={authority}
-          authorities={authorities}
-          setAuthorization={setAuthorization}
-        />
-      ) : authority.__typename === "EmailAuthority" ? (
-        <EmailAuthority
-          authority={authority}
-          setAuthorization={setAuthorization}
-        />
-      ) : authority.__typename === "OpenIdAuthority" ? (
-        <OpenIdAuthority
-          authority={authority}
-          setAuthorization={setAuthorization}
-        />
-      ) : null)) ||
-    null;
+
+  const StrategyComponent =
+    authority &&
+    strategies[authority.__typename] &&
+    strategies[authority.__typename].component;
 
   return (
     <div>
@@ -129,7 +102,13 @@ export function Authenticate({
           </div>
         ))}
       </div>
-      {(authority && strategy) || (
+      {(authority && StrategyComponent && (
+        <StrategyComponent
+          authority={authority}
+          authorities={authorities}
+          setAuthorization={setAuthorization}
+        />
+      )) || (
         <div className="panel">
           {loading
             ? "Loading"

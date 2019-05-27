@@ -10,7 +10,7 @@
     "@types/pg": "^7.4.14",
     "@types/uuid": "^3.4.4",
     "bcrypt": "^3.0.6",
-    "graphql": "^14.3.0",
+    "graphql": "^14.3.1",
     "pg": "^7.8.1",
     "uuid": "^3.3.2"
   },
@@ -23,7 +23,7 @@
     "eslint": "^5.16.0",
     "eslint-config-prettier": "^4.2.0",
     "eslint-plugin-prettier": "^3.0.0",
-    "nodemon": "^1.19.0",
+    "nodemon": "^1.19.1",
     "prettier": "^1.16.4",
     "typescript": "^3.4.5"
   },
@@ -61,5 +61,5 @@
     "test:development": "ava --verbose --watch dist/**/*.test.js"
   },
   "types": "dist/server/index.d.ts",
-  "version": "1.0.0-beta.3"
+  "version": "1.0.0-beta.4"
 }
