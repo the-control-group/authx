@@ -7,9 +7,9 @@ class BuildError extends Error {
   public errors: ReadonlyArray<string | Error> = [];
 }
 
-export default function createInterface(
+export default async function createInterface(
   strategies: ReadonlyArray<string>
-): (ctx: any, next: () => void) => void {
+): Promise<(ctx: any, next: () => Promise<any>) => Promise<any>> {
   const fs = new MemoryFileSystem();
 
   // Create a webpack compiler.
@@ -48,7 +48,8 @@ export default function createInterface(
   // Output directly to memory.
   compiler.outputFileSystem = fs;
 
-  const build = new Promise((resolve, reject) => {
+  // Wait for the build.
+  await new Promise((resolve, reject) => {
     compiler.run((error, stats) => {
       if (error) {
         return reject(error);
@@ -64,12 +65,7 @@ export default function createInterface(
     });
   });
 
-  // Crash the app on build failure.
-  build.catch(error => {
-    throw error;
-  });
-
-  return async (ctx: any, next: () => void) => {
+  return (ctx: any, next: () => Promise<any>) => {
     // Remove any prefix of a koa router.
     const path = ctx._matchedRoute
       ? ctx.request.path.replace(RegExp(`^${ctx._matchedRoute}`), "")
@@ -86,9 +82,6 @@ export default function createInterface(
       "../client/",
       extname(path) ? path : join(path, "index.html")
     );
-
-    // Wait for the build.
-    await build;
 
     // The requested file does not exist.
     if (!fs.existsSync(filePath)) return next();
