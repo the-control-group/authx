@@ -93,28 +93,31 @@ export function Authorize({
 
   // API and errors
   const graphql = useContext<GraphQL>(GraphQLContext);
+  const [operating, setOperating] = useState<boolean>(false);
   const [errors, setErrors] = useState<string[]>([]);
   async function onGrantAccess(): Promise<void> {
     if (!paramsRedirectUri) return;
     if (!user || !client) return;
 
-    const operation = grant
-      ? graphql.operate<
-          {
-            createGrant?: undefined;
-            updateGrant: null | {
-              codes: null | string[];
-              scopes: null | string[];
-            };
-          },
-          {
-            id: string;
-            scopes: string[];
-          }
-        >({
-          fetchOptionsOverride,
-          operation: {
-            query: `
+    setOperating(true);
+    try {
+      const operation = grant
+        ? graphql.operate<
+            {
+              createGrant?: undefined;
+              updateGrant: null | {
+                codes: null | string[];
+                scopes: null | string[];
+              };
+            },
+            {
+              id: string;
+              scopes: string[];
+            }
+          >({
+            fetchOptionsOverride,
+            operation: {
+              query: `
           mutation($id: ID!, $scopes: [String!]!) {
             updateGrant(id: $id, scopes: $scopes, generateCodes: 1) {
               codes
@@ -122,29 +125,29 @@ export function Authorize({
             }
           }
         `,
-            variables: {
-              id: grant.id,
-              scopes: [...(grant.scopes || []), ...(requestedScopes || [])]
+              variables: {
+                id: grant.id,
+                scopes: [...(grant.scopes || []), ...(requestedScopes || [])]
+              }
             }
-          }
-        })
-      : graphql.operate<
-          {
-            updateGrant?: undefined;
-            createGrant: null | {
-              codes: null | string[];
-              scopes: null | string[];
-            };
-          },
-          {
-            clientId: string;
-            userId: string;
-            scopes: string[];
-          }
-        >({
-          fetchOptionsOverride,
-          operation: {
-            query: `
+          })
+        : graphql.operate<
+            {
+              updateGrant?: undefined;
+              createGrant: null | {
+                codes: null | string[];
+                scopes: null | string[];
+              };
+            },
+            {
+              clientId: string;
+              userId: string;
+              scopes: string[];
+            }
+          >({
+            fetchOptionsOverride,
+            operation: {
+              query: `
           mutation($clientId: ID!, $userId: ID!, $scopes: [String!]!) {
             createGrant(clientId: $clientId, userId: $userId, scopes: $scopes) {
               codes
@@ -152,15 +155,14 @@ export function Authorize({
             }
           }
         `,
-            variables: {
-              clientId: client.id,
-              userId: user.id,
-              scopes: [...(requestedScopes || [])]
+              variables: {
+                clientId: client.id,
+                userId: user.id,
+                scopes: [...(requestedScopes || [])]
+              }
             }
-          }
-        });
+          });
 
-    try {
       const result = await operation.cacheValuePromise;
       if (result.fetchError) {
         setErrors([result.fetchError]);
@@ -197,6 +199,8 @@ export function Authorize({
     } catch (error) {
       setErrors([error.message]);
       return;
+    } finally {
+      setOperating(false);
     }
   }
 
@@ -267,34 +271,34 @@ export function Authorize({
         <h1>Authorize</h1>
         <div className="panel">
           {!paramsClientId ? (
-            <div className="error">
+            <p className="error">
               Parameter <span className="code">client_id</span> must be
               specified.
-            </div>
+            </p>
           ) : null}
           {!paramsRedirectUri ? (
-            <div className="error">
+            <p className="error">
               Parameter <span className="code">redirect_uri</span> must be
               specified.
-            </div>
+            </p>
           ) : null}
           {paramsRedirectUri && urls && !urls.includes(paramsRedirectUri) ? (
-            <div className="error">
+            <p className="error">
               The specified <span className="code">redirect_uri</span> is not
               registered with the client.
-            </div>
+            </p>
           ) : null}
           {paramsResponseType !== "code" ? (
-            <div className="error">
+            <p className="error">
               Parameter <span className="code">response_type</span> must be set
               to &quot;code&quot;.
-            </div>
+            </p>
           ) : null}
           {requestedScopesAreValid === false ? (
-            <div className="error">
+            <p className="error">
               If set, the <span className="code">scope</span> must be contain a
               space-separated list of valid authx scopes.
-            </div>
+            </p>
           ) : null}
         </div>
       </div>
@@ -307,16 +311,16 @@ export function Authorize({
       <div>
         <h1>Authorize</h1>
         <div className="panel">
-          {loading ? (
-            "Loading..."
+          {loading || operating ? (
+            <p>Loading...</p>
           ) : (
             <Fragment>
-              {!user ? <div className="error">Unable to load user.</div> : null}
+              {!user ? <p className="error">Unable to load user.</p> : null}
               {user && !client ? (
-                <div className="error">
+                <p className="error">
                   Unable to load client. Make sure you have access to read
                   clients.
-                </div>
+                </p>
               ) : null}
             </Fragment>
           )}
@@ -329,8 +333,8 @@ export function Authorize({
     <div>
       <h1>Authorize</h1>
       <div className="panel">
-        {loading ? (
-          "Loading"
+        {loading || operating ? (
+          <p>Loading...</p>
         ) : (
           <div>
             <p>

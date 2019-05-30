@@ -135,21 +135,25 @@ export function Authenticate({
         />
       )) || (
         <div className="panel">
-          {loading
-            ? "Loading"
-            : !authorities.length
-            ? authorityId
-              ? cacheValue &&
-                cacheValue.graphQLErrors &&
-                cacheValue.graphQLErrors.length
-                ? cacheValue.graphQLErrors.map(({ message }, i) => (
-                    <div className="error" key={i}>
-                      {message}
-                    </div>
-                  ))
-                : "The authority failed to load."
-              : "Unable to load authorities."
-            : null}
+          {loading ? (
+            <p>Loading...</p>
+          ) : !authorities.length ? (
+            authorityId ? (
+              cacheValue &&
+              cacheValue.graphQLErrors &&
+              cacheValue.graphQLErrors.length ? (
+                cacheValue.graphQLErrors.map(({ message }, i) => (
+                  <p className="error" key={i}>
+                    {message}
+                  </p>
+                ))
+              ) : (
+                <p className="error">The authority failed to load.</p>
+              )
+            ) : (
+              <p className="error">Unable to load authorities.</p>
+            )
+          ) : null}
         </div>
       )}
     </div>

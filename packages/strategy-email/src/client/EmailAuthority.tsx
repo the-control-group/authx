@@ -59,6 +59,7 @@ export function EmailAuthority({
 
   // API and errors
   const graphql = useContext<GraphQL>(GraphQLContext);
+  const [operating, setOperating] = useState<boolean>(false);
   const [errors, setErrors] = useState<string[]>([]);
   async function onSubmit(e: FormEvent): Promise<void> {
     e.preventDefault();
@@ -67,41 +68,42 @@ export function EmailAuthority({
       return;
     }
 
-    const operation = graphql.operate<
-      {
-        authenticateEmail: null | {
-          id: string;
-          secret: null | string;
-        };
-      },
-      {
-        authorityId: string;
-        email: string;
-        proof: null | string;
-      }
-    >({
-      operation: {
-        query: `
-          mutation($authorityId: ID!, $email: String!, $proof: String) {
-            authenticateEmail(
-              authorityId: $authorityId,
-              email: $email,
-              proof: $proof
-            ) {
-              id
-              secret
-            }
-          }
-        `,
-        variables: {
-          authorityId: authority.id,
-          email,
-          proof
-        }
-      }
-    });
-
+    setOperating(true);
     try {
+      const operation = graphql.operate<
+        {
+          authenticateEmail: null | {
+            id: string;
+            secret: null | string;
+          };
+        },
+        {
+          authorityId: string;
+          email: string;
+          proof: null | string;
+        }
+      >({
+        operation: {
+          query: `
+            mutation($authorityId: ID!, $email: String!, $proof: String) {
+              authenticateEmail(
+                authorityId: $authorityId,
+                email: $email,
+                proof: $proof
+              ) {
+                id
+                secret
+              }
+            }
+          `,
+          variables: {
+            authorityId: authority.id,
+            email,
+            proof
+          }
+        }
+      });
+
       const result = await operation.cacheValuePromise;
       if (result.fetchError) {
         setErrors([result.fetchError]);
@@ -135,6 +137,8 @@ export function EmailAuthority({
     } catch (error) {
       setErrors([error.message]);
       return;
+    } finally {
+      setOperating(false);
     }
   }
 
@@ -146,6 +150,7 @@ export function EmailAuthority({
       <label>
         <span>Email</span>
         <input
+          disabled={operating}
           ref={focusElement}
           name="email"
           type="email"
@@ -158,6 +163,7 @@ export function EmailAuthority({
       <label>
         <span>Proof</span>
         <input
+          disabled={operating}
           name="proof"
           type="text"
           value={proof}
@@ -169,7 +175,7 @@ export function EmailAuthority({
         here.
       </p>
 
-      {errors.length
+      {!operating && errors.length
         ? errors.map((error, i) => (
             <p key={i} className="error">
               {error}
@@ -178,7 +184,11 @@ export function EmailAuthority({
         : null}
 
       <label>
-        <input type="submit" value="Submit" />
+        <input
+          disabled={operating}
+          type="submit"
+          value={operating ? "Loading..." : "Submit"}
+        />
       </label>
     </form>
   );

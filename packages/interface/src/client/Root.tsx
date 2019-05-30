@@ -39,6 +39,7 @@ export function Root({
     <Default
       fetchOptionsOverride={fetchOptionsOverride}
       clearAuthorization={clearAuthorization}
+      authorization={authorization}
     />
   );
 }

@@ -60,6 +60,7 @@ export function PasswordAuthority({
 
   // API and errors
   const graphql = useContext<GraphQL>(GraphQLContext);
+  const [operating, setOperating] = useState<boolean>(false);
   const [errors, setErrors] = useState<string[]>([]);
   async function onSubmit(e: FormEvent): Promise<void> {
     e.preventDefault();
@@ -68,22 +69,24 @@ export function PasswordAuthority({
       return;
     }
 
-    const operation = graphql.operate<
-      {
-        authenticatePassword: null | {
-          id: string;
-          secret: null | string;
-        };
-      },
-      {
-        identityAuthorityId: string;
-        identityAuthorityUserId: string;
-        passwordAuthorityId: string;
-        password: string;
-      }
-    >({
-      operation: {
-        query: `
+    setOperating(true);
+    try {
+      const operation = graphql.operate<
+        {
+          authenticatePassword: null | {
+            id: string;
+            secret: null | string;
+          };
+        },
+        {
+          identityAuthorityId: string;
+          identityAuthorityUserId: string;
+          passwordAuthorityId: string;
+          password: string;
+        }
+      >({
+        operation: {
+          query: `
           mutation($identityAuthorityId: ID!, $identityAuthorityUserId: String!, $passwordAuthorityId: ID!, $password: String!) {
             authenticatePassword(
               identityAuthorityId: $identityAuthorityId,
@@ -96,16 +99,15 @@ export function PasswordAuthority({
             }
           }
         `,
-        variables: {
-          identityAuthorityId,
-          identityAuthorityUserId,
-          passwordAuthorityId: authority.id,
-          password
+          variables: {
+            identityAuthorityId,
+            identityAuthorityUserId,
+            passwordAuthorityId: authority.id,
+            password
+          }
         }
-      }
-    });
+      });
 
-    try {
       const result = await operation.cacheValuePromise;
       if (result.fetchError) {
         setErrors([result.fetchError]);
@@ -139,6 +141,8 @@ export function PasswordAuthority({
     } catch (error) {
       setErrors([error.message]);
       return;
+    } finally {
+      setOperating(false);
     }
   }
 
@@ -151,6 +155,7 @@ export function PasswordAuthority({
         <span>Identity</span>
         <div style={{ display: "flex" }}>
           <select
+            disabled={operating}
             value={identityAuthorityId}
             onChange={e => setIdentityAuthorityId(e.target.value)}
             style={{ marginRight: "14px" }}
@@ -165,6 +170,7 @@ export function PasswordAuthority({
               ))}
           </select>
           <input
+            disabled={operating}
             ref={focusElement}
             name={
               (identityAuthority &&
@@ -192,6 +198,7 @@ export function PasswordAuthority({
       <label>
         <span>Password</span>
         <input
+          disabled={operating}
           name="password"
           type="password"
           value={password}
@@ -200,7 +207,7 @@ export function PasswordAuthority({
         />
       </label>
 
-      {errors.length
+      {!operating && errors.length
         ? errors.map((error, i) => (
             <p key={i} className="error">
               {error}
@@ -209,7 +216,11 @@ export function PasswordAuthority({
         : null}
 
       <label>
-        <input type="submit" value="Submit" />
+        <input
+          disabled={operating}
+          type="submit"
+          value={operating ? "Loading..." : "Submit"}
+        />
       </label>
     </form>
   );

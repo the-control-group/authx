@@ -32,6 +32,7 @@ export function OpenIdAuthority({
     }
   });
 
+  const [operating, setOperating] = useState<boolean>(false);
   useEffect(() => {
     (async () => {
       const code = new URL(window.location.href).searchParams.get("code");
@@ -44,38 +45,39 @@ export function OpenIdAuthority({
         return;
       }
 
-      const operation = graphql.operate<
-        {
-          authenticateOpenId: null | {
-            id: string;
-            secret: null | string;
-          };
-        },
-        {
-          authorityId: string;
-          code: string;
-        }
-      >({
-        operation: {
-          query: `
-          mutation($authorityId: ID!, $code: String!) {
-            authenticateOpenId(
-              authorityId: $authorityId,
-              code: $code,
-            ) {
-              id
-              secret
+      setOperating(true);
+      try {
+        const operation = graphql.operate<
+          {
+            authenticateOpenId: null | {
+              id: string;
+              secret: null | string;
+            };
+          },
+          {
+            authorityId: string;
+            code: string;
+          }
+        >({
+          operation: {
+            query: `
+            mutation($authorityId: ID!, $code: String!) {
+              authenticateOpenId(
+                authorityId: $authorityId,
+                code: $code,
+              ) {
+                id
+                secret
+              }
+            }
+          `,
+            variables: {
+              authorityId: authority.id,
+              code
             }
           }
-        `,
-          variables: {
-            authorityId: authority.id,
-            code
-          }
-        }
-      });
+        });
 
-      try {
         const result = await operation.cacheValuePromise;
 
         // Replace the current URL with the stored one.
@@ -118,6 +120,8 @@ export function OpenIdAuthority({
       } catch (error) {
         setErrors([error.message]);
         return;
+      } finally {
+        setOperating(false);
       }
     })();
   }, []);
@@ -158,7 +162,7 @@ export function OpenIdAuthority({
       onSubmit={onSubmit}
       className={errors.length ? "panel validate" : "panel"}
     >
-      {errors.length
+      {!operating && errors.length
         ? errors.map((error, i) => (
             <p key={i} className="error">
               {error}
@@ -168,9 +172,12 @@ export function OpenIdAuthority({
 
       <label>
         <input
+          disabled={operating}
           ref={focusElement}
           type="submit"
-          value={`Authenticate with ${authority.name}`}
+          value={
+            operating ? "Loading..." : `Authenticate with ${authority.name}`
+          }
         />
       </label>
     </form>
