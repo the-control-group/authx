@@ -22,11 +22,11 @@ export const createOpenIdAuthority: GraphQLFieldConfig<
     tokenUrl: string;
     clientId: string;
     clientSecret: string;
-    restrictToHostedDomains: string[];
+    restrictsAccountsToHostedDomains: string[];
     emailAuthorityId: null | string;
-    matchUsersByEmail: boolean;
-    createUnmatchedUsers: boolean;
-    assignCreatedUsersToRoleIds: string[];
+    matchesUsersByEmail: boolean;
+    createsUnmatchedUsers: boolean;
+    assignsCreatedUsersToRoleIds: string[];
   },
   Context
 > = {
@@ -62,7 +62,7 @@ export const createOpenIdAuthority: GraphQLFieldConfig<
       type: new GraphQLNonNull(GraphQLString),
       description: "The AuthX client secret with the OpenID provider."
     },
-    restrictToHostedDomains: {
+    restrictsAccountsToHostedDomains: {
       type: new GraphQLNonNull(
         new GraphQLList(new GraphQLNonNull(GraphQLString))
       ) as any,
@@ -73,19 +73,19 @@ export const createOpenIdAuthority: GraphQLFieldConfig<
       type: GraphQLID,
       description: "The ID of the email authority."
     },
-    matchUsersByEmail: {
+    matchesUsersByEmail: {
       type: GraphQLBoolean,
       description:
         "If no credential exists for the given OpenID provider, should we lookup the user by email address?",
       defaultValue: false
     },
-    createUnmatchedUsers: {
+    createsUnmatchedUsers: {
       type: GraphQLBoolean,
       description:
         "If no credential exists for the given OpenID provider, should we create a new one?",
       defaultValue: false
     },
-    assignCreatedUsersToRoleIds: {
+    assignsCreatedUsersToRoleIds: {
       type: new GraphQLNonNull(
         new GraphQLList(new GraphQLNonNull(GraphQLID))
       ) as any,
@@ -116,11 +116,12 @@ export const createOpenIdAuthority: GraphQLFieldConfig<
           tokenUrl: args.tokenUrl,
           clientId: args.clientId,
           clientSecret: args.clientSecret,
-          restrictToHostedDomains: args.restrictToHostedDomains,
+          restrictsAccountsToHostedDomains:
+            args.restrictsAccountsToHostedDomains,
           emailAuthorityId: args.emailAuthorityId,
-          matchUsersByEmail: args.matchUsersByEmail,
-          createUnmatchedUsers: args.createUnmatchedUsers,
-          assignCreatedUsersToRoleIds: args.assignCreatedUsersToRoleIds
+          matchesUsersByEmail: args.matchesUsersByEmail,
+          createsUnmatchedUsers: args.createsUnmatchedUsers,
+          assignsCreatedUsersToRoleIds: args.assignsCreatedUsersToRoleIds
         }
       });
 

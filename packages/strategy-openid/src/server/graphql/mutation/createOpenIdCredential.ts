@@ -183,9 +183,11 @@ export const createOpenIdCredential: GraphQLFieldConfig<
 
         // Restrict user based to hosted domain.
         if (
-          authority.details.restrictToHostedDomains.length &&
+          authority.details.restrictsAccountsToHostedDomains.length &&
           (!token.hd ||
-            !authority.details.restrictToHostedDomains.includes(token.hd))
+            !authority.details.restrictsAccountsToHostedDomains.includes(
+              token.hd
+            ))
         ) {
           throw new AuthenticationError(
             `The hosted domain "${token.hd || ""}" is not allowed.`

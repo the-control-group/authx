@@ -151,9 +151,11 @@ export const authenticateOpenId: GraphQLFieldConfig<
 
       // Restrict user based to hosted domain.
       if (
-        authority.details.restrictToHostedDomains.length &&
+        authority.details.restrictsAccountsToHostedDomains.length &&
         (!token.hd ||
-          !authority.details.restrictToHostedDomains.includes(token.hd))
+          !authority.details.restrictsAccountsToHostedDomains.includes(
+            token.hd
+          ))
       ) {
         throw new AuthenticationError(
           `The hosted domain "${token.hd || ""}" is not allowed.`
@@ -169,7 +171,7 @@ export const authenticateOpenId: GraphQLFieldConfig<
       if (
         !credential &&
         authority.details.emailAuthorityId &&
-        authority.details.matchUsersByEmail &&
+        authority.details.matchesUsersByEmail &&
         token.email &&
         token.email_verified
       ) {
@@ -204,7 +206,7 @@ export const authenticateOpenId: GraphQLFieldConfig<
       }
 
       // Create a new user.
-      if (!credential && authority.details.createUnmatchedUsers) {
+      if (!credential && authority.details.createsUnmatchedUsers) {
         const user = await User.write(
           tx,
           {
@@ -239,11 +241,11 @@ export const authenticateOpenId: GraphQLFieldConfig<
 
         // Assign the new user to the configured roles.
         if (
-          authority.details.assignCreatedUsersToRoleIds &&
-          authority.details.assignCreatedUsersToRoleIds.length
+          authority.details.assignsCreatedUsersToRoleIds &&
+          authority.details.assignsCreatedUsersToRoleIds.length
         ) {
           const roles = await Promise.all(
-            authority.details.assignCreatedUsersToRoleIds.map(id =>
+            authority.details.assignsCreatedUsersToRoleIds.map(id =>
               Role.read(tx, id)
             )
           );

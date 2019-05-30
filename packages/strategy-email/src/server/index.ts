@@ -11,6 +11,7 @@ import {
 } from "./graphql";
 
 export * from "./model";
+export * from "./graphql";
 
 const strategy: Strategy = {
   name: "email",

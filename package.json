@@ -17,10 +17,11 @@
     "packages/authx-interface/html-webpack-plugin"
   ],
   "scripts": {
-    "packages:format": "for p in packages/*/; do echo \"\n\n---------- $p\" && if ! (cd $p && yarn format); then exit 1; fi; done",
-    "packages:lint": "for p in packages/*/; do echo \"\n\n---------- $p\" && if ! (cd $p && yarn lint); then exit 1; fi; done",
-    "packages:build": "for p in $(echo \"scopes\\nauthx\\n$(ls packages | grep -v scopes | grep -v authx)\" | sed 's/^/packages\\//'); do echo \"\n\n---------- $p\" && if ! (cd $p && yarn build); then exit 1; fi; done",
-    "packages:test": "for p in packages/*/; do echo \"\n\n---------- $p\" && if ! (cd $p && yarn test); then exit 1; fi; done",
+    "packages": "function run_in_packages() { for p in $(echo \"scopes\\nauthx\\n$(ls packages | grep -v scopes | grep -v authx)\" | sed 's/^/packages\\//'); do echo \"\n\n---------- $p\" && if ! (cd $p && bash $@); then exit 1; fi; done; }; run_in_packages",
+    "packages:format": "yarn packages yarn format",
+    "packages:lint": "yarn packages yarn lint",
+    "packages:build": "yarn packages yarn build",
+    "packages:build:development": "for p in packages/*/; do echo \"\n\n---------- $p\" && if ! (cd $p && yarn build:development &) then exit 1; fi; done",
     "root:format": "prettier --list-different --write '**/*.{json,yml,md,ts}'",
     "root:lint": "prettier -c '**/*.{json,yml,md,ts}' && eslint src --ext ts",
     "root:build": "rm -rf dist && tsc",
@@ -30,6 +31,7 @@
     "format": "yarn packages:format && yarn root:format",
     "lint": "yarn packages:lint && yarn root:lint",
     "build": "yarn packages:build && yarn root:build",
+    "build:development": "yarn packages:build:development & yarn root:build:development",
     "start": "node dist/server",
     "start:development": "nodemon --delay 2 --inspect dist/server",
     "test": "yarn packages:test && yarn root:test"

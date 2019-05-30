@@ -7,8 +7,23 @@ import {
   GraphQLString
 } from "graphql";
 
-import { GraphQLAuthority, Context } from "@authx/authx";
+import { GraphQLAuthority, GraphQLRole, Context, Role } from "@authx/authx";
+import { GraphQLEmailAuthority, EmailAuthority } from "@authx/strategy-email";
 import { OpenIdAuthority } from "../model";
+
+export async function filter<T>(
+  iter: Iterable<T>,
+  callback: (item: T, index: number) => boolean | Promise<boolean>
+): Promise<T[]> {
+  const result: T[] = [];
+  await Promise.all(
+    [...iter].map(async (item: T, index: number) => {
+      if (await callback(item, index)) result.push(item);
+    })
+  );
+
+  return result;
+}
 
 // Authority
 // ---------
@@ -68,33 +83,39 @@ export const GraphQLOpenIdAuthority = new GraphQLObjectType<
           : null;
       }
     },
-    restrictToHostedDomains: {
+    restrictsAccountsToHostedDomains: {
       type: new GraphQLList(GraphQLString),
-      description: "Restrict to accounts controlled by these hosted domains.",
+      description:
+        "Restrict to accounts controlled by these hosted domains. If empty, accounts from any domain will be allowed.",
       async resolve(
         authority,
         args,
         { realm, authorization: a, tx }: Context
       ): Promise<null | string[]> {
         return a && (await authority.isAccessibleBy(realm, a, tx, "read.*"))
-          ? authority.details.restrictToHostedDomains
+          ? authority.details.restrictsAccountsToHostedDomains
           : null;
       }
     },
-    emailAuthorityId: {
-      type: GraphQLString,
-      description: "The ID of the email authority.",
+    emailAuthority: {
+      type: GraphQLEmailAuthority,
+      description: "The email authority.",
       async resolve(
         authority,
         args,
         { realm, authorization: a, tx }: Context
-      ): Promise<null | string> {
-        return a && (await authority.isAccessibleBy(realm, a, tx, "read.*"))
-          ? authority.details.emailAuthorityId
+      ): Promise<null | EmailAuthority> {
+        if (!a || !(await authority.isAccessibleBy(realm, a, tx, "read.*"))) {
+          return null;
+        }
+
+        const emailAuthority = await authority.emailAuthority(tx);
+        return emailAuthority && emailAuthority.isAccessibleBy(realm, a, tx)
+          ? emailAuthority
           : null;
       }
     },
-    matchUsersByEmail: {
+    matchesUsersByEmail: {
       type: GraphQLBoolean,
       description:
         "If no credential exists for the given OpenID provider, should we lookup the user by email address?",
@@ -104,11 +125,11 @@ export const GraphQLOpenIdAuthority = new GraphQLObjectType<
         { realm, authorization: a, tx }: Context
       ): Promise<null | boolean> {
         return a && (await authority.isAccessibleBy(realm, a, tx, "read.*"))
-          ? authority.details.matchUsersByEmail
+          ? authority.details.matchesUsersByEmail
           : null;
       }
     },
-    createUnmatchedUsers: {
+    createsUnmatchedUsers: {
       type: GraphQLBoolean,
       description:
         "If no credential exists for the given OpenID provider, should we create a new one?",
@@ -118,23 +139,27 @@ export const GraphQLOpenIdAuthority = new GraphQLObjectType<
         { realm, authorization: a, tx }: Context
       ): Promise<null | boolean> {
         return a && (await authority.isAccessibleBy(realm, a, tx, "read.*"))
-          ? authority.details.createUnmatchedUsers
+          ? authority.details.createsUnmatchedUsers
           : null;
       }
     },
-    assignCreatedUsersToRoleIds: {
+    assignsCreatedUsersToRoles: {
       type: new GraphQLNonNull(
-        new GraphQLList(new GraphQLNonNull(GraphQLID))
+        new GraphQLList(new GraphQLNonNull(GraphQLRole))
       ) as any,
       description: "When a user is created, assign to these roles.",
       async resolve(
         authority,
         args,
         { realm, authorization: a, tx }: Context
-      ): Promise<null | string[]> {
-        return a && (await authority.isAccessibleBy(realm, a, tx, "read.*"))
-          ? authority.details.assignCreatedUsersToRoleIds
-          : null;
+      ): Promise<null | Role[]> {
+        if (!a || !(await authority.isAccessibleBy(realm, a, tx, "read.*"))) {
+          return null;
+        }
+
+        return filter(await authority.assignsCreatedUsersToRoles(tx), role =>
+          role.isAccessibleBy(realm, a, tx)
+        );
       }
     }
   })

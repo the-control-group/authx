@@ -28,11 +28,11 @@ export const updateOpenIdAuthority: GraphQLFieldConfig<
     tokenUrl: null | string;
     clientId: null | string;
     clientSecret: null | string;
-    restrictToHostedDomains: null | string[];
+    restrictsAccountsToHostedDomains: null | string[];
     emailAuthorityId: null | string;
-    matchUsersByEmail: null | boolean;
-    createUnmatchedUsers: null | boolean;
-    assignCreatedUsersToRoleIds: null | string[];
+    matchesUsersByEmail: null | boolean;
+    createsUnmatchedUsers: null | boolean;
+    assignsCreatedUsersToRoleIds: null | string[];
   },
   Context
 > = {
@@ -70,7 +70,7 @@ export const updateOpenIdAuthority: GraphQLFieldConfig<
       type: GraphQLString,
       description: "The AuthX client secret with the OpenID provider."
     },
-    restrictToHostedDomains: {
+    restrictsAccountsToHostedDomains: {
       type: new GraphQLList(new GraphQLNonNull(GraphQLString)),
       description: "Restrict to accounts controlled by these hosted domains."
     },
@@ -78,17 +78,17 @@ export const updateOpenIdAuthority: GraphQLFieldConfig<
       type: GraphQLString,
       description: "The ID of the email authority."
     },
-    matchUsersByEmail: {
+    matchesUsersByEmail: {
       type: GraphQLBoolean,
       description:
         "If no credential exists for the given OpenID provider, should we lookup the user by email address?"
     },
-    createUnmatchedUsers: {
+    createsUnmatchedUsers: {
       type: GraphQLBoolean,
       description:
         "If no credential exists for the given OpenID provider, should we create a new one?"
     },
-    assignCreatedUsersToRoleIds: {
+    assignsCreatedUsersToRoleIds: {
       type: new GraphQLList(new GraphQLNonNull(GraphQLID)),
       description: "When a user is created, assign to these roles."
     }
@@ -159,28 +159,30 @@ export const updateOpenIdAuthority: GraphQLFieldConfig<
               typeof args.clientSecret === "string"
                 ? args.clientSecret
                 : before.details.clientSecret,
-            restrictToHostedDomains: Array.isArray(args.restrictToHostedDomains)
-              ? args.restrictToHostedDomains
-              : before.details.restrictToHostedDomains,
+            restrictsAccountsToHostedDomains: Array.isArray(
+              args.restrictsAccountsToHostedDomains
+            )
+              ? args.restrictsAccountsToHostedDomains
+              : before.details.restrictsAccountsToHostedDomains,
             emailAuthorityId:
               typeof args.emailAuthorityId === "string"
                 ? args.emailAuthorityId === ""
                   ? null
                   : args.emailAuthorityId
                 : before.details.emailAuthorityId,
-            matchUsersByEmail:
-              typeof args.matchUsersByEmail === "boolean"
-                ? args.matchUsersByEmail
-                : before.details.matchUsersByEmail,
-            createUnmatchedUsers:
-              typeof args.createUnmatchedUsers === "boolean"
-                ? args.createUnmatchedUsers
-                : before.details.createUnmatchedUsers,
-            assignCreatedUsersToRoleIds: Array.isArray(
-              args.assignCreatedUsersToRoleIds
+            matchesUsersByEmail:
+              typeof args.matchesUsersByEmail === "boolean"
+                ? args.matchesUsersByEmail
+                : before.details.matchesUsersByEmail,
+            createsUnmatchedUsers:
+              typeof args.createsUnmatchedUsers === "boolean"
+                ? args.createsUnmatchedUsers
+                : before.details.createsUnmatchedUsers,
+            assignsCreatedUsersToRoleIds: Array.isArray(
+              args.assignsCreatedUsersToRoleIds
             )
-              ? args.assignCreatedUsersToRoleIds
-              : before.details.assignCreatedUsersToRoleIds
+              ? args.assignsCreatedUsersToRoleIds
+              : before.details.assignsCreatedUsersToRoleIds
           }
         },
         {

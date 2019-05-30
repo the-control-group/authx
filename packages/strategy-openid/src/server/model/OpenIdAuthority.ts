@@ -1,5 +1,6 @@
 import { PoolClient } from "pg";
-import { Authority } from "@authx/authx";
+import { Authority, Role } from "@authx/authx";
+import { EmailAuthority } from "@authx/strategy-email";
 import { OpenIdCredential } from "./OpenIdCredential";
 
 // Authority
@@ -11,16 +12,19 @@ export interface OpenIdAuthorityDetails {
   clientId: string;
   clientSecret: string;
 
-  restrictToHostedDomains: string[];
+  restrictsAccountsToHostedDomains: string[];
 
   emailAuthorityId: null | string;
-  matchUsersByEmail: boolean;
-  createUnmatchedUsers: boolean;
-  assignCreatedUsersToRoleIds: string[];
+
+  matchesUsersByEmail: boolean;
+  createsUnmatchedUsers: boolean;
+  assignsCreatedUsersToRoleIds: string[];
 }
 
 export class OpenIdAuthority extends Authority<OpenIdAuthorityDetails> {
   private _credentials: null | Promise<OpenIdCredential[]> = null;
+  private _emailAuthority: null | Promise<EmailAuthority> = null;
+  private _assignsCreatedUsersToRoles: null | Promise<Role[]> = null;
 
   public credentials(
     tx: PoolClient,
@@ -72,5 +76,41 @@ export class OpenIdAuthority extends Authority<OpenIdAuthorityDetails> {
     if (!results.rows[0]) return null;
 
     return OpenIdCredential.read(tx, results.rows[0].id);
+  }
+
+  public async emailAuthority(
+    tx: PoolClient,
+    refresh?: boolean
+  ): Promise<null | EmailAuthority> {
+    if (!refresh && this._emailAuthority) {
+      return this._emailAuthority;
+    }
+
+    if (!this.details.emailAuthorityId) {
+      return null;
+    }
+
+    return (this._emailAuthority = EmailAuthority.read(
+      tx,
+      this.details.emailAuthorityId
+    ));
+  }
+
+  public async assignsCreatedUsersToRoles(
+    tx: PoolClient,
+    refresh?: boolean
+  ): Promise<Role[]> {
+    if (!refresh && this._assignsCreatedUsersToRoles) {
+      return this._assignsCreatedUsersToRoles;
+    }
+
+    if (!this.details.assignsCreatedUsersToRoleIds) {
+      return [];
+    }
+
+    return (this._assignsCreatedUsersToRoles = Role.read(
+      tx,
+      this.details.assignsCreatedUsersToRoleIds
+    ));
   }
 }
