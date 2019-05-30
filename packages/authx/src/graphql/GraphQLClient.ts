@@ -21,6 +21,7 @@ export const GraphQLClient = new GraphQLObjectType<Client, Context>({
       type: new GraphQLNonNull(GraphQLBoolean)
     },
     name: { type: GraphQLString },
+    description: { type: GraphQLString },
     secrets: {
       type: new GraphQLList(GraphQLString),
       async resolve(

@@ -11,6 +11,7 @@ export const role = [
           id: "ee37605c-5834-40c9-bd80-bac16d9e62a4",
           enabled: true,
           name: "AuthX Administrator",
+          description: "This role provides full access to authx.",
           userIds: ["a6a0946d-eeb4-45cd-83c6-c7920f2272eb"],
           scopes: ["authx:**:**"]
         },
@@ -30,6 +31,8 @@ export const role = [
           id: "e833c8b8-acf1-42a1-9809-2bedab7d58c7",
           enabled: true,
           name: "Default User",
+          description:
+            "This role provides the basic abilities needed for a human user.",
           userIds: [
             "a6a0946d-eeb4-45cd-83c6-c7920f2272eb",
             "0cbd3783-0424-4f35-be51-b42f07a2a987",
@@ -63,6 +66,7 @@ export const role = [
           id: "2ec2118e-9c49-474f-9f44-da35c4420ef6",
           enabled: true,
           name: "Sales Team",
+          description: "The people who sit upstairs.",
           userIds: [
             "d0fc4c64-a3d6-4d97-9341-07de24439bb1",
             "0cbd3783-0424-4f35-be51-b42f07a2a987",
@@ -86,6 +90,7 @@ export const role = [
           id: "e3e67ba0-626a-4fb6-ad86-6520d4acfaf6",
           enabled: true,
           name: "Warehouse Staff",
+          description: "The people who work downstairs.",
           userIds: [
             "51192909-3664-44d5-be62-c6b45f0b0ee6",
             "9ad4b34b-781d-44fe-ac39-9b7ac43dde21"
@@ -108,6 +113,7 @@ export const role = [
           id: "08e2b39e-ba9f-4de2-8dca-aef460793566",
           enabled: true,
           name: "HR",
+          description: "The best; the worst.",
           userIds: ["306eabbb-cc2b-4f88-be19-4bb6ec98e5c3"],
           scopes: ["authx:user.**:**"]
         },

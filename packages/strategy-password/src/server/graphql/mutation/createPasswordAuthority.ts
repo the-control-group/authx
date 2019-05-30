@@ -16,6 +16,7 @@ export const createPasswordAuthority: GraphQLFieldConfig<
   {
     enabled: boolean;
     name: string;
+    description: string;
     rounds: number;
   },
   Context
@@ -30,6 +31,10 @@ export const createPasswordAuthority: GraphQLFieldConfig<
     name: {
       type: new GraphQLNonNull(GraphQLString),
       description: "The name of the authority."
+    },
+    description: {
+      type: new GraphQLNonNull(GraphQLString),
+      description: "A description of the authority."
     },
     rounds: {
       type: GraphQLInt,
@@ -55,6 +60,7 @@ export const createPasswordAuthority: GraphQLFieldConfig<
         strategy: "password",
         enabled: args.enabled,
         name: args.name,
+        description: args.description,
         details: {
           rounds: args.rounds
         }

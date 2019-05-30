@@ -7,6 +7,7 @@ export interface AuthorityData<A> {
   readonly id: string;
   readonly enabled: boolean;
   readonly name: string;
+  readonly description: string;
   readonly strategy: string;
   readonly details: A;
 }
@@ -15,6 +16,7 @@ export abstract class Authority<A> implements AuthorityData<A> {
   public readonly id: string;
   public readonly enabled: boolean;
   public readonly name: string;
+  public readonly description: string;
   public readonly strategy: string;
   public readonly details: A;
 
@@ -22,6 +24,7 @@ export abstract class Authority<A> implements AuthorityData<A> {
     this.id = data.id;
     this.enabled = data.enabled;
     this.name = data.name;
+    this.description = data.description;
     this.strategy = data.strategy;
     this.details = data.details;
   }
@@ -96,6 +99,7 @@ export abstract class Authority<A> implements AuthorityData<A> {
         entity_id AS id,
         enabled,
         name,
+        description,
         strategy,
         details
       FROM authx.authority_record
@@ -199,15 +203,17 @@ export abstract class Authority<A> implements AuthorityData<A> {
         entity_id,
         enabled,
         name,
+        description,
         strategy,
         details
       )
       VALUES
-        ($1, $2, $3, $4, $5, $6, $7, $8)
+        ($1, $2, $3, $4, $5, $6, $7, $8, $9)
       RETURNING
         entity_id AS id,
         enabled,
         name,
+        description,
         strategy,
         details
       `,
@@ -218,6 +224,7 @@ export abstract class Authority<A> implements AuthorityData<A> {
         data.id,
         data.enabled,
         data.name,
+        data.description,
         data.strategy,
         data.details
       ]

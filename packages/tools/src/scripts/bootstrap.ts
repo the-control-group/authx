@@ -25,6 +25,7 @@ export default async () => {
     enabled: true,
     strategy: "password",
     name: "Password",
+    description: "The password authority.",
     details: {
       rounds: 12
     }
@@ -46,6 +47,7 @@ export default async () => {
     id: v4(),
     enabled: true,
     name: "Super Administrator",
+    description: "A super administrator has full access to all resources.",
     scopes: ["**:**:**"],
     userIds: [user.id]
   });

@@ -18,6 +18,7 @@ export const createRole: GraphQLFieldConfig<
   {
     enabled: boolean;
     name: string;
+    description: string;
     scopes: string[];
     userIds: string[];
   },
@@ -31,6 +32,9 @@ export const createRole: GraphQLFieldConfig<
       defaultValue: true
     },
     name: {
+      type: new GraphQLNonNull(GraphQLString)
+    },
+    description: {
       type: new GraphQLNonNull(GraphQLString)
     },
     scopes: {
@@ -78,6 +82,7 @@ export const createRole: GraphQLFieldConfig<
           id,
           enabled: args.enabled,
           name: args.name,
+          description: args.description,
           scopes: args.scopes,
           userIds: args.userIds
         },

@@ -18,6 +18,7 @@ export const createClient: GraphQLFieldConfig<
   {
     enabled: boolean;
     name: string;
+    description: string;
     urls: string[];
     userIds: string[];
   },
@@ -31,6 +32,9 @@ export const createClient: GraphQLFieldConfig<
       defaultValue: true
     },
     name: {
+      type: new GraphQLNonNull(GraphQLString)
+    },
+    description: {
       type: new GraphQLNonNull(GraphQLString)
     },
     urls: {
@@ -75,6 +79,7 @@ export const createClient: GraphQLFieldConfig<
           id,
           enabled: args.enabled,
           name: args.name,
+          description: args.description,
           secrets: [randomBytes(16).toString("hex")],
           urls: args.urls,
           userIds: args.userIds

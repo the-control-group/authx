@@ -26,6 +26,7 @@ export const GraphQLPasswordAuthority = new GraphQLObjectType<
       type: new GraphQLNonNull(GraphQLBoolean)
     },
     name: { type: GraphQLString },
+    description: { type: GraphQLString },
     rounds: {
       type: GraphQLInt,
       async resolve(

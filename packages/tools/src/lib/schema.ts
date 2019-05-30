@@ -1,11 +1,10 @@
 import { PoolClient } from "pg";
 import fs from "fs";
-import path from "path";
+
+const sql = fs
+  .readFileSync(require.resolve("@authx/authx/schema.sql"))
+  .toString("utf8");
 
 export async function schema(tx: PoolClient): Promise<void> {
-  await tx.query(
-    fs
-      .readFileSync(path.resolve(__dirname, "../../schema.sql"))
-      .toString("utf8")
-  );
+  await tx.query(sql);
 }

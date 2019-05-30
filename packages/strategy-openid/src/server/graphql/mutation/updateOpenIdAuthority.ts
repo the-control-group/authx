@@ -23,6 +23,7 @@ export const updateOpenIdAuthority: GraphQLFieldConfig<
     id: string;
     enabled: null | boolean;
     name: null | string;
+    description: null | string;
     authUrl: null | string;
     tokenUrl: null | string;
     clientId: null | string;
@@ -47,6 +48,10 @@ export const updateOpenIdAuthority: GraphQLFieldConfig<
     name: {
       type: GraphQLString,
       description: "The name of the authority."
+    },
+    description: {
+      type: GraphQLString,
+      description: "A description of the authority."
     },
     authUrl: {
       type: GraphQLString,
@@ -133,6 +138,10 @@ export const updateOpenIdAuthority: GraphQLFieldConfig<
           enabled:
             typeof args.enabled === "boolean" ? args.enabled : before.enabled,
           name: typeof args.name === "string" ? args.name : before.name,
+          description:
+            typeof args.description === "string"
+              ? args.description
+              : before.description,
           details: {
             authUrl:
               typeof args.authUrl === "string"

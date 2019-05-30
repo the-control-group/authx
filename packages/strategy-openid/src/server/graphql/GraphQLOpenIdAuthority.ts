@@ -26,6 +26,7 @@ export const GraphQLOpenIdAuthority = new GraphQLObjectType<
       type: new GraphQLNonNull(GraphQLBoolean)
     },
     name: { type: GraphQLString },
+    description: { type: GraphQLString },
     authUrl: {
       type: new GraphQLNonNull(GraphQLString),
       description: "The URL to which a user is directed to authenticate.",

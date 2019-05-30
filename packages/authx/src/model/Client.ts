@@ -8,6 +8,7 @@ export interface ClientData {
   readonly id: string;
   readonly enabled: boolean;
   readonly name: string;
+  readonly description: string;
   readonly secrets: Iterable<string>;
   readonly urls: Iterable<string>;
   readonly userIds: Iterable<string>;
@@ -17,6 +18,7 @@ export class Client implements ClientData {
   public readonly id: string;
   public readonly enabled: boolean;
   public readonly name: string;
+  public readonly description: string;
   public readonly secrets: Set<string>;
   public readonly urls: Set<string>;
   public readonly userIds: Set<string>;
@@ -28,6 +30,7 @@ export class Client implements ClientData {
     this.id = data.id;
     this.enabled = data.enabled;
     this.name = data.name;
+    this.description = data.description;
     this.secrets = new Set(data.secrets);
     this.urls = new Set(data.urls);
     this.userIds = new Set(data.userIds);
@@ -96,6 +99,7 @@ export class Client implements ClientData {
         entity_id AS id,
         enabled,
         name,
+        description,
         secrets,
         urls,
         json_agg(authx.client_record_user.user_id) AS user_ids
@@ -109,6 +113,7 @@ export class Client implements ClientData {
         authx.client_record.entity_id,
         authx.client_record.enabled,
         authx.client_record.name,
+        authx.client_record.description,
         authx.client_record.secrets,
         authx.client_record.urls
       `,
@@ -187,15 +192,17 @@ export class Client implements ClientData {
         entity_id,
         enabled,
         name,
+        description,
         secrets,
         urls
       )
       VALUES
-        ($1, $2, $3, $4, $5, $6, $7, $8)
+        ($1, $2, $3, $4, $5, $6, $7, $8, $9)
       RETURNING
         entity_id AS id,
         enabled,
         name,
+        description,
         secrets,
         urls
       `,
@@ -206,6 +213,7 @@ export class Client implements ClientData {
         data.id,
         data.enabled,
         data.name,
+        data.description,
         [...new Set(data.secrets)],
         [...new Set(data.urls)]
       ]

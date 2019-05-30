@@ -20,6 +20,7 @@ export const authority: {
           id: "0d765613-e813-40e5-9aa7-89f96531364e",
           enabled: true,
           name: "Email",
+          description: "The email authority",
           strategy: "email",
           details: {
             privateKey: `-----BEGIN RSA PRIVATE KEY-----
@@ -74,6 +75,7 @@ Bac/x5qiUn5fh2xM+wIDAQAB
           id: "725f9c3b-4a72-4021-9066-c89e534df5be",
           enabled: true,
           name: "Password",
+          description: "The password authority.",
           strategy: "password",
           details: {
             rounds: 4

@@ -13,6 +13,7 @@ export const GraphQLAuthority = new GraphQLInterfaceType({
     enabled: {
       type: new GraphQLNonNull(GraphQLBoolean)
     },
-    name: { type: GraphQLString }
+    name: { type: GraphQLString },
+    description: { type: GraphQLString }
   })
 });

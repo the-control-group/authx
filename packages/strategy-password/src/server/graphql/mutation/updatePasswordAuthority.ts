@@ -23,6 +23,7 @@ export const updatePasswordAuthority: GraphQLFieldConfig<
     id: string;
     enabled: null | boolean;
     name: null | string;
+    description: null | string;
     rounds: null | number;
   },
   Context
@@ -39,6 +40,10 @@ export const updatePasswordAuthority: GraphQLFieldConfig<
     name: {
       type: GraphQLString,
       description: "The name of the authority."
+    },
+    description: {
+      type: GraphQLString,
+      description: "The description of the authority."
     },
     rounds: {
       type: GraphQLInt,
@@ -91,6 +96,10 @@ export const updatePasswordAuthority: GraphQLFieldConfig<
           enabled:
             typeof args.enabled === "boolean" ? args.enabled : before.enabled,
           name: typeof args.name === "string" ? args.name : before.name,
+          description:
+            typeof args.description === "string"
+              ? args.description
+              : before.description,
           details: {
             ...before.details,
             rounds:

@@ -21,6 +21,7 @@ export const GraphQLRole = new GraphQLObjectType<Role, Context>({
       type: new GraphQLNonNull(GraphQLBoolean)
     },
     name: { type: GraphQLString },
+    description: { type: GraphQLString },
     users: {
       type: new GraphQLList(GraphQLUser),
       async resolve(role, args, { realm, authorization: a, tx }: Context) {

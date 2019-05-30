@@ -20,6 +20,7 @@ export const updateRole: GraphQLFieldConfig<
     id: string;
     enabled: boolean;
     name: null | string;
+    description: null | string;
     scopes: null | string[];
     assignUserIds: null | string[];
     unassignUserIds: null | string[];
@@ -37,6 +38,9 @@ export const updateRole: GraphQLFieldConfig<
       defaultValue: true
     },
     name: {
+      type: GraphQLString
+    },
+    description: {
       type: GraphQLString
     },
     scopes: {
@@ -115,6 +119,7 @@ export const updateRole: GraphQLFieldConfig<
           enabled:
             typeof args.enabled === "boolean" ? args.enabled : before.enabled,
           name: args.name || before.name,
+          description: args.description || before.description,
           scopes: args.scopes || before.scopes,
           userIds
         },

@@ -46,6 +46,7 @@ CREATE TABLE authx.record (
 CREATE TABLE authx.authority_record (
   strategy TEXT NOT NULL,
   name TEXT NOT NULL,
+  description TEXT NOT NULL,
   details JSONB NOT NULL,
 
   PRIMARY KEY (record_id),
@@ -61,6 +62,7 @@ CREATE UNIQUE INDEX ON authx.authority_record USING BTREE (entity_id) WHERE repl
 
 CREATE TABLE authx.client_record (
   name TEXT NOT NULL,
+  description TEXT NOT NULL,
   secrets TEXT[] NOT NULL,
   urls TEXT[] NOT NULL,
 
@@ -120,6 +122,7 @@ CREATE UNIQUE INDEX ON authx.grant_record USING BTREE (user_id, client_id) WHERE
 
 CREATE TABLE authx.role_record (
   name TEXT NOT NULL,
+  description TEXT NOT NULL,
   scopes TEXT[] NOT NULL,
 
   PRIMARY KEY (record_id),

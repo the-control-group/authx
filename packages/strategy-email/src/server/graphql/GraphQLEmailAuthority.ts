@@ -26,6 +26,7 @@ export const GraphQLEmailAuthority = new GraphQLObjectType<
       type: new GraphQLNonNull(GraphQLBoolean)
     },
     name: { type: GraphQLString },
+    description: { type: GraphQLString },
     privateKey: {
       type: GraphQLString,
       description:

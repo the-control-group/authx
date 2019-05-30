@@ -23,7 +23,6 @@ export const GraphQLAuthorization: GraphQLObjectType<
     enabled: {
       type: new GraphQLNonNull(GraphQLBoolean)
     },
-    name: { type: GraphQLString },
     grant: {
       type: GraphQLGrant,
       async resolve(

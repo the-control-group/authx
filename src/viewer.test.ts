@@ -88,7 +88,6 @@ test("Deep query on viewer.", async t => {
           viewer: {
             id: "c70da498-27ed-4c3b-a318-38bb220cef48",
             enabled: true,
-            name: null,
             grant: {
               id: "e4670762-beb7-435c-94af-055b951f97e6",
               enabled: true,
@@ -99,6 +98,8 @@ test("Deep query on viewer.", async t => {
                 id: "17436d83-6022-4101-bf9f-997f1550f57c",
                 enabled: true,
                 name: "Dunder Mifflin Inventory Portal",
+                description:
+                  "All those problems will be a thing of the past in 2.0.",
                 secrets: [
                   "1f1bb71ebe4341418dbeab6e8e693ec27336425fb2c021219305593ad12043a2"
                 ],
@@ -140,6 +141,7 @@ test("Deep query on viewer.", async t => {
                     id: "0d765613-e813-40e5-9aa7-89f96531364e",
                     enabled: true,
                     name: "Email",
+                    description: "The email authority",
                     privateKey:
                       "-----BEGIN RSA PRIVATE KEY-----\nMIICXAIBAAKBgQCfb+nyTPFCntEXbrFPU5DeE0gC4jXRcSFWDfCRgeqeQWqIW9De\nMmCj13k0z6fQCiG3FATYosS64wAs+OiyGtu9q/JyUEVIBMF0upDJMA53AFFx+0Fb\n/i76JFPTY7SxzvioIFeKRwY8evIRWQWYO95Os6gKBac/x5qiUn5fh2xM+wIDAQAB\nAoGAeOPGo24r0LPTHs1TrC5Uvc4o3+bdn70D5dgT/IBhgTVgrZvQt2nDVPfgc2aw\ne1HzVnnbYteoC3xrea4R4lnzGpgcvLYyJ+LEAeRNT66u12EHnCjl8OM5Ods79RO2\npSaGBiAlntq9E86DBJ9ma9lL9NXiokCx4h1ph9rqr6T+DMECQQD7zM56evJj8JyV\nkyu7m3PGpepqgMtO4LjHlkU9ZP2HRfrq+bl4yWps1TyCTPzaRujXW+hHJBPsTYar\nTmsLcDepAkEAohi3FmYiAMhppgPMFqIr15tY04dKDw4kPgbaQLXT59v9e16alj+2\nhsBvMWA/juLuk/2JRuNutY0WBmtkkS42AwJBAKEjS++txniWfl5qNE53CPxTKVTG\n31S3EwkG7YCApI5xBkZhUYQuwWCshXCNfDLjthY7xsXgHK/YXRo7sN09DyECQD2W\n0HIFSmQrweCfTrtG0Qux7dUpcV05DVI3/lNaAvL05mIqtufhu3OFyHnlTSD4XpgC\nXFd/8L+wpK65vVNgUIsCQFO6/fma+fjXx9kG+/zy4C/VwJWFUcpo5Z3R2TF7FheW\n5N6OERXoA+Qu+ew7xS6WrAp33dHncIyr9ekkvGc01FU=\n-----END RSA PRIVATE KEY-----",
                     publicKeys: [
@@ -169,6 +171,7 @@ test("Deep query on viewer.", async t => {
                     id: "725f9c3b-4a72-4021-9066-c89e534df5be",
                     enabled: true,
                     name: "Password",
+                    description: "The password authority.",
                     rounds: 4
                   },
                   hash:
@@ -188,6 +191,8 @@ test("Deep query on viewer.", async t => {
                   id: "e833c8b8-acf1-42a1-9809-2bedab7d58c7",
                   enabled: true,
                   name: "Default User",
+                  description:
+                    "This role provides the basic abilities needed for a human user.",
                   users: [
                     {
                       id: "0cbd3783-0424-4f35-be51-b42f07a2a987",
@@ -236,6 +241,7 @@ test("Deep query on viewer.", async t => {
                   id: "ee37605c-5834-40c9-bd80-bac16d9e62a4",
                   enabled: true,
                   name: "AuthX Administrator",
+                  description: "This role provides full access to authx.",
                   users: [
                     {
                       id: "a6a0946d-eeb4-45cd-83c6-c7920f2272eb",
@@ -269,8 +275,6 @@ test("Deep query on viewer.", async t => {
             viewer {
               id
               enabled
-              name
-              enabled
               grant {
                 id
                 enabled
@@ -281,6 +285,7 @@ test("Deep query on viewer.", async t => {
                   id
                   enabled
                   name
+                  description
                   secrets
                   urls
                   users {
@@ -312,6 +317,7 @@ test("Deep query on viewer.", async t => {
                     id
                     enabled
                     name
+                    description
 
                     ... on EmailAuthority {
                       privateKey
@@ -334,6 +340,7 @@ test("Deep query on viewer.", async t => {
                     id
                     enabled
                     name
+                    description
                   }
 
                   ... on EmailCredential {
@@ -368,6 +375,7 @@ test("Deep query on viewer.", async t => {
                   id
                   enabled
                   name
+                  description
                   users {
                     id
                     enabled

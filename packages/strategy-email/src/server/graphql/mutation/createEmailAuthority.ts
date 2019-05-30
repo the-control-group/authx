@@ -17,6 +17,7 @@ export const createEmailAuthority: GraphQLFieldConfig<
   {
     enabled: boolean;
     name: string;
+    description: string;
     privateKey: string;
     publicKeys: string[];
     proofValidityDuration: number;
@@ -39,6 +40,10 @@ export const createEmailAuthority: GraphQLFieldConfig<
     name: {
       type: new GraphQLNonNull(GraphQLString),
       description: "The name of the authority."
+    },
+    description: {
+      type: new GraphQLNonNull(GraphQLString),
+      description: "A description of the authority."
     },
     privateKey: {
       type: new GraphQLNonNull(GraphQLString),
@@ -112,6 +117,7 @@ export const createEmailAuthority: GraphQLFieldConfig<
         strategy: "email",
         enabled: args.enabled,
         name: args.name,
+        description: args.description,
         details: {
           privateKey: args.privateKey,
           publicKeys: args.publicKeys,

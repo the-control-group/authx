@@ -24,6 +24,7 @@ export const updateEmailAuthority: GraphQLFieldConfig<
     id: string;
     enabled: null | boolean;
     name: null | string;
+    description: null | string;
     privateKey: null | string;
     addPublicKeys: null | string[];
     removePublicKeys: null | string[];
@@ -49,6 +50,10 @@ export const updateEmailAuthority: GraphQLFieldConfig<
     name: {
       type: GraphQLString,
       description: "The name of the authority."
+    },
+    description: {
+      type: GraphQLString,
+      description: "A description of the authority."
     },
     privateKey: {
       type: GraphQLString,
@@ -168,6 +173,10 @@ export const updateEmailAuthority: GraphQLFieldConfig<
           enabled:
             typeof args.enabled === "boolean" ? args.enabled : before.enabled,
           name: typeof args.name === "string" ? args.name : before.name,
+          description:
+            typeof args.description === "string"
+              ? args.description
+              : before.description,
           details: {
             privateKey:
               typeof args.privateKey === "string"

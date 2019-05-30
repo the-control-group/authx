@@ -21,6 +21,7 @@ export const updateClient: GraphQLFieldConfig<
     id: string;
     enabled: null | boolean;
     name: null | string;
+    description: null | string;
     addUrls: null | string[];
     removeUrls: null | string[];
     generateSecrets: null | number;
@@ -40,6 +41,9 @@ export const updateClient: GraphQLFieldConfig<
       type: GraphQLBoolean
     },
     name: {
+      type: GraphQLString
+    },
+    description: {
       type: GraphQLString
     },
     addUrls: {
@@ -142,6 +146,7 @@ export const updateClient: GraphQLFieldConfig<
           enabled:
             typeof args.enabled === "boolean" ? args.enabled : before.enabled,
           name: args.name || before.name,
+          description: args.description || before.description,
           urls,
           secrets,
           userIds

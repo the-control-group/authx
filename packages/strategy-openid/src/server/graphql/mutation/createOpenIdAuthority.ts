@@ -17,6 +17,7 @@ export const createOpenIdAuthority: GraphQLFieldConfig<
   {
     enabled: boolean;
     name: string;
+    description: string;
     authUrl: string;
     tokenUrl: string;
     clientId: string;
@@ -39,6 +40,10 @@ export const createOpenIdAuthority: GraphQLFieldConfig<
     name: {
       type: new GraphQLNonNull(GraphQLString),
       description: "The name of the authority."
+    },
+    description: {
+      type: new GraphQLNonNull(GraphQLString),
+      description: "A description of the authority."
     },
     authUrl: {
       type: new GraphQLNonNull(GraphQLString),
@@ -105,6 +110,7 @@ export const createOpenIdAuthority: GraphQLFieldConfig<
         strategy: "openid",
         enabled: args.enabled,
         name: args.name,
+        description: args.description,
         details: {
           authUrl: args.authUrl,
           tokenUrl: args.tokenUrl,

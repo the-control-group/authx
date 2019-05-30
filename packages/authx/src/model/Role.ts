@@ -8,6 +8,7 @@ export interface RoleData {
   readonly id: string;
   readonly enabled: boolean;
   readonly name: string;
+  readonly description: string;
   readonly scopes: Iterable<string>;
   readonly userIds: Iterable<string>;
 }
@@ -16,6 +17,7 @@ export class Role implements RoleData {
   public readonly id: string;
   public readonly enabled: boolean;
   public readonly name: string;
+  public readonly description: string;
   public readonly scopes: string[];
   public readonly userIds: Set<string>;
 
@@ -25,6 +27,7 @@ export class Role implements RoleData {
     this.id = data.id;
     this.enabled = data.enabled;
     this.name = data.name;
+    this.description = data.description;
     this.scopes = simplify([...data.scopes]);
     this.userIds = new Set(data.userIds);
   }
@@ -96,6 +99,7 @@ export class Role implements RoleData {
         entity_id AS id,
         enabled,
         name,
+        description,
         scopes,
         json_agg(authx.role_record_user.user_id) AS user_ids
       FROM authx.role_record
@@ -108,6 +112,7 @@ export class Role implements RoleData {
         authx.role_record.entity_id,
         authx.role_record.enabled,
         authx.role_record.name,
+        authx.role_record.description,
         authx.role_record.scopes
       `,
       [typeof id === "string" ? [id] : id]
@@ -183,14 +188,16 @@ export class Role implements RoleData {
         entity_id,
         enabled,
         name,
+        description,
         scopes
       )
       VALUES
-        ($1, $2, $3, $4, $5, $6, $7)
+        ($1, $2, $3, $4, $5, $6, $7, $8)
       RETURNING
         entity_id AS id,
         enabled,
         name,
+        description,
         scopes
       `,
       [
@@ -200,6 +207,7 @@ export class Role implements RoleData {
         data.id,
         data.enabled,
         data.name,
+        data.description,
         simplify([...data.scopes])
       ]
     );
