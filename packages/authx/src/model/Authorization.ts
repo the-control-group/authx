@@ -50,11 +50,19 @@ export class Authorization implements AuthorizationData {
       return true;
     }
 
-    // can access own authorizations with this authorization
+    // can access own authorizations with the same authorization
+    if (
+      this.id === a.id &&
+      (await a.can(tx, `${realm}:authorization.equal.self.current:${action}`))
+    ) {
+      return true;
+    }
+
+    // can access own authorizations with the same grant as this authorization
     if (
       this.userId === a.userId &&
       this.grantId === a.grantId &&
-      (await a.can(tx, `${realm}:authorization.equal.self.*:${action}`))
+      (await a.can(tx, `${realm}:authorization.equal.self.granted:${action}`))
     ) {
       return true;
     }

@@ -155,11 +155,13 @@ authx:role.equal.*       :write.{basic|scopes|assignments|*}
 authx:role.*    .*       :write.{basic|scopes|assignments|*}
 
 authx:grant.assigned            :read .{basic|scopes|secrets}
+authx:grant.equal.self  .current:read .{basic|scopes|secrets}
 authx:grant.equal.self  .granted:read .{basic|scopes|secrets}
 authx:grant.equal.self  .*      :read .{basic|scopes|secrets}
 authx:grant.equal.lesser.*      :read .{basic|scopes|secrets}
 authx:grant.equal.*     .*      :read .{basic|scopes|secrets}
 authx:grant.*    .*     .*      :read .{basic|scopes|secrets}
+authx:grant.equal.self  .current:write.{basic|scopes|secrets|*}
 authx:grant.equal.self  .granted:write.{basic|scopes|secrets|*}
 authx:grant.equal.self  .*      :write.{basic|scopes|secrets|*}
 authx:grant.equal.lesser.*      :write.{basic|scopes|secrets|*}
@@ -167,16 +169,18 @@ authx:grant.equal.*     .*      :write.{basic|scopes|secrets|*}
 authx:grant.*    .*     .*      :write.{basic|scopes|secrets|*}
 
 authx:authorization.assigned            :read .{basic|scopes|secrets}
+authx:authorization.equal.self  .current:read .{basic|scopes|secrets}
 authx:authorization.equal.self  .granted:read .{basic|scopes|secrets}
 authx:authorization.equal.self  .*      :read .{basic|scopes|secrets}
 authx:authorization.equal.lesser.*      :read .{basic|scopes|secrets}
 authx:authorization.equal.*     .*      :read .{basic|scopes|secrets}
 authx:authorization.*    .*     .*      :read .{basic|scopes|secrets}
-authx:authorization.equal.self  .granted:write.{basic|scopes|secrets}
-authx:authorization.equal.self  .*      :write.{basic|scopes|secrets|*}
-authx:authorization.equal.lesser.*      :write.{basic|scopes|secrets|*}
-authx:authorization.equal.*     .*      :write.{basic|scopes|secrets|*}
-authx:authorization.*    .*     .*      :write.{basic|scopes|secrets|*}
+authx:authorization.equal.self  .current:write.{basic|scopes}
+authx:authorization.equal.self  .granted:write.{basic|scopes|*}
+authx:authorization.equal.self  .*      :write.{basic|scopes|*}
+authx:authorization.equal.lesser.*      :write.{basic|scopes|*}
+authx:authorization.equal.*     .*      :write.{basic|scopes|*}
+authx:authorization.*    .*     .*      :write.{basic|scopes|*}
 
 authx:user.equal.self  :read.{basic}
 authx:user.equal.lesser:read.{basic}
@@ -199,7 +203,7 @@ authx:grant.equal.self.*:read.secrets
 authx:grant.equal.self.*:write.*
 authx:authorization.equal.self.*:read.basic
 authx:authorization.equal.self.*:read.scopes
-authx:authorization.equal.self.*:read.secrets
+authx:authorization.equal.self.current:read.secrets
 authx:authorization.equal.self.*:write.*
 ```
 

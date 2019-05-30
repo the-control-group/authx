@@ -91,7 +91,7 @@ export default (
     realm,
     {
       "grant.equal.self.granted":
-        "Grants {you} own which grant access to the acting authorization.",
+        "Grants {you} own which are the parent of the acting authorization.",
       "grant.equal.self.*": "Grants {you} own.",
       "grant.equal.lesser.*": "Grants of users with less access than {you}.",
       "grant.equal.*.*":
@@ -123,8 +123,10 @@ export default (
   [
     realm,
     {
+      "authorization.equal.self.current":
+        "Authorizations {you} own which are the same as the acting authorization.",
       "authorization.equal.self.granted":
-        "Authorizations {you} own which grant access to the acting authorization.",
+        "Authorizations {you} own which share a grant with the acting authorization.",
       "authorization.equal.self.*": "Authorizations {you} own.",
       "authorization.equal.lesser.*":
         "Authorizations of users with less access than {you}.",

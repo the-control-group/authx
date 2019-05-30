@@ -4,7 +4,8 @@ import { randomBytes } from "crypto";
 import { Context } from "./Context";
 import { Client, Grant, Authorization } from "./model";
 import { NotFoundError } from "./errors";
-import { validate, isEqual } from "@authx/scopes";
+import { filter } from "./util/filter";
+import { validate, isEqual, isSuperset } from "@authx/scopes";
 import { ParameterizedContext } from "koa";
 import x from "./x";
 
@@ -147,7 +148,21 @@ export default async (ctx: ParameterizedContext<any, { [x]: Context }>) => {
           throw new OAuthError("invalid_grant");
         }
 
-        // Look for an existing active authorization for this grant with the same scopes
+        // Get the total access of the grant.
+        const access = await grant.access(tx);
+
+        // Make sure we can read granted authorizations.
+        if (
+          !isSuperset(
+            access,
+            `${realm}:authorization.equal.self.granted:read.*`
+          )
+        ) {
+          throw new OAuthError("invalid_grant");
+        }
+
+        // Look for an existing active authorization for this grant with the
+        // same scopes
         const authorizations = (await grant.authorizations(tx)).filter(
           t => t.enabled && isEqual(requestedScopes, t.scopes)
         );
@@ -157,6 +172,16 @@ export default async (ctx: ParameterizedContext<any, { [x]: Context }>) => {
             authorizations[0]
           : // Create a new authorization.
             await (() => {
+              // Make sure we can create a new authorizations.
+              if (
+                !isSuperset(
+                  access,
+                  `${realm}:authorization.equal.self.granted:write.*`
+                )
+              ) {
+                throw new OAuthError("invalid_grant");
+              }
+
               const authorizationId = v4();
               return Authorization.write(
                 tx,
@@ -236,7 +261,7 @@ export default async (ctx: ParameterizedContext<any, { [x]: Context }>) => {
       }
     }
 
-    // Refresh Authorization
+    // Refresh Token
     // =============
     if (grantType === "refresh_token") {
       tx.query("BEGIN DEFERRABLE");
@@ -319,6 +344,19 @@ export default async (ctx: ParameterizedContext<any, { [x]: Context }>) => {
           throw new OAuthError("invalid_grant");
         }
 
+        // Get the total access of the grant.
+        const access = await grant.access(tx);
+
+        // Make sure we can read granted authorizations.
+        if (
+          !isSuperset(
+            access,
+            `${realm}:authorization.equal.self.granted:read.*`
+          )
+        ) {
+          throw new OAuthError("invalid_grant");
+        }
+
         // Look for an existing active authorization for this grant with the same scopes
         const authorizations = (await grant.authorizations(tx)).filter(
           t => t.enabled && isEqual(requestedScopes, t.scopes)
@@ -329,6 +367,16 @@ export default async (ctx: ParameterizedContext<any, { [x]: Context }>) => {
             authorizations[0]
           : // Create a new authorization.
             await (() => {
+              // Make sure we can create a new authorizations.
+              if (
+                !isSuperset(
+                  access,
+                  `${realm}:authorization.equal.self.granted:write.*`
+                )
+              ) {
+                throw new OAuthError("invalid_grant");
+              }
+
               const authorizationId = v4();
               return Authorization.write(
                 tx,

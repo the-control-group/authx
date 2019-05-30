@@ -54,7 +54,7 @@ export class Grant implements GrantData {
       return true;
     }
 
-    // can access own grants with this authorization
+    // can access own grants that are a parent of this authorization
     if (
       this.userId === a.userId &&
       this.id === a.grantId &&
