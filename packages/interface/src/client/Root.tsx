@@ -9,7 +9,7 @@ import { Strategy } from "../Strategy";
 export function Root({
   strategies
 }: {
-  strategies: { [name: string]: Strategy };
+  strategies: ReadonlyArray<Strategy>;
 }): ReactElement {
   const {
     authorization,

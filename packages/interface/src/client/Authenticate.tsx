@@ -10,21 +10,48 @@ export function Authenticate({
 }: {
   setAuthorization: (authorization: { id: string; secret: string }) => void;
   fetchOptionsOverride: GraphQLFetchOptionsOverride;
-  strategies: { [name: string]: Strategy };
+  strategies: ReadonlyArray<Strategy>;
 }): ReactElement<any> {
+  const strategyFragments: string[] = [];
+  const strategyFragmentNames: string[] = [];
+  const strategyComponents: { [name: string]: Strategy["component"] } = {};
+  strategies.forEach(strategy => {
+    const match = strategy.fragment.match(
+      /^\s*fragment\s+([A-Z][A-Za-z0-9_]*)\s+on\s+([A-Z][A-Za-z0-9_]*)/
+    );
+
+    if (!match || !match[1] || !match[2]) {
+      throw new Error(
+        `INVARIANT: Failed to extract fragment name from:\n${strategy.fragment}`
+      );
+    }
+
+    if (strategyComponents[match[2]]) {
+      throw new Error(
+        `INVARIANT: A strategy is already registered for the type "${
+          match[2]
+        }".`
+      );
+    }
+
+    strategyFragmentNames.push(match[1]);
+    strategyFragments.push(strategy.fragment);
+    strategyComponents[match[2]] = strategy.component;
+  });
+
   // Inject strategy fragments into the query.
   const query = `
     query {
       authorities {
         id
 
-        ${Object.keys(strategies).map(name => {
+        ${strategyFragmentNames.map(name => {
           return `...${name}\n`;
         })}
       }
     }
 
-    ${Object.values(strategies).map(({ fragment }) => `${fragment}\n\n`)}
+    ${strategyFragments.map(fragment => `${fragment}\n\n`)}
   `;
 
   // Get all active authorities from the API.
@@ -85,9 +112,7 @@ export function Authenticate({
     (authorityId && authorities.find(a => a.id === authorityId)) || null;
 
   const StrategyComponent =
-    authority &&
-    strategies[authority.__typename] &&
-    strategies[authority.__typename].component;
+    authority && strategyComponents[authority.__typename];
 
   return (
     <div>

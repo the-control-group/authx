@@ -18,8 +18,8 @@ export default async function createInterface(
     mode: "development",
     entry: [join(__dirname, "../client/index.js")],
     output: {
-      filename: "authx-[contenthash].js",
-      chunkFilename: "authx-[id]-[contenthash].js",
+      filename: "$authx-[contenthash].js",
+      chunkFilename: "$authx-[id]-[contenthash].js",
       path: join(__dirname, "../client")
     },
     devtool: "source-map",
@@ -28,6 +28,11 @@ export default async function createInterface(
     },
     module: {
       rules: [
+        {
+          test: /\.js$/,
+          use: ["source-map-loader"],
+          enforce: "pre"
+        },
         {
           test: join(__dirname, "../client/index.js"),
           loader: join(__dirname, "loader.js"),
