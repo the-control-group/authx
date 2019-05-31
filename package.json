@@ -17,7 +17,7 @@
     "packages/authx-interface/html-webpack-plugin"
   ],
   "scripts": {
-    "packages": "scripts/run-in-packages.sh echo foo",
+    "packages": "scripts/run-in-packages.sh",
     "packages:build": "yarn packages yarn build",
     "packages:build:development": "for p in packages/*/; do echo \"\n\n---------- $p\" && if ! (cd $p && yarn build:development &) then exit 1; fi; done",
     "packages:format": "yarn packages yarn format",
