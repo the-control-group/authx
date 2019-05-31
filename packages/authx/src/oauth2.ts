@@ -90,11 +90,6 @@ export default async (ctx: ParameterizedContext<any, { [x]: Context }>) => {
           throw new OAuthError("invalid_request");
         }
 
-        const requestedScopes = paramsScope ? paramsScope.split(" ") : [];
-        if (paramsScope && !requestedScopes.every(validate)) {
-          throw new OAuthError("invalid_scope");
-        }
-
         // Authenticate the client with its secret.
         let client;
         try {
@@ -150,6 +145,7 @@ export default async (ctx: ParameterizedContext<any, { [x]: Context }>) => {
 
         // Get the total access of the grant.
         const access = await grant.access(tx);
+        const requestedScopes = grant.scopes;
 
         // Make sure we can read granted authorizations.
         if (
