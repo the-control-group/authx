@@ -62,7 +62,11 @@ export const createPasswordCredential: GraphQLFieldConfig<
 
     try {
       const id = v4();
-      const authority = Authority.read(tx, args.authorityId, authorityMap);
+      const authority = await Authority.read(
+        tx,
+        args.authorityId,
+        authorityMap
+      );
       if (!(authority instanceof PasswordAuthority)) {
         throw new NotFoundError("No password authority exists with this ID.");
       }
