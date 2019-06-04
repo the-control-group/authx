@@ -4,7 +4,6 @@ import { randomBytes } from "crypto";
 import { Context } from "./Context";
 import { Client, Grant, Authorization } from "./model";
 import { NotFoundError } from "./errors";
-import { filter } from "./util/filter";
 import { validate, isEqual, isSuperset } from "@authx/scopes";
 import { ParameterizedContext } from "koa";
 import x from "./x";
@@ -78,14 +77,11 @@ export default async (ctx: ParameterizedContext<any, { [x]: Context }>) => {
           typeof ctx.request.body.code === "string"
             ? ctx.request.body.code
             : undefined;
-        const paramsScope: undefined | string =
-          typeof ctx.request.body.scope === "string"
-            ? ctx.request.body.scope
-            : undefined;
         const paramsNonce: undefined | string =
           typeof ctx.request.body.nonce === "string"
             ? ctx.request.body.nonce
             : undefined;
+
         if (!paramsClientId || !paramsClientSecret || !paramsCode) {
           throw new OAuthError("invalid_request");
         }
@@ -447,5 +443,6 @@ export default async (ctx: ParameterizedContext<any, { [x]: Context }>) => {
     }
 
     ctx.response.body = body;
+    ctx.app.emit("error", error);
   }
 };
