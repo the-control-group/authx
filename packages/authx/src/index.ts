@@ -18,6 +18,7 @@ import { fromBasic, fromBearer } from "./util/getAuthorization";
 
 import { StrategyCollection } from "./StrategyCollection";
 
+export * from "./x";
 export * from "./errors";
 export * from "./model";
 export * from "./graphql";
