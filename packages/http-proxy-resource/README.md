@@ -258,3 +258,9 @@ This holds the source code for the proxy.
 #### [/dist](dist/)
 
 The compiled and bundled code ends up here for distribution. This is ignored by git.
+
+## FAQ / Errata
+
+_Why does my client continue to repeat the OAuth flow without resolving the request? Is this some sort of infinite redirect?_
+
+Check to make sure your service is not issuing a 401 error. Clients will see this code and assume that the token needs to be refreshed. If you're using the proxy, you're probably going to want to let it handle the determination of whether a user is authenticated or not.
