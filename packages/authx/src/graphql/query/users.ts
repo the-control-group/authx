@@ -1,10 +1,16 @@
 import {
   GraphQLBoolean,
-  GraphQLInt,
   GraphQLList,
   GraphQLNonNull,
   GraphQLFieldConfig
 } from "graphql";
+
+import {
+  connectionFromArray,
+  connectionArgs,
+  ConnectionArguments
+} from "graphql-relay";
+
 import { GraphQLUser } from "../GraphQLUser";
 import { Context } from "../../Context";
 import { User } from "../../model";
@@ -12,31 +18,22 @@ import { filter } from "../../util/filter";
 
 export const users: GraphQLFieldConfig<
   any,
-  {
+  ConnectionArguments & {
     includeDisabled: boolean;
-    offset: null | number;
-    limit: null | number;
   },
   Context
 > = {
   type: new GraphQLList(new GraphQLNonNull(GraphQLUser)),
   description: "List all users.",
   args: {
+    ...connectionArgs,
     includeDisabled: {
       type: GraphQLBoolean,
       defaultValue: false,
       description: "Include disabled users in results."
-    },
-    offset: {
-      type: GraphQLInt,
-      description: "The number of results to skip."
-    },
-    limit: {
-      type: GraphQLInt,
-      description: "The maximum number of results to return."
     }
   },
-  async resolve(source, args, context): Promise<User[]> {
+  async resolve(source, args, context) {
     const { tx, authorization: a, realm } = context;
     if (!a) return [];
 
@@ -55,6 +52,10 @@ export const users: GraphQLFieldConfig<
     }
 
     const users = await User.read(tx, ids.rows.map(({ id }) => id));
-    return filter(users, user => user.isAccessibleBy(realm, a, tx));
+
+    return connectionFromArray(
+      await filter(users, user => user.isAccessibleBy(realm, a, tx)),
+      args
+    );
   }
 };

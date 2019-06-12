@@ -7,9 +7,15 @@ import {
   GraphQLObjectType
 } from "graphql";
 
+import {
+  connectionFromArray,
+  connectionArgs,
+  ConnectionArguments
+} from "graphql-relay";
+
 import { Role } from "../model";
 import { Context } from "../Context";
-import { GraphQLUser } from "./GraphQLUser";
+import { GraphQLUserConnection } from "./GraphQLUserConnection";
 import { filter } from "../util/filter";
 
 export const GraphQLRole = new GraphQLObjectType<Role, Context>({
@@ -23,14 +29,22 @@ export const GraphQLRole = new GraphQLObjectType<Role, Context>({
     name: { type: GraphQLString },
     description: { type: GraphQLString },
     users: {
-      type: new GraphQLList(GraphQLUser),
-      async resolve(role, args, { realm, authorization: a, tx }: Context) {
+      type: GraphQLUserConnection,
+      args: connectionArgs,
+      async resolve(
+        role,
+        args: ConnectionArguments,
+        { realm, authorization: a, tx }: Context
+      ) {
         return a &&
           (await role.isAccessibleBy(realm, a, tx, "read.assignments"))
-          ? filter(await role.users(tx), user =>
-              user.isAccessibleBy(realm, a, tx)
+          ? connectionFromArray(
+              await filter(await role.users(tx), user =>
+                user.isAccessibleBy(realm, a, tx)
+              ),
+              args
             )
-          : [];
+          : null;
       }
     },
     scopes: {

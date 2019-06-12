@@ -7,11 +7,17 @@ import {
   GraphQLObjectType
 } from "graphql";
 
+import {
+  connectionFromArray,
+  connectionArgs,
+  ConnectionArguments
+} from "graphql-relay";
+
 import { Grant, Client, User } from "../model";
 import { Context } from "../Context";
 import { GraphQLClient } from "./GraphQLClient";
 import { GraphQLUser } from "./GraphQLUser";
-import { GraphQLAuthorization } from "./GraphQLAuthorization";
+import { GraphQLAuthorizationConnection } from "./GraphQLAuthorizationConnection";
 import { filter } from "../util/filter";
 
 export const GraphQLGrant: GraphQLObjectType<
@@ -86,13 +92,21 @@ export const GraphQLGrant: GraphQLObjectType<
       }
     },
     authorizations: {
-      type: new GraphQLList(GraphQLAuthorization),
-      async resolve(grant, args, { realm, authorization: a, tx }: Context) {
+      type: GraphQLAuthorizationConnection,
+      args: connectionArgs,
+      async resolve(
+        grant,
+        args: ConnectionArguments,
+        { realm, authorization: a, tx }: Context
+      ) {
         return a
-          ? filter(await grant.authorizations(tx), authorization =>
-              authorization.isAccessibleBy(realm, a, tx)
+          ? connectionFromArray(
+              await filter(await grant.authorizations(tx), authorization =>
+                authorization.isAccessibleBy(realm, a, tx)
+              ),
+              args
             )
-          : [];
+          : null;
       }
     }
   })

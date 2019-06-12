@@ -7,9 +7,15 @@ import {
   GraphQLObjectType
 } from "graphql";
 
+import {
+  connectionFromArray,
+  connectionArgs,
+  ConnectionArguments
+} from "graphql-relay";
+
 import { Client } from "../model";
 import { Context } from "../Context";
-import { GraphQLUser } from "./GraphQLUser";
+import { GraphQLUserConnection } from "./GraphQLUserConnection";
 import { filter } from "../util/filter";
 
 export const GraphQLClient = new GraphQLObjectType<Client, Context>({
@@ -36,14 +42,22 @@ export const GraphQLClient = new GraphQLObjectType<Client, Context>({
     },
     urls: { type: new GraphQLList(GraphQLString) },
     users: {
-      type: new GraphQLList(GraphQLUser),
-      async resolve(client, args, { realm, authorization: a, tx }: Context) {
+      type: GraphQLUserConnection,
+      args: connectionArgs,
+      async resolve(
+        client,
+        args: ConnectionArguments,
+        { realm, authorization: a, tx }: Context
+      ) {
         return a &&
           (await client.isAccessibleBy(realm, a, tx, "read.assignments"))
-          ? filter(await client.users(tx), user =>
-              user.isAccessibleBy(realm, a, tx)
+          ? connectionFromArray(
+              await filter(await client.users(tx), user =>
+                user.isAccessibleBy(realm, a, tx)
+              ),
+              args
             )
-          : [];
+          : null;
       }
     }
   })
