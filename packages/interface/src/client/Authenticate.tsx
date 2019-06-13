@@ -28,9 +28,7 @@ export function Authenticate({
 
     if (strategyComponents[match[2]]) {
       throw new Error(
-        `INVARIANT: A strategy is already registered for the type "${
-          match[2]
-        }".`
+        `INVARIANT: A strategy is already registered for the type "${match[2]}".`
       );
     }
 
@@ -43,11 +41,15 @@ export function Authenticate({
   const query = `
     query {
       authorities {
-        id
+        edges {
+          node {
+            id
 
-        ${strategyFragmentNames.map(name => {
-          return `...${name}\n`;
-        })}
+            ${strategyFragmentNames.map(name => {
+              return `...${name}\n`;
+            })}
+          }
+        }
       }
     }
 
@@ -68,9 +70,13 @@ export function Authenticate({
     (cacheValue &&
       cacheValue.data &&
       cacheValue.data.authorities &&
-      [...cacheValue.data.authorities].sort((a, b) =>
-        a.name < b.name ? -1 : a.name > b.name ? 1 : 0
-      )) ||
+      cacheValue.data.authorities.edges &&
+      cacheValue.data.authorities.edges
+        .map((edge: any) => edge.node)
+        .filter((authority: any) => authority)
+        .sort((a: any, b: any) =>
+          a.name < b.name ? -1 : a.name > b.name ? 1 : 0
+        )) ||
     [];
 
   // Set an active authority.
