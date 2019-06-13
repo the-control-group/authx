@@ -9,7 +9,7 @@
     "@types/graphql-react": "^8.1.1",
     "@types/html-webpack-plugin": "^3.2.0",
     "@types/memory-fs": "^0.3.2",
-    "@types/react": "^16.8.17",
+    "@types/react": "^16.8.19",
     "@types/react-dom": "^16.8.3",
     "@types/webpack": "^4.4.32",
     "graphql-react": "^8.1.1",
@@ -19,20 +19,20 @@
     "react-dom": "^16.8.5",
     "source-map-loader": "^0.2.4",
     "uuid": "^3.3.2",
-    "webpack": "^4.32.2"
+    "webpack": "^4.34.0"
   },
   "description": "",
   "devDependencies": {
-    "@typescript-eslint/eslint-plugin": "^1.5.0",
-    "@typescript-eslint/parser": "^1.5.0",
-    "ava": "^1.4.0",
+    "@typescript-eslint/eslint-plugin": "^1.10.2",
+    "@typescript-eslint/parser": "^1.10.2",
+    "ava": "^2.1.0",
     "eslint": "^5.16.0",
     "eslint-config-prettier": "^4.2.0",
     "eslint-plugin-prettier": "^3.0.0",
     "eslint-plugin-react": "^7.13.0",
     "koa": "^2.7.0",
-    "prettier": "^1.16.4",
-    "typescript": "^3.4.5"
+    "prettier": "^1.18.2",
+    "typescript": "^3.5.1"
   },
   "engines": {
     "node": ">=10"
@@ -64,8 +64,8 @@
     "build:development": "rm -rf dist && mkdir -p dist/client && ln -s ../../src/client/index.html dist/client/index.html && tsc --watch",
     "start": "NODE_ENV=production node dist/server/server",
     "start:development": "NODE_ENV=development nodemon --inspect dist/server/server",
-    "test": "ava --verbose dist/**/*.test.js",
-    "test:development": "ava --verbose --watch dist/**/*.test.js"
+    "test": "ava --verbose dist/*.test.js",
+    "test:development": "ava --verbose --watch dist/*.test.js"
   },
   "types": "dist/server/index.d.ts",
   "version": "2.0.0-beta.11"

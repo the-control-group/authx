@@ -27,8 +27,8 @@
     "root:build:development": "rm -rf dist && tsc --watch",
     "root:format": "prettier --list-different --write '**/*.{json,yml,md,ts}'",
     "root:lint": "prettier -c '**/*.{json,yml,md,ts}' && eslint src --ext ts",
-    "root:test": "ava --verbose dist/**/*.test.js",
-    "root:test:development": "ava --verbose --watch dist/**/*.test.js",
+    "root:test": "ava --verbose dist/*.test.js",
+    "root:test:development": "ava --verbose --watch dist/*.test.js",
     "build": "yarn packages:build && yarn root:build",
     "build:development": "yarn packages:build:development & yarn root:build:development",
     "format": "yarn packages:format && yarn root:format",
@@ -39,14 +39,14 @@
   },
   "devDependencies": {
     "@authx/interface": "^2.0.0-beta.6",
-    "@typescript-eslint/eslint-plugin": "^1.5.0",
-    "@typescript-eslint/parser": "^1.5.0",
-    "ava": "^1.4.0",
+    "@typescript-eslint/eslint-plugin": "^1.10.2",
+    "@typescript-eslint/parser": "^1.10.2",
+    "ava": "^2.1.0",
     "eslint": "^5.16.0",
     "eslint-config-prettier": "^4.2.0",
     "eslint-plugin-prettier": "^3.0.0",
-    "nodemon": "^1.19.0",
-    "prettier": "^1.16.4",
-    "typescript": "^3.4.5"
+    "nodemon": "^1.19.1",
+    "prettier": "^1.18.2",
+    "typescript": "^3.5.1"
   }
 }
