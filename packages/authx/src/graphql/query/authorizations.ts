@@ -5,6 +5,13 @@ import {
   GraphQLNonNull,
   GraphQLFieldConfig
 } from "graphql";
+
+import {
+  connectionFromArray,
+  connectionArgs,
+  ConnectionArguments
+} from "graphql-relay";
+
 import { GraphQLAuthorization } from "../GraphQLAuthorization";
 import { Context } from "../../Context";
 import { Authorization } from "../../model";
@@ -12,31 +19,22 @@ import { filter } from "../../util/filter";
 
 export const authorizations: GraphQLFieldConfig<
   any,
-  {
+  ConnectionArguments & {
     includeDisabled: boolean;
-    offset: null | number;
-    limit: null | number;
   },
   Context
 > = {
   type: new GraphQLList(new GraphQLNonNull(GraphQLAuthorization)),
   description: "List all authorizations.",
   args: {
+    ...connectionArgs,
     includeDisabled: {
       type: GraphQLBoolean,
       defaultValue: false,
-      description: "Include disabled authorizations in results."
-    },
-    offset: {
-      type: GraphQLInt,
-      description: "The number of results to skip."
-    },
-    limit: {
-      type: GraphQLInt,
-      description: "The maximum number of results to return."
+      description: "Include disabled authorities in results."
     }
   },
-  async resolve(source, args, context): Promise<Authorization[]> {
+  async resolve(source, args, context) {
     const { tx, authorization: a, realm } = context;
     if (!a) return [];
 
@@ -58,8 +56,12 @@ export const authorizations: GraphQLFieldConfig<
       tx,
       ids.rows.map(({ id }) => id)
     );
-    return filter(authorizations, authorization =>
-      authorization.isAccessibleBy(realm, a, tx)
+
+    return connectionFromArray(
+      await filter(authorizations, authorization =>
+        authorization.isAccessibleBy(realm, a, tx)
+      ),
+      args
     );
   }
 };

@@ -1,41 +1,32 @@
-import {
-  GraphQLBoolean,
-  GraphQLInt,
-  GraphQLList,
-  GraphQLNonNull,
-  GraphQLFieldConfig
-} from "graphql";
-import { GraphQLAuthority } from "../GraphQLAuthority";
+import { GraphQLBoolean, GraphQLFieldConfig } from "graphql";
+import { GraphQLAuthorityConnection } from "../GraphQLAuthorityConnection";
 import { Context } from "../../Context";
 import { Authority } from "../../model";
 
+import {
+  connectionFromArray,
+  connectionArgs,
+  ConnectionArguments
+} from "graphql-relay";
+
 export const authorities: GraphQLFieldConfig<
   any,
-  {
+  ConnectionArguments & {
     includeDisabled: boolean;
-    offset: null | number;
-    limit: null | number;
   },
   Context
 > = {
-  type: new GraphQLList(new GraphQLNonNull(GraphQLAuthority)),
+  type: GraphQLAuthorityConnection,
   description: "List all authorities.",
   args: {
+    ...connectionArgs,
     includeDisabled: {
       type: GraphQLBoolean,
       defaultValue: false,
       description: "Include disabled authorities in results."
-    },
-    offset: {
-      type: GraphQLInt,
-      description: "The number of results to skip."
-    },
-    limit: {
-      type: GraphQLInt,
-      description: "The maximum number of results to return."
     }
   },
-  async resolve(source, args, context): Promise<Authority<any>[]> {
+  async resolve(source, args, context) {
     const {
       tx,
       strategies: { authorityMap }
@@ -55,6 +46,9 @@ export const authorities: GraphQLFieldConfig<
       return [];
     }
 
-    return Authority.read(tx, ids.rows.map(({ id }) => id), authorityMap);
+    return connectionFromArray(
+      await Authority.read(tx, ids.rows.map(({ id }) => id), authorityMap),
+      args
+    );
   }
 };

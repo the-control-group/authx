@@ -5,6 +5,13 @@ import {
   GraphQLNonNull,
   GraphQLFieldConfig
 } from "graphql";
+
+import {
+  connectionFromArray,
+  connectionArgs,
+  ConnectionArguments
+} from "graphql-relay";
+
 import { GraphQLCredential } from "../GraphQLCredential";
 import { Context } from "../../Context";
 import { Credential } from "../../model";
@@ -12,31 +19,22 @@ import { filter } from "../../util/filter";
 
 export const credentials: GraphQLFieldConfig<
   any,
-  {
+  ConnectionArguments & {
     includeDisabled: boolean;
-    offset: null | number;
-    limit: null | number;
   },
   Context
 > = {
   type: new GraphQLList(new GraphQLNonNull(GraphQLCredential)),
   description: "List all credentials.",
+  ...connectionArgs,
   args: {
     includeDisabled: {
       type: GraphQLBoolean,
       defaultValue: false,
       description: "Include disabled credentials in results."
-    },
-    offset: {
-      type: GraphQLInt,
-      description: "The number of results to skip."
-    },
-    limit: {
-      type: GraphQLInt,
-      description: "The maximum number of results to return."
     }
   },
-  async resolve(source, args, context): Promise<Credential<any>[]> {
+  async resolve(source, args, context) {
     const {
       tx,
       authorization: a,
@@ -64,8 +62,12 @@ export const credentials: GraphQLFieldConfig<
       ids.rows.map(({ id }) => id),
       credentialMap
     );
-    return filter(credentials, credential =>
-      credential.isAccessibleBy(realm, a, tx)
+
+    return connectionFromArray(
+      await filter(credentials, credential =>
+        credential.isAccessibleBy(realm, a, tx)
+      ),
+      args
     );
   }
 };

@@ -5,6 +5,13 @@ import {
   GraphQLNonNull,
   GraphQLFieldConfig
 } from "graphql";
+
+import {
+  connectionFromArray,
+  connectionArgs,
+  ConnectionArguments
+} from "graphql-relay";
+
 import { GraphQLGrant } from "../GraphQLGrant";
 import { Context } from "../../Context";
 import { Grant } from "../../model";
@@ -12,31 +19,22 @@ import { filter } from "../../util/filter";
 
 export const grants: GraphQLFieldConfig<
   any,
-  {
+  ConnectionArguments & {
     includeDisabled: boolean;
-    offset: null | number;
-    limit: null | number;
   },
   Context
 > = {
   type: new GraphQLList(new GraphQLNonNull(GraphQLGrant)),
   description: "List all grants.",
   args: {
+    ...connectionArgs,
     includeDisabled: {
       type: GraphQLBoolean,
       defaultValue: false,
       description: "Include disabled grants in results."
-    },
-    offset: {
-      type: GraphQLInt,
-      description: "The number of results to skip."
-    },
-    limit: {
-      type: GraphQLInt,
-      description: "The maximum number of results to return."
     }
   },
-  async resolve(source, args, context): Promise<Grant[]> {
+  async resolve(source, args, context) {
     const { tx, authorization: a, realm } = context;
     if (!a) return [];
 
@@ -55,6 +53,10 @@ export const grants: GraphQLFieldConfig<
     }
 
     const grants = await Grant.read(tx, ids.rows.map(({ id }) => id));
-    return filter(grants, grant => grant.isAccessibleBy(realm, a, tx));
+
+    return connectionFromArray(
+      await filter(grants, grant => grant.isAccessibleBy(realm, a, tx)),
+      args
+    );
   }
 };

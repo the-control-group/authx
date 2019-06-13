@@ -5,6 +5,13 @@ import {
   GraphQLNonNull,
   GraphQLFieldConfig
 } from "graphql";
+
+import {
+  connectionFromArray,
+  connectionArgs,
+  ConnectionArguments
+} from "graphql-relay";
+
 import { GraphQLRole } from "../GraphQLRole";
 import { Context } from "../../Context";
 import { Role } from "../../model";
@@ -12,31 +19,22 @@ import { filter } from "../../util/filter";
 
 export const roles: GraphQLFieldConfig<
   any,
-  {
+  ConnectionArguments & {
     includeDisabled: boolean;
-    offset: null | number;
-    limit: null | number;
   },
   Context
 > = {
   type: new GraphQLList(new GraphQLNonNull(GraphQLRole)),
   description: "List all roles.",
   args: {
+    ...connectionArgs,
     includeDisabled: {
       type: GraphQLBoolean,
       defaultValue: false,
       description: "Include disabled roles in results."
-    },
-    offset: {
-      type: GraphQLInt,
-      description: "The number of results to skip."
-    },
-    limit: {
-      type: GraphQLInt,
-      description: "The maximum number of results to return."
     }
   },
-  async resolve(source, args, context): Promise<Role[]> {
+  async resolve(source, args, context) {
     const { tx, authorization: a, realm } = context;
     if (!a) return [];
 
@@ -55,6 +53,10 @@ export const roles: GraphQLFieldConfig<
     }
 
     const roles = await Role.read(tx, ids.rows.map(({ id }) => id));
-    return filter(roles, role => role.isAccessibleBy(realm, a, tx));
+
+    return connectionFromArray(
+      await filter(roles, role => role.isAccessibleBy(realm, a, tx)),
+      args
+    );
   }
 };
