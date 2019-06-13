@@ -36,9 +36,7 @@ export class StrategyCollection {
   public add(s: Strategy): StrategyCollection {
     if (this.map[s.name])
       throw new Error(
-        `INVARIANT: Multiple strategies cannot use the same identifier; "${
-          s.name
-        }" is used twice.`
+        `INVARIANT: Multiple strategies cannot use the same identifier; "${s.name}" is used twice.`
       );
 
     const queryFields = { ...this.queryFields };

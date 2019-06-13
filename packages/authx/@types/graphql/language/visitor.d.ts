@@ -14,7 +14,7 @@ type EnterLeaveVisitor<KindToNode, Nodes> = EnterLeave<
 type ShapeMapVisitor<KindToNode, Nodes> = {
   [K in keyof KindToNode]?:
     | VisitFn<Nodes, KindToNode[K]>
-    | EnterLeave<VisitFn<Nodes, KindToNode[K]>>
+    | EnterLeave<VisitFn<Nodes, KindToNode[K]>>;
 };
 
 export type ASTVisitor = Visitor<ASTKindToNode>;

@@ -1,6 +1,5 @@
 import {
   GraphQLBoolean,
-  GraphQLInt,
   GraphQLList,
   GraphQLNonNull,
   GraphQLFieldConfig

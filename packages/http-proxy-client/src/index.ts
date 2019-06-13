@@ -484,9 +484,7 @@ export default class AuthXClientProxy extends EventEmitter {
           // Use the new access token.
           if (refreshResponseBody.access_token) {
             cookies.set(`authx.t.${hash}`, refreshResponseBody.access_token);
-            request.headers.authorization = `Bearer ${
-              refreshResponseBody.access_token
-            }`;
+            request.headers.authorization = `Bearer ${refreshResponseBody.access_token}`;
 
             forward(behavior.proxyOptions, rule, behavior);
             return;

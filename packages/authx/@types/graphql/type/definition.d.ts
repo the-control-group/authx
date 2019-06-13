@@ -422,7 +422,7 @@ export interface GraphQLFieldConfig<TSource, TArgs, TContext> {
 }
 
 export type GraphQLFieldConfigArgumentMap<TArgs> = {
-  [K in keyof TArgs]: GraphQLArgumentConfig<TArgs[K]>
+  [K in keyof TArgs]: GraphQLArgumentConfig<TArgs[K]>;
 };
 
 type ScalarInput<T> =
