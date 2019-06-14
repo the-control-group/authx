@@ -10,7 +10,7 @@ ADD yarn.lock /workspace/yarn.lock
 ADD package.json /workspace/package.json
 
 ADD packages/authx/package.json /workspace/packages/authx/package.json
-ADD packages/http-proxy-client/package.json /workspace/packages/http-proxy-client/package.json
+ADD packages/http-proxy-web/package.json /workspace/packages/http-proxy-web/package.json
 ADD packages/http-proxy-resource/package.json /workspace/packages/http-proxy-resource/package.json
 ADD packages/interface/package.json /workspace/packages/interface/package.json
 ADD packages/manager/package.json /workspace/packages/manager/package.json

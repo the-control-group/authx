@@ -1,7 +1,7 @@
 import test from "ava";
 import { URL } from "url";
 import { createServer, Server, IncomingMessage } from "http";
-import AuthXClientProxy from ".";
+import AuthXWebProxy from ".";
 import fetch, { Headers } from "node-fetch";
 
 // These static values are derived as such:
@@ -22,7 +22,7 @@ let mockTarget: {
   port: number;
 };
 
-let proxy: AuthXClientProxy;
+let proxy: AuthXWebProxy;
 let port: number;
 
 test.before(async () => {
@@ -96,7 +96,7 @@ test.before(async () => {
   mockAuthX = mocks[0];
   mockTarget = mocks[1];
 
-  proxy = new AuthXClientProxy({
+  proxy = new AuthXWebProxy({
     authxUrl: `http://127.0.0.1:${mockAuthX.port}`,
     readinessEndpoint: "/_ready",
 

@@ -14,11 +14,11 @@ The AuthX package contains the core application and API manages users, credentia
 
 [Read More](packages/authx#README.md)
 
-## HTTP Proxy - Client
+## HTTP Proxy - Web
 
 This package includes an HTTP proxy which can be put in front of a web client. It takes on the responsibility of managing OAuth flows, and can inject credentials into the proxied requests to resources.
 
-[Read More](packages/http-proxy-client#README.md)
+[Read More](packages/http-proxy-web#README.md)
 
 ## HTTP Proxy - Resource
 

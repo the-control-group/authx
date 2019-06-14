@@ -43,7 +43,7 @@
   ],
   "license": "MIT",
   "main": "dist",
-  "name": "@authx/http-proxy-client",
+  "name": "@authx/http-proxy-web",
   "peerDependencies": {},
   "repository": "https://github.com/the-control-group/authx",
   "scripts": {
