@@ -40,7 +40,7 @@
   ],
   "license": "MIT",
   "main": "dist",
-  "name": "@authx/http-proxy-authorization",
+  "name": "@authx/http-proxy-client",
   "peerDependencies": {},
   "repository": "https://github.com/the-control-group/authx",
   "scripts": {
@@ -52,5 +52,5 @@
     "test:development": "ava --verbose dist/*.test.js --watch"
   },
   "types": "./dist/index.d.ts",
-  "version": "1.0.0-beta.3"
+  "version": "1.0.0-beta.8"
 }

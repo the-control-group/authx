@@ -9,7 +9,7 @@ Here is a typical use case:
 We have a resource – often an API – which is accessed by a client. The route `/something` is special, and we only want to give access to authorized users.
 
 ```js
-import AuthXAuthorizationProxy from "@authx/http-proxy-authorization";
+import AuthXAuthorizationProxy from "@authx/http-proxy-client";
 proxy = new AuthXAuthorizationProxy({
   authxUrl: `http://127.0.0.1:${mockAuthX.port}`,
   clientId: "b22282bf-1b78-4ffc-a0d6-2da5465895d0",

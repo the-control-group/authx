@@ -167,7 +167,7 @@ function hashScopes(scopes: ReadonlyArray<string>): string {
     .replace(/=+$/g, "");
 }
 
-export default class AuthXAuthorizationProxy extends EventEmitter {
+export default class AuthXClientProxy extends EventEmitter {
   private readonly _config: Config;
   private readonly _proxy: ReturnType<typeof createProxyServer>;
   private _closed: boolean = true;

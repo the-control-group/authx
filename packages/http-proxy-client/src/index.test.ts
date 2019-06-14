@@ -1,6 +1,6 @@
 import test from "ava";
 import { createServer, Server } from "http";
-import AuthXAuthorizationProxy from ".";
+import AuthXClientProxy from ".";
 import fetch from "node-fetch";
 
 const nowInSeconds = Math.floor(Date.now() / 1000);
@@ -15,7 +15,7 @@ let mockTarget: {
   port: number;
 };
 
-let proxy: AuthXAuthorizationProxy;
+let proxy: AuthXClientProxy;
 let port: number;
 
 test.before(async () => {
@@ -131,7 +131,7 @@ test.before(async () => {
   mockAuthX = mocks[0];
   mockTarget = mocks[1];
 
-  proxy = new AuthXAuthorizationProxy({
+  proxy = new AuthXClientProxy({
     authxUrl: `http://127.0.0.1:${mockAuthX.port}`,
     clientId: "b22282bf-1b78-4ffc-a0d6-2da5465895d0",
     clientSecret: "de2c693f-b654-4cf2-b3db-eb37a36bc7a9",
