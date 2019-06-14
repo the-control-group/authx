@@ -1,12 +1,6 @@
-# HTTP Proxy - Client
+# HTTP Proxy - Resource
 
-The AuthX proxy for clients is a flexible HTTP proxy designed to sit in front of a client and manage the entire OAuth flow.
-
----
-
-[Example](#example) | [Configuration](#configuration) | [Development](#development)
-
----
+The AuthX proxy for resources is a flexible HTTP proxy that can inject access tokens into a request. It is designed to be deployed alongside an app or worker, and maintains an in-memory cache of fresh access tokens to add the minimun amount of latency. It relies on refresh tokens specified in the configuration or provided by rules.
 
 ## Example
 
@@ -15,65 +9,52 @@ Here is a typical use case:
 We have a resource – often an API – which is accessed by a client. The route `/something` is special, and we only want to give access to authorized users.
 
 ```js
-proxy = new AuthXClientProxy({
-  authxUrl: `htts://authx.example.com`,
-
-  // These need to match the values for your client in AuthX.
-  clientId: "3ac01e62-faba-4644-b4c0-7979775717ac",
-  clientSecret: "279b6f23893778b5edf981867a78a86d60c9bd3d",
-  clientUrl: "https://client.example.com",
-
-  // These are the scopes your client will request from users.
-  requestGrantedScopes: ["AuthX:user.equal.self:read.basic"],
-
+import AuthXAuthorizationProxy from "@authx/http-proxy-client";
+proxy = new AuthXAuthorizationProxy({
+  authxUrl: `http://127.0.0.1:${mockAuthX.port}`,
+  clientId: "b22282bf-1b78-4ffc-a0d6-2da5465895d0",
+  clientSecret: "de2c693f-b654-4cf2-b3db-eb37a36bc7a9",
+  readinessEndpoint: "/_ready",
   rules: [
-    // We want the front-end to be able to access the AuthX API without managing
-    // credentials. To do this, we create a proxy that injects a token with all
-    // the necessary scopes and nothing more.
+    // For this route, we will proxy the request without injecting a token into
+    // the request.
     {
-      test({ method, url }) {
-        return method === "POST" && url === "/api/authx";
+      test({ url }) {
+        return url === "/no-token";
+      },
+      behavior: {
+        proxyOptions: { target: `http://127.0.0.1:${mockTarget.port}` }
+      }
+    },
+
+    // For this route, we will inject a token that is fetched using a single
+    // refresh token specified in an environment variable.
+    {
+      test({ url }) {
+        return url === "/with-static-token-and-scopes";
+      },
+      behavior: {
+        proxyOptions: { target: `http://127.0.0.1:${mockTarget.port}` },
+        refreshToken: process.env.REFRESH_TOKEN,
+        sendTokenToTargetWithScopes: ["foo:**:**"]
+      }
+    },
+
+    // For this route, we will inject a token that is fetched using a refresh
+    // token specified in the incoming request. We will also take care to remove
+    // the refresh token from the proxied request.
+    {
+      test({ url }) {
+        return url === "/with-dynamic-token-and-scopes";
       },
       behavior(request) {
-        // Rewrite the URL to match the API's expectations.
-        request.url = "/graphql";
-
-        // Because this is an API request, we don't want to redirect the browser
-        // so we will return a 401 and include a `Location` header which the
-        // front-end can use to redirect the user.
+        const refreshToken = request.headers["x-oauth-refresh-token"];
+        delete request.headers["x-oauth-refresh-token"];
         return {
-          proxyOptions: { target: `https://authx.example.com` },
-          sendAuthorizationResponseAs: 401,
-          sendTokenToTargetWithScopes: ["authx.prod:**:**"]
+          proxyOptions: { target: `http://127.0.0.1:${mockTarget.port}` },
+          refreshToken,
+          sendTokenToTargetWithScopes: ["**:**:**"]
         };
-      }
-    },
-    // These are static assets that we want publically cached by Google Cloud
-    // CDN or Cloudflare. We won't require any auth for these endpoints.
-    {
-      test({ method, url }) {
-        return method === "GET" && /^\/static(\/.*)?$/.test(url || "");
-      },
-      behavior: {
-        proxyOptions: { target: `http://127.0.0.1:3001` }
-      }
-    },
-    // The rest of our routes render a single-page-app.
-    {
-      test() {
-        return true;
-      },
-
-      // These requests are likely made directly by the user, so we can simply
-      // redirect the user if we require more granted priviliges. Additionally,
-      // we don't need to generate a token for this target, so we can leave off
-      // `sendTokenToTargetWithScopes`. However, we still do want to ensure that
-      // the user is authenticated and has granted us scopes that are necessary
-      // for the app to work, so we will set `requireGrantedScopes`.
-      behavior: {
-        proxyOptions: { target: `http://127.0.0.1:3000` },
-        sendAuthorizationResponseAs: 303,
-        sendTokenToTargetWithScopes: []
       }
     }
   ]
@@ -104,16 +85,6 @@ interface Config {
   readonly clientSecret: string;
 
   /**
-   * The URL at which the proxy will provide the OAuth client functionality.
-   */
-  readonly clientUrl: string;
-
-  /**
-   * The scopes to request from the user.
-   */
-  readonly requestGrantedScopes: string[];
-
-  /**
    * The pathname at which the proxy will provide a readiness check.
    *
    * @remarks
@@ -124,18 +95,41 @@ interface Config {
    * When closing the proxy, readiness checks will immediately begin failing,
    * even before the proxy stops accepting requests.
    *
-   * If unspecified, the path `/_ready` will be used.
+   * If not set, the path `/_ready` will be used.
    */
   readonly readinessEndpoint?: string;
 
   /**
-   * When the proxy injects a token into a request, it makes sure that the token
-   * will remain valid for this amount of time in seconds; otherwise it will
-   * request a new token from AuthX to use.
+   * Cached access tokens will be refreshed this amount of time in seconds
+   * before they would otherwise expire.
    *
-   * If unspecified, 30 seconds will be used.
+   * @defaultValue `60`
    */
-  readonly tokenMinimumRemainingLife?: number;
+  readonly refreshCachedTokensAtRemainingLife?: number;
+
+  /**
+   * The number of seconds to wait before aborting and retrying a request for
+   * an access token from the AuthX server.
+   *
+   * @defaultValue `30`
+   */
+  readonly refreshCachedTokensRequestTimeout?: number;
+
+  /**
+   * The number of seconds between failed attempts at refreshing access tokens
+   * from the AuthX server.
+   *
+   * @defaultValue `10`
+   */
+  readonly refreshCachedTokensRetryInterval?: number;
+
+  /**
+   * When a token is unused for this amount of time in seconds, it will be
+   * removed from the cache, and no longer kept fresh.
+   *
+   * @defaultValue `600`
+   */
+  readonly evictDormantCachedTokensThreshold?: number;
 
   /**
    * The rules the proxy will use to handle a request.
@@ -181,26 +175,24 @@ interface Rule {
 interface Behavior {
   /**
    * The options to pass to node-proxy.
+   *
+   * @remarks
+   * The HTTP header `X-OAuth-Scopes` will be set on both the request and
+   * response, containing a space-deliminated list of authorized scopes from a
+   * valid token.
+   *
+   * If a valid token contains no scopes, the `X-OAuth-Scopes` will be an empty
+   * string.
+   *
+   * If no token exists, or the token is invalid, the `X-OAuth-Scopes` will be
+   * removed from both the request and response.
    */
   readonly proxyOptions: ServerOptions;
 
   /**
-   * The HTTP status to use if the proxy requires authorization.
-   *
-   * @remarks
-   * 303 - This will return a 303 to redirect the browser to AuthX for
-   * authorization. After authorizing the proxy, the user will be returned to
-   * the requested page if the initial request was a GET request, or to the URL
-   * set in the referer header. Use this for endpoints with which a human user
-   * directly interacts.
-   *
-   * 401 - This will return a 401 with a `Location` header designating the AuthX
-   * URL to which the user should be directed for authorization. After
-   * authorizing the proxy, the user will be returned to the URL set in the
-   * referer header. Use this for endpoints with which a client-side app
-   * interacts using `fetch` or `XMLHttpRequest`.
+   * The refresh token to use when requesting an access token from AuthX.
    */
-  readonly sendAuthorizationResponseAs?: 303 | 401;
+  readonly refreshToken?: string;
 
   /**
    * Pass a token to the target, restricting scopes to those provided.
@@ -227,6 +219,8 @@ interface Behavior {
 ## Development
 
 ### Scripts
+
+These scripts can be run using `npm run <script>` or `yarn <script>`.
 
 #### `format`
 

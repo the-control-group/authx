@@ -1,16 +1,9 @@
 import test from "ava";
-import { URL } from "url";
-import { createServer, Server, IncomingMessage } from "http";
+import { createServer, Server } from "http";
 import AuthXClientProxy from ".";
-import fetch, { Headers } from "node-fetch";
+import fetch from "node-fetch";
 
-// These static values are derived as such:
-//
-// hashScopes(["AuthX:user.equal.self:read.basic"])
-//   => JvVNJVB5EzHJcWVP-FqK-nxVIa4
-//
-// hashScopes([])
-//   => 2jmj7l5rSw0yVb_vlWAYkK_YBwk
+const nowInSeconds = Math.floor(Date.now() / 1000);
 
 let mockAuthX: {
   server: Server;
@@ -33,20 +26,49 @@ test.before(async () => {
       port: number;
     }>((resolve, reject) => {
       const server = createServer((request, response) => {
-        response.statusCode = 200;
-        response.setHeader("Content-Type", "application/json");
-        response.end(
-          JSON.stringify({
-            /* eslint-disable @typescript-eslint/camelcase */
-            authorization_type: "bearer",
-            access_token:
-              "eyJhbGciOiJSUzUxMiIsInR5cCI6IkpXVCJ9.eyJzY29wZXMiOlsiQXV0aFg6dXNlci5lcXVhbC5zZWxmOnJlYWQuYmFzaWMiXSwiaWF0IjoxNTU2NjAzOTU5LCJleHAiOjQ3MTAyMDM5NTksImF1ZCI6ImZlMjQ3OGI1LTdiNjAtNGNlZC1hYWY4LTZjOWI0YTJlNzNmNiIsImlzcyI6ImF1dGh4Iiwic3ViIjoiMTZhNjA3MjItZjcyZi00MmExLTg0ZjgtNWFmODBiYWFjMjg5In0.hB7N3Ibdc-LX9gTkarWPXpjr6gFPRpFVnKND2CXS1XHq6ePzhLIs-Bn3ksHOvkpDzx96z7x_8pQwgHXg_DgUNcpUP-eFuk156wxJ7rpuG5aV-wUmAAg-yLnMjXWx65VUf7J-JvVtRVHlkzahLA1n0drf4Fll-hoTJ6qaOHidUlo",
-            refresh_token: "c89900b6a34123900274e90f87f7adc0c1ab8d93",
-            expires_in: 3600,
-            scope: "AuthX:user.equal.self:read.basic"
-            /* eslint-enabme @typescript-eslint/camelcase */
-          })
-        );
+        const data: Buffer[] = [];
+        request.on("data", function(d) {
+          data.push(d);
+        });
+        request.on("end", function() {
+          const body = JSON.parse(Buffer.concat(data).toString());
+          if (body.grant_type !== "refresh_token")
+            throw new Error("Request must include grant_type=refresh_token.");
+
+          if (!body.client_id)
+            throw new Error("Request must include client_id.");
+
+          if (!body.client_secret)
+            throw new Error("Request must include client_secret.");
+
+          response.statusCode = 200;
+          response.setHeader("Content-Type", "application/json");
+          response.end(
+            JSON.stringify({
+              /* eslint-disable @typescript-eslint/camelcase */
+              token_type: "bearer",
+              access_token: `eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.${Buffer.from(
+                JSON.stringify({
+                  aid: "810348aa-d295-4d42-a264-7c6c4861367f",
+                  scopes: body.scope.split(" ").filter((s: string) => !!s),
+                  exp: nowInSeconds + 3600,
+                  iss: "authx",
+                  sub: "c79a01a2-0ed7-45c5-93b8-bc921d5cf368",
+                  aud: body.client_id
+                })
+              )
+                .toString("base64")
+                .replace(
+                  /=*$/,
+                  ""
+                )}.SflKxwRJSMeKKF2QT4fwpMeJf36POk6yJV_adQssw5c`,
+              refresh_token: body.refresh_token,
+              expires_in: 3600,
+              scope: body.scope
+              /* eslint-enable @typescript-eslint/camelcase */
+            })
+          );
+        });
       });
 
       server.once("listening", async () => {
@@ -70,11 +92,24 @@ test.before(async () => {
       const server = createServer((request, response) => {
         response.statusCode = 200;
         response.setHeader("Content-Type", "application/json");
+
+        let encoded =
+          request.headers.authorization &&
+          request.headers.authorization.split(".")[1];
+
+        if (encoded) {
+          for (var i = (encoded.length % 4) - 1; i >= 0; i--) {
+            encoded += "=";
+          }
+        }
+
+        const decoded = encoded
+          ? Buffer.from(encoded, "base64").toString()
+          : "null";
         response.end(
           JSON.stringify({
             url: request.url,
-            cookie: request.headers.cookie,
-            Authorization: request.headers.authorization
+            token: JSON.parse(decoded)
           })
         );
       });
@@ -98,71 +133,56 @@ test.before(async () => {
 
   proxy = new AuthXClientProxy({
     authxUrl: `http://127.0.0.1:${mockAuthX.port}`,
+    clientId: "b22282bf-1b78-4ffc-a0d6-2da5465895d0",
+    clientSecret: "de2c693f-b654-4cf2-b3db-eb37a36bc7a9",
     readinessEndpoint: "/_ready",
-
-    // These need to match the values for your client in AuthX.
-    clientId: "3ac01e62-faba-4644-b4c0-7979775717ac",
-    clientSecret: "279b6f23893778b5edf981867a78a86d60c9bd3d",
-    clientUrl: "http://127.0.0.1:5734",
-
-    // These are the scopes your client will request from users.
-    requestGrantedScopes: ["AuthX:user.equal.self:read.basic"],
-
     rules: [
-      // We want the front-end to be able to access the AuthX API without managing
-      // credentials. To do this, we create a proxy that injects a token with all
-      // the necessary scopes and nothing more.
       {
-        test({ method, url }) {
-          return method === "POST" && url === "/api/authx";
-        },
-        behavior(request: IncomingMessage) {
-          // Rewrite the URL to match the API's expectations.
-          request.url = "/graphql";
-
-          // Because this is an API request, we don't want to redirect the browser
-          // so we will return a 401 and include a `Location` header which the
-          // front-end can use to redirect the user.
-          return {
-            proxyOptions: { target: `http://127.0.0.1:${mockTarget.port}` },
-            sendAuthorizationResponseAs: 401,
-            sendTokenToTargetWithScopes: ["authx.prod:**:**"]
-          };
-        }
-      },
-      // These are static assets that we want publically cached by Google Cloud
-      // CDN or Cloudflare. We won't require any auth for these endpoints.
-      {
-        test({ method, url }) {
-          return method === "GET" && /^\/static(\/.*)?$/.test(url || "");
+        test({ url }) {
+          return url === "/no-token";
         },
         behavior: {
           proxyOptions: { target: `http://127.0.0.1:${mockTarget.port}` }
         }
       },
-      // The rest of our routes render a single-page-app. We simply want to make
-      // sure that we're
       {
-        test() {
-          return true;
+        test({ url }) {
+          return url === "/with-static-token";
         },
-
-        // These requests are likely made directly by the user, so we can simply
-        // redirect the user if we require more granted priviliges. Additionally,
-        // we don't need to generate a token for this target, so we can leave off
-        // `sendTokenToTargetWithScopes`. However, we still do want to ensure that
-        // the user is authenticated and has granted us scopes that are necessary
-        // for the app to work, so we will set `requireGrantedScopes`.
         behavior: {
           proxyOptions: { target: `http://127.0.0.1:${mockTarget.port}` },
-          sendAuthorizationResponseAs: 303,
-          sendTokenToTargetWithScopes: []
+          refreshToken: "cbfd6ad6-b770-4ffd-911d-d999a894a0fb"
+        }
+      },
+      {
+        test({ url }) {
+          return url === "/with-static-token-and-scopes";
+        },
+        behavior: {
+          proxyOptions: { target: `http://127.0.0.1:${mockTarget.port}` },
+          refreshToken: "cbfd6ad6-b770-4ffd-911d-d999a894a0fb",
+          sendTokenToTargetWithScopes: ["foo:**:**"]
+        }
+      },
+      {
+        test({ url }) {
+          return url === "/with-dynamic-token-and-scopes";
+        },
+        behavior(request) {
+          request.url = "/rewritten";
+          return {
+            proxyOptions: { target: `http://127.0.0.1:${mockTarget.port}` },
+            refreshToken: "58582764-308e-4eaa-9e72-dbb7e7f1c085",
+            sendTokenToTargetWithScopes: ["**:**:**"]
+          };
         }
       }
     ]
   });
 
-  await proxy.listen(5734);
+  proxy.on("error", error => console.error(error));
+
+  await proxy.listen();
   const address = proxy && proxy.server.address();
   if (!address || typeof address === "string" || !address.port) {
     throw new Error("No address for mock server.");
@@ -177,118 +197,63 @@ test("readiness endpoint", async t => {
   t.is(await response.text(), "READY");
 });
 
-test("anonymous - 401", async t => {
-  const response = await fetch(`http://127.0.0.1:${port}/api/authx`, {
-    method: "POST",
-    redirect: "manual",
-    headers: {
-      referer: "/foo"
+test("no token", async t => {
+  const result = await fetch(`http://127.0.0.1:${port}/no-token`);
+  t.assert(result.status === 200);
+  t.deepEqual(await result.json(), {
+    url: "/no-token",
+    token: null
+  });
+});
+
+test("with static token", async t => {
+  const result = await fetch(`http://127.0.0.1:${port}/with-static-token`);
+  t.assert(result.status === 200);
+  t.deepEqual(await result.json(), {
+    url: "/with-static-token",
+    token: {
+      aid: "810348aa-d295-4d42-a264-7c6c4861367f",
+      scopes: [],
+      exp: nowInSeconds + 3600,
+      iss: "authx",
+      sub: "c79a01a2-0ed7-45c5-93b8-bc921d5cf368",
+      aud: "b22282bf-1b78-4ffc-a0d6-2da5465895d0"
     }
   });
-  t.is(response.status, 401);
-  const location = response.headers.get("Location");
-  t.assert(location, "Location header must be in response.");
-  const url = new URL(location || "");
-  t.is(url.origin, `http://127.0.0.1:${mockAuthX.port}`);
-  t.is([...url.searchParams].length, 5);
-  t.is(url.searchParams.get("response_type"), "code");
-  t.is(
-    url.searchParams.get("client_id"),
-    "3ac01e62-faba-4644-b4c0-7979775717ac"
-  );
-  t.is(url.searchParams.get("redirect_uri"), "http://127.0.0.1:5734");
-  t.is(url.searchParams.get("scope"), "AuthX:user.equal.self:read.basic");
-  t.assert(url.searchParams.get("state"), "State must be set.");
-
-  // Sets cookies:
-  // - authx.s = state
-  // - authx.d = referer (since this is a POST request)
-  t.is(
-    response.headers.get("set-cookie"),
-    `authx.s=${url.searchParams.get("state") ||
-      ""}; path=/; httponly, authx.d=/foo; path=/; httponly`
-  );
 });
 
-test("anonymous - 200", async t => {
-  const response = await fetch(`http://127.0.0.1:${port}/static/logo`, {
-    redirect: "manual"
-  });
-  t.is(response.status, 200);
-});
-
-test("anonymous - 303", async t => {
-  const response = await fetch(`http://127.0.0.1:${port}/admin`, {
-    redirect: "manual"
-  });
-  t.is(response.status, 303);
-  const location = response.headers.get("Location");
-  t.assert(location, "Location header must be in response.");
-  const url = new URL(location || "");
-  t.is(url.origin, `http://127.0.0.1:${mockAuthX.port}`);
-  t.is([...url.searchParams].length, 5);
-  t.is(url.searchParams.get("response_type"), "code");
-  t.is(
-    url.searchParams.get("client_id"),
-    "3ac01e62-faba-4644-b4c0-7979775717ac"
+test("with static token and scopes", async t => {
+  const result = await fetch(
+    `http://127.0.0.1:${port}/with-static-token-and-scopes`
   );
-  t.is(url.searchParams.get("redirect_uri"), "http://127.0.0.1:5734");
-  t.is(url.searchParams.get("scope"), "AuthX:user.equal.self:read.basic");
-  t.assert(url.searchParams.get("state"), "State must be set.");
-
-  // Sets cookies:
-  // - authx.s = state
-  // - authx.d = referer (since this is a POST request)
-  t.is(
-    response.headers.get("set-cookie"),
-    `authx.s=${url.searchParams.get("state") ||
-      ""}; path=/; httponly, authx.d=/admin; path=/; httponly`
-  );
-});
-
-test("use token from cookie", async t => {
-  const headers = new Headers();
-  headers.append("cookie", "authx.r=9a64774762a4cdece006b0007e7795eaa1709a34");
-  headers.append(
-    "cookie",
-    `authx.t.2jmj7l5rSw0yVb_vlWAYkK_YBwk=eyJhbGciOiJSUzUxMiIsInR5cCI6IkpXVCJ9.eyJzY29wZXMiOltdLCJpYXQiOjE1NTY2MDMxMTAsImV4cCI6NDcxMDIwMzExMCwiYXVkIjoiZmUyNDc4YjUtN2I2MC00Y2VkLWFhZjgtNmM5YjRhMmU3M2Y2IiwiaXNzIjoiYXV0aHgiLCJzdWIiOiIxNmE2MDcyMi1mNzJmLTQyYTEtODRmOC01YWY4MGJhYWMyODkifQ.GEd75BHZP3c4NGv3te9bDLQ9hPV0B6lFxydfuBw-4k9KNP5330xQjrAY4Wu-S9thAGS2cXfHyFWR2cKfBDDno6_NivSJHszBs_ErDSAHCJsZ4Ej1VJmPXpePfXbdAmMd6Ug6dEsmmV1lO_gpICHqnVwj2KWGUPvwbN7VVdufy7g`
-  );
-  const response = await fetch(`http://127.0.0.1:${port}/admin`, {
-    redirect: "manual",
-    headers
-  });
-
-  t.is(response.status, 200);
-  t.false(response.headers.has("set-cookie"));
-
-  t.deepEqual(await response.json(), {
-    url: "/admin",
-    Authorization:
-      "Bearer eyJhbGciOiJSUzUxMiIsInR5cCI6IkpXVCJ9.eyJzY29wZXMiOltdLCJpYXQiOjE1NTY2MDMxMTAsImV4cCI6NDcxMDIwMzExMCwiYXVkIjoiZmUyNDc4YjUtN2I2MC00Y2VkLWFhZjgtNmM5YjRhMmU3M2Y2IiwiaXNzIjoiYXV0aHgiLCJzdWIiOiIxNmE2MDcyMi1mNzJmLTQyYTEtODRmOC01YWY4MGJhYWMyODkifQ.GEd75BHZP3c4NGv3te9bDLQ9hPV0B6lFxydfuBw-4k9KNP5330xQjrAY4Wu-S9thAGS2cXfHyFWR2cKfBDDno6_NivSJHszBs_ErDSAHCJsZ4Ej1VJmPXpePfXbdAmMd6Ug6dEsmmV1lO_gpICHqnVwj2KWGUPvwbN7VVdufy7g"
+  t.assert(result.status === 200);
+  t.deepEqual(await result.json(), {
+    url: "/with-static-token-and-scopes",
+    token: {
+      aid: "810348aa-d295-4d42-a264-7c6c4861367f",
+      scopes: ["foo:**:**"],
+      exp: nowInSeconds + 3600,
+      iss: "authx",
+      sub: "c79a01a2-0ed7-45c5-93b8-bc921d5cf368",
+      aud: "b22282bf-1b78-4ffc-a0d6-2da5465895d0"
+    }
   });
 });
 
-test("fetch token from authx", async t => {
-  const headers = new Headers();
-  headers.append("cookie", "authx.r=9a64774762a4cdece006b0007e7795eaa1709a34");
-  headers.append(
-    "cookie",
-    `authx.t.2jmj7l5rSw0yVb_vlWAYkK_YBwk=eyJhbGciOiJSUzUxMiIsInR5cCI6IkpXVCJ9.eyJzY29wZXMiOltdLCJpYXQiOjE1NTY2MDMxMTAsImV4cCI6NDcxMDIwMzExMCwiYXVkIjoiZmUyNDc4YjUtN2I2MC00Y2VkLWFhZjgtNmM5YjRhMmU3M2Y2IiwiaXNzIjoiYXV0aHgiLCJzdWIiOiIxNmE2MDcyMi1mNzJmLTQyYTEtODRmOC01YWY4MGJhYWMyODkifQ.GEd75BHZP3c4NGv3te9bDLQ9hPV0B6lFxydfuBw-4k9KNP5330xQjrAY4Wu-S9thAGS2cXfHyFWR2cKfBDDno6_NivSJHszBs_ErDSAHCJsZ4Ej1VJmPXpePfXbdAmMd6Ug6dEsmmV1lO_gpICHqnVwj2KWGUPvwbN7VVdufy7g`
+test("with dynamic token and scopes", async t => {
+  const result = await fetch(
+    `http://127.0.0.1:${port}/with-dynamic-token-and-scopes`
   );
-  const response = await fetch(`http://127.0.0.1:${port}/api/authx`, {
-    method: "POST",
-    redirect: "manual",
-    headers
-  });
-
-  t.is(response.status, 200);
-  t.is(
-    response.headers.get("set-cookie"),
-    "authx.r=c89900b6a34123900274e90f87f7adc0c1ab8d93; path=/; httponly, authx.t.JvVNJVB5EzHJcWVP-FqK-nxVIa4=eyJhbGciOiJSUzUxMiIsInR5cCI6IkpXVCJ9.eyJzY29wZXMiOlsiQXV0aFg6dXNlci5lcXVhbC5zZWxmOnJlYWQuYmFzaWMiXSwiaWF0IjoxNTU2NjAzOTU5LCJleHAiOjQ3MTAyMDM5NTksImF1ZCI6ImZlMjQ3OGI1LTdiNjAtNGNlZC1hYWY4LTZjOWI0YTJlNzNmNiIsImlzcyI6ImF1dGh4Iiwic3ViIjoiMTZhNjA3MjItZjcyZi00MmExLTg0ZjgtNWFmODBiYWFjMjg5In0.hB7N3Ibdc-LX9gTkarWPXpjr6gFPRpFVnKND2CXS1XHq6ePzhLIs-Bn3ksHOvkpDzx96z7x_8pQwgHXg_DgUNcpUP-eFuk156wxJ7rpuG5aV-wUmAAg-yLnMjXWx65VUf7J-JvVtRVHlkzahLA1n0drf4Fll-hoTJ6qaOHidUlo; path=/; httponly"
-  );
-  t.deepEqual(await response.json(), {
-    url: "/graphql",
-    Authorization:
-      "Bearer eyJhbGciOiJSUzUxMiIsInR5cCI6IkpXVCJ9.eyJzY29wZXMiOlsiQXV0aFg6dXNlci5lcXVhbC5zZWxmOnJlYWQuYmFzaWMiXSwiaWF0IjoxNTU2NjAzOTU5LCJleHAiOjQ3MTAyMDM5NTksImF1ZCI6ImZlMjQ3OGI1LTdiNjAtNGNlZC1hYWY4LTZjOWI0YTJlNzNmNiIsImlzcyI6ImF1dGh4Iiwic3ViIjoiMTZhNjA3MjItZjcyZi00MmExLTg0ZjgtNWFmODBiYWFjMjg5In0.hB7N3Ibdc-LX9gTkarWPXpjr6gFPRpFVnKND2CXS1XHq6ePzhLIs-Bn3ksHOvkpDzx96z7x_8pQwgHXg_DgUNcpUP-eFuk156wxJ7rpuG5aV-wUmAAg-yLnMjXWx65VUf7J-JvVtRVHlkzahLA1n0drf4Fll-hoTJ6qaOHidUlo"
+  t.assert(result.status === 200);
+  t.deepEqual(await result.json(), {
+    url: "/rewritten",
+    token: {
+      aid: "810348aa-d295-4d42-a264-7c6c4861367f",
+      scopes: ["**:**:**"],
+      exp: nowInSeconds + 3600,
+      iss: "authx",
+      sub: "c79a01a2-0ed7-45c5-93b8-bc921d5cf368",
+      aud: "b22282bf-1b78-4ffc-a0d6-2da5465895d0"
+    }
   });
 });

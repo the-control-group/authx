@@ -1,36 +1,32 @@
-import { createHash, randomBytes } from "crypto";
-import { URL } from "url";
+import { createHash } from "crypto";
+import AbortController from "abort-controller";
 import EventEmitter from "events";
 import fetch from "node-fetch";
 import { createServer, Server, IncomingMessage, ServerResponse } from "http";
-import Cookies from "cookies";
 import { createProxyServer, ServerOptions } from "http-proxy";
 import { decode } from "jsonwebtoken";
-import { simplify } from "@authx/scopes";
 
 interface Behavior {
   /**
    * The options to pass to node-proxy.
+   *
+   * @remarks
+   * The HTTP header `X-OAuth-Scopes` will be set on both the request and
+   * response, containing a space-deliminated list of authorized scopes from a
+   * valid token.
+   *
+   * If a valid token contains no scopes, the `X-OAuth-Scopes` will be an empty
+   * string.
+   *
+   * If no token exists, or the token is invalid, the `X-OAuth-Scopes` will be
+   * removed from both the request and response.
    */
   readonly proxyOptions: ServerOptions;
 
   /**
-   * The HTTP status to use if the proxy requires authorization.
-   *
-   * @remarks
-   * 303 - This will return a 303 to redirect the browser to AuthX for
-   * authorization. After authorizing the proxy, the user will be returned to
-   * the requested page if the initial request was a GET request, or to the URL
-   * set in the referer header. Use this for endpoints with which a human user
-   * directly interacts.
-   *
-   * 401 - This will return a 401 with a `Location` header designating the AuthX
-   * URL to which the user should be directed for authorization. After
-   * authorizing the proxy, the user will be returned to the URL set in the
-   * referer header. Use this for endpoints with which a client-side app
-   * interacts using `fetch` or `XMLHttpRequest`.
+   * The refresh token to use when requesting an access token from AuthX.
    */
-  readonly sendAuthorizationResponseAs?: 303 | 401;
+  readonly refreshToken?: string;
 
   /**
    * Pass a token to the target, restricting scopes to those provided.
@@ -49,6 +45,8 @@ interface Behavior {
    *
    * ...and we want to send a token to the "cafeteria" resource that _only_ has
    * access to "lunch" resources, we can limit it with: [ "lunch:**:**" ]
+   *
+   * * @defaultValue `[]`
    */
   readonly sendTokenToTargetWithScopes?: string[];
 }
@@ -97,24 +95,6 @@ interface Config {
   readonly clientSecret: string;
 
   /**
-   * The URL at which the proxy will provide the OAuth client functionality.
-   */
-  readonly clientUrl: string;
-
-  /**
-   * The scopes to request from the user.
-   */
-  readonly requestGrantedScopes: string[];
-
-  // TODO: eventually we will want the ability to _require_ that certain scopes
-  // are granted. Take, for example, an app that required scopes A and B. Now it
-  // also wants C. Without checking the _granted_ scopes, there is no way to
-  // distinguish between someone who has no access to C, and someone who has
-  // never been asked to grant access to C.
-
-  // readonly requireGrantedScopes?: string[];
-
-  /**
    * The pathname at which the proxy will provide a readiness check.
    *
    * @remarks
@@ -125,18 +105,41 @@ interface Config {
    * When closing the proxy, readiness checks will immediately begin failing,
    * even before the proxy stops accepting requests.
    *
-   * If unspecified, the path `/_ready` will be used.
+   * If not set, the path `/_ready` will be used.
    */
   readonly readinessEndpoint?: string;
 
   /**
-   * When the proxy injects a token into a request, it makes sure that the token
-   * will remain valid for this amount of time in seconds; otherwise it will
-   * request a new token from AuthX to use.
+   * Cached access tokens will be refreshed this amount of time in seconds
+   * before they would otherwise expire.
    *
-   * If unspecified, 30 seconds will be used.
+   * @defaultValue `60`
    */
-  readonly tokenMinimumRemainingLife?: number;
+  readonly refreshCachedTokensAtRemainingLife?: number;
+
+  /**
+   * The number of seconds to wait before aborting and retrying a request for
+   * an access token from the AuthX server.
+   *
+   * @defaultValue `30`
+   */
+  readonly refreshCachedTokensRequestTimeout?: number;
+
+  /**
+   * The number of seconds between failed attempts at refreshing access tokens
+   * from the AuthX server.
+   *
+   * @defaultValue `10`
+   */
+  readonly refreshCachedTokensRetryInterval?: number;
+
+  /**
+   * When a token is unused for this amount of time in seconds, it will be
+   * removed from the cache, and no longer kept fresh.
+   *
+   * @defaultValue `600`
+   */
+  readonly evictDormantCachedTokensThreshold?: number;
 
   /**
    * The rules the proxy will use to handle a request.
@@ -152,9 +155,9 @@ export interface Metadata {
   message: string;
 }
 
-// We need a small key to identify this tokey that is safe for use as a cookie
-// key. We'll use a modified version of base64, as described by:
-// https://tools.ietf.org/html/rfc4648
+/**
+ * Generate a consistent string representation of a scopes array.
+ */
 function hashScopes(scopes: ReadonlyArray<string>): string {
   return createHash("sha1")
     .update([...scopes].sort().join(" "))
@@ -169,6 +172,62 @@ export default class AuthXClientProxy extends EventEmitter {
   private readonly _proxy: ReturnType<typeof createProxyServer>;
   private _closed: boolean = true;
   private _closing: boolean = false;
+
+  /**
+   * Cached access tokens.
+   */
+  private _accessTokens: {
+    [refreshToken: string]: {
+      [hash: string]: string;
+    };
+  } = {};
+
+  /**
+   * A request fetches fresh access tokens from AuthX.
+   */
+  private _requests: {
+    [refreshToken: string]: {
+      [hash: string]: {
+        promise: Promise<string>;
+        controller: AbortController;
+        timeout: ReturnType<typeof setTimeout>;
+      };
+    };
+  } = {};
+
+  /**
+   * A refresh timeout is responsible for initiating a request to AuthX that
+   * replaces a nearly-stale token with a fresh one.
+   */
+  private _refreshTimeouts: {
+    [refreshToken: string]: {
+      [hash: string]: ReturnType<typeof setTimeout>;
+    };
+  } = {};
+
+  /**
+   * An eviction timeout is responsible for preventing tokens from being
+   * refreshed indefinately, if they are not being used. It clears any running
+   * refresh timeouts for a token, aborts in-flight any requests, and removes
+   * the token from the cache.
+   */
+  private _evictionTimeouts: {
+    [refreshToken: string]: {
+      [hash: string]: ReturnType<typeof setTimeout>;
+    };
+  } = {};
+
+  /**
+   * An expiration timeout is responsible for removing expired tokens from the
+   * cache. This prevents expired tokens from being sent downstream, and instead
+   * causes requests to wait on a refresh request.
+   */
+  private _expirationTimeouts: {
+    [refreshToken: string]: {
+      [hash: string]: ReturnType<typeof setTimeout>;
+    };
+  } = {};
+
   public readonly server: Server;
 
   public constructor(config: Config) {
@@ -206,8 +265,6 @@ export default class AuthXClientProxy extends EventEmitter {
       this.emit("request.finish", meta);
     });
 
-    const cookies = new Cookies(request, response);
-
     function send(data?: string): void {
       if (request.complete) {
         response.end(data);
@@ -217,177 +274,19 @@ export default class AuthXClientProxy extends EventEmitter {
       }
     }
 
-    const forward = (
-      options: ServerOptions,
-      rule: Rule,
-      behavior: Behavior
-    ): void => {
-      // Merge `set-cookie` header values with those set by the proxy.
-      const setHeader = response.setHeader;
-      response.setHeader = function(name, value) {
-        if (name.toLowerCase() === "set-cookie") {
-          const setCookie = response.getHeader("set-cookie");
-
-          // Only write the `set-cookie` header if cookiePathRewrite is
-          // configured, or else we risk leaking credentials between targets.
-          if (Array.isArray(value) && options.cookiePathRewrite) {
-            value = Array.isArray(setCookie) ? [...value, ...setCookie] : value;
-          } else {
-            value = Array.isArray(setCookie) ? setCookie : [];
-          }
-        }
-
-        return setHeader.call(response, name, value);
-      };
-
-      // Strip out cookies belonging to the proxy.
-      if (request.headers.cookie) {
-        request.headers.cookie = request.headers.cookie
-          .split("; ")
-          .filter(cookie => !/^authx\./.test(cookie.split("=")[0]))
-          .join("; ");
-
-        if (!request.headers.cookie) delete request.headers.cookie;
-      }
-
-      meta.message = "Request proxied.";
-      meta.rule = rule;
-      meta.behavior = behavior;
-      this._proxy.web(request, response, options);
-    };
-
     // Serve the readiness URL.
     if (request.url === (this._config.readinessEndpoint || "/_ready")) {
       if (this._closed || this._closing) {
         response.statusCode = 503;
         meta.message = "Request handled by readiness endpoint: NOT READY.";
-        return send("NOT READY");
+        send("NOT READY");
+        return;
       }
 
-      meta.message = "Request handled by readiness endpoint: READY.";
       response.statusCode = 200;
-      return send("READY");
-    }
-
-    // Serve the client URL.
-    const requestUrl = new URL(
-      request.url || "/",
-      "http://this-does-not-matter"
-    );
-    const clientUrl = new URL(this._config.clientUrl);
-    if (requestUrl.pathname === clientUrl.pathname) {
-      const params = requestUrl.searchParams;
-
-      // Display an error.
-      const errors = params.getAll("error");
-      if (errors.length) {
-        const errorDescriptions = params.getAll("error_description");
-        response.statusCode = 400;
-        meta.message =
-          "Request handled by client endpoint: display oauth errors.";
-        return send(`
-          <html>
-            <head><title>Error</title></head>
-            <body>
-              ${(errors.length === errorDescriptions.length
-                ? errorDescriptions
-                : errors
-              ).map(
-                message =>
-                  `<div>${message
-                    .replace(/&/g, "&amp;")
-                    .replace(/</g, "&lt;")
-                    .replace(/>/g, "&gt;")
-                    .replace(/"/g, "&quot;")
-                    .replace(/'/g, "&#039;")}</div>`
-              )}
-            </body>
-          </html>
-        `);
-      }
-
-      // No code was returned.
-      const code = params.get("code");
-      if (!code) {
-        response.statusCode = 400;
-        meta.message =
-          "Request handled by client endpoint: display missing code error.";
-        return send(`
-          <html>
-            <head><title>Error</title></head>
-            <body>
-              <div>The <span style="font-family: mono;">code</span> parameter is missing from the OAuth 2.0 response.</div>
-            </body>
-          </html>
-        `);
-      }
-
-      try {
-        const tokenResponse = await fetch(this._config.authxUrl, {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json"
-          },
-          body: JSON.stringify({
-            /* eslint-disable @typescript-eslint/camelcase */
-            grant_type: "authorization_code",
-            client_id: this._config.clientId,
-            client_secret: this._config.clientSecret,
-            code: code,
-            scope: "**:**:**"
-            /* eslint-enable @typescript-eslint/camelcase */
-          })
-        });
-
-        if (tokenResponse.status !== 200) {
-          throw new Error(
-            `Received status code of ${tokenResponse.status} from AuthX.`
-          );
-        }
-
-        const tokenResponseBody = await tokenResponse.json();
-
-        if (tokenResponseBody.error) {
-          throw new Error(tokenResponseBody.error);
-        }
-
-        // Update the refresh token.
-        if (tokenResponseBody.refresh_token) {
-          cookies.set("authx.r", tokenResponseBody.refresh_token);
-        }
-
-        // Use the new access token.
-        if (tokenResponseBody.access_token) {
-          cookies.set(
-            `authx.t.${hashScopes(["**:**:**"])}`,
-            tokenResponseBody.access_token
-          );
-        }
-
-        response.setHeader("Location", cookies.get("authx.d") || "/");
-        response.statusCode = 303;
-
-        // Delete state and destination cookies.
-        cookies.set("authx.s");
-        cookies.set("authx.d");
-
-        meta.message =
-          "Request handled by client endpoint: redirect after successful auth.";
-        return send();
-      } catch (error) {
-        this.emit("error", error);
-        response.statusCode = 500;
-        meta.message =
-          "Request handled by client endpoint: display fetch error.";
-        return send(`
-          <html>
-            <head><title>Error</title></head>
-            <body>
-              <div>Error fetching access token from AuthX.</div>
-            </body>
-          </html>
-        `);
-      }
+      meta.message = "Request handled by readiness endpoint: READY.";
+      send("READY");
+      return;
     }
 
     // Proxy
@@ -402,50 +301,186 @@ export default class AuthXClientProxy extends EventEmitter {
           ? rule.behavior(request, response)
           : rule.behavior;
 
-      // If behavior is `undefined`, then the custom function will handle responding
-      // to the request.
+      // If behavior is undefined, then the custom behavior function will handle
+      // responding to the request.
       if (!behavior) {
         meta.message = "Request handled by custom behavior function.";
         meta.rule = rule;
         return;
       }
 
-      // Nothing else to do; proxy the request.
-      if (!behavior.sendTokenToTargetWithScopes) {
-        forward(behavior.proxyOptions, rule, behavior);
-        return;
-      }
+      // Inject the access token into the request.
+      if (behavior.refreshToken) {
+        try {
+          request.headers.authorization = `Bearer ${await this._getAccessToken(
+            behavior.refreshToken,
+            behavior.sendTokenToTargetWithScopes || []
+          )}`;
+        } catch (error) {
+          this.emit("error", error);
 
-      const scopes = behavior.sendTokenToTargetWithScopes
-        ? simplify(behavior.sendTokenToTargetWithScopes)
-        : [];
-
-      const hash = hashScopes(scopes);
-
-      try {
-        const token = cookies.get(`authx.t.${hash}`);
-        const payload = token && decode(token);
-        if (
-          payload &&
-          typeof payload === "object" &&
-          typeof payload.exp === "number" &&
-          payload.exp >
-            Date.now() / 1000 + (this._config.tokenMinimumRemainingLife || 30)
-        ) {
-          // We already have a valid token.
-          request.headers.authorization = `Bearer ${token}`;
-          forward(behavior.proxyOptions, rule, behavior);
+          response.statusCode = 503;
+          meta.message =
+            error instanceof Error
+              ? `ERROR: ${error.message}`
+              : "Error fetching access token.";
+          meta.rule = rule;
+          meta.behavior = behavior;
+          send();
           return;
         }
-      } catch (error) {
-        this.emit("error", error);
       }
 
-      const refreshToken = cookies.get("authx.r");
-      if (refreshToken) {
+      // Proxy the request.
+      meta.message = "Request proxied.";
+      meta.rule = rule;
+      meta.behavior = behavior;
+      this._proxy.web(request, response, behavior.proxyOptions);
+
+      return;
+    }
+
+    this.emit(
+      "error",
+      new Error(`No rules matched requested URL "${request.url}".`)
+    );
+
+    response.statusCode = 404;
+    meta.message = "No rules matched requested URL.";
+    send();
+    return;
+  };
+
+  private _evict(refreshToken: string, hash: string): void {
+    // Remove the token from the cache.
+    if (this._accessTokens[refreshToken]) {
+      delete this._accessTokens[refreshToken][hash];
+      if (!Object.keys(this._accessTokens[refreshToken]).length) {
+        delete this._accessTokens[refreshToken];
+      }
+    }
+
+    // Abort any in-flight requests.
+    if (this._requests[refreshToken] && this._requests[refreshToken][hash]) {
+      this._requests[refreshToken][hash].controller.abort();
+      delete this._requests[refreshToken][hash];
+      if (!Object.keys(this._requests[refreshToken]).length) {
+        delete this._requests[refreshToken];
+      }
+    }
+
+    // Clear any refresh timeouts.
+    if (this._refreshTimeouts[refreshToken]) {
+      delete this._refreshTimeouts[refreshToken][hash];
+      if (!Object.keys(this._refreshTimeouts[refreshToken]).length) {
+        delete this._refreshTimeouts[refreshToken];
+      }
+    }
+
+    // Clear any eviction timeouts. (IE, remove itself.)
+    if (this._evictionTimeouts[refreshToken]) {
+      delete this._evictionTimeouts[refreshToken][hash];
+      if (!Object.keys(this._evictionTimeouts[refreshToken]).length) {
+        delete this._evictionTimeouts[refreshToken];
+      }
+    }
+
+    // Clear any expiration timeouts.
+    if (this._expirationTimeouts[refreshToken]) {
+      delete this._expirationTimeouts[refreshToken][hash];
+      if (!Object.keys(this._expirationTimeouts[refreshToken]).length) {
+        delete this._expirationTimeouts[refreshToken];
+      }
+    }
+  }
+
+  /**
+   * Get an access token, either from cache or AuthX.
+   *
+   * @param refreshToken - The refresh token used to fetch the access token.
+   * @param scopes - The scopes that should be included the access token contain.
+   */
+  private _getAccessToken(
+    refreshToken: string,
+    scopes: ReadonlyArray<string>
+  ): Promise<string> {
+    const hash = hashScopes(scopes);
+
+    // Clear any eviction timeout.
+    if (
+      this._evictionTimeouts[refreshToken] &&
+      this._evictionTimeouts[refreshToken][hash]
+    ) {
+      clearTimeout(this._evictionTimeouts[refreshToken][hash]);
+    }
+
+    // Create a new eviction timeout.
+    this._evictionTimeouts[refreshToken] =
+      this._evictionTimeouts[refreshToken] || {};
+    this._evictionTimeouts[refreshToken][hash] = setTimeout(
+      () => this._evict(refreshToken, hash),
+      (this._config.evictDormantCachedTokensThreshold || 600) * 1000
+    );
+
+    // Return a result from cache if it exists.
+    if (
+      this._accessTokens[refreshToken] &&
+      this._accessTokens[refreshToken][hash]
+    ) {
+      return Promise.resolve(this._accessTokens[refreshToken][hash]);
+    }
+
+    // Otherwise, fetch a new access token and return its promise.
+    return this._fetchAccessToken(refreshToken, scopes, false);
+  }
+
+  /**
+   * Fetch a fresh access token.
+   *
+   * @param refreshToken - The refresh token used to fetch the access token.
+   * @param scopes - The scopes that should be included the access token contain.
+   * @param retry - Should we retry on failure? This should be set to false when
+   * the `refreshToken` is unknown to prevent amplification attacks.
+   */
+  private _fetchAccessToken(
+    refreshToken: string,
+    scopes: ReadonlyArray<string>,
+    retry: boolean
+  ): Promise<string> {
+    const hash = hashScopes(scopes);
+
+    // If a request is already in flight, use it.
+    if (this._requests[refreshToken] && this._requests[refreshToken][hash]) {
+      return this._requests[refreshToken][hash].promise;
+    }
+
+    // Clear any refresh timeout for this token.
+    if (
+      this._refreshTimeouts[refreshToken] &&
+      this._refreshTimeouts[refreshToken][hash]
+    ) {
+      clearTimeout(this._refreshTimeouts[refreshToken][hash]);
+      delete this._refreshTimeouts[refreshToken][hash];
+      if (!Object.keys(this._refreshTimeouts[refreshToken]).length) {
+        delete this._refreshTimeouts[refreshToken];
+      }
+    }
+
+    // Create a new abort controller.
+    const controller = new AbortController();
+    const timeout = setTimeout(() => {
+      controller.abort();
+    }, (this._config.refreshCachedTokensRequestTimeout || 30) * 1000);
+    const request = {
+      controller,
+      timeout,
+      promise: (async () => {
         try {
+          // FIXME: This should not need to be cast through any. See:
+          // https://github.com/DefinitelyTyped/DefinitelyTyped/pull/35636
           const refreshResponse = await fetch(this._config.authxUrl, {
             method: "POST",
+            signal: controller.signal,
             headers: {
               "Content-Type": "application/json"
             },
@@ -458,7 +493,7 @@ export default class AuthXClientProxy extends EventEmitter {
               scope: scopes.join(" ")
               /* eslint-enabme @typescript-eslint/camelcase */
             })
-          });
+          } as any);
 
           if (refreshResponse.status !== 200) {
             throw new Error(
@@ -473,65 +508,121 @@ export default class AuthXClientProxy extends EventEmitter {
             );
           }
 
-          // Update the refresh token.
-          if (
-            refreshResponseBody.refresh_token &&
-            refreshResponseBody.refresh_token !== refreshToken
-          ) {
-            cookies.set("authx.r", refreshResponseBody.refresh_token);
+          // Because `refreshResponse.json()` is async and not abortable, it's
+          // possible that the an abort was attempted. Check that here.
+          if (controller.signal.aborted) {
+            throw new Error("Request aborted.");
           }
 
-          // Use the new access token.
-          if (refreshResponseBody.access_token) {
-            cookies.set(`authx.t.${hash}`, refreshResponseBody.access_token);
-            request.headers.authorization = `Bearer ${refreshResponseBody.access_token}`;
-
-            forward(behavior.proxyOptions, rule, behavior);
-            return;
+          const accessToken = refreshResponseBody.access_token;
+          if (!accessToken) {
+            throw new Error("No access token returned.");
           }
+
+          const payload = decode(accessToken);
+          if (!payload || typeof payload !== "object") {
+            throw new Error("Invalid token payload.");
+          }
+
+          const expiration = payload.exp;
+          if (typeof expiration !== "number") {
+            throw new Error("Invalid token expiration.");
+          }
+
+          const expiresInSeconds = expiration - Math.floor(Date.now() / 1000);
+          const refreshInSeconds =
+            expiresInSeconds -
+            (this._config.refreshCachedTokensAtRemainingLife || 60);
+
+          if (refreshInSeconds < 0) {
+            throw new Error("Token is too close to its expiration.");
+          }
+
+          // Set an expiration timeout.
+          this._expirationTimeouts[refreshToken] =
+            this._expirationTimeouts[refreshToken] || {};
+          if (this._expirationTimeouts[refreshToken][hash]) {
+            clearTimeout(this._expirationTimeouts[refreshToken][hash]);
+          }
+          this._expirationTimeouts[refreshToken][hash] = setTimeout(() => {
+            if (
+              this._accessTokens[refreshToken] &&
+              this._accessTokens[refreshToken][hash] === accessToken
+            ) {
+              delete this._accessTokens[refreshToken][hash];
+            }
+          }, refreshInSeconds * 1000);
+
+          // Set a refresh timeout.
+          this._refreshTimeouts[refreshToken] =
+            this._refreshTimeouts[refreshToken] || {};
+          if (this._refreshTimeouts[refreshToken][hash]) {
+            clearTimeout(this._refreshTimeouts[refreshToken][hash]);
+          }
+          this._refreshTimeouts[refreshToken][hash] = setTimeout(
+            () => this._fetchAccessToken(refreshToken, scopes, true),
+            refreshInSeconds * 1000
+          );
+
+          // Cache the access token.
+          this._accessTokens[refreshToken] =
+            this._accessTokens[refreshToken] || {};
+          this._accessTokens[refreshToken][hash] = accessToken;
+
+          return accessToken;
         } catch (error) {
+          // Remove this promise from the cache.
+          if (this._accessTokens[refreshToken]) {
+            delete this._accessTokens[refreshToken][hash];
+            if (!Object.keys(this._accessTokens[refreshToken]).length) {
+              delete this._accessTokens[refreshToken];
+            }
+          }
+
+          // Emit the error so that it can be logged.
           this.emit("error", error);
+
+          // Retry the request.
+          // TODO: Detect scenarios where the request will never succeed (such as
+          // using incorrect credentials), and don't retry those.
+          if (retry) {
+            this._refreshTimeouts[refreshToken] =
+              this._refreshTimeouts[refreshToken] || {};
+            if (this._refreshTimeouts[refreshToken][hash]) {
+              clearTimeout(this._refreshTimeouts[refreshToken][hash]);
+            }
+            this._refreshTimeouts[refreshToken][hash] = setTimeout(
+              () => this._fetchAccessToken(refreshToken, scopes, true),
+              (this._config.refreshCachedTokensRetryInterval || 10) * 1000
+            );
+          }
+
+          // Propagate the error to anything that is awaiting this promise.
+          throw error;
+        } finally {
+          // Clear the timeout.
+          clearTimeout(timeout);
+
+          // Remove the request.
+          if (
+            this._requests[refreshToken] &&
+            this._requests[refreshToken][hash] &&
+            this._requests[refreshToken][hash].controller === controller
+          ) {
+            delete this._requests[refreshToken][hash];
+            if (!Object.keys(this._requests[refreshToken]).length) {
+              delete this._requests[refreshToken];
+            }
+          }
         }
-      }
+      })()
+    };
 
-      // We need to authorize the client.
-      const state = randomBytes(16).toString("hex");
-      const destination =
-        behavior.sendAuthorizationResponseAs === 401
-          ? request.headers.referer || "/"
-          : (request.method !== "GET" && request.headers.referer) ||
-            request.url ||
-            "/";
-
-      cookies.set("authx.s", state);
-      cookies.set("authx.d", destination);
-
-      const location = new URL(this._config.authxUrl);
-      location.searchParams.append("response_type", "code");
-      location.searchParams.append("client_id", this._config.clientId);
-      location.searchParams.append("redirect_uri", this._config.clientUrl);
-      location.searchParams.append(
-        "scope",
-        this._config.requestGrantedScopes.join(" ")
-      );
-      location.searchParams.append("state", state);
-      response.setHeader("Location", location.href);
-      response.statusCode = behavior.sendAuthorizationResponseAs || 303;
-      meta.message = "Restricting access.";
-      meta.rule = rule;
-      meta.behavior = behavior;
-      return send();
-    }
-
-    this.emit(
-      "error",
-      new Error(`No rules matched requested URL "${request.url}".`)
-    );
-
-    meta.message = "No rules matched requested URL.";
-    response.statusCode = 404;
-    send();
-  };
+    // Store the request.
+    this._requests[refreshToken] = this._requests[refreshToken] || {};
+    this._requests[refreshToken][hash] = request;
+    return request.promise;
+  }
 
   public async listen(port?: number): Promise<void> {
     if (!this._closed) {
@@ -543,10 +634,7 @@ export default class AuthXClientProxy extends EventEmitter {
     }
 
     return new Promise(resolve => {
-      this.server.once("listening", () => {
-        this.emit("ready");
-        resolve();
-      });
+      this.server.once("listening", resolve);
       this.server.listen(port);
     });
   }
@@ -557,6 +645,41 @@ export default class AuthXClientProxy extends EventEmitter {
     }
 
     this._closing = true;
+
+    // Empty the cache.
+    this._accessTokens = {};
+
+    // Abort any in-flight requests.
+    for (const map of Object.values(this._requests)) {
+      for (const { controller } of Object.values(map)) {
+        controller.abort();
+      }
+    }
+    this._requests = {};
+
+    // Clear refresh timeouts.
+    for (const map of Object.values(this._refreshTimeouts)) {
+      for (const timeout of Object.values(map)) {
+        clearTimeout(timeout);
+      }
+    }
+    this._refreshTimeouts = {};
+
+    // Clear eviction timeouts.
+    for (const map of Object.values(this._evictionTimeouts)) {
+      for (const timeout of Object.values(map)) {
+        clearTimeout(timeout);
+      }
+    }
+    this._evictionTimeouts = {};
+
+    // Clear expiration timeouts.
+    for (const map of Object.values(this._expirationTimeouts)) {
+      for (const timeout of Object.values(map)) {
+        clearTimeout(timeout);
+      }
+    }
+    this._expirationTimeouts = {};
 
     // Close the proxy.
     return new Promise(resolve => {

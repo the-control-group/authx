@@ -6,11 +6,11 @@
       "folder_exclude_patterns": ["**/node_modules", "**/dist"]
     },
     {
-      "path": "packages/http-proxy-authorization",
+      "path": "packages/http-proxy-client",
       "folder_exclude_patterns": ["**/node_modules", "**/dist"]
     },
     {
-      "path": "packages/http-proxy-client",
+      "path": "packages/http-proxy-web",
       "folder_exclude_patterns": ["**/node_modules", "**/dist"]
     },
     {

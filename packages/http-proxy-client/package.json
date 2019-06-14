@@ -5,13 +5,10 @@
   },
   "bugs": "https://github.com/the-control-group/authx/issues",
   "dependencies": {
-    "@authx/scopes": "^2.2.1",
-    "@types/cookies": "^0.7.2",
     "@types/http-proxy": "^1.17.0",
     "@types/jsonwebtoken": "^8.3.2",
     "@types/node-fetch": "^2.3.6",
     "abort-controller": "^3.0.0",
-    "cookies": "^0.7.3",
     "http-proxy": "^1.17.0",
     "jsonwebtoken": "^8.5.1",
     "node-fetch": "^2.5.0"
@@ -55,5 +52,5 @@
     "test:development": "ava --verbose dist/*.test.js --watch"
   },
   "types": "./dist/index.d.ts",
-  "version": "1.0.0-beta.7"
+  "version": "1.0.0-beta.8"
 }
