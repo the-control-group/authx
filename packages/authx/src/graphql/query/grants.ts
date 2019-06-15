@@ -1,9 +1,4 @@
-import {
-  GraphQLBoolean,
-  GraphQLList,
-  GraphQLNonNull,
-  GraphQLFieldConfig
-} from "graphql";
+import { GraphQLBoolean, GraphQLFieldConfig } from "graphql";
 
 import {
   connectionFromArray,
@@ -11,7 +6,7 @@ import {
   ConnectionArguments
 } from "graphql-relay";
 
-import { GraphQLGrant } from "../GraphQLGrant";
+import { GraphQLGrantConnection } from "../GraphQLGrantConnection";
 import { Context } from "../../Context";
 import { Grant } from "../../model";
 import { filter } from "../../util/filter";
@@ -23,7 +18,7 @@ export const grants: GraphQLFieldConfig<
   },
   Context
 > = {
-  type: new GraphQLList(new GraphQLNonNull(GraphQLGrant)),
+  type: GraphQLGrantConnection,
   description: "List all grants.",
   args: {
     ...connectionArgs,

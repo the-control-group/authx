@@ -1,9 +1,4 @@
-import {
-  GraphQLBoolean,
-  GraphQLList,
-  GraphQLNonNull,
-  GraphQLFieldConfig
-} from "graphql";
+import { GraphQLBoolean, GraphQLFieldConfig } from "graphql";
 
 import {
   connectionFromArray,
@@ -11,7 +6,7 @@ import {
   ConnectionArguments
 } from "graphql-relay";
 
-import { GraphQLCredential } from "../GraphQLCredential";
+import { GraphQLCredentialConnection } from "../GraphQLCredentialConnection";
 import { Context } from "../../Context";
 import { Credential } from "../../model";
 import { filter } from "../../util/filter";
@@ -23,7 +18,7 @@ export const credentials: GraphQLFieldConfig<
   },
   Context
 > = {
-  type: new GraphQLList(new GraphQLNonNull(GraphQLCredential)),
+  type: GraphQLCredentialConnection,
   description: "List all credentials.",
   ...connectionArgs,
   args: {

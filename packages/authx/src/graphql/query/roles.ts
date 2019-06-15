@@ -1,9 +1,4 @@
-import {
-  GraphQLBoolean,
-  GraphQLList,
-  GraphQLNonNull,
-  GraphQLFieldConfig
-} from "graphql";
+import { GraphQLBoolean, GraphQLFieldConfig } from "graphql";
 
 import {
   connectionFromArray,
@@ -11,7 +6,7 @@ import {
   ConnectionArguments
 } from "graphql-relay";
 
-import { GraphQLRole } from "../GraphQLRole";
+import { GraphQLRoleConnection } from "../GraphQLRoleConnection";
 import { Context } from "../../Context";
 import { Role } from "../../model";
 import { filter } from "../../util/filter";
@@ -23,7 +18,7 @@ export const roles: GraphQLFieldConfig<
   },
   Context
 > = {
-  type: new GraphQLList(new GraphQLNonNull(GraphQLRole)),
+  type: GraphQLRoleConnection,
   description: "List all roles.",
   args: {
     ...connectionArgs,

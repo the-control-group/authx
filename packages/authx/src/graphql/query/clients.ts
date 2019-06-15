@@ -1,9 +1,4 @@
-import {
-  GraphQLBoolean,
-  GraphQLList,
-  GraphQLNonNull,
-  GraphQLFieldConfig
-} from "graphql";
+import { GraphQLBoolean, GraphQLFieldConfig } from "graphql";
 
 import {
   connectionFromArray,
@@ -11,7 +6,7 @@ import {
   ConnectionArguments
 } from "graphql-relay";
 
-import { GraphQLClient } from "../GraphQLClient";
+import { GraphQLClientConnection } from "../GraphQLClientConnection";
 import { Context } from "../../Context";
 import { Client } from "../../model";
 import { filter } from "../../util/filter";
@@ -23,7 +18,7 @@ export const clients: GraphQLFieldConfig<
   },
   Context
 > = {
-  type: new GraphQLList(new GraphQLNonNull(GraphQLClient)),
+  type: GraphQLClientConnection,
   description: "List all clients.",
   args: {
     ...connectionArgs,

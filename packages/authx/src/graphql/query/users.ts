@@ -1,9 +1,4 @@
-import {
-  GraphQLBoolean,
-  GraphQLList,
-  GraphQLNonNull,
-  GraphQLFieldConfig
-} from "graphql";
+import { GraphQLBoolean, GraphQLFieldConfig } from "graphql";
 
 import {
   connectionFromArray,
@@ -11,7 +6,7 @@ import {
   ConnectionArguments
 } from "graphql-relay";
 
-import { GraphQLUser } from "../GraphQLUser";
+import { GraphQLUserConnection } from "../GraphQLUserConnection";
 import { Context } from "../../Context";
 import { User } from "../../model";
 import { filter } from "../../util/filter";
@@ -23,7 +18,7 @@ export const users: GraphQLFieldConfig<
   },
   Context
 > = {
-  type: new GraphQLList(new GraphQLNonNull(GraphQLUser)),
+  type: GraphQLUserConnection,
   description: "List all users.",
   args: {
     ...connectionArgs,

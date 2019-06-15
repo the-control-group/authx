@@ -1,9 +1,4 @@
-import {
-  GraphQLBoolean,
-  GraphQLList,
-  GraphQLNonNull,
-  GraphQLFieldConfig
-} from "graphql";
+import { GraphQLBoolean, GraphQLFieldConfig } from "graphql";
 
 import {
   connectionFromArray,
@@ -11,7 +6,7 @@ import {
   ConnectionArguments
 } from "graphql-relay";
 
-import { GraphQLAuthorization } from "../GraphQLAuthorization";
+import { GraphQLAuthorizationConnection } from "../GraphQLAuthorizationConnection";
 import { Context } from "../../Context";
 import { Authorization } from "../../model";
 import { filter } from "../../util/filter";
@@ -23,7 +18,7 @@ export const authorizations: GraphQLFieldConfig<
   },
   Context
 > = {
-  type: new GraphQLList(new GraphQLNonNull(GraphQLAuthorization)),
+  type: GraphQLAuthorizationConnection,
   description: "List all authorizations.",
   args: {
     ...connectionArgs,
