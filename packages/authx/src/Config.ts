@@ -1,31 +1,33 @@
+import { IMiddleware } from "graphql-middleware";
 import { StrategyCollection } from "./StrategyCollection";
 import { Strategy } from "./Strategy";
 
 export interface Config {
-  realm: string;
-  base: string;
-  privateKey: string;
-  publicKeys: string[];
-  codeValidityDuration: number;
-  jwtValidityDuration: number;
-  sendMail: (options: {
-    to: string;
-    subject: string;
-    text: string;
-    html: string;
-    from?: string;
+  readonly realm: string;
+  readonly base: string;
+  readonly privateKey: string;
+  readonly publicKeys: string[];
+  readonly codeValidityDuration: number;
+  readonly jwtValidityDuration: number;
+  readonly sendMail: (options: {
+    readonly to: string;
+    readonly subject: string;
+    readonly text: string;
+    readonly html: string;
+    readonly from?: string;
   }) => Promise<any>;
-  strategies: StrategyCollection | Strategy[];
-  pg: {
-    database?: string;
-    host?: string;
-    idleTimeoutMillis?: number;
-    max?: number;
-    password?: string;
-    port?: number;
-    ssl?: boolean;
-    user?: string;
+  readonly strategies: StrategyCollection | Strategy[];
+  readonly pg: {
+    readonly database?: string;
+    readonly host?: string;
+    readonly idleTimeoutMillis?: number;
+    readonly max?: number;
+    readonly password?: string;
+    readonly port?: number;
+    readonly ssl?: boolean;
+    readonly user?: string;
   };
+  readonly middleware?: IMiddleware[];
 }
 
 export function assertConfig(config: Config): void {
@@ -83,5 +85,14 @@ export function assertConfig(config: Config): void {
 
   if (typeof config.pg !== "object") {
     throw new Error("The config option `pg` must be an object.");
+  }
+
+  if (
+    typeof config.middleware !== "undefined" &&
+    !Array.isArray(config.middleware)
+  ) {
+    throw new Error(
+      "The config option `middleware` must be an array if defined."
+    );
   }
 }

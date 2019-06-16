@@ -3,16 +3,22 @@ import { Middleware, ParameterizedContext } from "koa";
 import Router, { IRouterOptions } from "koa-router";
 import body from "koa-body";
 import { errorHandler, execute } from "graphql-api-koa";
+import { applyMiddleware } from "graphql-middleware";
 import x from "./x";
 
 import { createSchema } from "./graphql";
 import oauth2 from "./oauth2";
-import createCraphiqlMiddleware from "graphql-playground-middleware-koa";
+import createPlaygroundMiddleware from "graphql-playground-middleware-koa";
 
 import { Config, assertConfig } from "./Config";
 import { Context } from "./Context";
 import { parse } from "auth-header";
 import { UnsupportedMediaTypeError } from "./errors";
+import {
+  traceHRStartTime,
+  tracerGraphQLMiddleware,
+  durationHrTimeToNanos
+} from "./tracer";
 
 import { fromBasic, fromBearer } from "./util/getAuthorization";
 
@@ -26,6 +32,8 @@ export * from "./Strategy";
 export * from "./StrategyCollection";
 export * from "./Config";
 export * from "./Context";
+
+const __DEV__ = process.env.NODE_ENV !== "production";
 
 export class AuthX<
   StateT extends any = any,
@@ -78,6 +86,13 @@ export class AuthX<
 
         const context: Context = {
           ...config,
+          tracing: {
+            [traceHRStartTime]: process.hrtime(),
+            startTime: new Date(),
+            execution: {
+              resolvers: []
+            }
+          },
           strategies,
           authorization,
           tx
@@ -88,6 +103,22 @@ export class AuthX<
         await next();
       } finally {
         tx.release();
+
+        if (
+          __DEV__ &&
+          ctx.response.body &&
+          typeof ctx.response.body === "object"
+        ) {
+          ctx.response.body.extensions = ctx.response.body.extensions || {};
+          ctx.response.body.extensions.tracing = {
+            ...ctx[x].tracing,
+            version: 1,
+            duration: durationHrTimeToNanos(
+              process.hrtime(ctx[x].tracing[traceHRStartTime])
+            ),
+            endTime: new Date()
+          };
+        }
       }
     };
 
@@ -116,7 +147,11 @@ export class AuthX<
       body({ multipart: false, urlencoded: false, text: false, json: true }),
 
       execute({
-        schema: createSchema(strategies),
+        schema: applyMiddleware(
+          createSchema(strategies),
+          tracerGraphQLMiddleware,
+          ...(config.middleware || [])
+        ),
         override: (ctx: any) => {
           const contextValue: Context = ctx[x];
 
@@ -130,7 +165,7 @@ export class AuthX<
     // GraphiQL
     // ========
     // This is a graphical (get it, graph-i-QL) interface to the AuthX API.
-    this.all("/graphiql", createCraphiqlMiddleware({ endpoint: "/graphql" }));
+    this.all("/graphiql", createPlaygroundMiddleware({ endpoint: "/graphql" }));
 
     // OAuth
     // =====

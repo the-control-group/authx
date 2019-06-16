@@ -1,6 +1,7 @@
 import { PoolClient } from "pg";
 import { Authorization } from "./model";
 import { StrategyCollection } from "./StrategyCollection";
+import { TracingContext } from "./tracer";
 
 export interface Context {
   realm: string;
@@ -19,4 +20,5 @@ export interface Context {
   tx: PoolClient;
   strategies: StrategyCollection;
   authorization: null | Authorization;
+  tracing: TracingContext;
 }
