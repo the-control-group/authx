@@ -15,10 +15,11 @@ import { Context } from "./Context";
 import { parse } from "auth-header";
 import { UnsupportedMediaTypeError } from "./errors";
 import {
-  traceHRStartTime,
-  tracerGraphQLMiddleware,
-  durationHrTimeToNanos
-} from "./tracer";
+  apolloTracingContext,
+  apolloTracingGraphQLMiddleware,
+  startTracingContext,
+  endTracingContext
+} from "./apolloTracing";
 
 import { fromBasic, fromBearer } from "./util/getAuthorization";
 
@@ -86,13 +87,7 @@ export class AuthX<
 
         const context: Context = {
           ...config,
-          tracing: {
-            [traceHRStartTime]: process.hrtime(),
-            startTime: new Date(),
-            execution: {
-              resolvers: []
-            }
-          },
+          [apolloTracingContext]: startTracingContext(),
           strategies,
           authorization,
           tx
@@ -104,20 +99,17 @@ export class AuthX<
       } finally {
         tx.release();
 
+        // Calculate final end and duration for Apollo trace.
+        endTracingContext(ctx[x].apolloTracingContext);
+
         if (
           __DEV__ &&
           ctx.response.body &&
           typeof ctx.response.body === "object"
         ) {
           ctx.response.body.extensions = ctx.response.body.extensions || {};
-          ctx.response.body.extensions.tracing = {
-            ...ctx[x].tracing,
-            version: 1,
-            duration: durationHrTimeToNanos(
-              process.hrtime(ctx[x].tracing[traceHRStartTime])
-            ),
-            endTime: new Date()
-          };
+          ctx.response.body.extensions.apolloTracingContext =
+            ctx[x].apolloTracingContext;
         }
       }
     };
@@ -149,7 +141,7 @@ export class AuthX<
       execute({
         schema: applyMiddleware(
           createSchema(strategies),
-          tracerGraphQLMiddleware,
+          apolloTracingGraphQLMiddleware,
           ...(config.middleware || [])
         ),
         override: (ctx: any) => {

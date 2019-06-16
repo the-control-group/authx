@@ -1,7 +1,7 @@
 import { PoolClient } from "pg";
 import { Authorization } from "./model";
 import { StrategyCollection } from "./StrategyCollection";
-import { TracingContext } from "./tracer";
+import { ApolloTracingContext, apolloTracingContext } from "./apolloTracing";
 
 export interface Context {
   realm: string;
@@ -20,5 +20,5 @@ export interface Context {
   tx: PoolClient;
   strategies: StrategyCollection;
   authorization: null | Authorization;
-  tracing: TracingContext;
+  [apolloTracingContext]: ApolloTracingContext;
 }
