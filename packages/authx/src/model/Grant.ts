@@ -131,7 +131,7 @@ export class Grant implements GrantData {
           SELECT entity_id AS id
           FROM authx.authorization_record
           WHERE
-            user_id = $1
+            grant_id = $1
             AND replacement_record_id IS NULL
           `,
           [this.id]
