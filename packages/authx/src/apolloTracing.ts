@@ -1,5 +1,4 @@
 import { responsePathAsArray, GraphQLResolveInfo } from "graphql";
-import { Context } from "./Context";
 
 type HighResolutionTime = [number, number];
 
@@ -44,7 +43,7 @@ export async function apolloTracingGraphQLMiddleware(
   resolve: Function,
   parent: any,
   args: any,
-  context: Context,
+  context: { [apolloTracingContext]: ApolloTracingContext },
   info: GraphQLResolveInfo
 ): Promise<any> {
   const startOffset = durationHrTimeToNanos(

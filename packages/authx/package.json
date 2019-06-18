@@ -6,7 +6,6 @@
   "bugs": "https://github.com/the-control-group/authx/issues",
   "dependencies": {
     "@authx/scopes": "^2.2.1",
-    "@opencensus/core": "^0.0.14",
     "@types/auth-header": "^1.0.1",
     "@types/form-data": "^2.2.1",
     "@types/graphql-api-koa": "^2.0.0",
@@ -21,7 +20,6 @@
     "form-data": "^2.3.3",
     "graphql": "^14.3.1",
     "graphql-api-koa": "^2.0.0",
-    "graphql-middleware": "^3.0.2",
     "graphql-playground-middleware-koa": "^1.6.12",
     "graphql-relay": "^0.6.0",
     "jsonwebtoken": "^8.5.0",
@@ -63,6 +61,10 @@
   "license": "MIT",
   "main": "dist",
   "name": "@authx/authx",
+  "optionalDependencies": {
+    "@opencensus/core": "^0.0.14",
+    "graphql-middleware": "^3.0.2"
+  },
   "peerDependencies": {
     "koa": "^2.0.0"
   },

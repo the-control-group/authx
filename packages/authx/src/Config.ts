@@ -1,4 +1,4 @@
-import { IMiddleware } from "graphql-middleware";
+import { GraphQLSchema } from "graphql";
 import { StrategyCollection } from "./StrategyCollection";
 import { Strategy } from "./Strategy";
 
@@ -9,13 +9,6 @@ export interface Config {
   readonly publicKeys: string[];
   readonly codeValidityDuration: number;
   readonly jwtValidityDuration: number;
-  readonly sendMail: (options: {
-    readonly to: string;
-    readonly subject: string;
-    readonly text: string;
-    readonly html: string;
-    readonly from?: string;
-  }) => Promise<any>;
   readonly strategies: StrategyCollection | Strategy[];
   readonly pg: {
     readonly database?: string;
@@ -27,7 +20,14 @@ export interface Config {
     readonly ssl?: boolean;
     readonly user?: string;
   };
-  readonly middleware?: IMiddleware[];
+  readonly sendMail: (options: {
+    readonly to: string;
+    readonly subject: string;
+    readonly text: string;
+    readonly html: string;
+    readonly from?: string;
+  }) => Promise<any>;
+  readonly processSchema?: (schema: GraphQLSchema) => GraphQLSchema;
 }
 
 export function assertConfig(config: Config): void {
@@ -88,11 +88,11 @@ export function assertConfig(config: Config): void {
   }
 
   if (
-    typeof config.middleware !== "undefined" &&
-    !Array.isArray(config.middleware)
+    typeof config.processSchema !== "undefined" &&
+    typeof config.processSchema !== "function"
   ) {
     throw new Error(
-      "The config option `middleware` must be an array if defined."
+      "The config option `processSchema` must be a function if defined."
     );
   }
 }

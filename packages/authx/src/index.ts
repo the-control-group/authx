@@ -1,32 +1,19 @@
-import { Pool } from "pg";
-import { Middleware, ParameterizedContext } from "koa";
-import Router, { IRouterOptions } from "koa-router";
 import body from "koa-body";
-import { errorHandler, execute } from "graphql-api-koa";
-import {
-  applyMiddleware,
-  applyMiddlewareToDeclaredResolvers
-} from "graphql-middleware";
-import x from "./x";
-
-import { createSchema } from "./graphql";
-import oauth2 from "./oauth2";
 import createPlaygroundMiddleware from "graphql-playground-middleware-koa";
+import Router, { IRouterOptions } from "koa-router";
+import { errorHandler, execute } from "graphql-api-koa";
+import { Middleware, ParameterizedContext } from "koa";
+import { parse } from "auth-header";
+import { Pool } from "pg";
 
+import x from "./x";
+import oauth2 from "./oauth2";
 import { Config, assertConfig } from "./Config";
 import { Context } from "./Context";
-import { parse } from "auth-header";
-import { UnsupportedMediaTypeError } from "./errors";
-import {
-  apolloTracingContext,
-  apolloTracingGraphQLMiddleware,
-  startTracingContext,
-  endTracingContext
-} from "./apolloTracing";
-
+import { createSchema } from "./graphql";
 import { fromBasic, fromBearer } from "./util/getAuthorization";
-
 import { StrategyCollection } from "./StrategyCollection";
+import { UnsupportedMediaTypeError } from "./errors";
 
 export * from "./x";
 export * from "./errors";
@@ -36,8 +23,6 @@ export * from "./Strategy";
 export * from "./StrategyCollection";
 export * from "./Config";
 export * from "./Context";
-
-const __DEV__ = process.env.NODE_ENV !== "production";
 
 export class AuthX<
   StateT extends any = any,
@@ -56,10 +41,9 @@ export class AuthX<
     const pool = new Pool(config.pg);
 
     // define the context middleware
-    const context: Middleware<ParameterizedContext<any, any>> = async (
-      ctx,
-      next
-    ): Promise<void> => {
+    const contextMiddleware: Middleware<
+      ParameterizedContext<any, any>
+    > = async (ctx, next): Promise<void> => {
       const tx = await pool.connect();
       try {
         let authorization = null;
@@ -89,8 +73,8 @@ export class AuthX<
         }
 
         const context: Context = {
+          ...ctx[x],
           ...config,
-          [apolloTracingContext]: startTracingContext(),
           strategies,
           authorization,
           tx
@@ -101,18 +85,6 @@ export class AuthX<
         await next();
       } finally {
         tx.release();
-
-        // Calculate final end and duration for Apollo trace.
-        endTracingContext(ctx[x][apolloTracingContext]);
-
-        if (
-          __DEV__ &&
-          ctx.response.body &&
-          typeof ctx.response.body === "object"
-        ) {
-          ctx.response.body.extensions = ctx.response.body.extensions || {};
-          ctx.response.body.extensions.tracing = ctx[x][apolloTracingContext];
-        }
       }
     };
 
@@ -125,7 +97,7 @@ export class AuthX<
 
       errorHandler(),
 
-      context,
+      contextMiddleware,
 
       // The GraphQL endpoint only accepts JSON. This helps protect against CSRF
       // attacks that send urlenceded data via HTML forms.
@@ -141,11 +113,9 @@ export class AuthX<
       body({ multipart: false, urlencoded: false, text: false, json: true }),
 
       execute({
-        schema: applyMiddlewareToDeclaredResolvers(
-          createSchema(strategies),
-          apolloTracingGraphQLMiddleware,
-          ...(config.middleware || [])
-        ),
+        schema: config.processSchema
+          ? config.processSchema(createSchema(strategies))
+          : createSchema(strategies),
         override: (ctx: any) => {
           const contextValue: Context = ctx[x];
 
@@ -175,7 +145,7 @@ export class AuthX<
 
     this.post(
       "/",
-      context,
+      contextMiddleware,
       body({ multipart: false, urlencoded: true, text: false, json: true }),
       oauth2
     );

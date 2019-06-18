@@ -1,11 +1,6 @@
 import { PoolClient } from "pg";
 import { Authorization } from "./model";
 import { StrategyCollection } from "./StrategyCollection";
-import { ApolloTracingContext, apolloTracingContext } from "./apolloTracing";
-import {
-  OpenCensusTracingContext,
-  openCensusTracingContext
-} from "./openCensusTracing";
 
 export interface Context {
   realm: string;
@@ -24,6 +19,4 @@ export interface Context {
   tx: PoolClient;
   strategies: StrategyCollection;
   authorization: null | Authorization;
-  [apolloTracingContext]: ApolloTracingContext;
-  [openCensusTracingContext]?: OpenCensusTracingContext;
 }
