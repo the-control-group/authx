@@ -51,8 +51,7 @@ export async function apolloTracingGraphQLMiddleware(
     process.hrtime(context[apolloTracingContext][traceHRStartTime])
   );
   try {
-    const result = await resolve(parent, args, context, info);
-    return result;
+    return await resolve(parent, args, context, info);
   } finally {
     context[apolloTracingContext].execution.resolvers.push({
       path: [...responsePathAsArray(info.path)],

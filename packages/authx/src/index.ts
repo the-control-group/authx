@@ -3,7 +3,10 @@ import { Middleware, ParameterizedContext } from "koa";
 import Router, { IRouterOptions } from "koa-router";
 import body from "koa-body";
 import { errorHandler, execute } from "graphql-api-koa";
-import { applyMiddleware } from "graphql-middleware";
+import {
+  applyMiddleware,
+  applyMiddlewareToDeclaredResolvers
+} from "graphql-middleware";
 import x from "./x";
 
 import { createSchema } from "./graphql";
@@ -100,7 +103,7 @@ export class AuthX<
         tx.release();
 
         // Calculate final end and duration for Apollo trace.
-        endTracingContext(ctx[x].apolloTracingContext);
+        endTracingContext(ctx[x][apolloTracingContext]);
 
         if (
           __DEV__ &&
@@ -108,8 +111,7 @@ export class AuthX<
           typeof ctx.response.body === "object"
         ) {
           ctx.response.body.extensions = ctx.response.body.extensions || {};
-          ctx.response.body.extensions.apolloTracingContext =
-            ctx[x].apolloTracingContext;
+          ctx.response.body.extensions.tracing = ctx[x][apolloTracingContext];
         }
       }
     };
@@ -139,7 +141,7 @@ export class AuthX<
       body({ multipart: false, urlencoded: false, text: false, json: true }),
 
       execute({
-        schema: applyMiddleware(
+        schema: applyMiddlewareToDeclaredResolvers(
           createSchema(strategies),
           apolloTracingGraphQLMiddleware,
           ...(config.middleware || [])
