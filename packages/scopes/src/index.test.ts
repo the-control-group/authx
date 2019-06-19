@@ -174,6 +174,10 @@ import {
       "client.a:resource:action"
     ],
     result: true
+  },
+  {
+    args: [["pdf:**:read", "pdf:**:write"], ["pdf:**:read", "pdf:**:write"]],
+    result: true
   }
 ] as {
   args: [string, string] | [string[], string];
