@@ -4,7 +4,7 @@ import fetch from "node-fetch";
 import { createServer, Server, IncomingMessage, ServerResponse } from "http";
 import { createProxyServer, ServerOptions } from "http-proxy";
 import { verify, TokenExpiredError } from "jsonwebtoken";
-import { validate, isSuperset } from "@authx/scopes";
+import { validate, isEqual, isSuperset } from "@authx/scopes";
 
 interface Behavior {
   /**
@@ -396,7 +396,10 @@ export default class AuthXResourceProxy extends EventEmitter {
         }
 
         // The token is valid, but lacks required scopes.
-        if (!isSuperset(scopes, behavior.requireScopes)) {
+        if (
+          !isEqual(scopes, behavior.requireScopes) &&
+          !isSuperset(scopes, behavior.requireScopes)
+        ) {
           response.statusCode = 403;
           meta.message = "Restricting access.";
           meta.rule = rule;
