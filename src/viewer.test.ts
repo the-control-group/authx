@@ -130,12 +130,19 @@ test("Deep query on viewer.", async t => {
               codes: [],
               scopes: ["**:**:**"],
               authorizations: {
-                edges: [],
+                edges: [
+                  {
+                    cursor: "YXJyYXljb25uZWN0aW9uOjA=",
+                    node: {
+                      id: "c70da498-27ed-4c3b-a318-38bb220cef48"
+                    }
+                  }
+                ],
                 pageInfo: {
-                  endCursor: null,
+                  endCursor: "YXJyYXljb25uZWN0aW9uOjA=",
                   hasNextPage: false,
                   hasPreviousPage: false,
-                  startCursor: null
+                  startCursor: "YXJyYXljb25uZWN0aW9uOjA="
                 }
               }
             },
