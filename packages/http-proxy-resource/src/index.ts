@@ -182,7 +182,7 @@ export default class AuthXResourceProxy extends EventEmitter {
       if (this._fetchAbortController) {
         this._fetchAbortController.abort();
       }
-    }, this._config.authxPublicKeyRefreshRequestTimeout || 30);
+    }, (this._config.authxPublicKeyRefreshRequestTimeout || 30) * 1000);
 
     try {
       // Fetch the keys from AuthX.
