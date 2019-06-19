@@ -176,14 +176,11 @@ export function isEqual(
   );
 }
 
-export function isSuperset(
-  scopeOrCollectionA: string[] | string,
-  scopeOrCollectionB: string[] | string
-): boolean {
-  const collectionA = (Array.isArray(scopeOrCollectionA)
-    ? scopeOrCollectionA
-    : [scopeOrCollectionA]
-  ).map(scope => {
+export function getDifference(
+  collectionA: string[],
+  collectionB: string[]
+): string[] {
+  const parsedCollectionA = collectionA.map(scope => {
     if (!validate(scope)) {
       throw new InvalidScopeError(
         "A scope in `scopeOrCollectionA` is invalid."
@@ -193,10 +190,7 @@ export function isSuperset(
     return parse(scope);
   });
 
-  const collectionB = (Array.isArray(scopeOrCollectionB)
-    ? scopeOrCollectionB
-    : [scopeOrCollectionB]
-  ).map(scope => {
+  const parsedCollectionB = collectionB.map(scope => {
     if (!validate(scope)) {
       throw new InvalidScopeError(
         "A scope in `scopeOrCollectionB` is invalid."
@@ -206,8 +200,8 @@ export function isSuperset(
     return parse(scope);
   });
 
-  return (
-    collectionA.reduce((remaining, a) => {
+  return parsedCollectionA
+    .reduce((remaining, a) => {
       return remaining.filter(
         b =>
           a.length !== b.length ||
@@ -216,7 +210,23 @@ export function isSuperset(
               !pattern.isSuperset(patternA, b[i])
           )
       );
-    }, collectionB).length === 0
+    }, parsedCollectionB)
+    .map(stringify);
+}
+
+export function isSuperset(
+  scopeOrCollectionA: string[] | string,
+  scopeOrCollectionB: string[] | string
+): boolean {
+  return (
+    getDifference(
+      Array.isArray(scopeOrCollectionA)
+        ? scopeOrCollectionA
+        : [scopeOrCollectionA],
+      Array.isArray(scopeOrCollectionB)
+        ? scopeOrCollectionB
+        : [scopeOrCollectionB]
+    ).length === 0
   );
 }
 

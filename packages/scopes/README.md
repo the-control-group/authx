@@ -83,7 +83,7 @@ Simplify the collection of scopes in `collection` by omiting any scopes that are
 import { simplify } from "@authx/scopes";
 
 simplify(["realm:resource.*:action", "realm:**:action"]);
-// => ['realm:**:action']
+// => ["realm:**:action"]
 ```
 
 ### isEqual
@@ -179,7 +179,26 @@ Get the intersection of `scopeOrCollectionA` and `scopeOrCollectionB`, returning
 import { getIntersection } from "@authx/scopes";
 
 getIntersection(["realm:resource.*:action.*"], ["realm:**:action.read"]);
-// => ['realm:resource.*:action.read']
+// => ["realm:resource.*:action.read"]
+```
+
+### getDifference
+
+- ```ts
+  getDifference(collectionA: string[], collectionB: string[]): string[]
+  ```
+- **_throws `InvalidScopeError` if any scopes in `collectionA` or `collectionB` are invalid._**
+
+Get the relative complement (or set difference) of `collectionA` and `collectionB`, returning a collection of scopes present in `collectionB` but NOT `collectionA`. The returned collection contains normalized scopes _as written in `collectionB`_, even if there is an intersection between the returned scope and `collectionA`.
+
+```js
+import { getDifference } from "@authx/scopes";
+
+getDifference(
+  ["realm:resource.*:action.*"],
+  ["realm:resource.foo:action.read", "realm:other:action.read"]
+);
+// => ["realm:other:action.read"]
 ```
 
 ### hasIntersection

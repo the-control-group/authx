@@ -1,12 +1,13 @@
 import t from "ava";
 
 import {
-  validate,
-  normalize,
-  isSuperset,
-  hasIntersection,
+  getDifference,
   getIntersection,
-  simplify
+  hasIntersection,
+  isSuperset,
+  normalize,
+  simplify,
+  validate
 } from ".";
 
 ([
@@ -51,6 +52,158 @@ import {
   { args: ["**.**.**:resource:action"], result: "*.*.**:resource:action" }
 ] as { args: [string]; result: string }[]).forEach(({ args, result }) => {
   t(`normalize ${args[0]} => ${result}`, t => t.is(normalize(...args), result));
+});
+
+([
+  {
+    args: [["client:resource:action"], ["client:resource:action"]],
+    result: []
+  },
+  {
+    args: [["client:resource:action"], ["wrongclient:resource:action"]],
+    result: ["wrongclient:resource:action"]
+  },
+  {
+    args: [["client:resource:action"], ["client:wrongresource:action"]],
+    result: ["client:wrongresource:action"]
+  },
+  {
+    args: [["client:resource:action"], ["client:resource:wrongaction"]],
+    result: ["client:resource:wrongaction"]
+  },
+  {
+    args: [["client:resource:action"], ["client.a:resource.b:action.c"]],
+    result: ["client.a:resource.b:action.c"]
+  },
+  {
+    args: [["client.*:resource:action"], ["client.a:resource:action"]],
+    result: []
+  },
+  {
+    args: [["client.*:resource:action"], ["client.*:resource:action"]],
+    result: []
+  },
+  {
+    args: [["client.*:resource:action"], ["client.**:resource:action"]],
+    result: ["client.**:resource:action"]
+  },
+  {
+    args: [["client.a:resource:action"], ["client.*:resource:action"]],
+    result: ["client.*:resource:action"]
+  },
+  {
+    args: [["client.*:resource:action"], ["client:resource:action"]],
+    result: ["client:resource:action"]
+  },
+  {
+    args: [["client.*:resource:action"], ["client:resource.a:action"]],
+    result: ["client:resource.a:action"]
+  },
+  {
+    args: [["client.*:resource:action"], ["client.a.b:resource:action"]],
+    result: ["client.a.b:resource:action"]
+  },
+  {
+    args: [["client.*:resource:action"], ["client.a:wrongresource:action"]],
+    result: ["client.a:wrongresource:action"]
+  },
+  {
+    args: [["client.*:resource:action"], ["client.a:resource:wrongaction"]],
+    result: ["client.a:resource:wrongaction"]
+  },
+  {
+    args: [["client.**:resource:action"], ["client.a:resource:action"]],
+    result: []
+  },
+  {
+    args: [["client.**:resource:action"], ["client.a.b:resource:action"]],
+    result: []
+  },
+  {
+    args: [["client.a:resource:action"], ["client.**:resource:action"]],
+    result: ["client.**:resource:action"]
+  },
+  {
+    args: [["client.a.b:resource:action"], ["client.**:resource:action"]],
+    result: ["client.**:resource:action"]
+  },
+  {
+    args: [["client.**:resource:action"], ["client:resource:action"]],
+    result: ["client:resource:action"]
+  },
+  {
+    args: [["client.**:resource:action"], ["client:resource.a:action"]],
+    result: ["client:resource.a:action"]
+  },
+  {
+    args: [["client:resource:action"], ["client.**:resource:action"]],
+    result: ["client.**:resource:action"]
+  },
+  {
+    args: [["client:resource:action"], ["client.**:resource.a:action"]],
+    result: ["client.**:resource.a:action"]
+  },
+  {
+    args: [["client.**:resource:action"], ["client.a:wrongresource:action"]],
+    result: ["client.a:wrongresource:action"]
+  },
+  {
+    args: [["client.**:resource:action"], ["client.a:resource:wrongaction"]],
+    result: ["client.a:resource:wrongaction"]
+  },
+  {
+    args: [
+      ["client.b:resource:action", "client.c:resource:action"],
+      ["client.a:resource:action"]
+    ],
+    result: ["client.a:resource:action"]
+  },
+  {
+    args: [
+      ["other.b:resource:action", "client.*:resource:action"],
+      ["client.a:resource:action"]
+    ],
+    result: []
+  },
+  {
+    args: [
+      ["client.*:resource:action", "other.b:resource:action"],
+      ["client.a:resource:action"]
+    ],
+    result: []
+  },
+  {
+    args: [
+      ["client.b:resource:action", "client.a:resource:action"],
+      ["client.*:resource:action"]
+    ],
+    result: ["client.*:resource:action"]
+  },
+  {
+    args: [
+      ["client.*:resource:action"],
+      ["client.a:resource:action", "client.c:resource:action"]
+    ],
+    result: []
+  },
+  {
+    args: [
+      ["client.*:resource:action", "other.b:resource:action"],
+      ["client.a:resource:action", "client.c:resource:action"]
+    ],
+    result: []
+  },
+  {
+    args: [["a:b:c", "x:y:z"], ["a:b:c", "x:y:z"]],
+    result: []
+  }
+] as {
+  args: [string[], string[]];
+  result: string[];
+}[]).forEach(({ args, result }) => {
+  t(`getDifference ${args[0]} ${args[1]} => ${result}`, t =>
+    t.deepEqual(getDifference(args[0], args[1]), result)
+  );
 });
 
 ([
