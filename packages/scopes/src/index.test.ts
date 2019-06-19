@@ -176,7 +176,7 @@ import {
     result: true
   },
   {
-    args: [["pdf:**:read", "pdf:**:write"], ["pdf:**:read", "pdf:**:write"]],
+    args: [["a:b:c", "x:y:z"], ["a:b:c", "x:y:z"]],
     result: true
   }
 ] as {

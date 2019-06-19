@@ -180,34 +180,43 @@ export function isSuperset(
   scopeOrCollectionA: string[] | string,
   scopeOrCollectionB: string[] | string
 ): boolean {
-  if (Array.isArray(scopeOrCollectionA)) {
-    return simplify(scopeOrCollectionA).some(a =>
-      isSuperset(a, scopeOrCollectionB)
-    );
-  }
+  const collectionA = (Array.isArray(scopeOrCollectionA)
+    ? scopeOrCollectionA
+    : [scopeOrCollectionA]
+  ).map(scope => {
+    if (!validate(scope)) {
+      throw new InvalidScopeError(
+        "A scope in `scopeOrCollectionA` is invalid."
+      );
+    }
 
-  if (!validate(scopeOrCollectionA)) {
-    throw new InvalidScopeError("A scope in `scopeOrCollectionA` is invalid.");
-  }
+    return parse(scope);
+  });
 
-  if (Array.isArray(scopeOrCollectionB)) {
-    return simplify(scopeOrCollectionB).every(b =>
-      isSuperset(scopeOrCollectionA, b)
-    );
-  }
+  const collectionB = (Array.isArray(scopeOrCollectionB)
+    ? scopeOrCollectionB
+    : [scopeOrCollectionB]
+  ).map(scope => {
+    if (!validate(scope)) {
+      throw new InvalidScopeError(
+        "A scope in `scopeOrCollectionB` is invalid."
+      );
+    }
 
-  if (!validate(scopeOrCollectionB)) {
-    throw new InvalidScopeError("A scope in `scopeOrCollectionB` is invalid.");
-  }
-
-  const a = parse(scopeOrCollectionA);
-  const b = parse(scopeOrCollectionB);
+    return parse(scope);
+  });
 
   return (
-    a.length === b.length &&
-    a.every((patternA: Pattern, i: number) =>
-      pattern.isSuperset(patternA, b[i])
-    )
+    collectionA.reduce((remaining, a) => {
+      return remaining.filter(
+        b =>
+          a.length !== b.length ||
+          a.some(
+            (patternA: Pattern, i: number) =>
+              !pattern.isSuperset(patternA, b[i])
+          )
+      );
+    }, collectionB).length === 0
   );
 }
 
