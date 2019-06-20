@@ -3,15 +3,112 @@ import React, {
   ReactElement,
   useEffect,
   useContext,
+  useCallback,
   useState
 } from "react";
+
 import {
   GraphQL,
   useGraphQL,
   GraphQLFetchOptionsOverride,
   GraphQLContext
 } from "graphql-react";
-import { validate, isSuperset } from "@authx/scopes";
+import { validate, isSuperset, getDifference, simplify } from "@authx/scopes";
+
+function Checkbox({
+  value,
+  onChange
+}: {
+  value: boolean;
+  onChange: (checked: boolean) => void;
+}): ReactElement {
+  const [hasFocus, setHasFocus] = useState<boolean>(false);
+  return (
+    <div
+      style={{
+        background: value ? "hsl(120, 43%, 50%)" : "hsl(0, 43%, 50%)",
+        borderRadius: "11px",
+        boxSizing: "border-box",
+        position: "relative",
+        textAlign: "center",
+        width: "100px",
+        height: "22px",
+        fontSize: "12px",
+        color: "white",
+        overflow: "hidden",
+        transition: "background 200ms",
+        textTransform: "uppercase"
+      }}
+    >
+      <div
+        style={{
+          height: "100%",
+          width: "calc(200% - 22px)",
+          transition: "left 200ms",
+          position: "relative",
+          display: "flex",
+          alignItems: "stretch",
+          left: value ? "0" : "calc(22px - 100%)"
+        }}
+      >
+        <div
+          style={{
+            flex: "1",
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+            boxSizing: "border-box",
+            paddingLeft: "2px"
+          }}
+        >
+          Granted
+        </div>
+        <div
+          style={{
+            width: "18px",
+            height: "18px",
+            background: "white",
+            borderRadius: "9px",
+            left: "50%",
+            margin: "2px 0"
+          }}
+        />
+        <div
+          style={{
+            flex: "1",
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+            boxSizing: "border-box",
+            paddingRight: "2px"
+          }}
+        >
+          Denied
+        </div>
+      </div>
+      <input
+        onChange={useCallback(e => onChange(e.currentTarget.checked), [
+          onChange
+        ])}
+        onFocus={useCallback(() => setHasFocus(true), [setHasFocus])}
+        onBlur={useCallback(() => setHasFocus(false), [setHasFocus])}
+        type="checkbox"
+        checked={value}
+        style={{
+          margin: "0",
+          border: hasFocus ? "2px solid white" : "none",
+          background: "hsla(0, 0%, 0%, 0)",
+          position: "absolute",
+          top: "0",
+          left: "0",
+          height: "100%",
+          width: "100%",
+          WebkitAppearance: "none"
+        }}
+      />
+    </div>
+  );
+}
 
 export function Authorize({
   clearAuthorization,
@@ -91,6 +188,17 @@ export function Authorize({
   const grant = user && user.grant;
   const urls = client && client.urls;
 
+  // These decisions override the default behavior, which is to
+  const [overrides, setOverrides] = useState<{ [scope: string]: boolean }>({});
+
+  const newRequestedScopes =
+    grant && grant.scopes && requestedScopes
+      ? getDifference(
+          grant.scopes.filter(s => overrides[s] !== false),
+          requestedScopes
+        )
+      : requestedScopes || [];
+
   // API and errors
   const graphql = useContext<GraphQL>(GraphQLContext);
   const [operating, setOperating] = useState<boolean>(false);
@@ -118,16 +226,20 @@ export function Authorize({
             fetchOptionsOverride,
             operation: {
               query: `
-          mutation($id: ID!, $scopes: [String!]!) {
-            updateGrant(id: $id, scopes: $scopes, generateCodes: 1) {
-              codes
-              scopes
-            }
-          }
-        `,
+                mutation($id: ID!, $scopes: [String!]!) {
+                  updateGrant(id: $id, scopes: $scopes, generateCodes: 1) {
+                    codes
+                    scopes
+                  }
+                }
+              `,
               variables: {
                 id: grant.id,
-                scopes: [...(grant.scopes || []), ...(requestedScopes || [])]
+                scopes: simplify(
+                  [...(grant.scopes || []), ...(requestedScopes || [])].filter(
+                    s => overrides[s] !== false
+                  )
+                )
               }
             }
           })
@@ -148,13 +260,13 @@ export function Authorize({
             fetchOptionsOverride,
             operation: {
               query: `
-          mutation($clientId: ID!, $userId: ID!, $scopes: [String!]!) {
-            createGrant(clientId: $clientId, userId: $userId, scopes: $scopes) {
-              codes
-              scopes
-            }
-          }
-        `,
+                mutation($clientId: ID!, $userId: ID!, $scopes: [String!]!) {
+                  createGrant(clientId: $clientId, userId: $userId, scopes: $scopes) {
+                    codes
+                    scopes
+                  }
+                }
+              `,
               variables: {
                 clientId: client.id,
                 userId: user.id,
@@ -244,7 +356,11 @@ export function Authorize({
         requestedScopes &&
         isSuperset(grantedScopes, requestedScopes)
       ) {
-        // console.log("TODO: generate a nonce and redirect");
+        // TODO: We need to allow the app to force us to show a confirmation
+        // screen. IIRC this is part of the OpenID Connect spec, but I have
+        // useless airplane wifi right now. This should be an easy thing to
+        // implement here, so we can enable automatic redirection:
+        // onGrantAccess();
       }
     }
   }, [
@@ -357,21 +473,76 @@ export function Authorize({
               </button>
             </p>
 
-            <p>
-              The app &quot;{client.name}&quot; is requesting access to the
-              following scopes:
-            </p>
-            <div className="info">
-              <ul>
-                {(requestedScopes &&
-                  requestedScopes.map((s, i) => (
-                    <li key={i}>
-                      <pre>{s}</pre>
-                    </li>
-                  ))) ||
-                  null}
-              </ul>
-            </div>
+            {grant && grant.scopes && grant.scopes.length ? (
+              <>
+                <p>
+                  The app <strong>{client.name}</strong> has previously been
+                  granted the following scopes:
+                </p>
+                <div className="info" style={{ display: "flex" }}>
+                  <table style={{ flex: 1 }}>
+                    <tbody>
+                      {grant.scopes.map((s, i) => (
+                        <tr key={i}>
+                          <td>
+                            <pre>{s}</pre>
+                          </td>
+                          <td style={{ width: "100px" }}>
+                            <Checkbox
+                              value={overrides[s] === false ? false : true}
+                              onChange={v =>
+                                setOverrides({
+                                  ...overrides,
+                                  [s]: v
+                                })
+                              }
+                            />
+                          </td>
+                        </tr>
+                      )) || null}
+                    </tbody>
+                  </table>
+                </div>
+              </>
+            ) : null}
+
+            {newRequestedScopes.length ? (
+              <>
+                {grant && grant.scopes && grant.scopes.length ? (
+                  <p>It is also requesting access to the following scopes:</p>
+                ) : (
+                  <p>
+                    The app &quot;{client.name}&quot; is requesting access to
+                    the following scopes:
+                  </p>
+                )}
+
+                <div className="info" style={{ display: "flex" }}>
+                  <table style={{ flex: 1 }}>
+                    <tbody>
+                      {newRequestedScopes.map((s, i) => (
+                        <tr key={i}>
+                          <td>
+                            <pre>{s}</pre>
+                          </td>
+                          <td style={{ width: "100px" }}>
+                            <Checkbox
+                              value={overrides[s] === false ? false : true}
+                              onChange={v =>
+                                setOverrides({
+                                  ...overrides,
+                                  [s]: v
+                                })
+                              }
+                            />
+                          </td>
+                        </tr>
+                      )) || null}
+                    </tbody>
+                  </table>
+                </div>
+              </>
+            ) : null}
           </div>
         )}
 
@@ -402,7 +573,7 @@ export function Authorize({
               window.location.replace(url.href);
             }}
             className="danger"
-            style={{ flex: "1", marginLeft: "7px" }}
+            style={{ flex: "1", marginLeft: "11px" }}
             type="button"
             value="Deny"
           />
