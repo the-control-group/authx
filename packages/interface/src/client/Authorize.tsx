@@ -202,6 +202,7 @@ export function Authorize({
   // API and errors
   const graphql = useContext<GraphQL>(GraphQLContext);
   const [operating, setOperating] = useState<boolean>(false);
+  const [redirecting, setRedirecting] = useState<boolean>(false);
   const [errors, setErrors] = useState<string[]>([]);
   async function onGrantAccess(): Promise<void> {
     if (!paramsRedirectUri) return;
@@ -307,6 +308,7 @@ export function Authorize({
       const url = new URL(paramsRedirectUri);
       if (paramsState) url.searchParams.set("state", paramsState);
       url.searchParams.set("code", code);
+      setRedirecting(true);
       window.location.replace(url.href);
     } catch (error) {
       setErrors([error.message]);
@@ -345,6 +347,7 @@ export function Authorize({
 
       // We have an error to redirect
       if (url.searchParams.has("error")) {
+        setRedirecting(true);
         window.location.replace(url.href);
         return;
       }
@@ -359,7 +362,10 @@ export function Authorize({
         // TODO: We need to allow the app to force us to show a confirmation
         // screen. IIRC this is part of the OpenID Connect spec, but I have
         // useless airplane wifi right now. This should be an easy thing to
-        // implement here, so we can enable automatic redirection:
+        // implement here, so we can enable automatic redirection.
+        //
+        // Found the spec: https://openid.net/specs/openid-connect-core-1_0.html#rfc.section.3.1.2.1
+        //
         // onGrantAccess();
       }
     }
@@ -427,7 +433,7 @@ export function Authorize({
       <div>
         <h1>Authorize</h1>
         <div className="panel">
-          {loading || operating ? (
+          {loading || operating || redirecting ? (
             <p>Loading...</p>
           ) : (
             <Fragment>
@@ -449,7 +455,7 @@ export function Authorize({
     <div>
       <h1>Authorize</h1>
       <div className="panel">
-        {loading || operating ? (
+        {loading || operating || redirecting ? (
           <p>Loading...</p>
         ) : (
           <div>
@@ -554,30 +560,33 @@ export function Authorize({
             ))
           : null}
 
-        <div style={{ display: "flex", margin: "14px" }}>
-          <input
-            onClick={e => {
-              e.preventDefault();
-              onGrantAccess();
-            }}
-            style={{ flex: "1", marginRight: "14px" }}
-            type="button"
-            value="Grant Access"
-          />
-          <input
-            onClick={e => {
-              e.preventDefault();
-              const url = new URL(paramsRedirectUri);
-              url.searchParams.set("error", "access_denied");
-              if (paramsState) url.searchParams.set("state", paramsState);
-              window.location.replace(url.href);
-            }}
-            className="danger"
-            style={{ flex: "1", marginLeft: "11px" }}
-            type="button"
-            value="Deny"
-          />
-        </div>
+        {loading || operating || redirecting ? null : (
+          <div style={{ display: "flex", margin: "14px" }}>
+            <input
+              onClick={e => {
+                e.preventDefault();
+                onGrantAccess();
+              }}
+              style={{ flex: "1", marginRight: "14px" }}
+              type="button"
+              value="Grant Access"
+            />
+            <input
+              onClick={e => {
+                e.preventDefault();
+                const url = new URL(paramsRedirectUri);
+                url.searchParams.set("error", "access_denied");
+                if (paramsState) url.searchParams.set("state", paramsState);
+                setRedirecting(true);
+                window.location.replace(url.href);
+              }}
+              className="danger"
+              style={{ flex: "1", marginLeft: "11px" }}
+              type="button"
+              value="Deny"
+            />
+          </div>
+        )}
       </div>
     </div>
   );
