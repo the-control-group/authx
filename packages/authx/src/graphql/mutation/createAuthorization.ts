@@ -49,7 +49,7 @@ export const createAuthorization: GraphQLFieldConfig<
 
     if (!a) {
       throw new ForbiddenError(
-        "You must be authenticated to create a authorization."
+        "You must be authenticated to create an authorization."
       );
     }
 

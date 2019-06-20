@@ -1,6 +1,7 @@
 import v4 from "uuid/v4";
 import { isSuperset, isStrictSuperset } from "@authx/scopes";
 import {
+  GraphQLID,
   GraphQLBoolean,
   GraphQLFieldConfig,
   GraphQLList,
@@ -43,9 +44,7 @@ export const createRole: GraphQLFieldConfig<
       )
     },
     userIds: {
-      type: new GraphQLNonNull(
-        new GraphQLList(new GraphQLNonNull(GraphQLString))
-      )
+      type: new GraphQLNonNull(new GraphQLList(new GraphQLNonNull(GraphQLID)))
     }
   },
   async resolve(source, args, context): Promise<Role> {
