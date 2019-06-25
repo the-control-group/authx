@@ -94,7 +94,7 @@ export const createOpenIdAuthority: GraphQLFieldConfig<
     }
   },
   async resolve(source, args, context): Promise<OpenIdAuthority> {
-    const { tx, authorization: a, realm } = context;
+    const { pool, authorization: a, realm } = context;
 
     if (!a) {
       throw new ForbiddenError(
@@ -102,46 +102,51 @@ export const createOpenIdAuthority: GraphQLFieldConfig<
       );
     }
 
-    await tx.query("BEGIN DEFERRABLE");
+    const tx = await pool.connect();
     try {
-      const id = v4();
-      const data = new OpenIdAuthority({
-        id,
-        strategy: "openid",
-        enabled: args.enabled,
-        name: args.name,
-        description: args.description,
-        details: {
-          authUrl: args.authUrl,
-          tokenUrl: args.tokenUrl,
-          clientId: args.clientId,
-          clientSecret: args.clientSecret,
-          restrictsAccountsToHostedDomains:
-            args.restrictsAccountsToHostedDomains,
-          emailAuthorityId: args.emailAuthorityId,
-          matchesUsersByEmail: args.matchesUsersByEmail,
-          createsUnmatchedUsers: args.createsUnmatchedUsers,
-          assignsCreatedUsersToRoleIds: args.assignsCreatedUsersToRoleIds
+      await tx.query("BEGIN DEFERRABLE");
+      try {
+        const id = v4();
+        const data = new OpenIdAuthority({
+          id,
+          strategy: "openid",
+          enabled: args.enabled,
+          name: args.name,
+          description: args.description,
+          details: {
+            authUrl: args.authUrl,
+            tokenUrl: args.tokenUrl,
+            clientId: args.clientId,
+            clientSecret: args.clientSecret,
+            restrictsAccountsToHostedDomains:
+              args.restrictsAccountsToHostedDomains,
+            emailAuthorityId: args.emailAuthorityId,
+            matchesUsersByEmail: args.matchesUsersByEmail,
+            createsUnmatchedUsers: args.createsUnmatchedUsers,
+            assignsCreatedUsersToRoleIds: args.assignsCreatedUsersToRoleIds
+          }
+        });
+
+        if (!(await data.isAccessibleBy(realm, a, tx, "write.*"))) {
+          throw new ForbiddenError(
+            "You do not have permission to create an authority."
+          );
         }
-      });
 
-      if (!(await data.isAccessibleBy(realm, a, tx, "write.*"))) {
-        throw new ForbiddenError(
-          "You do not have permission to create an authority."
-        );
+        const authority = await OpenIdAuthority.write(tx, data, {
+          recordId: v4(),
+          createdByAuthorizationId: a.id,
+          createdAt: new Date()
+        });
+
+        await tx.query("COMMIT");
+        return authority;
+      } catch (error) {
+        await tx.query("ROLLBACK");
+        throw error;
       }
-
-      const authority = await OpenIdAuthority.write(tx, data, {
-        recordId: v4(),
-        createdByAuthorizationId: a.id,
-        createdAt: new Date()
-      });
-
-      await tx.query("COMMIT");
-      return authority;
-    } catch (error) {
-      await tx.query("ROLLBACK");
-      throw error;
+    } finally {
+      tx.release();
     }
   }
 };

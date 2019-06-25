@@ -36,7 +36,7 @@ export const createUser: GraphQLFieldConfig<
     }
   },
   async resolve(source, args, context): Promise<User> {
-    const { tx, authorization: a, realm } = context;
+    const { pool, authorization: a, realm } = context;
 
     if (!a) {
       throw new ForbiddenError(
@@ -44,37 +44,42 @@ export const createUser: GraphQLFieldConfig<
       );
     }
 
-    // can create a new user
-    if (!(await a.can(tx, `${realm}:user.*:write.*`))) {
-      throw new ForbiddenError(
-        "You must be authenticated to create a authorization."
-      );
-    }
-
-    await tx.query("BEGIN DEFERRABLE");
-
+    const tx = await pool.connect();
     try {
-      const id = v4();
-      const user = await User.write(
-        tx,
-        {
-          id,
-          enabled: args.enabled,
-          type: args.type,
-          name: args.name
-        },
-        {
-          recordId: v4(),
-          createdByAuthorizationId: a.id,
-          createdAt: new Date()
-        }
-      );
+      // can create a new user
+      if (!(await a.can(tx, `${realm}:user.*:write.*`))) {
+        throw new ForbiddenError(
+          "You must be authenticated to create a authorization."
+        );
+      }
 
-      await tx.query("COMMIT");
-      return user;
-    } catch (error) {
-      await tx.query("ROLLBACK");
-      throw error;
+      await tx.query("BEGIN DEFERRABLE");
+
+      try {
+        const id = v4();
+        const user = await User.write(
+          tx,
+          {
+            id,
+            enabled: args.enabled,
+            type: args.type,
+            name: args.name
+          },
+          {
+            recordId: v4(),
+            createdByAuthorizationId: a.id,
+            createdAt: new Date()
+          }
+        );
+
+        await tx.query("COMMIT");
+        return user;
+      } catch (error) {
+        await tx.query("ROLLBACK");
+        throw error;
+      }
+    } finally {
+      tx.release();
     }
   }
 };

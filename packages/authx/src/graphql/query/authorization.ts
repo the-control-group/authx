@@ -18,12 +18,17 @@ export const authorization: GraphQLFieldConfig<
     }
   },
   async resolve(source, args, context): Promise<null | Authorization> {
-    const { tx, authorization: a, realm } = context;
+    const { pool, authorization: a, realm } = context;
     if (!a) return null;
 
-    const authorization = await Authorization.read(tx, args.id);
-    return (await authorization.isAccessibleBy(realm, a, tx))
-      ? authorization
-      : null;
+    const tx = await pool.connect();
+    try {
+      const authorization = await Authorization.read(tx, args.id);
+      return (await authorization.isAccessibleBy(realm, a, tx))
+        ? authorization
+        : null;
+    } finally {
+      tx.release();
+    }
   }
 };

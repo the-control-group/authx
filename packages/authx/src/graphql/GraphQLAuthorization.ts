@@ -28,11 +28,16 @@ export const GraphQLAuthorization: GraphQLObjectType<
       async resolve(
         authorization,
         args,
-        { realm, authorization: a, tx }: Context
+        { realm, authorization: a, pool }: Context
       ): Promise<null | Grant> {
         if (!a) return null;
-        const grant = await authorization.grant(tx);
-        return grant && grant.isAccessibleBy(realm, a, tx) ? grant : null;
+        const tx = await pool.connect();
+        try {
+          const grant = await authorization.grant(tx);
+          return grant && grant.isAccessibleBy(realm, a, tx) ? grant : null;
+        } finally {
+          tx.release();
+        }
       }
     },
     user: {
@@ -40,11 +45,16 @@ export const GraphQLAuthorization: GraphQLObjectType<
       async resolve(
         authorization,
         args,
-        { realm, authorization: a, tx }: Context
+        { realm, authorization: a, pool }: Context
       ): Promise<null | User> {
         if (!a) return null;
-        const user = await authorization.user(tx);
-        return user.isAccessibleBy(realm, a, tx) ? user : null;
+        const tx = await pool.connect();
+        try {
+          const user = await authorization.user(tx);
+          return user.isAccessibleBy(realm, a, tx) ? user : null;
+        } finally {
+          tx.release();
+        }
       }
     },
     secret: {
@@ -52,12 +62,17 @@ export const GraphQLAuthorization: GraphQLObjectType<
       async resolve(
         authorization,
         args,
-        { realm, authorization: a, tx }: Context
+        { realm, authorization: a, pool }: Context
       ): Promise<null | string> {
-        return a &&
-          (await authorization.isAccessibleBy(realm, a, tx, "read.secrets"))
-          ? authorization.secret
-          : null;
+        const tx = await pool.connect();
+        try {
+          return a &&
+            (await authorization.isAccessibleBy(realm, a, tx, "read.secrets"))
+            ? authorization.secret
+            : null;
+        } finally {
+          tx.release();
+        }
       }
     },
     scopes: {
@@ -65,12 +80,17 @@ export const GraphQLAuthorization: GraphQLObjectType<
       async resolve(
         authorization,
         args,
-        { realm, authorization: a, tx }: Context
+        { realm, authorization: a, pool }: Context
       ): Promise<null | string[]> {
-        return a &&
-          (await authorization.isAccessibleBy(realm, a, tx, "read.scopes"))
-          ? authorization.scopes
-          : null;
+        const tx = await pool.connect();
+        try {
+          return a &&
+            (await authorization.isAccessibleBy(realm, a, tx, "read.scopes"))
+            ? authorization.scopes
+            : null;
+        } finally {
+          tx.release();
+        }
       }
     }
   })

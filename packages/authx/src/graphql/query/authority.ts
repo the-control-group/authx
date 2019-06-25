@@ -19,14 +19,19 @@ export const authority: GraphQLFieldConfig<
   },
   async resolve(source, args, context): Promise<null | Authority<any>> {
     const {
-      tx,
+      pool,
       authorization: a,
       realm,
       strategies: { authorityMap }
     } = context;
     if (!a) return null;
 
-    const authority = await Authority.read(tx, args.id, authorityMap);
-    return (await authority.isAccessibleBy(realm, a, tx)) ? authority : null;
+    const tx = await pool.connect();
+    try {
+      const authority = await Authority.read(tx, args.id, authorityMap);
+      return (await authority.isAccessibleBy(realm, a, tx)) ? authority : null;
+    } finally {
+      tx.release();
+    }
   }
 };

@@ -48,53 +48,58 @@ export const createClient: GraphQLFieldConfig<
     }
   },
   async resolve(source, args, context): Promise<Client> {
-    const { tx, authorization: a, realm } = context;
+    const { pool, authorization: a, realm } = context;
 
     if (!a) {
       throw new ForbiddenError("You must be authenticated to create a client.");
     }
 
-    if (
-      // can create any new clients
-      !(await a.can(tx, `${realm}:client.*:write.*`)) &&
-      // can create assigned new clients
-      !(
-        (await a.can(tx, `${realm}:client.assigned:write.*`)) &&
-        args.userIds.includes(a.userId)
-      )
-    ) {
-      throw new ForbiddenError(
-        "You do not have permission to create a client."
-      );
-    }
-
-    await tx.query("BEGIN DEFERRABLE");
-
+    const tx = await pool.connect();
     try {
-      const id = v4();
-      const client = await Client.write(
-        tx,
-        {
-          id,
-          enabled: args.enabled,
-          name: args.name,
-          description: args.description,
-          secrets: [randomBytes(16).toString("hex")],
-          urls: args.urls,
-          userIds: args.userIds
-        },
-        {
-          recordId: v4(),
-          createdByAuthorizationId: a.id,
-          createdAt: new Date()
-        }
-      );
+      if (
+        // can create any new clients
+        !(await a.can(tx, `${realm}:client.*:write.*`)) &&
+        // can create assigned new clients
+        !(
+          (await a.can(tx, `${realm}:client.assigned:write.*`)) &&
+          args.userIds.includes(a.userId)
+        )
+      ) {
+        throw new ForbiddenError(
+          "You do not have permission to create a client."
+        );
+      }
 
-      await tx.query("COMMIT");
-      return client;
-    } catch (error) {
-      await tx.query("ROLLBACK");
-      throw error;
+      await tx.query("BEGIN DEFERRABLE");
+
+      try {
+        const id = v4();
+        const client = await Client.write(
+          tx,
+          {
+            id,
+            enabled: args.enabled,
+            name: args.name,
+            description: args.description,
+            secrets: [randomBytes(16).toString("hex")],
+            urls: args.urls,
+            userIds: args.userIds
+          },
+          {
+            recordId: v4(),
+            createdByAuthorizationId: a.id,
+            createdAt: new Date()
+          }
+        );
+
+        await tx.query("COMMIT");
+        return client;
+      } catch (error) {
+        await tx.query("ROLLBACK");
+        throw error;
+      }
+    } finally {
+      tx.release();
     }
   }
 };

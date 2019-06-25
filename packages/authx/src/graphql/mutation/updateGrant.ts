@@ -54,123 +54,128 @@ export const updateGrant: GraphQLFieldConfig<
     }
   },
   async resolve(source, args, context): Promise<Grant> {
-    const { tx, authorization: a, realm, codeValidityDuration } = context;
+    const { pool, authorization: a, realm, codeValidityDuration } = context;
 
     if (!a) {
       throw new ForbiddenError("You must be authenticated to update a grant.");
     }
 
-    await tx.query("BEGIN DEFERRABLE");
-
+    const tx = await pool.connect();
     try {
-      const before = await Grant.read(tx, args.id);
+      await tx.query("BEGIN DEFERRABLE");
 
-      if (!(await before.isAccessibleBy(realm, a, tx, "write.basic"))) {
-        throw new ForbiddenError(
-          "You do not have permission to update this grant."
-        );
-      }
+      try {
+        const before = await Grant.read(tx, args.id);
 
-      if (
-        args.scopes &&
-        !(await before.isAccessibleBy(realm, a, tx, "write.scopes"))
-      ) {
-        throw new ForbiddenError(
-          "You do not have permission to update this grant's scopes."
-        );
-      }
+        if (!(await before.isAccessibleBy(realm, a, tx, "write.basic"))) {
+          throw new ForbiddenError(
+            "You do not have permission to update this grant."
+          );
+        }
 
-      if (
-        (args.generateSecrets ||
-          args.removeSecrets ||
-          args.generateCodes ||
-          args.removeCodes) &&
-        !(await before.isAccessibleBy(realm, a, tx, "write.secrets"))
-      ) {
-        throw new ForbiddenError(
-          "You do not have permission to update this grant's secrets."
-        );
-      }
+        if (
+          args.scopes &&
+          !(await before.isAccessibleBy(realm, a, tx, "write.scopes"))
+        ) {
+          throw new ForbiddenError(
+            "You do not have permission to update this grant's scopes."
+          );
+        }
 
-      const now = Math.floor(Date.now() / 1000);
-      let secrets = [...before.secrets];
-      let codes = [...before.codes];
+        if (
+          (args.generateSecrets ||
+            args.removeSecrets ||
+            args.generateCodes ||
+            args.removeCodes) &&
+          !(await before.isAccessibleBy(realm, a, tx, "write.secrets"))
+        ) {
+          throw new ForbiddenError(
+            "You do not have permission to update this grant's secrets."
+          );
+        }
 
-      // Generate secrets.
-      if (args.generateSecrets) {
-        for (let i = args.generateSecrets; i > 0; i--) {
+        const now = Math.floor(Date.now() / 1000);
+        let secrets = [...before.secrets];
+        let codes = [...before.codes];
+
+        // Generate secrets.
+        if (args.generateSecrets) {
+          for (let i = args.generateSecrets; i > 0; i--) {
+            secrets.push(
+              Buffer.from(
+                [before.id, now, randomBytes(16).toString("hex")].join(":")
+              ).toString("base64")
+            );
+          }
+        }
+
+        // Remove secrets.
+        if (args.removeSecrets) {
+          const removeSecrets = new Set(args.removeSecrets);
+          secrets = secrets.filter(id => !removeSecrets.has(id));
+        }
+
+        // Make sure we have at least one secret.
+        if (!secrets.length) {
           secrets.push(
             Buffer.from(
               [before.id, now, randomBytes(16).toString("hex")].join(":")
             ).toString("base64")
           );
         }
-      }
 
-      // Remove secrets.
-      if (args.removeSecrets) {
-        const removeSecrets = new Set(args.removeSecrets);
-        secrets = secrets.filter(id => !removeSecrets.has(id));
-      }
+        // Generate codes.
+        if (args.generateCodes) {
+          for (let i = args.generateCodes; i > 0; i--) {
+            codes.push(
+              Buffer.from(
+                [before.id, now, randomBytes(16).toString("hex")].join(":")
+              ).toString("base64")
+            );
+          }
+        }
 
-      // Make sure we have at least one secret.
-      if (!secrets.length) {
-        secrets.push(
-          Buffer.from(
-            [before.id, now, randomBytes(16).toString("hex")].join(":")
-          ).toString("base64")
+        // Remove codes.
+        if (args.removeCodes) {
+          const removeCodes = new Set(args.removeCodes);
+          codes = codes.filter(id => !removeCodes.has(id));
+        }
+
+        // Prune expired codes.
+        if (args.generateCodes || args.removeCodes) {
+          codes = codes.filter(code => {
+            const issued = Buffer.from(code, "base64")
+              .toString("utf8")
+              .split(":")[1];
+            return issued && parseInt(issued) + codeValidityDuration > now;
+          });
+        }
+
+        const grant = await Grant.write(
+          tx,
+          {
+            ...before,
+            enabled:
+              typeof args.enabled === "boolean" ? args.enabled : before.enabled,
+            secrets,
+            codes,
+            scopes: args.scopes || before.scopes
+          },
+          {
+            recordId: v4(),
+            createdByAuthorizationId: a.id,
+            createdAt: new Date()
+          }
         );
+
+        await tx.query("COMMIT");
+        return grant;
+      } catch (error) {
+        await tx.query("ROLLBACK");
+        throw error;
       }
-
-      // Generate codes.
-      if (args.generateCodes) {
-        for (let i = args.generateCodes; i > 0; i--) {
-          codes.push(
-            Buffer.from(
-              [before.id, now, randomBytes(16).toString("hex")].join(":")
-            ).toString("base64")
-          );
-        }
-      }
-
-      // Remove codes.
-      if (args.removeCodes) {
-        const removeCodes = new Set(args.removeCodes);
-        codes = codes.filter(id => !removeCodes.has(id));
-      }
-
-      // Prune expired codes.
-      if (args.generateCodes || args.removeCodes) {
-        codes = codes.filter(code => {
-          const issued = Buffer.from(code, "base64")
-            .toString("utf8")
-            .split(":")[1];
-          return issued && parseInt(issued) + codeValidityDuration > now;
-        });
-      }
-
-      const grant = await Grant.write(
-        tx,
-        {
-          ...before,
-          enabled:
-            typeof args.enabled === "boolean" ? args.enabled : before.enabled,
-          secrets,
-          codes,
-          scopes: args.scopes || before.scopes
-        },
-        {
-          recordId: v4(),
-          createdByAuthorizationId: a.id,
-          createdAt: new Date()
-        }
-      );
-
-      await tx.query("COMMIT");
-      return grant;
-    } catch (error) {
-      await tx.query("ROLLBACK");
-      throw error;
+    } finally {
+      tx.release();
     }
   }
 };

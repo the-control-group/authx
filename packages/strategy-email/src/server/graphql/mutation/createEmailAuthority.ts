@@ -101,7 +101,7 @@ export const createEmailAuthority: GraphQLFieldConfig<
     }
   },
   async resolve(source, args, context): Promise<EmailAuthority> {
-    const { tx, authorization: a, realm } = context;
+    const { pool, authorization: a, realm } = context;
 
     if (!a) {
       throw new ForbiddenError(
@@ -109,45 +109,50 @@ export const createEmailAuthority: GraphQLFieldConfig<
       );
     }
 
-    await tx.query("BEGIN DEFERRABLE");
+    const tx = await pool.connect();
     try {
-      const id = v4();
-      const data = new EmailAuthority({
-        id,
-        strategy: "email",
-        enabled: args.enabled,
-        name: args.name,
-        description: args.description,
-        details: {
-          privateKey: args.privateKey,
-          publicKeys: args.publicKeys,
-          proofValidityDuration: args.proofValidityDuration,
-          authenticationEmailSubject: args.authenticationEmailSubject,
-          authenticationEmailText: args.authenticationEmailText,
-          authenticationEmailHtml: args.authenticationEmailHtml,
-          verificationEmailSubject: args.verificationEmailSubject,
-          verificationEmailText: args.verificationEmailText,
-          verificationEmailHtml: args.verificationEmailHtml
+      await tx.query("BEGIN DEFERRABLE");
+      try {
+        const id = v4();
+        const data = new EmailAuthority({
+          id,
+          strategy: "email",
+          enabled: args.enabled,
+          name: args.name,
+          description: args.description,
+          details: {
+            privateKey: args.privateKey,
+            publicKeys: args.publicKeys,
+            proofValidityDuration: args.proofValidityDuration,
+            authenticationEmailSubject: args.authenticationEmailSubject,
+            authenticationEmailText: args.authenticationEmailText,
+            authenticationEmailHtml: args.authenticationEmailHtml,
+            verificationEmailSubject: args.verificationEmailSubject,
+            verificationEmailText: args.verificationEmailText,
+            verificationEmailHtml: args.verificationEmailHtml
+          }
+        });
+
+        if (!(await data.isAccessibleBy(realm, a, tx, "write.*"))) {
+          throw new ForbiddenError(
+            "You do not have permission to create an authority."
+          );
         }
-      });
 
-      if (!(await data.isAccessibleBy(realm, a, tx, "write.*"))) {
-        throw new ForbiddenError(
-          "You do not have permission to create an authority."
-        );
+        const authority = await EmailAuthority.write(tx, data, {
+          recordId: v4(),
+          createdByAuthorizationId: a.id,
+          createdAt: new Date()
+        });
+
+        await tx.query("COMMIT");
+        return authority;
+      } catch (error) {
+        await tx.query("ROLLBACK");
+        throw error;
       }
-
-      const authority = await EmailAuthority.write(tx, data, {
-        recordId: v4(),
-        createdByAuthorizationId: a.id,
-        createdAt: new Date()
-      });
-
-      await tx.query("COMMIT");
-      return authority;
-    } catch (error) {
-      await tx.query("ROLLBACK");
-      throw error;
+    } finally {
+      tx.release();
     }
   }
 };

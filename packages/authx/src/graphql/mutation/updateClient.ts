@@ -66,103 +66,108 @@ export const updateClient: GraphQLFieldConfig<
     }
   },
   async resolve(source, args, context): Promise<Client> {
-    const { tx, authorization: a, realm } = context;
+    const { pool, authorization: a, realm } = context;
 
     if (!a) {
       throw new ForbiddenError("You must be authenticated to update a client.");
     }
 
-    await tx.query("BEGIN DEFERRABLE");
-
+    const tx = await pool.connect();
     try {
-      const before = await Client.read(tx, args.id);
+      await tx.query("BEGIN DEFERRABLE");
 
-      // write.basic -----------------------------------------------------------
-      if (!(await before.isAccessibleBy(realm, a, tx, "write.basic"))) {
-        throw new ForbiddenError(
-          "You do not have permission to update this client."
-        );
-      }
+      try {
+        const before = await Client.read(tx, args.id);
 
-      let urls = [...before.urls];
-
-      // Assign users
-      if (args.addUrls) {
-        urls = [...urls, ...args.addUrls];
-      }
-
-      // Unassign users
-      if (args.removeUrls) {
-        const removeUrls = new Set(args.removeUrls);
-        urls = urls.filter(id => !removeUrls.has(id));
-      }
-
-      // write.secrets ---------------------------------------------------------
-      if (!(await before.isAccessibleBy(realm, a, tx, "write.secrets"))) {
-        throw new ForbiddenError(
-          "You do not have permission to update this client's secrets."
-        );
-      }
-
-      let secrets = [...before.secrets];
-
-      // Generate secrets
-      if (args.generateSecrets) {
-        for (let i = args.generateSecrets; i > 0; i--) {
-          secrets.push(randomBytes(16).toString("hex"));
+        // write.basic -----------------------------------------------------------
+        if (!(await before.isAccessibleBy(realm, a, tx, "write.basic"))) {
+          throw new ForbiddenError(
+            "You do not have permission to update this client."
+          );
         }
-      }
 
-      // Remove secrets
-      if (args.removeSecrets) {
-        const removeSecrets = new Set(args.removeSecrets);
-        secrets = secrets.filter(id => !removeSecrets.has(id));
-      }
+        let urls = [...before.urls];
 
-      // write.assignments -----------------------------------------------------
-      if (!(await before.isAccessibleBy(realm, a, tx, "write.assignments"))) {
-        throw new ForbiddenError(
-          "You do not have permission to update this client's assignments."
-        );
-      }
-
-      let userIds = [...before.userIds];
-
-      // Assign users
-      if (args.assignUserIds) {
-        userIds = [...userIds, ...args.assignUserIds];
-      }
-
-      // Unassign users
-      if (args.unassignUserIds) {
-        const unassignUserIds = new Set(args.unassignUserIds);
-        userIds = userIds.filter(id => !unassignUserIds.has(id));
-      }
-
-      const client = await Client.write(
-        tx,
-        {
-          ...before,
-          enabled:
-            typeof args.enabled === "boolean" ? args.enabled : before.enabled,
-          name: args.name || before.name,
-          description: args.description || before.description,
-          urls,
-          secrets,
-          userIds
-        },
-        {
-          recordId: v4(),
-          createdByAuthorizationId: a.id,
-          createdAt: new Date()
+        // Assign users
+        if (args.addUrls) {
+          urls = [...urls, ...args.addUrls];
         }
-      );
 
-      await tx.query("COMMIT");
-      return client;
-    } catch (error) {
-      await tx.query("ROLLBACK");
-      throw error;
+        // Unassign users
+        if (args.removeUrls) {
+          const removeUrls = new Set(args.removeUrls);
+          urls = urls.filter(id => !removeUrls.has(id));
+        }
+
+        // write.secrets ---------------------------------------------------------
+        if (!(await before.isAccessibleBy(realm, a, tx, "write.secrets"))) {
+          throw new ForbiddenError(
+            "You do not have permission to update this client's secrets."
+          );
+        }
+
+        let secrets = [...before.secrets];
+
+        // Generate secrets
+        if (args.generateSecrets) {
+          for (let i = args.generateSecrets; i > 0; i--) {
+            secrets.push(randomBytes(16).toString("hex"));
+          }
+        }
+
+        // Remove secrets
+        if (args.removeSecrets) {
+          const removeSecrets = new Set(args.removeSecrets);
+          secrets = secrets.filter(id => !removeSecrets.has(id));
+        }
+
+        // write.assignments -----------------------------------------------------
+        if (!(await before.isAccessibleBy(realm, a, tx, "write.assignments"))) {
+          throw new ForbiddenError(
+            "You do not have permission to update this client's assignments."
+          );
+        }
+
+        let userIds = [...before.userIds];
+
+        // Assign users
+        if (args.assignUserIds) {
+          userIds = [...userIds, ...args.assignUserIds];
+        }
+
+        // Unassign users
+        if (args.unassignUserIds) {
+          const unassignUserIds = new Set(args.unassignUserIds);
+          userIds = userIds.filter(id => !unassignUserIds.has(id));
+        }
+
+        const client = await Client.write(
+          tx,
+          {
+            ...before,
+            enabled:
+              typeof args.enabled === "boolean" ? args.enabled : before.enabled,
+            name: args.name || before.name,
+            description: args.description || before.description,
+            urls,
+            secrets,
+            userIds
+          },
+          {
+            recordId: v4(),
+            createdByAuthorizationId: a.id,
+            createdAt: new Date()
+          }
+        );
+
+        await tx.query("COMMIT");
+        return client;
+      } catch (error) {
+        await tx.query("ROLLBACK");
+        throw error;
+      }
+    } finally {
+      tx.release();
     }
   }
 };

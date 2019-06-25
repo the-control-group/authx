@@ -107,7 +107,7 @@ export const updateEmailAuthority: GraphQLFieldConfig<
   },
   async resolve(source, args, context): Promise<EmailAuthority> {
     const {
-      tx,
+      pool,
       authorization: a,
       realm,
       strategies: { authorityMap }
@@ -119,112 +119,117 @@ export const updateEmailAuthority: GraphQLFieldConfig<
       );
     }
 
-    await tx.query("BEGIN DEFERRABLE");
-
+    const tx = await pool.connect();
     try {
-      const before = await Authority.read(tx, args.id, authorityMap);
+      await tx.query("BEGIN DEFERRABLE");
 
-      if (!(before instanceof EmailAuthority)) {
-        throw new NotFoundError(
-          "The authority uses a strategy other than email."
-        );
-      }
+      try {
+        const before = await Authority.read(tx, args.id, authorityMap);
 
-      if (!(await before.isAccessibleBy(realm, a, tx, "write.basic"))) {
-        throw new ForbiddenError(
-          "You do not have permission to update this authority."
-        );
-      }
-
-      if (
-        (typeof args.privateKey === "string" ||
-          args.addPublicKeys ||
-          args.removePublicKeys ||
-          typeof args.proofValidityDuration === "number" ||
-          typeof args.authenticationEmailSubject === "string" ||
-          typeof args.authenticationEmailText === "string" ||
-          typeof args.authenticationEmailHtml === "string" ||
-          typeof args.verificationEmailSubject === "string" ||
-          typeof args.verificationEmailText === "string" ||
-          typeof args.verificationEmailHtml === "string") &&
-        !(await before.isAccessibleBy(realm, a, tx, "write.*"))
-      ) {
-        throw new ForbiddenError(
-          "You do not have permission to update this authority's details."
-        );
-      }
-
-      let publicKeys = [...before.details.publicKeys];
-
-      const { addPublicKeys } = args;
-      if (addPublicKeys) {
-        publicKeys = [...publicKeys, ...addPublicKeys];
-      }
-
-      const { removePublicKeys } = args;
-      if (removePublicKeys) {
-        publicKeys = publicKeys.filter(k => !removePublicKeys.includes(k));
-      }
-
-      const authority = await EmailAuthority.write(
-        tx,
-        {
-          ...before,
-          enabled:
-            typeof args.enabled === "boolean" ? args.enabled : before.enabled,
-          name: typeof args.name === "string" ? args.name : before.name,
-          description:
-            typeof args.description === "string"
-              ? args.description
-              : before.description,
-          details: {
-            privateKey:
-              typeof args.privateKey === "string"
-                ? args.privateKey
-                : before.details.privateKey,
-            publicKeys,
-            proofValidityDuration:
-              typeof args.proofValidityDuration === "number"
-                ? args.proofValidityDuration
-                : before.details.proofValidityDuration,
-            authenticationEmailSubject:
-              typeof args.authenticationEmailSubject === "string"
-                ? args.authenticationEmailSubject
-                : before.details.authenticationEmailSubject,
-            authenticationEmailText:
-              typeof args.authenticationEmailText === "string"
-                ? args.authenticationEmailText
-                : before.details.authenticationEmailText,
-            authenticationEmailHtml:
-              typeof args.authenticationEmailHtml === "string"
-                ? args.authenticationEmailHtml
-                : before.details.authenticationEmailHtml,
-            verificationEmailSubject:
-              typeof args.verificationEmailSubject === "string"
-                ? args.verificationEmailSubject
-                : before.details.verificationEmailSubject,
-            verificationEmailText:
-              typeof args.verificationEmailText === "string"
-                ? args.verificationEmailText
-                : before.details.verificationEmailText,
-            verificationEmailHtml:
-              typeof args.verificationEmailHtml === "string"
-                ? args.verificationEmailHtml
-                : before.details.verificationEmailHtml
-          }
-        },
-        {
-          recordId: v4(),
-          createdByAuthorizationId: a.id,
-          createdAt: new Date()
+        if (!(before instanceof EmailAuthority)) {
+          throw new NotFoundError(
+            "The authority uses a strategy other than email."
+          );
         }
-      );
 
-      await tx.query("COMMIT");
-      return authority;
-    } catch (error) {
-      await tx.query("ROLLBACK");
-      throw error;
+        if (!(await before.isAccessibleBy(realm, a, tx, "write.basic"))) {
+          throw new ForbiddenError(
+            "You do not have permission to update this authority."
+          );
+        }
+
+        if (
+          (typeof args.privateKey === "string" ||
+            args.addPublicKeys ||
+            args.removePublicKeys ||
+            typeof args.proofValidityDuration === "number" ||
+            typeof args.authenticationEmailSubject === "string" ||
+            typeof args.authenticationEmailText === "string" ||
+            typeof args.authenticationEmailHtml === "string" ||
+            typeof args.verificationEmailSubject === "string" ||
+            typeof args.verificationEmailText === "string" ||
+            typeof args.verificationEmailHtml === "string") &&
+          !(await before.isAccessibleBy(realm, a, tx, "write.*"))
+        ) {
+          throw new ForbiddenError(
+            "You do not have permission to update this authority's details."
+          );
+        }
+
+        let publicKeys = [...before.details.publicKeys];
+
+        const { addPublicKeys } = args;
+        if (addPublicKeys) {
+          publicKeys = [...publicKeys, ...addPublicKeys];
+        }
+
+        const { removePublicKeys } = args;
+        if (removePublicKeys) {
+          publicKeys = publicKeys.filter(k => !removePublicKeys.includes(k));
+        }
+
+        const authority = await EmailAuthority.write(
+          tx,
+          {
+            ...before,
+            enabled:
+              typeof args.enabled === "boolean" ? args.enabled : before.enabled,
+            name: typeof args.name === "string" ? args.name : before.name,
+            description:
+              typeof args.description === "string"
+                ? args.description
+                : before.description,
+            details: {
+              privateKey:
+                typeof args.privateKey === "string"
+                  ? args.privateKey
+                  : before.details.privateKey,
+              publicKeys,
+              proofValidityDuration:
+                typeof args.proofValidityDuration === "number"
+                  ? args.proofValidityDuration
+                  : before.details.proofValidityDuration,
+              authenticationEmailSubject:
+                typeof args.authenticationEmailSubject === "string"
+                  ? args.authenticationEmailSubject
+                  : before.details.authenticationEmailSubject,
+              authenticationEmailText:
+                typeof args.authenticationEmailText === "string"
+                  ? args.authenticationEmailText
+                  : before.details.authenticationEmailText,
+              authenticationEmailHtml:
+                typeof args.authenticationEmailHtml === "string"
+                  ? args.authenticationEmailHtml
+                  : before.details.authenticationEmailHtml,
+              verificationEmailSubject:
+                typeof args.verificationEmailSubject === "string"
+                  ? args.verificationEmailSubject
+                  : before.details.verificationEmailSubject,
+              verificationEmailText:
+                typeof args.verificationEmailText === "string"
+                  ? args.verificationEmailText
+                  : before.details.verificationEmailText,
+              verificationEmailHtml:
+                typeof args.verificationEmailHtml === "string"
+                  ? args.verificationEmailHtml
+                  : before.details.verificationEmailHtml
+            }
+          },
+          {
+            recordId: v4(),
+            createdByAuthorizationId: a.id,
+            createdAt: new Date()
+          }
+        );
+
+        await tx.query("COMMIT");
+        return authority;
+      } catch (error) {
+        await tx.query("ROLLBACK");
+        throw error;
+      }
+    } finally {
+      tx.release();
     }
   }
 };

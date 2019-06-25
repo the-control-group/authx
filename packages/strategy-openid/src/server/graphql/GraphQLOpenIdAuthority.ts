@@ -56,11 +56,16 @@ export const GraphQLOpenIdAuthority = new GraphQLObjectType<
       async resolve(
         authority,
         args,
-        { realm, authorization: a, tx }: Context
+        { realm, authorization: a, pool }: Context
       ): Promise<null | string> {
-        return a && (await authority.isAccessibleBy(realm, a, tx, "read.*"))
-          ? authority.details.tokenUrl
-          : null;
+        const tx = await pool.connect();
+        try {
+          return a && (await authority.isAccessibleBy(realm, a, tx, "read.*"))
+            ? authority.details.tokenUrl
+            : null;
+        } finally {
+          tx.release();
+        }
       }
     },
     clientId: {
@@ -76,11 +81,16 @@ export const GraphQLOpenIdAuthority = new GraphQLObjectType<
       async resolve(
         authority,
         args,
-        { realm, authorization: a, tx }: Context
+        { realm, authorization: a, pool }: Context
       ): Promise<null | string> {
-        return a && (await authority.isAccessibleBy(realm, a, tx, "read.*"))
-          ? authority.details.clientSecret
-          : null;
+        const tx = await pool.connect();
+        try {
+          return a && (await authority.isAccessibleBy(realm, a, tx, "read.*"))
+            ? authority.details.clientSecret
+            : null;
+        } finally {
+          tx.release();
+        }
       }
     },
     restrictsAccountsToHostedDomains: {
@@ -90,11 +100,16 @@ export const GraphQLOpenIdAuthority = new GraphQLObjectType<
       async resolve(
         authority,
         args,
-        { realm, authorization: a, tx }: Context
+        { realm, authorization: a, pool }: Context
       ): Promise<null | string[]> {
-        return a && (await authority.isAccessibleBy(realm, a, tx, "read.*"))
-          ? authority.details.restrictsAccountsToHostedDomains
-          : null;
+        const tx = await pool.connect();
+        try {
+          return a && (await authority.isAccessibleBy(realm, a, tx, "read.*"))
+            ? authority.details.restrictsAccountsToHostedDomains
+            : null;
+        } finally {
+          tx.release();
+        }
       }
     },
     emailAuthority: {
@@ -103,16 +118,21 @@ export const GraphQLOpenIdAuthority = new GraphQLObjectType<
       async resolve(
         authority,
         args,
-        { realm, authorization: a, tx }: Context
+        { realm, authorization: a, pool }: Context
       ): Promise<null | EmailAuthority> {
-        if (!a || !(await authority.isAccessibleBy(realm, a, tx, "read.*"))) {
-          return null;
-        }
+        const tx = await pool.connect();
+        try {
+          if (!a || !(await authority.isAccessibleBy(realm, a, tx, "read.*"))) {
+            return null;
+          }
 
-        const emailAuthority = await authority.emailAuthority(tx);
-        return emailAuthority && emailAuthority.isAccessibleBy(realm, a, tx)
-          ? emailAuthority
-          : null;
+          const emailAuthority = await authority.emailAuthority(tx);
+          return emailAuthority && emailAuthority.isAccessibleBy(realm, a, tx)
+            ? emailAuthority
+            : null;
+        } finally {
+          tx.release();
+        }
       }
     },
     matchesUsersByEmail: {
@@ -122,11 +142,16 @@ export const GraphQLOpenIdAuthority = new GraphQLObjectType<
       async resolve(
         authority,
         args,
-        { realm, authorization: a, tx }: Context
+        { realm, authorization: a, pool }: Context
       ): Promise<null | boolean> {
-        return a && (await authority.isAccessibleBy(realm, a, tx, "read.*"))
-          ? authority.details.matchesUsersByEmail
-          : null;
+        const tx = await pool.connect();
+        try {
+          return a && (await authority.isAccessibleBy(realm, a, tx, "read.*"))
+            ? authority.details.matchesUsersByEmail
+            : null;
+        } finally {
+          tx.release();
+        }
       }
     },
     createsUnmatchedUsers: {
@@ -136,11 +161,16 @@ export const GraphQLOpenIdAuthority = new GraphQLObjectType<
       async resolve(
         authority,
         args,
-        { realm, authorization: a, tx }: Context
+        { realm, authorization: a, pool }: Context
       ): Promise<null | boolean> {
-        return a && (await authority.isAccessibleBy(realm, a, tx, "read.*"))
-          ? authority.details.createsUnmatchedUsers
-          : null;
+        const tx = await pool.connect();
+        try {
+          return a && (await authority.isAccessibleBy(realm, a, tx, "read.*"))
+            ? authority.details.createsUnmatchedUsers
+            : null;
+        } finally {
+          tx.release();
+        }
       }
     },
     assignsCreatedUsersToRoles: {
@@ -151,15 +181,20 @@ export const GraphQLOpenIdAuthority = new GraphQLObjectType<
       async resolve(
         authority,
         args,
-        { realm, authorization: a, tx }: Context
+        { realm, authorization: a, pool }: Context
       ): Promise<null | Role[]> {
-        if (!a || !(await authority.isAccessibleBy(realm, a, tx, "read.*"))) {
-          return null;
-        }
+        const tx = await pool.connect();
+        try {
+          if (!a || !(await authority.isAccessibleBy(realm, a, tx, "read.*"))) {
+            return null;
+          }
 
-        return filter(await authority.assignsCreatedUsersToRoles(tx), role =>
-          role.isAccessibleBy(realm, a, tx)
-        );
+          return filter(await authority.assignsCreatedUsersToRoles(tx), role =>
+            role.isAccessibleBy(realm, a, tx)
+          );
+        } finally {
+          tx.release();
+        }
       }
     }
   })

@@ -42,7 +42,7 @@ export const updatePasswordCredential: GraphQLFieldConfig<
   },
   async resolve(source, args, context): Promise<PasswordCredential> {
     const {
-      tx,
+      pool,
       authorization: a,
       realm,
       strategies: { credentialMap }
@@ -54,61 +54,66 @@ export const updatePasswordCredential: GraphQLFieldConfig<
       );
     }
 
-    await tx.query("BEGIN DEFERRABLE");
-
+    const tx = await pool.connect();
     try {
-      const before = await Credential.read(tx, args.id, credentialMap);
+      await tx.query("BEGIN DEFERRABLE");
 
-      if (!(before instanceof PasswordCredential)) {
-        throw new NotFoundError(
-          "The authority uses a strategy other than password."
-        );
-      }
+      try {
+        const before = await Credential.read(tx, args.id, credentialMap);
 
-      if (!(await before.isAccessibleBy(realm, a, tx, "write.basic"))) {
-        throw new ForbiddenError(
-          "You do not have permission to update this credential."
-        );
-      }
-
-      if (
-        typeof args.password === "string" &&
-        !(await before.isAccessibleBy(realm, a, tx, "write.*"))
-      ) {
-        throw new ForbiddenError(
-          "You do not have permission to update this credential's details."
-        );
-      }
-
-      const credential = await PasswordCredential.write(
-        tx,
-        {
-          ...before,
-          enabled:
-            typeof args.enabled === "boolean" ? args.enabled : before.enabled,
-          details: {
-            ...before.details,
-            hash:
-              typeof args.password === "string"
-                ? await hash(
-                    args.password,
-                    (await before.authority(tx)).details.rounds
-                  )
-                : before.details.hash
-          }
-        },
-        {
-          recordId: v4(),
-          createdByAuthorizationId: a.id,
-          createdAt: new Date()
+        if (!(before instanceof PasswordCredential)) {
+          throw new NotFoundError(
+            "The authority uses a strategy other than password."
+          );
         }
-      );
 
-      await tx.query("COMMIT");
-      return credential;
-    } catch (error) {
-      await tx.query("ROLLBACK");
-      throw error;
+        if (!(await before.isAccessibleBy(realm, a, tx, "write.basic"))) {
+          throw new ForbiddenError(
+            "You do not have permission to update this credential."
+          );
+        }
+
+        if (
+          typeof args.password === "string" &&
+          !(await before.isAccessibleBy(realm, a, tx, "write.*"))
+        ) {
+          throw new ForbiddenError(
+            "You do not have permission to update this credential's details."
+          );
+        }
+
+        const credential = await PasswordCredential.write(
+          tx,
+          {
+            ...before,
+            enabled:
+              typeof args.enabled === "boolean" ? args.enabled : before.enabled,
+            details: {
+              ...before.details,
+              hash:
+                typeof args.password === "string"
+                  ? await hash(
+                      args.password,
+                      (await before.authority(tx)).details.rounds
+                    )
+                  : before.details.hash
+            }
+          },
+          {
+            recordId: v4(),
+            createdByAuthorizationId: a.id,
+            createdAt: new Date()
+          }
+        );
+
+        await tx.query("COMMIT");
+        return credential;
+      } catch (error) {
+        await tx.query("ROLLBACK");
+        throw error;
+      }
+    } finally {
+      tx.release();
     }
   }
 };

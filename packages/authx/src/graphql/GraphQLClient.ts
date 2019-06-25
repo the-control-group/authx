@@ -33,11 +33,17 @@ export const GraphQLClient = new GraphQLObjectType<Client, Context>({
       async resolve(
         client,
         args,
-        { realm, authorization: a, tx }: Context
+        { realm, authorization: a, pool }: Context
       ): Promise<null | string[]> {
-        return a && (await client.isAccessibleBy(realm, a, tx, "read.secrets"))
-          ? [...client.secrets]
-          : null;
+        const tx = await pool.connect();
+        try {
+          return a &&
+            (await client.isAccessibleBy(realm, a, tx, "read.secrets"))
+            ? [...client.secrets]
+            : null;
+        } finally {
+          tx.release();
+        }
       }
     },
     urls: { type: new GraphQLList(GraphQLString) },
@@ -47,17 +53,22 @@ export const GraphQLClient = new GraphQLObjectType<Client, Context>({
       async resolve(
         client,
         args: ConnectionArguments,
-        { realm, authorization: a, tx }: Context
+        { realm, authorization: a, pool }: Context
       ) {
-        return a &&
-          (await client.isAccessibleBy(realm, a, tx, "read.assignments"))
-          ? connectionFromArray(
-              await filter(await client.users(tx), user =>
-                user.isAccessibleBy(realm, a, tx)
-              ),
-              args
-            )
-          : null;
+        const tx = await pool.connect();
+        try {
+          return a &&
+            (await client.isAccessibleBy(realm, a, tx, "read.assignments"))
+            ? connectionFromArray(
+                await filter(await client.users(tx), user =>
+                  user.isAccessibleBy(realm, a, tx)
+                ),
+                args
+              )
+            : null;
+        } finally {
+          tx.release();
+        }
       }
     }
   })

@@ -1,4 +1,4 @@
-import { PoolClient } from "pg";
+import { Pool } from "pg";
 import { Authorization } from "./model";
 import { StrategyCollection } from "./StrategyCollection";
 
@@ -16,7 +16,7 @@ export interface Context {
     html: string;
     from?: string;
   }) => Promise<any>;
-  tx: PoolClient;
+  pool: Pool;
   strategies: StrategyCollection;
   authorization: null | Authorization;
 }

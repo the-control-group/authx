@@ -44,7 +44,7 @@ export const createPasswordAuthority: GraphQLFieldConfig<
     }
   },
   async resolve(source, args, context): Promise<PasswordAuthority> {
-    const { tx, authorization: a, realm } = context;
+    const { pool, authorization: a, realm } = context;
 
     if (!a) {
       throw new ForbiddenError(
@@ -52,37 +52,42 @@ export const createPasswordAuthority: GraphQLFieldConfig<
       );
     }
 
-    await tx.query("BEGIN DEFERRABLE");
+    const tx = await pool.connect();
     try {
-      const id = v4();
-      const data = new PasswordAuthority({
-        id,
-        strategy: "password",
-        enabled: args.enabled,
-        name: args.name,
-        description: args.description,
-        details: {
-          rounds: args.rounds
+      await tx.query("BEGIN DEFERRABLE");
+      try {
+        const id = v4();
+        const data = new PasswordAuthority({
+          id,
+          strategy: "password",
+          enabled: args.enabled,
+          name: args.name,
+          description: args.description,
+          details: {
+            rounds: args.rounds
+          }
+        });
+
+        if (!(await data.isAccessibleBy(realm, a, tx, "write.*"))) {
+          throw new ForbiddenError(
+            "You do not have permission to create an authority."
+          );
         }
-      });
 
-      if (!(await data.isAccessibleBy(realm, a, tx, "write.*"))) {
-        throw new ForbiddenError(
-          "You do not have permission to create an authority."
-        );
+        const authority = await PasswordAuthority.write(tx, data, {
+          recordId: v4(),
+          createdByAuthorizationId: a.id,
+          createdAt: new Date()
+        });
+
+        await tx.query("COMMIT");
+        return authority;
+      } catch (error) {
+        await tx.query("ROLLBACK");
+        throw error;
       }
-
-      const authority = await PasswordAuthority.write(tx, data, {
-        recordId: v4(),
-        createdByAuthorizationId: a.id,
-        createdAt: new Date()
-      });
-
-      await tx.query("COMMIT");
-      return authority;
-    } catch (error) {
-      await tx.query("ROLLBACK");
-      throw error;
+    } finally {
+      tx.release();
     }
   }
 };

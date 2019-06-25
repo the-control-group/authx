@@ -47,7 +47,7 @@ export const authenticateOpenId: GraphQLFieldConfig<
   },
   async resolve(source, args, context): Promise<Authorization> {
     const {
-      tx,
+      pool,
       authorization: a,
       realm,
       strategies: { authorityMap },
@@ -58,140 +58,178 @@ export const authenticateOpenId: GraphQLFieldConfig<
       throw new ForbiddenError("You area already authenticated.");
     }
 
-    await tx.query("BEGIN DEFERRABLE");
-
+    const tx = await pool.connect();
     try {
-      // Fetch the authority.
-      const authority = await Authority.read(
-        tx,
-        args.authorityId,
-        authorityMap
-      );
+      await tx.query("BEGIN DEFERRABLE");
 
-      if (!(authority instanceof OpenIdAuthority)) {
-        throw new AuthenticationError(
-          "The authority uses a strategy other than openid."
-        );
-      }
-
-      // Fetch the ID token.
-      const requestBody = new FormData();
-      requestBody.append("grant_type", "authorization_code");
-      requestBody.append("client_id", authority.details.clientId);
-      requestBody.append("client_secret", authority.details.clientSecret);
-      requestBody.append("code", args.code);
-      requestBody.append(
-        "redirect_uri",
-        `${base}?authorityId=${args.authorityId}`
-      );
-
-      const response = await fetch(authority.details.tokenUrl, {
-        method: "POST",
-        body: requestBody
-      });
-
-      const responseBody = (await response.json()) as {
-        access_token: string;
-        id_token: string;
-        expires_in: number;
-        token_type: string;
-        refresh_token?: string;
-        error?: string;
-      };
-
-      if (!responseBody || !responseBody.id_token) {
-        throw new Error(
-          (responseBody && responseBody.error) ||
-            "Invalid response returned by authority."
-        );
-      }
-
-      // Decode the ID token.
-      const token = jwt.decode(responseBody.id_token) as {
-        sub: string;
-        iss: string;
-        azp?: string;
-        aud: string;
-        iat: number;
-        exp: number;
-        name?: string;
-        given_name?: string;
-        family_name?: string;
-        middle_name?: string;
-        nickname?: string;
-        preferred_username?: string;
-        profile?: string;
-        picture?: string;
-        website?: string;
-        email?: string;
-        email_verified?: boolean;
-        gender?: string;
-        birthdate?: string;
-        zoneinfo?: string;
-        locale?: string;
-        phone_number?: string;
-        phone_number_verified?: boolean;
-        address?: {
-          formatted?: string;
-          street_address?: string;
-          locality?: string;
-          region?: string;
-          postal_code?: string;
-          country?: string;
-        };
-        updated_at?: number;
-
-        // This is a google-specific claim for "hosted domain".
-        hd?: string;
-      };
-
-      if (!token || typeof token.sub !== "string" || !token.sub) {
-        throw new Error("Invalid token returned by authority.");
-      }
-
-      // Restrict user based to hosted domain.
-      if (
-        authority.details.restrictsAccountsToHostedDomains.length &&
-        (!token.hd ||
-          !authority.details.restrictsAccountsToHostedDomains.includes(
-            token.hd
-          ))
-      ) {
-        throw new AuthenticationError(
-          `The hosted domain "${token.hd || ""}" is not allowed.`
-        );
-      }
-
-      const authorizationId = v4();
-
-      // Get the credential
-      let credential = await authority.credential(tx, token.sub);
-
-      // Try to associate an existing user by email.
-      if (
-        !credential &&
-        authority.details.emailAuthorityId &&
-        authority.details.matchesUsersByEmail &&
-        token.email &&
-        token.email_verified
-      ) {
-        const emailAuthority = await EmailAuthority.read(
+      try {
+        // Fetch the authority.
+        const authority = await Authority.read(
           tx,
-          authority.details.emailAuthorityId
+          args.authorityId,
+          authorityMap
         );
 
-        const emailCredential =
-          emailAuthority &&
-          emailAuthority.enabled &&
-          (await emailAuthority.credential(tx, token.email));
+        if (!(authority instanceof OpenIdAuthority)) {
+          throw new AuthenticationError(
+            "The authority uses a strategy other than openid."
+          );
+        }
 
-        if (emailCredential && emailCredential.enabled) {
+        // Fetch the ID token.
+        const requestBody = new FormData();
+        requestBody.append("grant_type", "authorization_code");
+        requestBody.append("client_id", authority.details.clientId);
+        requestBody.append("client_secret", authority.details.clientSecret);
+        requestBody.append("code", args.code);
+        requestBody.append(
+          "redirect_uri",
+          `${base}?authorityId=${args.authorityId}`
+        );
+
+        const response = await fetch(authority.details.tokenUrl, {
+          method: "POST",
+          body: requestBody
+        });
+
+        const responseBody = (await response.json()) as {
+          access_token: string;
+          id_token: string;
+          expires_in: number;
+          token_type: string;
+          refresh_token?: string;
+          error?: string;
+        };
+
+        if (!responseBody || !responseBody.id_token) {
+          throw new Error(
+            (responseBody && responseBody.error) ||
+              "Invalid response returned by authority."
+          );
+        }
+
+        // Decode the ID token.
+        const token = jwt.decode(responseBody.id_token) as {
+          sub: string;
+          iss: string;
+          azp?: string;
+          aud: string;
+          iat: number;
+          exp: number;
+          name?: string;
+          given_name?: string;
+          family_name?: string;
+          middle_name?: string;
+          nickname?: string;
+          preferred_username?: string;
+          profile?: string;
+          picture?: string;
+          website?: string;
+          email?: string;
+          email_verified?: boolean;
+          gender?: string;
+          birthdate?: string;
+          zoneinfo?: string;
+          locale?: string;
+          phone_number?: string;
+          phone_number_verified?: boolean;
+          address?: {
+            formatted?: string;
+            street_address?: string;
+            locality?: string;
+            region?: string;
+            postal_code?: string;
+            country?: string;
+          };
+          updated_at?: number;
+
+          // This is a google-specific claim for "hosted domain".
+          hd?: string;
+        };
+
+        if (!token || typeof token.sub !== "string" || !token.sub) {
+          throw new Error("Invalid token returned by authority.");
+        }
+
+        // Restrict user based to hosted domain.
+        if (
+          authority.details.restrictsAccountsToHostedDomains.length &&
+          (!token.hd ||
+            !authority.details.restrictsAccountsToHostedDomains.includes(
+              token.hd
+            ))
+        ) {
+          throw new AuthenticationError(
+            `The hosted domain "${token.hd || ""}" is not allowed.`
+          );
+        }
+
+        const authorizationId = v4();
+
+        // Get the credential
+        let credential = await authority.credential(tx, token.sub);
+
+        // Try to associate an existing user by email.
+        if (
+          !credential &&
+          authority.details.emailAuthorityId &&
+          authority.details.matchesUsersByEmail &&
+          token.email &&
+          token.email_verified
+        ) {
+          const emailAuthority = await EmailAuthority.read(
+            tx,
+            authority.details.emailAuthorityId
+          );
+
+          const emailCredential =
+            emailAuthority &&
+            emailAuthority.enabled &&
+            (await emailAuthority.credential(tx, token.email));
+
+          if (emailCredential && emailCredential.enabled) {
+            credential = await OpenIdCredential.write(
+              tx,
+              {
+                enabled: true,
+                id: v4(),
+                userId: emailCredential.userId,
+                authorityId: authority.id,
+                authorityUserId: token.sub,
+                details: {}
+              },
+              {
+                recordId: v4(),
+                createdByAuthorizationId: authorizationId,
+                createdAt: new Date()
+              }
+            );
+          }
+        }
+
+        // Create a new user.
+        if (!credential && authority.details.createsUnmatchedUsers) {
+          const user = await User.write(
+            tx,
+            {
+              id: v4(),
+              enabled: true,
+              type: "human",
+              name: token.name || ""
+            },
+            {
+              recordId: v4(),
+              createdByAuthorizationId: authorizationId,
+              createdAt: new Date()
+            }
+          );
+
           credential = await OpenIdCredential.write(
             tx,
             {
               enabled: true,
               id: v4(),
-              userId: emailCredential.userId,
+              userId: user.id,
               authorityId: authority.id,
               authorityUserId: token.sub,
               details: {}
@@ -202,103 +240,70 @@ export const authenticateOpenId: GraphQLFieldConfig<
               createdAt: new Date()
             }
           );
-        }
-      }
 
-      // Create a new user.
-      if (!credential && authority.details.createsUnmatchedUsers) {
-        const user = await User.write(
+          // Assign the new user to the configured roles.
+          if (
+            authority.details.assignsCreatedUsersToRoleIds &&
+            authority.details.assignsCreatedUsersToRoleIds.length
+          ) {
+            const roles = await Promise.all(
+              authority.details.assignsCreatedUsersToRoleIds.map(id =>
+                Role.read(tx, id)
+              )
+            );
+
+            await roles.map(role =>
+              Role.write(
+                tx,
+                {
+                  ...role,
+                  userIds: [...role.userIds, user.id]
+                },
+                {
+                  recordId: v4(),
+                  createdByAuthorizationId: authorizationId,
+                  createdAt: new Date()
+                }
+              )
+            );
+          }
+        }
+
+        if (!credential) {
+          throw new AuthenticationError("No such credential exists.");
+        }
+
+        // Create a new authorization.
+        const authorization = await Authorization.write(
           tx,
           {
-            id: v4(),
+            id: authorizationId,
             enabled: true,
-            type: "human",
-            name: token.name || ""
+            userId: credential.userId,
+            grantId: null,
+            secret: randomBytes(16).toString("hex"),
+            scopes: [`${realm}:**:**`]
           },
           {
             recordId: v4(),
             createdByAuthorizationId: authorizationId,
+            createdByCredentialId: credential.id,
             createdAt: new Date()
           }
         );
 
-        credential = await OpenIdCredential.write(
-          tx,
-          {
-            enabled: true,
-            id: v4(),
-            userId: user.id,
-            authorityId: authority.id,
-            authorityUserId: token.sub,
-            details: {}
-          },
-          {
-            recordId: v4(),
-            createdByAuthorizationId: authorizationId,
-            createdAt: new Date()
-          }
-        );
+        await tx.query("COMMIT");
 
-        // Assign the new user to the configured roles.
-        if (
-          authority.details.assignsCreatedUsersToRoleIds &&
-          authority.details.assignsCreatedUsersToRoleIds.length
-        ) {
-          const roles = await Promise.all(
-            authority.details.assignsCreatedUsersToRoleIds.map(id =>
-              Role.read(tx, id)
-            )
-          );
+        // use this authorization for the rest of the request
+        context.authorization = authorization;
 
-          await roles.map(role =>
-            Role.write(
-              tx,
-              {
-                ...role,
-                userIds: [...role.userIds, user.id]
-              },
-              {
-                recordId: v4(),
-                createdByAuthorizationId: authorizationId,
-                createdAt: new Date()
-              }
-            )
-          );
-        }
+        return authorization;
+      } catch (error) {
+        await tx.query("ROLLBACK");
+        throw error;
       }
-
-      if (!credential) {
-        throw new AuthenticationError("No such credential exists.");
-      }
-
-      // Create a new authorization.
-      const authorization = await Authorization.write(
-        tx,
-        {
-          id: authorizationId,
-          enabled: true,
-          userId: credential.userId,
-          grantId: null,
-          secret: randomBytes(16).toString("hex"),
-          scopes: [`${realm}:**:**`]
-        },
-        {
-          recordId: v4(),
-          createdByAuthorizationId: authorizationId,
-          createdByCredentialId: credential.id,
-          createdAt: new Date()
-        }
-      );
-
-      await tx.query("COMMIT");
-
-      // use this authorization for the rest of the request
-      context.authorization = authorization;
-
-      return authorization;
-    } catch (error) {
-      await tx.query("ROLLBACK");
-      throw error;
+    } finally {
+      tx.release();
     }
   }
 };

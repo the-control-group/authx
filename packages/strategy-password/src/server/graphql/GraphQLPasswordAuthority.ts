@@ -32,11 +32,16 @@ export const GraphQLPasswordAuthority = new GraphQLObjectType<
       async resolve(
         authority,
         args,
-        { realm, authorization: a, tx }: Context
+        { realm, authorization: a, pool }: Context
       ): Promise<null | number> {
-        return a && (await authority.isAccessibleBy(realm, a, tx, "read.*"))
-          ? authority.details.rounds
-          : null;
+        const tx = await pool.connect();
+        try {
+          return a && (await authority.isAccessibleBy(realm, a, tx, "read.*"))
+            ? authority.details.rounds
+            : null;
+        } finally {
+          tx.release();
+        }
       }
     }
   })

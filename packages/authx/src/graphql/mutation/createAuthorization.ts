@@ -45,7 +45,7 @@ export const createAuthorization: GraphQLFieldConfig<
     }
   },
   async resolve(source, args, context): Promise<Authorization> {
-    const { tx, authorization: a, realm } = context;
+    const { pool, authorization: a, realm } = context;
 
     if (!a) {
       throw new ForbiddenError(
@@ -53,63 +53,68 @@ export const createAuthorization: GraphQLFieldConfig<
       );
     }
 
-    if (
-      // can create authorizations for all users
-      !(await a.can(tx, `${realm}:authorization.*.*:write.*`)) &&
-      // can create authorizations for users with equal access
-      !(
-        (await a.can(tx, `${realm}:authorization.equal.*:write.*`)) &&
-        isSuperset(
-          await (await a.user(tx)).access(tx),
-          await (await User.read(tx, args.userId)).access(tx)
-        )
-      ) &&
-      // can create authorizations for users with lesser access
-      !(
-        (await a.can(tx, `${realm}:authorization.equal.lesser:write.*`)) &&
-        isStrictSuperset(
-          await (await a.user(tx)).access(tx),
-          await (await User.read(tx, args.userId)).access(tx)
-        )
-      ) &&
-      // can create authorizations for self
-      !(
-        (await a.can(tx, `${realm}:authorization.equal.self:write.*`)) &&
-        args.userId === a.userId
-      )
-    ) {
-      throw new ForbiddenError(
-        "You must be authenticated to create a authorization."
-      );
-    }
-
-    await tx.query("BEGIN DEFERRABLE");
-
+    const tx = await pool.connect();
     try {
-      const id = v4();
-      const authorization = await Authorization.write(
-        tx,
-        {
-          id,
-          enabled: args.enabled,
-          userId: args.userId,
-          grantId: args.grantId,
-          secret: randomBytes(16).toString("hex"),
-          scopes: args.scopes
-        },
-        {
-          recordId: v4(),
-          createdByAuthorizationId: a.id,
-          createdByCredentialId: null,
-          createdAt: new Date()
-        }
-      );
+      if (
+        // can create authorizations for all users
+        !(await a.can(tx, `${realm}:authorization.*.*:write.*`)) &&
+        // can create authorizations for users with equal access
+        !(
+          (await a.can(tx, `${realm}:authorization.equal.*:write.*`)) &&
+          isSuperset(
+            await (await a.user(tx)).access(tx),
+            await (await User.read(tx, args.userId)).access(tx)
+          )
+        ) &&
+        // can create authorizations for users with lesser access
+        !(
+          (await a.can(tx, `${realm}:authorization.equal.lesser:write.*`)) &&
+          isStrictSuperset(
+            await (await a.user(tx)).access(tx),
+            await (await User.read(tx, args.userId)).access(tx)
+          )
+        ) &&
+        // can create authorizations for self
+        !(
+          (await a.can(tx, `${realm}:authorization.equal.self:write.*`)) &&
+          args.userId === a.userId
+        )
+      ) {
+        throw new ForbiddenError(
+          "You must be authenticated to create a authorization."
+        );
+      }
 
-      await tx.query("COMMIT");
-      return authorization;
-    } catch (error) {
-      await tx.query("ROLLBACK");
-      throw error;
+      await tx.query("BEGIN DEFERRABLE");
+
+      try {
+        const id = v4();
+        const authorization = await Authorization.write(
+          tx,
+          {
+            id,
+            enabled: args.enabled,
+            userId: args.userId,
+            grantId: args.grantId,
+            secret: randomBytes(16).toString("hex"),
+            scopes: args.scopes
+          },
+          {
+            recordId: v4(),
+            createdByAuthorizationId: a.id,
+            createdByCredentialId: null,
+            createdAt: new Date()
+          }
+        );
+
+        await tx.query("COMMIT");
+        return authorization;
+      } catch (error) {
+        await tx.query("ROLLBACK");
+        throw error;
+      }
+    } finally {
+      tx.release();
     }
   }
 };

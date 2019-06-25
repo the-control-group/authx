@@ -30,7 +30,7 @@ export const updateAuthorization: GraphQLFieldConfig<
     }
   },
   async resolve(source, args, context): Promise<Authorization> {
-    const { tx, authorization: a, realm } = context;
+    const { pool, authorization: a, realm } = context;
 
     if (!a) {
       throw new ForbiddenError(
@@ -38,37 +38,42 @@ export const updateAuthorization: GraphQLFieldConfig<
       );
     }
 
-    await tx.query("BEGIN DEFERRABLE");
-
+    const tx = await pool.connect();
     try {
-      const before = await Authorization.read(tx, args.id);
+      await tx.query("BEGIN DEFERRABLE");
 
-      if (!(await before.isAccessibleBy(realm, a, tx, "write.basic"))) {
-        throw new ForbiddenError(
-          "You do not have permission to update this authorization."
-        );
-      }
+      try {
+        const before = await Authorization.read(tx, args.id);
 
-      const authorization = await Authorization.write(
-        tx,
-        {
-          ...before,
-          enabled:
-            typeof args.enabled === "boolean" ? args.enabled : before.enabled
-        },
-        {
-          recordId: v4(),
-          createdByAuthorizationId: a.id,
-          createdByCredentialId: null,
-          createdAt: new Date()
+        if (!(await before.isAccessibleBy(realm, a, tx, "write.basic"))) {
+          throw new ForbiddenError(
+            "You do not have permission to update this authorization."
+          );
         }
-      );
 
-      await tx.query("COMMIT");
-      return authorization;
-    } catch (error) {
-      await tx.query("ROLLBACK");
-      throw error;
+        const authorization = await Authorization.write(
+          tx,
+          {
+            ...before,
+            enabled:
+              typeof args.enabled === "boolean" ? args.enabled : before.enabled
+          },
+          {
+            recordId: v4(),
+            createdByAuthorizationId: a.id,
+            createdByCredentialId: null,
+            createdAt: new Date()
+          }
+        );
+
+        await tx.query("COMMIT");
+        return authorization;
+      } catch (error) {
+        await tx.query("ROLLBACK");
+        throw error;
+      }
+    } finally {
+      tx.release();
     }
   }
 };

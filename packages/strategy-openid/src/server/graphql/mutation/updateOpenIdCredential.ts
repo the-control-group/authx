@@ -35,7 +35,7 @@ export const updateOpenIdCredential: GraphQLFieldConfig<
   },
   async resolve(source, args, context): Promise<OpenIdCredential> {
     const {
-      tx,
+      pool,
       authorization: a,
       realm,
       strategies: { credentialMap }
@@ -47,40 +47,45 @@ export const updateOpenIdCredential: GraphQLFieldConfig<
       );
     }
 
-    await tx.query("BEGIN DEFERRABLE");
-
+    const tx = await pool.connect();
     try {
-      const before = await Credential.read(tx, args.id, credentialMap);
+      await tx.query("BEGIN DEFERRABLE");
 
-      if (!(before instanceof OpenIdCredential)) {
-        throw new NotFoundError("No openid credential exists with this ID.");
-      }
+      try {
+        const before = await Credential.read(tx, args.id, credentialMap);
 
-      if (!(await before.isAccessibleBy(realm, a, tx, "write.basic"))) {
-        throw new ForbiddenError(
-          "You do not have permission to update this credential."
-        );
-      }
-
-      const credential = await OpenIdCredential.write(
-        tx,
-        {
-          ...before,
-          enabled:
-            typeof args.enabled === "boolean" ? args.enabled : before.enabled
-        },
-        {
-          recordId: v4(),
-          createdByAuthorizationId: a.id,
-          createdAt: new Date()
+        if (!(before instanceof OpenIdCredential)) {
+          throw new NotFoundError("No openid credential exists with this ID.");
         }
-      );
 
-      await tx.query("COMMIT");
-      return credential;
-    } catch (error) {
-      await tx.query("ROLLBACK");
-      throw error;
+        if (!(await before.isAccessibleBy(realm, a, tx, "write.basic"))) {
+          throw new ForbiddenError(
+            "You do not have permission to update this credential."
+          );
+        }
+
+        const credential = await OpenIdCredential.write(
+          tx,
+          {
+            ...before,
+            enabled:
+              typeof args.enabled === "boolean" ? args.enabled : before.enabled
+          },
+          {
+            recordId: v4(),
+            createdByAuthorizationId: a.id,
+            createdAt: new Date()
+          }
+        );
+
+        await tx.query("COMMIT");
+        return credential;
+      } catch (error) {
+        await tx.query("ROLLBACK");
+        throw error;
+      }
+    } finally {
+      tx.release();
     }
   }
 };

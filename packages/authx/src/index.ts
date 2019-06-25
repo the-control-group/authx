@@ -77,15 +77,15 @@ export class AuthX<
           ...config,
           strategies,
           authorization,
-          tx
+          pool
         };
 
         ctx[x] = context;
-
-        await next();
       } finally {
         tx.release();
       }
+
+      await next();
     };
 
     // GraphQL
