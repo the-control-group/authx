@@ -55,37 +55,36 @@ export const createPasswordAuthority: GraphQLFieldConfig<
     const tx = await pool.connect();
     try {
       await tx.query("BEGIN DEFERRABLE");
-      try {
-        const id = v4();
-        const data = new PasswordAuthority({
-          id,
-          strategy: "password",
-          enabled: args.enabled,
-          name: args.name,
-          description: args.description,
-          details: {
-            rounds: args.rounds
-          }
-        });
 
-        if (!(await data.isAccessibleBy(realm, a, tx, "write.*"))) {
-          throw new ForbiddenError(
-            "You do not have permission to create an authority."
-          );
+      const id = v4();
+      const data = new PasswordAuthority({
+        id,
+        strategy: "password",
+        enabled: args.enabled,
+        name: args.name,
+        description: args.description,
+        details: {
+          rounds: args.rounds
         }
+      });
 
-        const authority = await PasswordAuthority.write(tx, data, {
-          recordId: v4(),
-          createdByAuthorizationId: a.id,
-          createdAt: new Date()
-        });
-
-        await tx.query("COMMIT");
-        return authority;
-      } catch (error) {
-        await tx.query("ROLLBACK");
-        throw error;
+      if (!(await data.isAccessibleBy(realm, a, tx, "write.*"))) {
+        throw new ForbiddenError(
+          "You do not have permission to create an authority."
+        );
       }
+
+      const authority = await PasswordAuthority.write(tx, data, {
+        recordId: v4(),
+        createdByAuthorizationId: a.id,
+        createdAt: new Date()
+      });
+
+      await tx.query("COMMIT");
+      return authority;
+    } catch (error) {
+      await tx.query("ROLLBACK");
+      throw error;
     } finally {
       tx.release();
     }

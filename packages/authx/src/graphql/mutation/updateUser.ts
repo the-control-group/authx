@@ -47,36 +47,34 @@ export const updateUser: GraphQLFieldConfig<
     try {
       await tx.query("BEGIN DEFERRABLE");
 
-      try {
-        const before = await User.read(tx, args.id);
+      const before = await User.read(tx, args.id);
 
-        if (!(await before.isAccessibleBy(realm, a, tx, "write.basic"))) {
-          throw new ForbiddenError(
-            "You do not have permission to update this user."
-          );
-        }
-
-        const user = await User.write(
-          tx,
-          {
-            ...before,
-            enabled:
-              typeof args.enabled === "boolean" ? args.enabled : before.enabled,
-            name: typeof args.name === "string" ? args.name : before.name
-          },
-          {
-            recordId: v4(),
-            createdByAuthorizationId: a.id,
-            createdAt: new Date()
-          }
+      if (!(await before.isAccessibleBy(realm, a, tx, "write.basic"))) {
+        throw new ForbiddenError(
+          "You do not have permission to update this user."
         );
-
-        await tx.query("COMMIT");
-        return user;
-      } catch (error) {
-        await tx.query("ROLLBACK");
-        throw error;
       }
+
+      const user = await User.write(
+        tx,
+        {
+          ...before,
+          enabled:
+            typeof args.enabled === "boolean" ? args.enabled : before.enabled,
+          name: typeof args.name === "string" ? args.name : before.name
+        },
+        {
+          recordId: v4(),
+          createdByAuthorizationId: a.id,
+          createdAt: new Date()
+        }
+      );
+
+      await tx.query("COMMIT");
+      return user;
+    } catch (error) {
+      await tx.query("ROLLBACK");
+      throw error;
     } finally {
       tx.release();
     }

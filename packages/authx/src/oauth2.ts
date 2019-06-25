@@ -64,8 +64,8 @@ export default async (ctx: ParameterizedContext<any, { [x]: Context }>) => {
       // Authorization Code
       // ==================
       if (grantType === "authorization_code") {
-        tx.query("BEGIN DEFERRABLE");
         try {
+          tx.query("BEGIN DEFERRABLE");
           const now = Math.floor(Date.now() / 1000);
           const paramsClientId: undefined | string =
             typeof ctx.request.body.client_id === "string"
@@ -258,8 +258,8 @@ export default async (ctx: ParameterizedContext<any, { [x]: Context }>) => {
       // Refresh Token
       // =============
       if (grantType === "refresh_token") {
-        tx.query("BEGIN DEFERRABLE");
         try {
+          tx.query("BEGIN DEFERRABLE");
           const paramsClientId: undefined | string =
             typeof ctx.request.body.client_id === "string"
               ? ctx.request.body.client_id

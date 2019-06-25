@@ -111,95 +111,93 @@ export const updateOpenIdAuthority: GraphQLFieldConfig<
     try {
       await tx.query("BEGIN DEFERRABLE");
 
-      try {
-        const before = await Authority.read(tx, args.id, authorityMap);
+      const before = await Authority.read(tx, args.id, authorityMap);
 
-        if (!(before instanceof OpenIdAuthority)) {
-          throw new NotFoundError("No openid authority exists with this ID.");
-        }
-
-        if (!(await before.isAccessibleBy(realm, a, tx, "write.basic"))) {
-          throw new ForbiddenError(
-            "You do not have permission to update this authority."
-          );
-        }
-
-        if (
-          (typeof args.clientId === "string" ||
-            typeof args.clientSecret === "string") &&
-          !(await before.isAccessibleBy(realm, a, tx, "write.*"))
-        ) {
-          throw new ForbiddenError(
-            "You do not have permission to update this authority's details."
-          );
-        }
-        const authority = await OpenIdAuthority.write(
-          tx,
-          {
-            ...before,
-            enabled:
-              typeof args.enabled === "boolean" ? args.enabled : before.enabled,
-            name: typeof args.name === "string" ? args.name : before.name,
-            description:
-              typeof args.description === "string"
-                ? args.description
-                : before.description,
-            details: {
-              authUrl:
-                typeof args.authUrl === "string"
-                  ? args.authUrl
-                  : before.details.authUrl,
-              tokenUrl:
-                typeof args.tokenUrl === "string"
-                  ? args.tokenUrl
-                  : before.details.tokenUrl,
-              clientId:
-                typeof args.clientId === "string"
-                  ? args.clientId
-                  : before.details.clientId,
-              clientSecret:
-                typeof args.clientSecret === "string"
-                  ? args.clientSecret
-                  : before.details.clientSecret,
-              restrictsAccountsToHostedDomains: Array.isArray(
-                args.restrictsAccountsToHostedDomains
-              )
-                ? args.restrictsAccountsToHostedDomains
-                : before.details.restrictsAccountsToHostedDomains,
-              emailAuthorityId:
-                typeof args.emailAuthorityId === "string"
-                  ? args.emailAuthorityId === ""
-                    ? null
-                    : args.emailAuthorityId
-                  : before.details.emailAuthorityId,
-              matchesUsersByEmail:
-                typeof args.matchesUsersByEmail === "boolean"
-                  ? args.matchesUsersByEmail
-                  : before.details.matchesUsersByEmail,
-              createsUnmatchedUsers:
-                typeof args.createsUnmatchedUsers === "boolean"
-                  ? args.createsUnmatchedUsers
-                  : before.details.createsUnmatchedUsers,
-              assignsCreatedUsersToRoleIds: Array.isArray(
-                args.assignsCreatedUsersToRoleIds
-              )
-                ? args.assignsCreatedUsersToRoleIds
-                : before.details.assignsCreatedUsersToRoleIds
-            }
-          },
-          {
-            recordId: v4(),
-            createdByAuthorizationId: a.id,
-            createdAt: new Date()
-          }
-        );
-
-        await tx.query("COMMIT");
-        return authority;
-      } catch (error) {
-        await tx.query("ROLLBACK");
-        throw error;
+      if (!(before instanceof OpenIdAuthority)) {
+        throw new NotFoundError("No openid authority exists with this ID.");
       }
+
+      if (!(await before.isAccessibleBy(realm, a, tx, "write.basic"))) {
+        throw new ForbiddenError(
+          "You do not have permission to update this authority."
+        );
+      }
+
+      if (
+        (typeof args.clientId === "string" ||
+          typeof args.clientSecret === "string") &&
+        !(await before.isAccessibleBy(realm, a, tx, "write.*"))
+      ) {
+        throw new ForbiddenError(
+          "You do not have permission to update this authority's details."
+        );
+      }
+      const authority = await OpenIdAuthority.write(
+        tx,
+        {
+          ...before,
+          enabled:
+            typeof args.enabled === "boolean" ? args.enabled : before.enabled,
+          name: typeof args.name === "string" ? args.name : before.name,
+          description:
+            typeof args.description === "string"
+              ? args.description
+              : before.description,
+          details: {
+            authUrl:
+              typeof args.authUrl === "string"
+                ? args.authUrl
+                : before.details.authUrl,
+            tokenUrl:
+              typeof args.tokenUrl === "string"
+                ? args.tokenUrl
+                : before.details.tokenUrl,
+            clientId:
+              typeof args.clientId === "string"
+                ? args.clientId
+                : before.details.clientId,
+            clientSecret:
+              typeof args.clientSecret === "string"
+                ? args.clientSecret
+                : before.details.clientSecret,
+            restrictsAccountsToHostedDomains: Array.isArray(
+              args.restrictsAccountsToHostedDomains
+            )
+              ? args.restrictsAccountsToHostedDomains
+              : before.details.restrictsAccountsToHostedDomains,
+            emailAuthorityId:
+              typeof args.emailAuthorityId === "string"
+                ? args.emailAuthorityId === ""
+                  ? null
+                  : args.emailAuthorityId
+                : before.details.emailAuthorityId,
+            matchesUsersByEmail:
+              typeof args.matchesUsersByEmail === "boolean"
+                ? args.matchesUsersByEmail
+                : before.details.matchesUsersByEmail,
+            createsUnmatchedUsers:
+              typeof args.createsUnmatchedUsers === "boolean"
+                ? args.createsUnmatchedUsers
+                : before.details.createsUnmatchedUsers,
+            assignsCreatedUsersToRoleIds: Array.isArray(
+              args.assignsCreatedUsersToRoleIds
+            )
+              ? args.assignsCreatedUsersToRoleIds
+              : before.details.assignsCreatedUsersToRoleIds
+          }
+        },
+        {
+          recordId: v4(),
+          createdByAuthorizationId: a.id,
+          createdAt: new Date()
+        }
+      );
+
+      await tx.query("COMMIT");
+      return authority;
+    } catch (error) {
+      await tx.query("ROLLBACK");
+      throw error;
     } finally {
       tx.release();
     }

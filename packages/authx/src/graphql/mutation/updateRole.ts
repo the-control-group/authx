@@ -63,80 +63,77 @@ export const updateRole: GraphQLFieldConfig<
     const tx = await pool.connect();
     try {
       await tx.query("BEGIN DEFERRABLE");
+      const before = await Role.read(tx, args.id);
 
-      try {
-        const before = await Role.read(tx, args.id);
-
-        // write.basic -----------------------------------------------------------
-        if (!(await before.isAccessibleBy(realm, a, tx, "write.basic"))) {
-          throw new ForbiddenError(
-            "You do not have permission to update this role."
-          );
-        }
-
-        // write.scopes ----------------------------------------------------------
-        if (
-          args.scopes &&
-          !(await before.isAccessibleBy(realm, a, tx, "write.scopes"))
-        ) {
-          throw new ForbiddenError(
-            "You do not have permission to update this role's scopes."
-          );
-        }
-
-        if (
-          args.scopes &&
-          !(await a.can(tx, `${realm}:role.*.*:write.scopes`)) &&
-          !isSuperset(await (await a.user(tx)).access(tx), args.scopes)
-        ) {
-          throw new ForbiddenError(
-            "You do not have permission to set scopes greater than your level of access."
-          );
-        }
-
-        // write.assignments -----------------------------------------------------
-        if (!(await before.isAccessibleBy(realm, a, tx, "write.assignments"))) {
-          throw new ForbiddenError(
-            "You do not have permission to update this role's assignments."
-          );
-        }
-
-        let userIds = [...before.userIds];
-
-        // assign users
-        if (args.assignUserIds) {
-          userIds = [...userIds, ...args.assignUserIds];
-        }
-
-        // unassign users
-        if (args.unassignUserIds) {
-          const unassignUserIds = new Set(args.unassignUserIds);
-          userIds = userIds.filter(id => !unassignUserIds.has(id));
-        }
-
-        const role = await Role.write(
-          tx,
-          {
-            ...before,
-            enabled:
-              typeof args.enabled === "boolean" ? args.enabled : before.enabled,
-            name: args.name || before.name,
-            description: args.description || before.description,
-            scopes: args.scopes || before.scopes,
-            userIds
-          },
-          {
-            recordId: v4(),
-            createdByAuthorizationId: a.id,
-            createdAt: new Date()
-          }
+      // write.basic -----------------------------------------------------------
+      if (!(await before.isAccessibleBy(realm, a, tx, "write.basic"))) {
+        throw new ForbiddenError(
+          "You do not have permission to update this role."
         );
-        await tx.query("COMMIT");
-        return role;
-      } catch (error) {
-        await tx.query("ROLLBACK");
-        throw error;
       }
+
+      // write.scopes ----------------------------------------------------------
+      if (
+        args.scopes &&
+        !(await before.isAccessibleBy(realm, a, tx, "write.scopes"))
+      ) {
+        throw new ForbiddenError(
+          "You do not have permission to update this role's scopes."
+        );
+      }
+
+      if (
+        args.scopes &&
+        !(await a.can(tx, `${realm}:role.*.*:write.scopes`)) &&
+        !isSuperset(await (await a.user(tx)).access(tx), args.scopes)
+      ) {
+        throw new ForbiddenError(
+          "You do not have permission to set scopes greater than your level of access."
+        );
+      }
+
+      // write.assignments -----------------------------------------------------
+      if (!(await before.isAccessibleBy(realm, a, tx, "write.assignments"))) {
+        throw new ForbiddenError(
+          "You do not have permission to update this role's assignments."
+        );
+      }
+
+      let userIds = [...before.userIds];
+
+      // assign users
+      if (args.assignUserIds) {
+        userIds = [...userIds, ...args.assignUserIds];
+      }
+
+      // unassign users
+      if (args.unassignUserIds) {
+        const unassignUserIds = new Set(args.unassignUserIds);
+        userIds = userIds.filter(id => !unassignUserIds.has(id));
+      }
+
+      const role = await Role.write(
+        tx,
+        {
+          ...before,
+          enabled:
+            typeof args.enabled === "boolean" ? args.enabled : before.enabled,
+          name: args.name || before.name,
+          description: args.description || before.description,
+          scopes: args.scopes || before.scopes,
+          userIds
+        },
+        {
+          recordId: v4(),
+          createdByAuthorizationId: a.id,
+          createdAt: new Date()
+        }
+      );
+      await tx.query("COMMIT");
+      return role;
+    } catch (error) {
+      await tx.query("ROLLBACK");
+      throw error;
     } finally {
       tx.release();
     }

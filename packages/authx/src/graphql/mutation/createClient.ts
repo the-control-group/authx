@@ -70,9 +70,8 @@ export const createClient: GraphQLFieldConfig<
         );
       }
 
-      await tx.query("BEGIN DEFERRABLE");
-
       try {
+        await tx.query("BEGIN DEFERRABLE");
         const id = v4();
         const client = await Client.write(
           tx,

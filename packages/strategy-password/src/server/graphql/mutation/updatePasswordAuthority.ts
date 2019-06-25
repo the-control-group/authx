@@ -69,60 +69,58 @@ export const updatePasswordAuthority: GraphQLFieldConfig<
     try {
       await tx.query("BEGIN DEFERRABLE");
 
-      try {
-        const before = await Authority.read(tx, args.id, authorityMap);
+      const before = await Authority.read(tx, args.id, authorityMap);
 
-        if (!(before instanceof PasswordAuthority)) {
-          throw new NotFoundError("No password authority exists with this ID.");
-        }
-
-        if (!(await before.isAccessibleBy(realm, a, tx, "write.basic"))) {
-          throw new ForbiddenError(
-            "You do not have permission to update this authority."
-          );
-        }
-
-        if (
-          typeof args.rounds === "number" &&
-          !(await before.isAccessibleBy(realm, a, tx, "write.*"))
-        ) {
-          throw new ForbiddenError(
-            "You do not have permission to update this authority's details."
-          );
-        }
-
-        const authority = await PasswordAuthority.write(
-          tx,
-          {
-            ...before,
-            enabled:
-              typeof args.enabled === "boolean" ? args.enabled : before.enabled,
-            name: typeof args.name === "string" ? args.name : before.name,
-            description:
-              typeof args.description === "string"
-                ? args.description
-                : before.description,
-            details: {
-              ...before.details,
-              rounds:
-                typeof args.rounds === "number"
-                  ? args.rounds
-                  : before.details.rounds
-            }
-          },
-          {
-            recordId: v4(),
-            createdByAuthorizationId: a.id,
-            createdAt: new Date()
-          }
-        );
-
-        await tx.query("COMMIT");
-        return authority;
-      } catch (error) {
-        await tx.query("ROLLBACK");
-        throw error;
+      if (!(before instanceof PasswordAuthority)) {
+        throw new NotFoundError("No password authority exists with this ID.");
       }
+
+      if (!(await before.isAccessibleBy(realm, a, tx, "write.basic"))) {
+        throw new ForbiddenError(
+          "You do not have permission to update this authority."
+        );
+      }
+
+      if (
+        typeof args.rounds === "number" &&
+        !(await before.isAccessibleBy(realm, a, tx, "write.*"))
+      ) {
+        throw new ForbiddenError(
+          "You do not have permission to update this authority's details."
+        );
+      }
+
+      const authority = await PasswordAuthority.write(
+        tx,
+        {
+          ...before,
+          enabled:
+            typeof args.enabled === "boolean" ? args.enabled : before.enabled,
+          name: typeof args.name === "string" ? args.name : before.name,
+          description:
+            typeof args.description === "string"
+              ? args.description
+              : before.description,
+          details: {
+            ...before.details,
+            rounds:
+              typeof args.rounds === "number"
+                ? args.rounds
+                : before.details.rounds
+          }
+        },
+        {
+          recordId: v4(),
+          createdByAuthorizationId: a.id,
+          createdAt: new Date()
+        }
+      );
+
+      await tx.query("COMMIT");
+      return authority;
+    } catch (error) {
+      await tx.query("ROLLBACK");
+      throw error;
     } finally {
       tx.release();
     }

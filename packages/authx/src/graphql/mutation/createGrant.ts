@@ -84,9 +84,8 @@ export const createGrant: GraphQLFieldConfig<
         );
       }
 
-      await tx.query("BEGIN DEFERRABLE");
-
       try {
+        await tx.query("BEGIN DEFERRABLE");
         const id = v4();
         const now = Math.floor(Date.now() / 1000);
         const grant = await Grant.write(

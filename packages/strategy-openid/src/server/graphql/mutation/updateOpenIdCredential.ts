@@ -51,39 +51,37 @@ export const updateOpenIdCredential: GraphQLFieldConfig<
     try {
       await tx.query("BEGIN DEFERRABLE");
 
-      try {
-        const before = await Credential.read(tx, args.id, credentialMap);
+      const before = await Credential.read(tx, args.id, credentialMap);
 
-        if (!(before instanceof OpenIdCredential)) {
-          throw new NotFoundError("No openid credential exists with this ID.");
-        }
-
-        if (!(await before.isAccessibleBy(realm, a, tx, "write.basic"))) {
-          throw new ForbiddenError(
-            "You do not have permission to update this credential."
-          );
-        }
-
-        const credential = await OpenIdCredential.write(
-          tx,
-          {
-            ...before,
-            enabled:
-              typeof args.enabled === "boolean" ? args.enabled : before.enabled
-          },
-          {
-            recordId: v4(),
-            createdByAuthorizationId: a.id,
-            createdAt: new Date()
-          }
-        );
-
-        await tx.query("COMMIT");
-        return credential;
-      } catch (error) {
-        await tx.query("ROLLBACK");
-        throw error;
+      if (!(before instanceof OpenIdCredential)) {
+        throw new NotFoundError("No openid credential exists with this ID.");
       }
+
+      if (!(await before.isAccessibleBy(realm, a, tx, "write.basic"))) {
+        throw new ForbiddenError(
+          "You do not have permission to update this credential."
+        );
+      }
+
+      const credential = await OpenIdCredential.write(
+        tx,
+        {
+          ...before,
+          enabled:
+            typeof args.enabled === "boolean" ? args.enabled : before.enabled
+        },
+        {
+          recordId: v4(),
+          createdByAuthorizationId: a.id,
+          createdAt: new Date()
+        }
+      );
+
+      await tx.query("COMMIT");
+      return credential;
+    } catch (error) {
+      await tx.query("ROLLBACK");
+      throw error;
     } finally {
       tx.release();
     }

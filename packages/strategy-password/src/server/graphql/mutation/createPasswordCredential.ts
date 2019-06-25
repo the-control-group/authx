@@ -62,46 +62,44 @@ export const createPasswordCredential: GraphQLFieldConfig<
     try {
       await tx.query("BEGIN DEFERRABLE");
 
-      try {
-        const id = v4();
-        const authority = await Authority.read(
-          tx,
-          args.authorityId,
-          authorityMap
-        );
-        if (!(authority instanceof PasswordAuthority)) {
-          throw new NotFoundError("No password authority exists with this ID.");
-        }
-
-        const data = new PasswordCredential({
-          id,
-          enabled: args.enabled,
-          authorityId: args.authorityId,
-          userId: args.userId,
-          authorityUserId: args.userId,
-          details: {
-            hash: await hash(args.password, authority.details.rounds)
-          }
-        });
-
-        if (!(await data.isAccessibleBy(realm, a, tx, "write.*"))) {
-          throw new ForbiddenError(
-            "You do not have permission to create this credential."
-          );
-        }
-
-        const credential = await PasswordCredential.write(tx, data, {
-          recordId: v4(),
-          createdByAuthorizationId: a.id,
-          createdAt: new Date()
-        });
-
-        await tx.query("COMMIT");
-        return credential;
-      } catch (error) {
-        await tx.query("ROLLBACK");
-        throw error;
+      const id = v4();
+      const authority = await Authority.read(
+        tx,
+        args.authorityId,
+        authorityMap
+      );
+      if (!(authority instanceof PasswordAuthority)) {
+        throw new NotFoundError("No password authority exists with this ID.");
       }
+
+      const data = new PasswordCredential({
+        id,
+        enabled: args.enabled,
+        authorityId: args.authorityId,
+        userId: args.userId,
+        authorityUserId: args.userId,
+        details: {
+          hash: await hash(args.password, authority.details.rounds)
+        }
+      });
+
+      if (!(await data.isAccessibleBy(realm, a, tx, "write.*"))) {
+        throw new ForbiddenError(
+          "You do not have permission to create this credential."
+        );
+      }
+
+      const credential = await PasswordCredential.write(tx, data, {
+        recordId: v4(),
+        createdByAuthorizationId: a.id,
+        createdAt: new Date()
+      });
+
+      await tx.query("COMMIT");
+      return credential;
+    } catch (error) {
+      await tx.query("ROLLBACK");
+      throw error;
     } finally {
       tx.release();
     }

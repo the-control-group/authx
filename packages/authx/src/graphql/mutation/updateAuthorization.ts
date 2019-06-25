@@ -40,9 +40,8 @@ export const updateAuthorization: GraphQLFieldConfig<
 
     const tx = await pool.connect();
     try {
-      await tx.query("BEGIN DEFERRABLE");
-
       try {
+        await tx.query("BEGIN DEFERRABLE");
         const before = await Authorization.read(tx, args.id);
 
         if (!(await before.isAccessibleBy(realm, a, tx, "write.basic"))) {

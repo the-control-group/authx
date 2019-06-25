@@ -53,9 +53,8 @@ export const createUser: GraphQLFieldConfig<
         );
       }
 
-      await tx.query("BEGIN DEFERRABLE");
-
       try {
+        await tx.query("BEGIN DEFERRABLE");
         const id = v4();
         const user = await User.write(
           tx,
