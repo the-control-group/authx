@@ -83,11 +83,20 @@ export class Client implements ClientData {
     return (this._users = User.read(tx, [...this.userIds]));
   }
 
-  public static read(tx: PoolClient, id: string): Promise<Client>;
-  public static read(tx: PoolClient, id: string[]): Promise<Client[]>;
+  public static read(
+    tx: PoolClient,
+    id: string,
+    options?: { forUpdate: boolean }
+  ): Promise<Client>;
+  public static read(
+    tx: PoolClient,
+    id: string[],
+    options?: { forUpdate: boolean }
+  ): Promise<Client[]>;
   public static async read(
     tx: PoolClient,
-    id: string[] | string
+    id: string[] | string,
+    options: { forUpdate: boolean } = { forUpdate: false }
   ): Promise<Client[] | Client> {
     if (typeof id !== "string" && !id.length) {
       return [];
@@ -116,6 +125,7 @@ export class Client implements ClientData {
         authx.client_record.description,
         authx.client_record.secrets,
         authx.client_record.urls
+      ${options.forUpdate ? "FOR UPDATE" : ""}
       `,
       [typeof id === "string" ? [id] : id]
     );

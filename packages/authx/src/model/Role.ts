@@ -83,11 +83,20 @@ export class Role implements RoleData {
     return isSuperset(this.access(), scope);
   }
 
-  public static read(tx: PoolClient, id: string): Promise<Role>;
-  public static read(tx: PoolClient, id: string[]): Promise<Role[]>;
+  public static read(
+    tx: PoolClient,
+    id: string,
+    options?: { forUpdate: boolean }
+  ): Promise<Role>;
+  public static read(
+    tx: PoolClient,
+    id: string[],
+    options?: { forUpdate: boolean }
+  ): Promise<Role[]>;
   public static async read(
     tx: PoolClient,
-    id: string[] | string
+    id: string[] | string,
+    options: { forUpdate: boolean } = { forUpdate: false }
   ): Promise<Role[] | Role> {
     if (typeof id !== "string" && !id.length) {
       return [];
@@ -114,6 +123,7 @@ export class Role implements RoleData {
         authx.role_record.name,
         authx.role_record.description,
         authx.role_record.scopes
+      ${options.forUpdate ? "FOR UPDATE" : ""}
       `,
       [typeof id === "string" ? [id] : id]
     );

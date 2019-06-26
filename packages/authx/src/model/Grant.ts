@@ -157,11 +157,20 @@ export class Grant implements GrantData {
     return isSuperset(await this.access(tx, refresh), scope);
   }
 
-  public static read(tx: PoolClient, id: string): Promise<Grant>;
-  public static read(tx: PoolClient, id: string[]): Promise<Grant[]>;
+  public static read(
+    tx: PoolClient,
+    id: string,
+    options?: { forUpdate: boolean }
+  ): Promise<Grant>;
+  public static read(
+    tx: PoolClient,
+    id: string[],
+    options?: { forUpdate: boolean }
+  ): Promise<Grant[]>;
   public static async read(
     tx: PoolClient,
-    id: string[] | string
+    id: string[] | string,
+    options: { forUpdate: boolean } = { forUpdate: false }
   ): Promise<Grant[] | Grant> {
     if (typeof id !== "string" && !id.length) {
       return [];
@@ -181,6 +190,7 @@ export class Grant implements GrantData {
       WHERE
         entity_id = ANY($1)
         AND replacement_record_id IS NULL
+      ${options.forUpdate ? "FOR UPDATE" : ""}
       `,
       [typeof id === "string" ? [id] : id]
     );
