@@ -95,12 +95,12 @@ export const updateEmailAuthority: GraphQLFieldConfig<
 
         let publicKeys = [...before.details.publicKeys];
 
-        const { addPublicKeys } = args;
+        const { addPublicKeys } = input;
         if (addPublicKeys) {
           publicKeys = [...publicKeys, ...addPublicKeys];
         }
 
-        const { removePublicKeys } = args;
+        const { removePublicKeys } = input;
         if (removePublicKeys) {
           publicKeys = publicKeys.filter(k => !removePublicKeys.includes(k));
         }

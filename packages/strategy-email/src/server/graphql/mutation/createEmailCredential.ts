@@ -108,7 +108,7 @@ export const createEmailCredential: GraphQLFieldConfig<
           // The user doesn't have permission to change the credentials of all
           // users, but has passed a proof that she controls the email address, so
           // we can treat it as hers.
-          const { proof } = args;
+          const { proof } = input;
           if (proof) {
             if (
               !authority.details.publicKeys.some(key => {
