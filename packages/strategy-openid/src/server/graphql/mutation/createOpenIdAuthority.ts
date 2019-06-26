@@ -1,99 +1,41 @@
 import v4 from "uuid/v4";
-import {
-  GraphQLBoolean,
-  GraphQLFieldConfig,
-  GraphQLNonNull,
-  GraphQLString,
-  GraphQLID,
-  GraphQLList
-} from "graphql";
+import { GraphQLFieldConfig, GraphQLNonNull, GraphQLList } from "graphql";
 
 import { Context, ForbiddenError } from "@authx/authx";
 import { OpenIdAuthority } from "../../model";
 import { GraphQLOpenIdAuthority } from "../GraphQLOpenIdAuthority";
+import { GraphQLCreateOpenIdAuthorityInput } from "./GraphQLCreateOpenIdAuthorityInput";
 
 export const createOpenIdAuthority: GraphQLFieldConfig<
   any,
   {
-    enabled: boolean;
-    name: string;
-    description: string;
-    authUrl: string;
-    tokenUrl: string;
-    clientId: string;
-    clientSecret: string;
-    restrictsAccountsToHostedDomains: string[];
-    emailAuthorityId: null | string;
-    matchesUsersByEmail: boolean;
-    createsUnmatchedUsers: boolean;
-    assignsCreatedUsersToRoleIds: string[];
+    authorities: {
+      enabled: boolean;
+      name: string;
+      description: string;
+      authUrl: string;
+      tokenUrl: string;
+      clientId: string;
+      clientSecret: string;
+      restrictsAccountsToHostedDomains: string[];
+      emailAuthorityId: null | string;
+      matchesUsersByEmail: boolean;
+      createsUnmatchedUsers: boolean;
+      assignsCreatedUsersToRoleIds: string[];
+    }[];
   },
   Context
 > = {
   type: GraphQLOpenIdAuthority,
   description: "Create a new openid authority.",
   args: {
-    enabled: {
-      type: GraphQLBoolean,
-      defaultValue: true
-    },
-    name: {
-      type: new GraphQLNonNull(GraphQLString),
-      description: "The name of the authority."
-    },
-    description: {
-      type: new GraphQLNonNull(GraphQLString),
-      description: "A description of the authority."
-    },
-    authUrl: {
-      type: new GraphQLNonNull(GraphQLString),
-      description: "The URL to which a user is directed to authenticate."
-    },
-    tokenUrl: {
-      type: new GraphQLNonNull(GraphQLString),
-      description:
-        "The URL used by AuthX to exchange an authorization code for an access token."
-    },
-    clientId: {
-      type: new GraphQLNonNull(GraphQLString),
-      description: "The client ID of AuthX in with OpenID provider."
-    },
-    clientSecret: {
-      type: new GraphQLNonNull(GraphQLString),
-      description: "The AuthX client secret with the OpenID provider."
-    },
-    restrictsAccountsToHostedDomains: {
+    authorities: {
       type: new GraphQLNonNull(
-        new GraphQLList(new GraphQLNonNull(GraphQLString))
-      ) as any,
-      description: "Restrict to accounts controlled by these hosted domains.",
-      defaultValue: []
-    },
-    emailAuthorityId: {
-      type: GraphQLID,
-      description: "The ID of the email authority."
-    },
-    matchesUsersByEmail: {
-      type: GraphQLBoolean,
-      description:
-        "If no credential exists for the given OpenID provider, should we lookup the user by email address?",
-      defaultValue: false
-    },
-    createsUnmatchedUsers: {
-      type: GraphQLBoolean,
-      description:
-        "If no credential exists for the given OpenID provider, should we create a new one?",
-      defaultValue: false
-    },
-    assignsCreatedUsersToRoleIds: {
-      type: new GraphQLNonNull(
-        new GraphQLList(new GraphQLNonNull(GraphQLID))
-      ) as any,
-      description: "When a user is created, assign to these roles.",
-      defaultValue: []
+        new GraphQLList(new GraphQLNonNull(GraphQLCreateOpenIdAuthorityInput))
+      )
     }
   },
-  async resolve(source, args, context): Promise<OpenIdAuthority> {
+  async resolve(source, args, context): Promise<Promise<OpenIdAuthority>[]> {
     const { pool, authorization: a, realm } = context;
 
     if (!a) {
@@ -102,49 +44,51 @@ export const createOpenIdAuthority: GraphQLFieldConfig<
       );
     }
 
-    const tx = await pool.connect();
-    try {
-      await tx.query("BEGIN DEFERRABLE");
-      const id = v4();
-      const data = new OpenIdAuthority({
-        id,
-        strategy: "openid",
-        enabled: args.enabled,
-        name: args.name,
-        description: args.description,
-        details: {
-          authUrl: args.authUrl,
-          tokenUrl: args.tokenUrl,
-          clientId: args.clientId,
-          clientSecret: args.clientSecret,
-          restrictsAccountsToHostedDomains:
-            args.restrictsAccountsToHostedDomains,
-          emailAuthorityId: args.emailAuthorityId,
-          matchesUsersByEmail: args.matchesUsersByEmail,
-          createsUnmatchedUsers: args.createsUnmatchedUsers,
-          assignsCreatedUsersToRoleIds: args.assignsCreatedUsersToRoleIds
+    return args.authorities.map(async input => {
+      const tx = await pool.connect();
+      try {
+        await tx.query("BEGIN DEFERRABLE");
+        const id = v4();
+        const data = new OpenIdAuthority({
+          id,
+          strategy: "openid",
+          enabled: input.enabled,
+          name: input.name,
+          description: input.description,
+          details: {
+            authUrl: input.authUrl,
+            tokenUrl: input.tokenUrl,
+            clientId: input.clientId,
+            clientSecret: input.clientSecret,
+            restrictsAccountsToHostedDomains:
+              input.restrictsAccountsToHostedDomains,
+            emailAuthorityId: input.emailAuthorityId,
+            matchesUsersByEmail: input.matchesUsersByEmail,
+            createsUnmatchedUsers: input.createsUnmatchedUsers,
+            assignsCreatedUsersToRoleIds: input.assignsCreatedUsersToRoleIds
+          }
+        });
+
+        if (!(await data.isAccessibleBy(realm, a, tx, "write.*"))) {
+          throw new ForbiddenError(
+            "You do not have permission to create an authority."
+          );
         }
-      });
 
-      if (!(await data.isAccessibleBy(realm, a, tx, "write.*"))) {
-        throw new ForbiddenError(
-          "You do not have permission to create an authority."
-        );
+        const authority = await OpenIdAuthority.write(tx, data, {
+          recordId: v4(),
+          createdByAuthorizationId: a.id,
+          createdAt: new Date()
+        });
+
+        await tx.query("COMMIT");
+        return authority;
+      } catch (error) {
+        await tx.query("ROLLBACK");
+        throw error;
+      } finally {
+        tx.release();
       }
-
-      const authority = await OpenIdAuthority.write(tx, data, {
-        recordId: v4(),
-        createdByAuthorizationId: a.id,
-        createdAt: new Date()
-      });
-
-      await tx.query("COMMIT");
-      return authority;
-    } catch (error) {
-      await tx.query("ROLLBACK");
-      throw error;
-    } finally {
-      tx.release();
-    }
+    });
   }
 };

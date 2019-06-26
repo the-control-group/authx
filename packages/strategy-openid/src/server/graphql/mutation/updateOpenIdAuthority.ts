@@ -1,12 +1,5 @@
 import v4 from "uuid/v4";
-import {
-  GraphQLBoolean,
-  GraphQLFieldConfig,
-  GraphQLID,
-  GraphQLNonNull,
-  GraphQLList,
-  GraphQLString
-} from "graphql";
+import { GraphQLFieldConfig, GraphQLNonNull, GraphQLList } from "graphql";
 
 import {
   Context,
@@ -16,84 +9,39 @@ import {
 } from "@authx/authx";
 import { OpenIdAuthority } from "../../model";
 import { GraphQLOpenIdAuthority } from "../GraphQLOpenIdAuthority";
+import { GraphQLUpdateOpenIdAuthorityInput } from "./GraphQLUpdateOpenIdAuthorityInput";
 
 export const updateOpenIdAuthority: GraphQLFieldConfig<
   any,
   {
-    id: string;
-    enabled: null | boolean;
-    name: null | string;
-    description: null | string;
-    authUrl: null | string;
-    tokenUrl: null | string;
-    clientId: null | string;
-    clientSecret: null | string;
-    restrictsAccountsToHostedDomains: null | string[];
-    emailAuthorityId: null | string;
-    matchesUsersByEmail: null | boolean;
-    createsUnmatchedUsers: null | boolean;
-    assignsCreatedUsersToRoleIds: null | string[];
+    authorities: {
+      id: string;
+      enabled: null | boolean;
+      name: null | string;
+      description: null | string;
+      authUrl: null | string;
+      tokenUrl: null | string;
+      clientId: null | string;
+      clientSecret: null | string;
+      restrictsAccountsToHostedDomains: null | string[];
+      emailAuthorityId: null | string;
+      matchesUsersByEmail: null | boolean;
+      createsUnmatchedUsers: null | boolean;
+      assignsCreatedUsersToRoleIds: null | string[];
+    }[];
   },
   Context
 > = {
   type: GraphQLOpenIdAuthority,
   description: "Update a new authority.",
   args: {
-    id: {
-      type: new GraphQLNonNull(GraphQLID)
-    },
-    enabled: {
-      type: GraphQLBoolean
-    },
-    name: {
-      type: GraphQLString,
-      description: "The name of the authority."
-    },
-    description: {
-      type: GraphQLString,
-      description: "A description of the authority."
-    },
-    authUrl: {
-      type: GraphQLString,
-      description: "The URL to which a user is directed to authenticate."
-    },
-    tokenUrl: {
-      type: GraphQLString,
-      description:
-        "The URL used by AuthX to exchange an authorization code for an access token."
-    },
-    clientId: {
-      type: GraphQLString,
-      description: "The client ID of AuthX in with OpenID provider."
-    },
-    clientSecret: {
-      type: GraphQLString,
-      description: "The AuthX client secret with the OpenID provider."
-    },
-    restrictsAccountsToHostedDomains: {
-      type: new GraphQLList(new GraphQLNonNull(GraphQLString)),
-      description: "Restrict to accounts controlled by these hosted domains."
-    },
-    emailAuthorityId: {
-      type: GraphQLString,
-      description: "The ID of the email authority."
-    },
-    matchesUsersByEmail: {
-      type: GraphQLBoolean,
-      description:
-        "If no credential exists for the given OpenID provider, should we lookup the user by email address?"
-    },
-    createsUnmatchedUsers: {
-      type: GraphQLBoolean,
-      description:
-        "If no credential exists for the given OpenID provider, should we create a new one?"
-    },
-    assignsCreatedUsersToRoleIds: {
-      type: new GraphQLList(new GraphQLNonNull(GraphQLID)),
-      description: "When a user is created, assign to these roles."
+    authorities: {
+      type: new GraphQLNonNull(
+        new GraphQLList(new GraphQLNonNull(GraphQLUpdateOpenIdAuthorityInput))
+      )
     }
   },
-  async resolve(source, args, context): Promise<OpenIdAuthority> {
+  async resolve(source, args, context): Promise<Promise<OpenIdAuthority>[]> {
     const {
       pool,
       authorization: a,
@@ -107,99 +55,103 @@ export const updateOpenIdAuthority: GraphQLFieldConfig<
       );
     }
 
-    const tx = await pool.connect();
-    try {
-      await tx.query("BEGIN DEFERRABLE");
+    return args.authorities.map(async input => {
+      const tx = await pool.connect();
+      try {
+        await tx.query("BEGIN DEFERRABLE");
 
-      const before = await Authority.read(tx, args.id, authorityMap);
+        const before = await Authority.read(tx, input.id, authorityMap);
 
-      if (!(before instanceof OpenIdAuthority)) {
-        throw new NotFoundError("No openid authority exists with this ID.");
-      }
-
-      if (!(await before.isAccessibleBy(realm, a, tx, "write.basic"))) {
-        throw new ForbiddenError(
-          "You do not have permission to update this authority."
-        );
-      }
-
-      if (
-        (typeof args.clientId === "string" ||
-          typeof args.clientSecret === "string") &&
-        !(await before.isAccessibleBy(realm, a, tx, "write.*"))
-      ) {
-        throw new ForbiddenError(
-          "You do not have permission to update this authority's details."
-        );
-      }
-      const authority = await OpenIdAuthority.write(
-        tx,
-        {
-          ...before,
-          enabled:
-            typeof args.enabled === "boolean" ? args.enabled : before.enabled,
-          name: typeof args.name === "string" ? args.name : before.name,
-          description:
-            typeof args.description === "string"
-              ? args.description
-              : before.description,
-          details: {
-            authUrl:
-              typeof args.authUrl === "string"
-                ? args.authUrl
-                : before.details.authUrl,
-            tokenUrl:
-              typeof args.tokenUrl === "string"
-                ? args.tokenUrl
-                : before.details.tokenUrl,
-            clientId:
-              typeof args.clientId === "string"
-                ? args.clientId
-                : before.details.clientId,
-            clientSecret:
-              typeof args.clientSecret === "string"
-                ? args.clientSecret
-                : before.details.clientSecret,
-            restrictsAccountsToHostedDomains: Array.isArray(
-              args.restrictsAccountsToHostedDomains
-            )
-              ? args.restrictsAccountsToHostedDomains
-              : before.details.restrictsAccountsToHostedDomains,
-            emailAuthorityId:
-              typeof args.emailAuthorityId === "string"
-                ? args.emailAuthorityId === ""
-                  ? null
-                  : args.emailAuthorityId
-                : before.details.emailAuthorityId,
-            matchesUsersByEmail:
-              typeof args.matchesUsersByEmail === "boolean"
-                ? args.matchesUsersByEmail
-                : before.details.matchesUsersByEmail,
-            createsUnmatchedUsers:
-              typeof args.createsUnmatchedUsers === "boolean"
-                ? args.createsUnmatchedUsers
-                : before.details.createsUnmatchedUsers,
-            assignsCreatedUsersToRoleIds: Array.isArray(
-              args.assignsCreatedUsersToRoleIds
-            )
-              ? args.assignsCreatedUsersToRoleIds
-              : before.details.assignsCreatedUsersToRoleIds
-          }
-        },
-        {
-          recordId: v4(),
-          createdByAuthorizationId: a.id,
-          createdAt: new Date()
+        if (!(before instanceof OpenIdAuthority)) {
+          throw new NotFoundError("No openid authority exists with this ID.");
         }
-      );
 
-      await tx.query("COMMIT");
-      return authority;
-    } catch (error) {
-      await tx.query("ROLLBACK");
-      throw error;
-    } finally {
-      tx.release();
-    }
+        if (!(await before.isAccessibleBy(realm, a, tx, "write.basic"))) {
+          throw new ForbiddenError(
+            "You do not have permission to update this authority."
+          );
+        }
+
+        if (
+          (typeof input.clientId === "string" ||
+            typeof input.clientSecret === "string") &&
+          !(await before.isAccessibleBy(realm, a, tx, "write.*"))
+        ) {
+          throw new ForbiddenError(
+            "You do not have permission to update this authority's details."
+          );
+        }
+        const authority = await OpenIdAuthority.write(
+          tx,
+          {
+            ...before,
+            enabled:
+              typeof input.enabled === "boolean"
+                ? input.enabled
+                : before.enabled,
+            name: typeof input.name === "string" ? input.name : before.name,
+            description:
+              typeof input.description === "string"
+                ? input.description
+                : before.description,
+            details: {
+              authUrl:
+                typeof input.authUrl === "string"
+                  ? input.authUrl
+                  : before.details.authUrl,
+              tokenUrl:
+                typeof input.tokenUrl === "string"
+                  ? input.tokenUrl
+                  : before.details.tokenUrl,
+              clientId:
+                typeof input.clientId === "string"
+                  ? input.clientId
+                  : before.details.clientId,
+              clientSecret:
+                typeof input.clientSecret === "string"
+                  ? input.clientSecret
+                  : before.details.clientSecret,
+              restrictsAccountsToHostedDomains: Array.isArray(
+                input.restrictsAccountsToHostedDomains
+              )
+                ? input.restrictsAccountsToHostedDomains
+                : before.details.restrictsAccountsToHostedDomains,
+              emailAuthorityId:
+                typeof input.emailAuthorityId === "string"
+                  ? input.emailAuthorityId === ""
+                    ? null
+                    : input.emailAuthorityId
+                  : before.details.emailAuthorityId,
+              matchesUsersByEmail:
+                typeof input.matchesUsersByEmail === "boolean"
+                  ? input.matchesUsersByEmail
+                  : before.details.matchesUsersByEmail,
+              createsUnmatchedUsers:
+                typeof input.createsUnmatchedUsers === "boolean"
+                  ? input.createsUnmatchedUsers
+                  : before.details.createsUnmatchedUsers,
+              assignsCreatedUsersToRoleIds: Array.isArray(
+                input.assignsCreatedUsersToRoleIds
+              )
+                ? input.assignsCreatedUsersToRoleIds
+                : before.details.assignsCreatedUsersToRoleIds
+            }
+          },
+          {
+            recordId: v4(),
+            createdByAuthorizationId: a.id,
+            createdAt: new Date()
+          }
+        );
+
+        await tx.query("COMMIT");
+        return authority;
+      } catch (error) {
+        await tx.query("ROLLBACK");
+        throw error;
+      } finally {
+        tx.release();
+      }
+    });
   }
 };

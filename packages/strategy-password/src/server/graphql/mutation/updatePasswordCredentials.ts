@@ -1,5 +1,6 @@
 import v4 from "uuid/v4";
-import { GraphQLFieldConfig, GraphQLNonNull, GraphQLList } from "graphql";
+import { hash } from "bcrypt";
+import { GraphQLList, GraphQLFieldConfig, GraphQLNonNull } from "graphql";
 
 import {
   Context,
@@ -7,30 +8,33 @@ import {
   ForbiddenError,
   NotFoundError
 } from "@authx/authx";
-import { EmailCredential } from "../../model";
-import { GraphQLEmailCredential } from "../GraphQLEmailCredential";
-import { GraphQLUpdateEmailCredentialInput } from "./GraphQLUpdateEmailCredentialInput";
+import { PasswordCredential } from "../../model";
+import { GraphQLPasswordCredential } from "../GraphQLPasswordCredential";
+import { GraphQLUpdatePasswordCredentialInput } from "./GraphQLUpdatePasswordCredentialInput";
 
-export const updateEmailCredential: GraphQLFieldConfig<
+export const updatePasswordCredentials: GraphQLFieldConfig<
   any,
   {
     credentials: {
       id: string;
       enabled: null | boolean;
+      password: null | string;
     }[];
   },
   Context
 > = {
-  type: GraphQLEmailCredential,
+  type: new GraphQLList(GraphQLPasswordCredential),
   description: "Update a new credential.",
   args: {
     credentials: {
       type: new GraphQLNonNull(
-        new GraphQLList(new GraphQLNonNull(GraphQLUpdateEmailCredentialInput))
+        new GraphQLList(
+          new GraphQLNonNull(GraphQLUpdatePasswordCredentialInput)
+        )
       )
     }
   },
-  async resolve(source, args, context): Promise<Promise<EmailCredential>[]> {
+  async resolve(source, args, context): Promise<Promise<PasswordCredential>[]> {
     const {
       pool,
       authorization: a,
@@ -51,8 +55,10 @@ export const updateEmailCredential: GraphQLFieldConfig<
 
         const before = await Credential.read(tx, input.id, credentialMap);
 
-        if (!(before instanceof EmailCredential)) {
-          throw new NotFoundError("No email credential exists with this ID.");
+        if (!(before instanceof PasswordCredential)) {
+          throw new NotFoundError(
+            "The authority uses a strategy other than password."
+          );
         }
 
         if (!(await before.isAccessibleBy(realm, a, tx, "write.basic"))) {
@@ -61,14 +67,33 @@ export const updateEmailCredential: GraphQLFieldConfig<
           );
         }
 
-        const credential = await EmailCredential.write(
+        if (
+          typeof input.password === "string" &&
+          !(await before.isAccessibleBy(realm, a, tx, "write.*"))
+        ) {
+          throw new ForbiddenError(
+            "You do not have permission to update this credential's details."
+          );
+        }
+
+        const credential = await PasswordCredential.write(
           tx,
           {
             ...before,
             enabled:
               typeof input.enabled === "boolean"
                 ? input.enabled
-                : before.enabled
+                : before.enabled,
+            details: {
+              ...before.details,
+              hash:
+                typeof input.password === "string"
+                  ? await hash(
+                      input.password,
+                      (await before.authority(tx)).details.rounds
+                    )
+                  : before.details.hash
+            }
           },
           {
             recordId: v4(),

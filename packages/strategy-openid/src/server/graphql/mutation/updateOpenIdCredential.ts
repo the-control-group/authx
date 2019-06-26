@@ -1,10 +1,5 @@
 import v4 from "uuid/v4";
-import {
-  GraphQLBoolean,
-  GraphQLFieldConfig,
-  GraphQLID,
-  GraphQLNonNull
-} from "graphql";
+import { GraphQLFieldConfig, GraphQLNonNull, GraphQLList } from "graphql";
 
 import {
   Context,
@@ -14,26 +9,28 @@ import {
 } from "@authx/authx";
 import { OpenIdCredential } from "../../model";
 import { GraphQLOpenIdCredential } from "../GraphQLOpenIdCredential";
+import { GraphQLCreateOpenIdCredentialInput } from "./GraphQLUpdateOpenIdCredentialInput";
 
 export const updateOpenIdCredential: GraphQLFieldConfig<
   any,
   {
-    id: string;
-    enabled: null | boolean;
+    credentials: {
+      id: string;
+      enabled: null | boolean;
+    }[];
   },
   Context
 > = {
   type: GraphQLOpenIdCredential,
   description: "Update a new credential.",
   args: {
-    id: {
-      type: new GraphQLNonNull(GraphQLID)
-    },
-    enabled: {
-      type: GraphQLBoolean
+    credentials: {
+      type: new GraphQLNonNull(
+        new GraphQLList(new GraphQLNonNull(GraphQLCreateOpenIdCredentialInput))
+      )
     }
   },
-  async resolve(source, args, context): Promise<OpenIdCredential> {
+  async resolve(source, args, context): Promise<Promise<OpenIdCredential>[]> {
     const {
       pool,
       authorization: a,
@@ -47,43 +44,47 @@ export const updateOpenIdCredential: GraphQLFieldConfig<
       );
     }
 
-    const tx = await pool.connect();
-    try {
-      await tx.query("BEGIN DEFERRABLE");
+    return args.credentials.map(async input => {
+      const tx = await pool.connect();
+      try {
+        await tx.query("BEGIN DEFERRABLE");
 
-      const before = await Credential.read(tx, args.id, credentialMap);
+        const before = await Credential.read(tx, input.id, credentialMap);
 
-      if (!(before instanceof OpenIdCredential)) {
-        throw new NotFoundError("No openid credential exists with this ID.");
-      }
-
-      if (!(await before.isAccessibleBy(realm, a, tx, "write.basic"))) {
-        throw new ForbiddenError(
-          "You do not have permission to update this credential."
-        );
-      }
-
-      const credential = await OpenIdCredential.write(
-        tx,
-        {
-          ...before,
-          enabled:
-            typeof args.enabled === "boolean" ? args.enabled : before.enabled
-        },
-        {
-          recordId: v4(),
-          createdByAuthorizationId: a.id,
-          createdAt: new Date()
+        if (!(before instanceof OpenIdCredential)) {
+          throw new NotFoundError("No openid credential exists with this ID.");
         }
-      );
 
-      await tx.query("COMMIT");
-      return credential;
-    } catch (error) {
-      await tx.query("ROLLBACK");
-      throw error;
-    } finally {
-      tx.release();
-    }
+        if (!(await before.isAccessibleBy(realm, a, tx, "write.basic"))) {
+          throw new ForbiddenError(
+            "You do not have permission to update this credential."
+          );
+        }
+
+        const credential = await OpenIdCredential.write(
+          tx,
+          {
+            ...before,
+            enabled:
+              typeof input.enabled === "boolean"
+                ? input.enabled
+                : before.enabled
+          },
+          {
+            recordId: v4(),
+            createdByAuthorizationId: a.id,
+            createdAt: new Date()
+          }
+        );
+
+        await tx.query("COMMIT");
+        return credential;
+      } catch (error) {
+        await tx.query("ROLLBACK");
+        throw error;
+      } finally {
+        tx.release();
+      }
+    });
   }
 };

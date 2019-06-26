@@ -2,10 +2,10 @@ import { Strategy } from "@authx/authx";
 import { PasswordAuthority, PasswordCredential } from "./model";
 import {
   authenticatePassword,
-  createPasswordAuthority,
-  updatePasswordAuthority,
-  createPasswordCredential,
-  updatePasswordCredential,
+  createPasswordAuthorities,
+  updatePasswordAuthorities,
+  createPasswordCredentials,
+  updatePasswordCredentials,
   GraphQLPasswordAuthority,
   GraphQLPasswordCredential
 } from "./graphql";
@@ -20,11 +20,11 @@ const strategy: Strategy = {
   mutationFields: {
     authenticatePassword,
 
-    createPasswordAuthority,
-    updatePasswordAuthority,
+    createPasswordAuthorities,
+    updatePasswordAuthorities,
 
-    createPasswordCredential,
-    updatePasswordCredential
+    createPasswordCredentials,
+    updatePasswordCredentials
   },
   authorityModel: PasswordAuthority,
   credentialModel: PasswordCredential
