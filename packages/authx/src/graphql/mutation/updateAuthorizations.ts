@@ -40,7 +40,9 @@ export const updateAuthorizations: GraphQLFieldConfig<
       try {
         try {
           await tx.query("BEGIN DEFERRABLE");
-          const before = await Authorization.read(tx, input.id);
+          const before = await Authorization.read(tx, input.id, {
+            forUpdate: true
+          });
 
           if (!(await before.isAccessibleBy(realm, a, tx, "write.basic"))) {
             throw new ForbiddenError(

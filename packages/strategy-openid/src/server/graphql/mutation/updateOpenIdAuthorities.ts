@@ -11,7 +11,7 @@ import { OpenIdAuthority } from "../../model";
 import { GraphQLOpenIdAuthority } from "../GraphQLOpenIdAuthority";
 import { GraphQLUpdateOpenIdAuthorityInput } from "./GraphQLUpdateOpenIdAuthorityInput";
 
-export const updateOpenIdAuthority: GraphQLFieldConfig<
+export const updateOpenIdAuthorities: GraphQLFieldConfig<
   any,
   {
     authorities: {
@@ -32,7 +32,7 @@ export const updateOpenIdAuthority: GraphQLFieldConfig<
   },
   Context
 > = {
-  type: GraphQLOpenIdAuthority,
+  type: new GraphQLList(GraphQLOpenIdAuthority),
   description: "Update a new authority.",
   args: {
     authorities: {
@@ -60,7 +60,9 @@ export const updateOpenIdAuthority: GraphQLFieldConfig<
       try {
         await tx.query("BEGIN DEFERRABLE");
 
-        const before = await Authority.read(tx, input.id, authorityMap);
+        const before = await Authority.read(tx, input.id, authorityMap, {
+          forUpdate: true
+        });
 
         if (!(before instanceof OpenIdAuthority)) {
           throw new NotFoundError("No openid authority exists with this ID.");

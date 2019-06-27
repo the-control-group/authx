@@ -16,7 +16,7 @@ import { OpenIdCredential, OpenIdAuthority } from "../../model";
 import { GraphQLOpenIdCredential } from "../GraphQLOpenIdCredential";
 import { GraphQLCreateOpenIdCredentialInput } from "./GraphQLCreateOpenIdCredentialInput";
 
-export const createOpenIdCredential: GraphQLFieldConfig<
+export const createOpenIdCredentials: GraphQLFieldConfig<
   any,
   {
     credentials: {
@@ -29,7 +29,7 @@ export const createOpenIdCredential: GraphQLFieldConfig<
   },
   Context
 > = {
-  type: GraphQLOpenIdCredential,
+  type: new GraphQLList(GraphQLOpenIdCredential),
   description: "Create a new credential.",
   args: {
     credentials: {

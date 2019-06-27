@@ -43,7 +43,9 @@ export const updateGrants: GraphQLFieldConfig<
       const tx = await pool.connect();
       try {
         await tx.query("BEGIN DEFERRABLE");
-        const before = await Grant.read(tx, input.id);
+        const before = await Grant.read(tx, input.id, {
+          forUpdate: true
+        });
 
         if (!(await before.isAccessibleBy(realm, a, tx, "write.basic"))) {
           throw new ForbiddenError(

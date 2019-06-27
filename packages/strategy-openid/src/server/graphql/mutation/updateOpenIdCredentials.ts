@@ -11,7 +11,7 @@ import { OpenIdCredential } from "../../model";
 import { GraphQLOpenIdCredential } from "../GraphQLOpenIdCredential";
 import { GraphQLCreateOpenIdCredentialInput } from "./GraphQLUpdateOpenIdCredentialInput";
 
-export const updateOpenIdCredential: GraphQLFieldConfig<
+export const updateOpenIdCredentials: GraphQLFieldConfig<
   any,
   {
     credentials: {
@@ -21,7 +21,7 @@ export const updateOpenIdCredential: GraphQLFieldConfig<
   },
   Context
 > = {
-  type: GraphQLOpenIdCredential,
+  type: new GraphQLList(GraphQLOpenIdCredential),
   description: "Update a new credential.",
   args: {
     credentials: {
@@ -49,7 +49,9 @@ export const updateOpenIdCredential: GraphQLFieldConfig<
       try {
         await tx.query("BEGIN DEFERRABLE");
 
-        const before = await Credential.read(tx, input.id, credentialMap);
+        const before = await Credential.read(tx, input.id, credentialMap, {
+          forUpdate: true
+        });
 
         if (!(before instanceof OpenIdCredential)) {
           throw new NotFoundError("No openid credential exists with this ID.");

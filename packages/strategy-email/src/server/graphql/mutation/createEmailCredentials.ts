@@ -13,7 +13,7 @@ import { GraphQLEmailCredential } from "../GraphQLEmailCredential";
 import { substitute } from "../../substitute";
 import { GraphQLCreateEmailCredentialInput } from "./GraphQLCreateEmailCredentialInput";
 
-export const createEmailCredential: GraphQLFieldConfig<
+export const createEmailCredentials: GraphQLFieldConfig<
   any,
   {
     credentials: {
@@ -26,7 +26,7 @@ export const createEmailCredential: GraphQLFieldConfig<
   },
   Context
 > = {
-  type: GraphQLEmailCredential,
+  type: new GraphQLList(GraphQLEmailCredential),
   description: "Create a new credential.",
   args: {
     credentials: {

@@ -41,7 +41,9 @@ export const updateUsers: GraphQLFieldConfig<
       try {
         await tx.query("BEGIN DEFERRABLE");
 
-        const before = await User.read(tx, input.id);
+        const before = await User.read(tx, input.id, {
+          forUpdate: true
+        });
 
         if (!(await before.isAccessibleBy(realm, a, tx, "write.basic"))) {
           throw new ForbiddenError(

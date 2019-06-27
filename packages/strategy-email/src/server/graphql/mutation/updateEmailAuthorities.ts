@@ -11,7 +11,7 @@ import { EmailAuthority } from "../../model";
 import { GraphQLEmailAuthority } from "../GraphQLEmailAuthority";
 import { GraphQLUpdateEmailAuthorityInput } from "./GraphQLUpdateEmailAuthorityInput";
 
-export const updateEmailAuthority: GraphQLFieldConfig<
+export const updateEmailAuthorities: GraphQLFieldConfig<
   any,
   {
     authorities: {
@@ -33,7 +33,7 @@ export const updateEmailAuthority: GraphQLFieldConfig<
   },
   Context
 > = {
-  type: GraphQLEmailAuthority,
+  type: new GraphQLList(GraphQLEmailAuthority),
   description: "Update a new authority.",
   args: {
     authorities: {
@@ -61,7 +61,9 @@ export const updateEmailAuthority: GraphQLFieldConfig<
       try {
         await tx.query("BEGIN DEFERRABLE");
 
-        const before = await Authority.read(tx, input.id, authorityMap);
+        const before = await Authority.read(tx, input.id, authorityMap, {
+          forUpdate: true
+        });
 
         if (!(before instanceof EmailAuthority)) {
           throw new NotFoundError(

@@ -6,7 +6,7 @@ import { EmailAuthority } from "../../model";
 import { GraphQLEmailAuthority } from "../GraphQLEmailAuthority";
 import { GraphQLCreateEmailAuthorityInput } from "./GraphQLCreateEmailAuthorityInput";
 
-export const createEmailAuthority: GraphQLFieldConfig<
+export const createEmailAuthorities: GraphQLFieldConfig<
   any,
   {
     authorities: {
@@ -26,7 +26,7 @@ export const createEmailAuthority: GraphQLFieldConfig<
   },
   Context
 > = {
-  type: GraphQLEmailAuthority,
+  type: new GraphQLList(GraphQLEmailAuthority),
   description: "Create a new email authority.",
   args: {
     authorities: {

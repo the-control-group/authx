@@ -53,7 +53,9 @@ export const updatePasswordCredentials: GraphQLFieldConfig<
       try {
         await tx.query("BEGIN DEFERRABLE");
 
-        const before = await Credential.read(tx, input.id, credentialMap);
+        const before = await Credential.read(tx, input.id, credentialMap, {
+          forUpdate: true
+        });
 
         if (!(before instanceof PasswordCredential)) {
           throw new NotFoundError(

@@ -11,7 +11,7 @@ import { EmailCredential } from "../../model";
 import { GraphQLEmailCredential } from "../GraphQLEmailCredential";
 import { GraphQLUpdateEmailCredentialInput } from "./GraphQLUpdateEmailCredentialInput";
 
-export const updateEmailCredential: GraphQLFieldConfig<
+export const updateEmailCredentials: GraphQLFieldConfig<
   any,
   {
     credentials: {
@@ -21,7 +21,7 @@ export const updateEmailCredential: GraphQLFieldConfig<
   },
   Context
 > = {
-  type: GraphQLEmailCredential,
+  type: new GraphQLList(GraphQLEmailCredential),
   description: "Update a new credential.",
   args: {
     credentials: {
@@ -49,7 +49,9 @@ export const updateEmailCredential: GraphQLFieldConfig<
       try {
         await tx.query("BEGIN DEFERRABLE");
 
-        const before = await Credential.read(tx, input.id, credentialMap);
+        const before = await Credential.read(tx, input.id, credentialMap, {
+          forUpdate: true
+        });
 
         if (!(before instanceof EmailCredential)) {
           throw new NotFoundError("No email credential exists with this ID.");

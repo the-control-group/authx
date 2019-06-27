@@ -6,7 +6,7 @@ import { OpenIdAuthority } from "../../model";
 import { GraphQLOpenIdAuthority } from "../GraphQLOpenIdAuthority";
 import { GraphQLCreateOpenIdAuthorityInput } from "./GraphQLCreateOpenIdAuthorityInput";
 
-export const createOpenIdAuthority: GraphQLFieldConfig<
+export const createOpenIdAuthorities: GraphQLFieldConfig<
   any,
   {
     authorities: {
@@ -26,7 +26,7 @@ export const createOpenIdAuthority: GraphQLFieldConfig<
   },
   Context
 > = {
-  type: GraphQLOpenIdAuthority,
+  type: new GraphQLList(GraphQLOpenIdAuthority),
   description: "Create a new openid authority.",
   args: {
     authorities: {

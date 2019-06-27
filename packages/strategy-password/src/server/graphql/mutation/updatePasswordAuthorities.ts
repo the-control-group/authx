@@ -52,7 +52,9 @@ export const updatePasswordAuthorities: GraphQLFieldConfig<
       try {
         await tx.query("BEGIN DEFERRABLE");
 
-        const before = await Authority.read(tx, input.id, authorityMap);
+        const before = await Authority.read(tx, input.id, authorityMap, {
+          forUpdate: true
+        });
 
         if (!(before instanceof PasswordAuthority)) {
           throw new NotFoundError("No password authority exists with this ID.");

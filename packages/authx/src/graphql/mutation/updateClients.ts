@@ -46,7 +46,9 @@ export const updateClients: GraphQLFieldConfig<
       const tx = await pool.connect();
       try {
         await tx.query("BEGIN DEFERRABLE");
-        const before = await Client.read(tx, input.id);
+        const before = await Client.read(tx, input.id, {
+          forUpdate: true
+        });
 
         // write.basic -----------------------------------------------------------
         if (!(await before.isAccessibleBy(realm, a, tx, "write.basic"))) {
