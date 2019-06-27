@@ -111,19 +111,22 @@ export class Role implements RoleData {
         description,
         scopes,
         json_agg(authx.role_record_user.user_id) AS user_ids
-      FROM authx.role_record
+      FROM (
+        SELECT *
+        FROM authx.role_record
+        WHERE
+          authx.role_record.entity_id = ANY($1)
+          AND authx.role_record.replacement_record_id IS NULL
+        ${options.forUpdate ? "FOR UPDATE" : ""}
+      ) AS role_record
       LEFT JOIN authx.role_record_user
-        ON authx.role_record_user.role_record_id = authx.role_record.record_id
-      WHERE
-        authx.role_record.entity_id = ANY($1)
-        AND authx.role_record.replacement_record_id IS NULL
+        ON authx.role_record_user.role_record_id = role_record.record_id
       GROUP BY
-        authx.role_record.entity_id,
-        authx.role_record.enabled,
-        authx.role_record.name,
-        authx.role_record.description,
-        authx.role_record.scopes
-      ${options.forUpdate ? "FOR UPDATE" : ""}
+        role_record.entity_id,
+        role_record.enabled,
+        role_record.name,
+        role_record.description,
+        role_record.scopes
       `,
       [typeof id === "string" ? [id] : id]
     );

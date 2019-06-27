@@ -112,20 +112,23 @@ export class Client implements ClientData {
         secrets,
         urls,
         json_agg(authx.client_record_user.user_id) AS user_ids
-      FROM authx.client_record
+      FROM (
+        SELECT *
+        FROM authx.client_record
+        WHERE
+          entity_id = ANY($1)
+          AND replacement_record_id IS NULL
+        ${options.forUpdate ? "FOR UPDATE" : ""}
+      ) AS client_record
       LEFT JOIN authx.client_record_user
-        ON authx.client_record_user.client_record_id = authx.client_record.record_id
-      WHERE
-        entity_id = ANY($1)
-        AND replacement_record_id IS NULL
+        ON authx.client_record_user.client_record_id = client_record.record_id
       GROUP BY
-        authx.client_record.entity_id,
-        authx.client_record.enabled,
-        authx.client_record.name,
-        authx.client_record.description,
-        authx.client_record.secrets,
-        authx.client_record.urls
-      ${options.forUpdate ? "FOR UPDATE" : ""}
+        client_record.entity_id,
+        client_record.enabled,
+        client_record.name,
+        client_record.description,
+        client_record.secrets,
+        client_record.urls
       `,
       [typeof id === "string" ? [id] : id]
     );
