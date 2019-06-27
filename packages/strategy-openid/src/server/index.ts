@@ -2,10 +2,10 @@ import { Strategy } from "@authx/authx";
 import { OpenIdAuthority, OpenIdCredential } from "./model";
 import {
   authenticateOpenId,
-  createOpenIdAuthority,
-  updateOpenIdAuthority,
-  createOpenIdCredential,
-  updateOpenIdCredential,
+  createOpenIdAuthorities,
+  updateOpenIdAuthorities,
+  createOpenIdCredentials,
+  updateOpenIdCredentials,
   GraphQLOpenIdAuthority,
   GraphQLOpenIdCredential
 } from "./graphql";
@@ -20,11 +20,11 @@ const strategy: Strategy = {
   mutationFields: {
     authenticateOpenId,
 
-    createOpenIdAuthority,
-    updateOpenIdAuthority,
+    createOpenIdAuthorities,
+    updateOpenIdAuthorities,
 
-    createOpenIdCredential,
-    updateOpenIdCredential
+    createOpenIdCredentials,
+    updateOpenIdCredentials
   },
   authorityModel: OpenIdAuthority,
   credentialModel: OpenIdCredential

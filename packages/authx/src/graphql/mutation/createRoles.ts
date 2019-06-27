@@ -5,13 +5,14 @@ import { GraphQLFieldConfig, GraphQLList, GraphQLNonNull } from "graphql";
 import { Context } from "../../Context";
 import { GraphQLRole } from "../GraphQLRole";
 import { Role } from "../../model";
-import { ForbiddenError } from "../../errors";
+import { ForbiddenError, ConflictError, NotFoundError } from "../../errors";
 import { GraphQLCreateRoleInput } from "./GraphQLCreateRoleInput";
 
 export const createRoles: GraphQLFieldConfig<
   any,
   {
     roles: {
+      id: null | string;
       enabled: boolean;
       name: string;
       description: string;
@@ -61,6 +62,19 @@ export const createRoles: GraphQLFieldConfig<
 
         try {
           await tx.query("BEGIN DEFERRABLE");
+
+          // Make sure the ID isn't already in use.
+          if (input.id) {
+            try {
+              await Role.read(tx, input.id);
+              throw new ConflictError();
+            } catch (error) {
+              if (!(error instanceof NotFoundError)) {
+                throw error;
+              }
+            }
+          }
+
           const id = v4();
           const role = await Role.write(
             tx,

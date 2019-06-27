@@ -10,6 +10,10 @@ import {
 export const GraphQLCreateRoleInput = new GraphQLInputObjectType({
   name: "CreateRoleInput",
   fields: () => ({
+    id: {
+      type: GraphQLID,
+      description: "Optional UUID to use for the new role."
+    },
     enabled: {
       type: GraphQLBoolean,
       defaultValue: true

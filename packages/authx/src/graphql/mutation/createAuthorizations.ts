@@ -6,13 +6,14 @@ import { GraphQLFieldConfig, GraphQLList, GraphQLNonNull } from "graphql";
 import { Context } from "../../Context";
 import { GraphQLAuthorization } from "../GraphQLAuthorization";
 import { Authorization, User } from "../../model";
-import { ForbiddenError } from "../../errors";
+import { ForbiddenError, ConflictError, NotFoundError } from "../../errors";
 import { GraphQLCreateAuthorizationInput } from "./GraphQLCreateAuthorizationInput";
 
 export const createAuthorizations: GraphQLFieldConfig<
   any,
   {
     authorizations: {
+      id: null | string;
       enabled: boolean;
       userId: string;
       grantId: string;
@@ -74,7 +75,20 @@ export const createAuthorizations: GraphQLFieldConfig<
 
         try {
           await tx.query("BEGIN DEFERRABLE");
-          const id = v4();
+
+          // Make sure the ID isn't already in use.
+          if (input.id) {
+            try {
+              await Authorization.read(tx, input.id);
+              throw new ConflictError();
+            } catch (error) {
+              if (!(error instanceof NotFoundError)) {
+                throw error;
+              }
+            }
+          }
+
+          const id = input.id || v4();
           const authorization = await Authorization.write(
             tx,
             {

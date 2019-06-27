@@ -2,10 +2,10 @@ import { Strategy } from "@authx/authx";
 import { EmailAuthority, EmailCredential } from "./model";
 import {
   authenticateEmail,
-  createEmailAuthority,
-  updateEmailAuthority,
-  createEmailCredential,
-  updateEmailCredential,
+  createEmailAuthorities,
+  updateEmailAuthorities,
+  createEmailCredentials,
+  updateEmailCredentials,
   GraphQLEmailAuthority,
   GraphQLEmailCredential
 } from "./graphql";
@@ -20,11 +20,11 @@ const strategy: Strategy = {
   mutationFields: {
     authenticateEmail,
 
-    createEmailAuthority,
-    updateEmailAuthority,
+    createEmailAuthorities,
+    updateEmailAuthorities,
 
-    createEmailCredential,
-    updateEmailCredential
+    createEmailCredentials,
+    updateEmailCredentials
   },
   authorityModel: EmailAuthority,
   credentialModel: EmailCredential

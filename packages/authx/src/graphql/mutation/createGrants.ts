@@ -7,13 +7,14 @@ import { GraphQLFieldConfig, GraphQLList, GraphQLNonNull } from "graphql";
 import { Context } from "../../Context";
 import { GraphQLGrant } from "../GraphQLGrant";
 import { Grant, User } from "../../model";
-import { ForbiddenError } from "../../errors";
+import { ForbiddenError, ConflictError, NotFoundError } from "../../errors";
 import { GraphQLCreateGrantInput } from "./GraphQLCreateGrantInput";
 
 export const createGrants: GraphQLFieldConfig<
   any,
   {
     grants: {
+      id: null | string;
       enabled: boolean;
       userId: string;
       clientId: string;
@@ -73,6 +74,19 @@ export const createGrants: GraphQLFieldConfig<
 
         try {
           await tx.query("BEGIN DEFERRABLE");
+
+          // Make sure the ID isn't already in use.
+          if (input.id) {
+            try {
+              await Grant.read(tx, input.id);
+              throw new ConflictError();
+            } catch (error) {
+              if (!(error instanceof NotFoundError)) {
+                throw error;
+              }
+            }
+          }
+
           const id = v4();
           const now = Math.floor(Date.now() / 1000);
           const grant = await Grant.write(

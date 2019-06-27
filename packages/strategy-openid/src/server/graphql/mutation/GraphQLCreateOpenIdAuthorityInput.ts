@@ -10,6 +10,10 @@ import {
 export const GraphQLCreateOpenIdAuthorityInput = new GraphQLInputObjectType({
   name: "CreateOpenIdAuthorityInput",
   fields: () => ({
+    id: {
+      type: GraphQLID,
+      description: "Optional UUID to use for the new authority."
+    },
     enabled: {
       type: GraphQLBoolean,
       defaultValue: true

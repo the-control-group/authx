@@ -10,6 +10,10 @@ import {
 export const GraphQLCreateAuthorizationInput = new GraphQLInputObjectType({
   name: "CreateAuthorizationInput",
   fields: () => ({
+    id: {
+      type: GraphQLID,
+      description: "Optional UUID to use for the new authorization."
+    },
     enabled: {
       type: GraphQLBoolean,
       defaultValue: true

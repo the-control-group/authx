@@ -1,4 +1,5 @@
 import {
+  GraphQLID,
   GraphQLNonNull,
   GraphQLInt,
   GraphQLString,
@@ -10,6 +11,10 @@ import {
 export const GraphQLCreateEmailAuthorityInput = new GraphQLInputObjectType({
   name: "CreateEmailAuthorityInput",
   fields: () => ({
+    id: {
+      type: GraphQLID,
+      description: "Optional UUID to use for the new authority."
+    },
     enabled: {
       type: GraphQLBoolean,
       defaultValue: true

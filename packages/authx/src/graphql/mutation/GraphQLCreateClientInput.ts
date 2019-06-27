@@ -10,6 +10,10 @@ import {
 export const GraphQLCreateClientInput = new GraphQLInputObjectType({
   name: "CreateClientInput",
   fields: () => ({
+    id: {
+      type: GraphQLID,
+      description: "Optional UUID to use for the new client."
+    },
     enabled: {
       type: GraphQLBoolean,
       defaultValue: true

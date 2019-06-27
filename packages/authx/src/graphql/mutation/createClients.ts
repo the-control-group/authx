@@ -5,13 +5,14 @@ import { GraphQLFieldConfig, GraphQLList, GraphQLNonNull } from "graphql";
 import { Context } from "../../Context";
 import { GraphQLClient } from "../GraphQLClient";
 import { Client } from "../../model";
-import { ForbiddenError } from "../../errors";
+import { ForbiddenError, ConflictError, NotFoundError } from "../../errors";
 import { GraphQLCreateClientInput } from "./GraphQLCreateClientInput";
 
 export const createClients: GraphQLFieldConfig<
   any,
   {
     clients: {
+      id: null | string;
       enabled: boolean;
       name: string;
       description: string;
@@ -56,6 +57,19 @@ export const createClients: GraphQLFieldConfig<
 
         try {
           await tx.query("BEGIN DEFERRABLE");
+
+          // Make sure the ID isn't already in use.
+          if (input.id) {
+            try {
+              await Client.read(tx, input.id);
+              throw new ConflictError();
+            } catch (error) {
+              if (!(error instanceof NotFoundError)) {
+                throw error;
+              }
+            }
+          }
+
           const id = v4();
           const client = await Client.write(
             tx,

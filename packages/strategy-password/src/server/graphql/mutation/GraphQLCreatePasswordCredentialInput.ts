@@ -9,6 +9,10 @@ import {
 export const GraphQLCreatePasswordCredentialInput = new GraphQLInputObjectType({
   name: "CreatePasswordCredentialInput",
   fields: () => ({
+    id: {
+      type: GraphQLID,
+      description: "Optional UUID to use for the new credential."
+    },
     enabled: {
       type: new GraphQLNonNull(GraphQLBoolean)
     },

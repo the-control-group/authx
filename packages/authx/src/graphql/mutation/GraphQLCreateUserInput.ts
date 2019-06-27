@@ -1,4 +1,5 @@
 import {
+  GraphQLID,
   GraphQLNonNull,
   GraphQLString,
   GraphQLBoolean,
@@ -10,6 +11,10 @@ import { GraphQLUserType } from "../GraphQLUserType";
 export const GraphQLCreateUserInput = new GraphQLInputObjectType({
   name: "CreateUserInput",
   fields: () => ({
+    id: {
+      type: GraphQLID,
+      description: "Optional UUID to use for the new user."
+    },
     enabled: {
       type: GraphQLBoolean,
       defaultValue: true

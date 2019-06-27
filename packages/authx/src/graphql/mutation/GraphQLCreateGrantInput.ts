@@ -10,6 +10,10 @@ import {
 export const GraphQLCreateGrantInput = new GraphQLInputObjectType({
   name: "CreateGrantInput",
   fields: () => ({
+    id: {
+      type: GraphQLID,
+      description: "Optional UUID to use for the new grant."
+    },
     enabled: {
       type: GraphQLBoolean,
       defaultValue: true
