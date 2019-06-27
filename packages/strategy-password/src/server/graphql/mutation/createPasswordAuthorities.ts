@@ -1,7 +1,12 @@
 import v4 from "uuid/v4";
 import { GraphQLList, GraphQLFieldConfig, GraphQLNonNull } from "graphql";
 
-import { Context, ForbiddenError } from "@authx/authx";
+import {
+  Context,
+  ForbiddenError,
+  ConflictError,
+  NotFoundError
+} from "@authx/authx";
 import { PasswordAuthority } from "../../model";
 import { GraphQLPasswordAuthority } from "../GraphQLPasswordAuthority";
 import { GraphQLCreatePasswordAuthorityInput } from "./GraphQLCreatePasswordAuthorityInput";
@@ -10,6 +15,7 @@ export const createPasswordAuthorities: GraphQLFieldConfig<
   any,
   {
     authorities: {
+      id: null | string;
       enabled: boolean;
       name: string;
       description: string;
@@ -40,6 +46,18 @@ export const createPasswordAuthorities: GraphQLFieldConfig<
       const tx = await pool.connect();
       try {
         await tx.query("BEGIN DEFERRABLE");
+
+        // Make sure the ID isn't already in use.
+        if (input.id) {
+          try {
+            await PasswordAuthority.read(tx, input.id, { forUpdate: true });
+            throw new ConflictError();
+          } catch (error) {
+            if (!(error instanceof NotFoundError)) {
+              throw error;
+            }
+          }
+        }
 
         const id = v4();
         const data = new PasswordAuthority({

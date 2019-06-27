@@ -6,7 +6,8 @@ import {
   Context,
   Authority,
   ForbiddenError,
-  NotFoundError
+  NotFoundError,
+  ConflictError
 } from "@authx/authx";
 import { PasswordCredential, PasswordAuthority } from "../../model";
 import { GraphQLPasswordCredential } from "../GraphQLPasswordCredential";
@@ -16,6 +17,7 @@ export const createPasswordCredentials: GraphQLFieldConfig<
   any,
   {
     credentials: {
+      id: null | string;
       enabled: boolean;
       authorityId: string;
       userId: string;
@@ -53,6 +55,18 @@ export const createPasswordCredentials: GraphQLFieldConfig<
       const tx = await pool.connect();
       try {
         await tx.query("BEGIN DEFERRABLE");
+
+        // Make sure the ID isn't already in use.
+        if (input.id) {
+          try {
+            await PasswordCredential.read(tx, input.id, { forUpdate: true });
+            throw new ConflictError();
+          } catch (error) {
+            if (!(error instanceof NotFoundError)) {
+              throw error;
+            }
+          }
+        }
 
         const id = v4();
         const authority = await Authority.read(

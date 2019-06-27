@@ -6,6 +6,7 @@ import {
   Context,
   Authority,
   ForbiddenError,
+  ConflictError,
   NotFoundError
 } from "@authx/authx";
 import { EmailCredential, EmailAuthority } from "../../model";
@@ -17,6 +18,7 @@ export const createEmailCredentials: GraphQLFieldConfig<
   any,
   {
     credentials: {
+      id: null | string;
       enabled: boolean;
       userId: string;
       authorityId: string;
@@ -55,6 +57,18 @@ export const createEmailCredentials: GraphQLFieldConfig<
       const tx = await pool.connect();
       try {
         await tx.query("BEGIN DEFERRABLE");
+
+        // Make sure the ID isn't already in use.
+        if (input.id) {
+          try {
+            await EmailCredential.read(tx, input.id, { forUpdate: true });
+            throw new ConflictError();
+          } catch (error) {
+            if (!(error instanceof NotFoundError)) {
+              throw error;
+            }
+          }
+        }
 
         const id = v4();
         const authority = await Authority.read(

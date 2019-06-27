@@ -78,7 +78,7 @@ export const createGrants: GraphQLFieldConfig<
           // Make sure the ID isn't already in use.
           if (input.id) {
             try {
-              await Grant.read(tx, input.id);
+              await Grant.read(tx, input.id, { forUpdate: true });
               throw new ConflictError();
             } catch (error) {
               if (!(error instanceof NotFoundError)) {

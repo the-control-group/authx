@@ -79,7 +79,7 @@ export const createAuthorizations: GraphQLFieldConfig<
           // Make sure the ID isn't already in use.
           if (input.id) {
             try {
-              await Authorization.read(tx, input.id);
+              await Authorization.read(tx, input.id, { forUpdate: true });
               throw new ConflictError();
             } catch (error) {
               if (!(error instanceof NotFoundError)) {

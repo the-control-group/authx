@@ -10,6 +10,7 @@ import {
   ForbiddenError,
   NotFoundError,
   ValidationError,
+  ConflictError,
   AuthenticationError
 } from "@authx/authx";
 import { OpenIdCredential, OpenIdAuthority } from "../../model";
@@ -20,6 +21,7 @@ export const createOpenIdCredentials: GraphQLFieldConfig<
   any,
   {
     credentials: {
+      id: null | string;
       enabled: boolean;
       userId: string;
       authorityId: string;
@@ -57,6 +59,18 @@ export const createOpenIdCredentials: GraphQLFieldConfig<
       const tx = await pool.connect();
       try {
         await tx.query("BEGIN DEFERRABLE");
+
+        // Make sure the ID isn't already in use.
+        if (input.id) {
+          try {
+            await OpenIdCredential.read(tx, input.id, { forUpdate: true });
+            throw new ConflictError();
+          } catch (error) {
+            if (!(error instanceof NotFoundError)) {
+              throw error;
+            }
+          }
+        }
 
         const id = v4();
 
