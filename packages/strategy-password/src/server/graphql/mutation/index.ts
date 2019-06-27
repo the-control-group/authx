@@ -3,3 +3,7 @@ export * from "./createPasswordAuthorities";
 export * from "./createPasswordCredentials";
 export * from "./updatePasswordAuthorities";
 export * from "./updatePasswordCredentials";
+export * from "./GraphQLCreatePasswordAuthorityInput";
+export * from "./GraphQLCreatePasswordCredentialInput";
+export * from "./GraphQLUpdatePasswordAuthorityInput";
+export * from "./GraphQLUpdatePasswordCredentialInput";

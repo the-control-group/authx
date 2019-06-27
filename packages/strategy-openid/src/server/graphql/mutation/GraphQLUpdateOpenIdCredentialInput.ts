@@ -5,8 +5,8 @@ import {
   GraphQLInputObjectType
 } from "graphql";
 
-export const GraphQLCreateOpenIdCredentialInput = new GraphQLInputObjectType({
-  name: "CreateOpenIdCredentialInput",
+export const GraphQLUpdateOpenIdCredentialInput = new GraphQLInputObjectType({
+  name: "UpdateOpenIdCredentialInput",
   fields: () => ({
     id: {
       type: new GraphQLNonNull(GraphQLID)

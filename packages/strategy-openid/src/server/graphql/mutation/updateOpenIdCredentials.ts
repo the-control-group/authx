@@ -9,7 +9,7 @@ import {
 } from "@authx/authx";
 import { OpenIdCredential } from "../../model";
 import { GraphQLOpenIdCredential } from "../GraphQLOpenIdCredential";
-import { GraphQLCreateOpenIdCredentialInput } from "./GraphQLUpdateOpenIdCredentialInput";
+import { GraphQLUpdateOpenIdCredentialInput } from "./GraphQLUpdateOpenIdCredentialInput";
 
 export const updateOpenIdCredentials: GraphQLFieldConfig<
   any,
@@ -26,7 +26,7 @@ export const updateOpenIdCredentials: GraphQLFieldConfig<
   args: {
     credentials: {
       type: new GraphQLNonNull(
-        new GraphQLList(new GraphQLNonNull(GraphQLCreateOpenIdCredentialInput))
+        new GraphQLList(new GraphQLNonNull(GraphQLUpdateOpenIdCredentialInput))
       )
     }
   },

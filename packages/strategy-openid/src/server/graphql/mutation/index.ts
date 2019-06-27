@@ -3,3 +3,7 @@ export * from "./createOpenIdAuthorities";
 export * from "./createOpenIdCredentials";
 export * from "./updateOpenIdAuthorities";
 export * from "./updateOpenIdCredentials";
+export * from "./GraphQLCreateOpenIdAuthorityInput";
+export * from "./GraphQLCreateOpenIdCredentialInput";
+export * from "./GraphQLUpdateOpenIdAuthorityInput";
+export * from "./GraphQLUpdateOpenIdCredentialInput";
