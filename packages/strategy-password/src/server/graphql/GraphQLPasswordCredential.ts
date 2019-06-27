@@ -30,11 +30,16 @@ export const GraphQLPasswordCredential = new GraphQLObjectType<
       async resolve(
         credential,
         args,
-        { realm, authorization: a, tx }: Context
+        { realm, authorization: a, pool }: Context
       ): Promise<null | User> {
-        if (!a) return null;
-        const user = await credential.user(tx);
-        return user.isAccessibleBy(realm, a, tx) ? user : null;
+        const tx = await pool.connect();
+        try {
+          if (!a) return null;
+          const user = await credential.user(tx);
+          return user.isAccessibleBy(realm, a, tx) ? user : null;
+        } finally {
+          tx.release();
+        }
       }
     },
     authority: {
@@ -42,9 +47,14 @@ export const GraphQLPasswordCredential = new GraphQLObjectType<
       async resolve(
         credential,
         args,
-        { tx }: Context
+        { pool }: Context
       ): Promise<null | PasswordAuthority> {
-        return credential.authority(tx);
+        const tx = await pool.connect();
+        try {
+          return credential.authority(tx);
+        } finally {
+          tx.release();
+        }
       }
     },
     subject: {
@@ -58,11 +68,16 @@ export const GraphQLPasswordCredential = new GraphQLObjectType<
       async resolve(
         credential,
         args,
-        { realm, authorization: a, tx }: Context
+        { realm, authorization: a, pool }: Context
       ): Promise<null | string> {
-        return a && (await credential.isAccessibleBy(realm, a, tx, "read.*"))
-          ? credential.details.hash
-          : null;
+        const tx = await pool.connect();
+        try {
+          return a && (await credential.isAccessibleBy(realm, a, tx, "read.*"))
+            ? credential.details.hash
+            : null;
+        } finally {
+          tx.release();
+        }
       }
     }
   })

@@ -36,11 +36,16 @@ export const GraphQLGrant: GraphQLObjectType<
       async resolve(
         grant,
         args,
-        { realm, authorization: a, tx }: Context
+        { realm, authorization: a, pool }: Context
       ): Promise<null | User> {
-        if (!a) return null;
-        const user = await grant.user(tx);
-        return user.isAccessibleBy(realm, a, tx) ? user : null;
+        const tx = await pool.connect();
+        try {
+          if (!a) return null;
+          const user = await grant.user(tx);
+          return user.isAccessibleBy(realm, a, tx) ? user : null;
+        } finally {
+          tx.release();
+        }
       }
     },
     client: {
@@ -48,11 +53,16 @@ export const GraphQLGrant: GraphQLObjectType<
       async resolve(
         grant,
         args,
-        { realm, authorization: a, tx }: Context
+        { realm, authorization: a, pool }: Context
       ): Promise<null | Client> {
-        if (!a) return null;
-        const client = await grant.client(tx);
-        return client.isAccessibleBy(realm, a, tx) ? client : null;
+        const tx = await pool.connect();
+        try {
+          if (!a) return null;
+          const client = await grant.client(tx);
+          return client.isAccessibleBy(realm, a, tx) ? client : null;
+        } finally {
+          tx.release();
+        }
       }
     },
     secrets: {
@@ -60,11 +70,16 @@ export const GraphQLGrant: GraphQLObjectType<
       async resolve(
         grant,
         args,
-        { realm, authorization: a, tx }: Context
+        { realm, authorization: a, pool }: Context
       ): Promise<null | string[]> {
-        return a && (await grant.isAccessibleBy(realm, a, tx, "read.secrets"))
-          ? [...grant.secrets]
-          : null;
+        const tx = await pool.connect();
+        try {
+          return a && (await grant.isAccessibleBy(realm, a, tx, "read.secrets"))
+            ? [...grant.secrets]
+            : null;
+        } finally {
+          tx.release();
+        }
       }
     },
     codes: {
@@ -72,11 +87,16 @@ export const GraphQLGrant: GraphQLObjectType<
       async resolve(
         grant,
         args,
-        { realm, authorization: a, tx }: Context
+        { realm, authorization: a, pool }: Context
       ): Promise<null | string[]> {
-        return a && (await grant.isAccessibleBy(realm, a, tx, "read.secrets"))
-          ? [...grant.codes]
-          : null;
+        const tx = await pool.connect();
+        try {
+          return a && (await grant.isAccessibleBy(realm, a, tx, "read.secrets"))
+            ? [...grant.codes]
+            : null;
+        } finally {
+          tx.release();
+        }
       }
     },
     scopes: {
@@ -84,11 +104,16 @@ export const GraphQLGrant: GraphQLObjectType<
       async resolve(
         grant,
         args,
-        { realm, authorization: q, tx }: Context
+        { realm, authorization: q, pool }: Context
       ): Promise<null | string[]> {
-        return q && (await grant.isAccessibleBy(realm, q, tx, "read.scopes"))
-          ? grant.scopes
-          : null;
+        const tx = await pool.connect();
+        try {
+          return q && (await grant.isAccessibleBy(realm, q, tx, "read.scopes"))
+            ? grant.scopes
+            : null;
+        } finally {
+          tx.release();
+        }
       }
     },
     authorizations: {
@@ -97,16 +122,21 @@ export const GraphQLGrant: GraphQLObjectType<
       async resolve(
         grant,
         args: ConnectionArguments,
-        { realm, authorization: a, tx }: Context
+        { realm, authorization: a, pool }: Context
       ) {
-        return a
-          ? connectionFromArray(
-              await filter(await grant.authorizations(tx), authorization =>
-                authorization.isAccessibleBy(realm, a, tx)
-              ),
-              args
-            )
-          : null;
+        const tx = await pool.connect();
+        try {
+          return a
+            ? connectionFromArray(
+                await filter(await grant.authorizations(tx), authorization =>
+                  authorization.isAccessibleBy(realm, a, tx)
+                ),
+                args
+              )
+            : null;
+        } finally {
+          tx.release();
+        }
       }
     }
   })

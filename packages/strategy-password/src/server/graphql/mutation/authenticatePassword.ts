@@ -50,7 +50,7 @@ export const authenticatePassword: GraphQLFieldConfig<
   },
   async resolve(source, args, context): Promise<Authorization> {
     const {
-      tx,
+      pool,
       authorization: a,
       realm,
       strategies: { authorityMap }
@@ -60,9 +60,10 @@ export const authenticatePassword: GraphQLFieldConfig<
       throw new ForbiddenError("You area already authenticated.");
     }
 
-    await tx.query("BEGIN DEFERRABLE");
-
+    const tx = await pool.connect();
     try {
+      await tx.query("BEGIN DEFERRABLE");
+
       // fetch the authority
       const authority = await Authority.read(
         tx,
@@ -156,6 +157,8 @@ export const authenticatePassword: GraphQLFieldConfig<
     } catch (error) {
       await tx.query("ROLLBACK");
       throw error;
+    } finally {
+      tx.release();
     }
   }
 };

@@ -29,33 +29,38 @@ export const authorizations: GraphQLFieldConfig<
     }
   },
   async resolve(source, args, context) {
-    const { tx, authorization: a, realm } = context;
+    const { pool, authorization: a, realm } = context;
     if (!a) return [];
 
-    const ids = await tx.query(
-      `
+    const tx = await pool.connect();
+    try {
+      const ids = await tx.query(
+        `
         SELECT entity_id AS id
         FROM authx.authorization_record
         WHERE
           replacement_record_id IS NULL
           ${args.includeDisabled ? "" : "AND enabled = true"}
         `
-    );
+      );
 
-    if (!ids.rows.length) {
-      return [];
+      if (!ids.rows.length) {
+        return [];
+      }
+
+      const authorizations = await Authorization.read(
+        tx,
+        ids.rows.map(({ id }) => id)
+      );
+
+      return connectionFromArray(
+        await filter(authorizations, authorization =>
+          authorization.isAccessibleBy(realm, a, tx)
+        ),
+        args
+      );
+    } finally {
+      tx.release();
     }
-
-    const authorizations = await Authorization.read(
-      tx,
-      ids.rows.map(({ id }) => id)
-    );
-
-    return connectionFromArray(
-      await filter(authorizations, authorization =>
-        authorization.isAccessibleBy(realm, a, tx)
-      ),
-      args
-    );
   }
 };

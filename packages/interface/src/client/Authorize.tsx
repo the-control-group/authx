@@ -213,11 +213,11 @@ export function Authorize({
       const operation = grant
         ? graphql.operate<
             {
-              createGrant?: undefined;
-              updateGrant: null | {
+              createGrants?: undefined;
+              updateGrants: null | ReadonlyArray<null | {
                 codes: null | string[];
                 scopes: null | string[];
-              };
+              }>;
             },
             {
               id: string;
@@ -228,7 +228,9 @@ export function Authorize({
             operation: {
               query: `
                 mutation($id: ID!, $scopes: [String!]!) {
-                  updateGrant(id: $id, scopes: $scopes, generateCodes: 1) {
+                  updateGrants(
+                    grants: [{id: $id, scopes: $scopes, generateCodes: 1}]
+                  ) {
                     codes
                     scopes
                   }
@@ -246,11 +248,11 @@ export function Authorize({
           })
         : graphql.operate<
             {
-              updateGrant?: undefined;
-              createGrant: null | {
+              updateGrants?: undefined;
+              createGrants: null | ReadonlyArray<null | {
                 codes: null | string[];
                 scopes: null | string[];
-              };
+              }>;
             },
             {
               clientId: string;
@@ -262,7 +264,13 @@ export function Authorize({
             operation: {
               query: `
                 mutation($clientId: ID!, $userId: ID!, $scopes: [String!]!) {
-                  createGrant(clientId: $clientId, userId: $userId, scopes: $scopes) {
+                  createGrants(
+                    grants: [{
+                      clientId: $clientId,
+                      userId: $userId,
+                      scopes: $scopes
+                    }]
+                  ) {
                     codes
                     scopes
                   }
@@ -288,7 +296,9 @@ export function Authorize({
       }
 
       const final =
-        result.data && (result.data.updateGrant || result.data.createGrant);
+        result.data &&
+        ((result.data.updateGrants && result.data.updateGrants[0]) ||
+          (result.data.createGrants && result.data.createGrants[0]));
 
       const code =
         (final && final.codes && [...final.codes].sort().reverse()[0]) || null;

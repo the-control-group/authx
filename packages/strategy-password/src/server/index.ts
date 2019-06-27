@@ -2,12 +2,16 @@ import { Strategy } from "@authx/authx";
 import { PasswordAuthority, PasswordCredential } from "./model";
 import {
   authenticatePassword,
-  createPasswordAuthority,
-  updatePasswordAuthority,
-  createPasswordCredential,
-  updatePasswordCredential,
+  createPasswordAuthorities,
+  updatePasswordAuthorities,
+  createPasswordCredentials,
+  updatePasswordCredentials,
   GraphQLPasswordAuthority,
-  GraphQLPasswordCredential
+  GraphQLPasswordCredential,
+  GraphQLCreatePasswordAuthorityInput,
+  GraphQLCreatePasswordCredentialInput,
+  GraphQLUpdatePasswordAuthorityInput,
+  GraphQLUpdatePasswordCredentialInput
 } from "./graphql";
 
 export * from "./model";
@@ -15,16 +19,23 @@ export * from "./graphql";
 
 const strategy: Strategy = {
   name: "password",
-  types: [GraphQLPasswordAuthority, GraphQLPasswordCredential],
+  types: [
+    GraphQLPasswordAuthority,
+    GraphQLPasswordCredential,
+    GraphQLCreatePasswordAuthorityInput,
+    GraphQLCreatePasswordCredentialInput,
+    GraphQLUpdatePasswordAuthorityInput,
+    GraphQLUpdatePasswordCredentialInput
+  ],
   queryFields: {},
   mutationFields: {
     authenticatePassword,
 
-    createPasswordAuthority,
-    updatePasswordAuthority,
+    createPasswordAuthorities,
+    updatePasswordAuthorities,
 
-    createPasswordCredential,
-    updatePasswordCredential
+    createPasswordCredentials,
+    updatePasswordCredentials
   },
   authorityModel: PasswordAuthority,
   credentialModel: PasswordCredential

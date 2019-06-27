@@ -2,12 +2,16 @@ import { Strategy } from "@authx/authx";
 import { EmailAuthority, EmailCredential } from "./model";
 import {
   authenticateEmail,
-  createEmailAuthority,
-  updateEmailAuthority,
-  createEmailCredential,
-  updateEmailCredential,
+  createEmailAuthorities,
+  updateEmailAuthorities,
+  createEmailCredentials,
+  updateEmailCredentials,
   GraphQLEmailAuthority,
-  GraphQLEmailCredential
+  GraphQLEmailCredential,
+  GraphQLCreateEmailAuthorityInput,
+  GraphQLCreateEmailCredentialInput,
+  GraphQLUpdateEmailAuthorityInput,
+  GraphQLUpdateEmailCredentialInput
 } from "./graphql";
 
 export * from "./model";
@@ -15,16 +19,23 @@ export * from "./graphql";
 
 const strategy: Strategy = {
   name: "email",
-  types: [GraphQLEmailAuthority, GraphQLEmailCredential],
+  types: [
+    GraphQLEmailAuthority,
+    GraphQLEmailCredential,
+    GraphQLCreateEmailAuthorityInput,
+    GraphQLCreateEmailCredentialInput,
+    GraphQLUpdateEmailAuthorityInput,
+    GraphQLUpdateEmailCredentialInput
+  ],
   queryFields: {},
   mutationFields: {
     authenticateEmail,
 
-    createEmailAuthority,
-    updateEmailAuthority,
+    createEmailAuthorities,
+    updateEmailAuthorities,
 
-    createEmailCredential,
-    updateEmailCredential
+    createEmailCredentials,
+    updateEmailCredentials
   },
   authorityModel: EmailAuthority,
   credentialModel: EmailCredential

@@ -250,11 +250,20 @@ export class User implements UserData {
     return isSuperset(await this.access(tx, refresh), scope);
   }
 
-  public static read(tx: PoolClient, id: string): Promise<User>;
-  public static read(tx: PoolClient, id: string[]): Promise<User[]>;
+  public static read(
+    tx: PoolClient,
+    id: string,
+    options?: { forUpdate: boolean }
+  ): Promise<User>;
+  public static read(
+    tx: PoolClient,
+    id: string[],
+    options?: { forUpdate: boolean }
+  ): Promise<User[]>;
   public static async read(
     tx: PoolClient,
-    id: string[] | string
+    id: string[] | string,
+    options: { forUpdate: boolean } = { forUpdate: false }
   ): Promise<User[] | User> {
     if (typeof id !== "string" && !id.length) {
       return [];
@@ -271,6 +280,7 @@ export class User implements UserData {
       WHERE
         entity_id = ANY($1)
         AND replacement_record_id IS NULL
+      ${options.forUpdate ? "FOR UPDATE" : ""}
       `,
       [typeof id === "string" ? [id] : id]
     );

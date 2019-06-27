@@ -52,13 +52,15 @@ export abstract class Authority<A> implements AuthorityData<A> {
   public static read<T extends Authority<any>>(
     this: new (data: AuthorityData<any>) => T,
     tx: PoolClient,
-    id: string
+    id: string,
+    options?: { forUpdate: boolean }
   ): Promise<T>;
 
   public static read<T extends Authority<any>>(
     this: new (data: AuthorityData<any>) => T,
     tx: PoolClient,
-    id: string[]
+    id: string[],
+    options?: { forUpdate: boolean }
   ): Promise<T[]>;
 
   public static read<
@@ -66,14 +68,24 @@ export abstract class Authority<A> implements AuthorityData<A> {
       [key: string]: { new (data: AuthorityData<any>): Authority<any> };
     },
     K extends keyof M
-  >(tx: PoolClient, id: string, map: M): Promise<InstanceType<M[K]>>;
+  >(
+    tx: PoolClient,
+    id: string,
+    map: M,
+    options?: { forUpdate: boolean }
+  ): Promise<InstanceType<M[K]>>;
 
   public static read<
     M extends {
       [key: string]: { new (data: AuthorityData<any>): Authority<any> };
     },
     K extends keyof M
-  >(tx: PoolClient, id: string[], map: M): Promise<InstanceType<M[K]>[]>;
+  >(
+    tx: PoolClient,
+    id: string[],
+    map: M,
+    options?: { forUpdate: boolean }
+  ): Promise<InstanceType<M[K]>[]>;
 
   public static async read<
     T,
@@ -87,7 +99,8 @@ export abstract class Authority<A> implements AuthorityData<A> {
     },
     tx: PoolClient,
     id: string[] | string,
-    map?: M
+    map?: M,
+    options: { forUpdate: boolean } = { forUpdate: false }
   ): Promise<InstanceType<M[K]>[] | InstanceType<M[K]> | T | T[]> {
     if (typeof id !== "string" && !id.length) {
       return [];
@@ -106,6 +119,7 @@ export abstract class Authority<A> implements AuthorityData<A> {
       WHERE
         entity_id = ANY($1)
         AND replacement_record_id IS NULL
+      ${options.forUpdate ? "FOR UPDATE" : ""}
       `,
       [typeof id === "string" ? [id] : id]
     );

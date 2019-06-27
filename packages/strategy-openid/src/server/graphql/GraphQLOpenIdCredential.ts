@@ -29,11 +29,16 @@ export const GraphQLOpenIdCredential = new GraphQLObjectType<
       async resolve(
         credential,
         args,
-        { realm, authorization: a, tx }: Context
+        { realm, authorization: a, pool }: Context
       ): Promise<null | User> {
         if (!a) return null;
-        const user = await credential.user(tx);
-        return user.isAccessibleBy(realm, a, tx) ? user : null;
+        const tx = await pool.connect();
+        try {
+          const user = await credential.user(tx);
+          return user.isAccessibleBy(realm, a, tx) ? user : null;
+        } finally {
+          tx.release();
+        }
       }
     },
     authority: {
@@ -41,9 +46,14 @@ export const GraphQLOpenIdCredential = new GraphQLObjectType<
       async resolve(
         credential,
         args,
-        { tx }: Context
+        { pool }: Context
       ): Promise<null | OpenIdAuthority> {
-        return credential.authority(tx);
+        const tx = await pool.connect();
+        try {
+          return credential.authority(tx);
+        } finally {
+          tx.release();
+        }
       }
     }
   })

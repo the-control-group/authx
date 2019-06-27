@@ -34,17 +34,22 @@ export const GraphQLRole = new GraphQLObjectType<Role, Context>({
       async resolve(
         role,
         args: ConnectionArguments,
-        { realm, authorization: a, tx }: Context
+        { realm, authorization: a, pool }: Context
       ) {
-        return a &&
-          (await role.isAccessibleBy(realm, a, tx, "read.assignments"))
-          ? connectionFromArray(
-              await filter(await role.users(tx), user =>
-                user.isAccessibleBy(realm, a, tx)
-              ),
-              args
-            )
-          : null;
+        const tx = await pool.connect();
+        try {
+          return a &&
+            (await role.isAccessibleBy(realm, a, tx, "read.assignments"))
+            ? connectionFromArray(
+                await filter(await role.users(tx), user =>
+                  user.isAccessibleBy(realm, a, tx)
+                ),
+                args
+              )
+            : null;
+        } finally {
+          tx.release();
+        }
       }
     },
     scopes: {
@@ -52,11 +57,16 @@ export const GraphQLRole = new GraphQLObjectType<Role, Context>({
       async resolve(
         role,
         args,
-        { realm, authorization: a, tx }: Context
+        { realm, authorization: a, pool }: Context
       ): Promise<null | string[]> {
-        return a && (await role.isAccessibleBy(realm, a, tx, "read.scopes"))
-          ? role.scopes
-          : null;
+        const tx = await pool.connect();
+        try {
+          return a && (await role.isAccessibleBy(realm, a, tx, "read.scopes"))
+            ? role.scopes
+            : null;
+        } finally {
+          tx.release();
+        }
       }
     }
   })

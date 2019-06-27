@@ -80,10 +80,10 @@ export function Default({
     try {
       const operation = graphql.operate<
         {
-          updateAuthorization: null | {
+          updateAuthorizations: null | ReadonlyArray<null | {
             id: string;
             enabled: boolean;
-          };
+          }>;
         },
         {
           id: string;
@@ -93,9 +93,11 @@ export function Default({
         operation: {
           query: `
             mutation($id: ID!) {
-              updateAuthorization(
-                id: $id,
-                enabled: false
+              updateAuthorizations(
+                authorizations: [{
+                  id: $id,
+                  enabled: false
+                }]
               ) {
                 id
                 enabled
@@ -119,7 +121,7 @@ export function Default({
         return;
       }
 
-      if (!result.data || !result.data.updateAuthorization) {
+      if (!result.data || !result.data.updateAuthorizations) {
         setErrors([
           "No authorization was returned. Contact your administrator to ensure you have sufficient access to read your own authorizations."
         ]);

@@ -16,9 +16,9 @@ const __DEV__ = process.env.NODE_ENV !== "production";
 
     // Build the interface middleware.
     const interfaceMiddleware = await createAuthXInterface([
-      "@authx/strategy-email/client",
-      "@authx/strategy-password/client",
-      "@authx/strategy-openid/client"
+      "@authx/strategy-email/interface",
+      "@authx/strategy-password/interface",
+      "@authx/strategy-openid/interface"
     ]);
 
     // Add the AuthX user interface.

@@ -88,13 +88,15 @@ export abstract class Credential<C> implements CredentialData<C> {
   public static read<T extends Credential<any>>(
     this: new (data: CredentialData<any>) => T,
     tx: PoolClient,
-    id: string
+    id: string,
+    options?: { forUpdate: boolean }
   ): Promise<T>;
 
   public static read<T extends Credential<any>>(
     this: new (data: CredentialData<any>) => T,
     tx: PoolClient,
-    id: string[]
+    id: string[],
+    options?: { forUpdate: boolean }
   ): Promise<T[]>;
 
   public static read<
@@ -102,14 +104,24 @@ export abstract class Credential<C> implements CredentialData<C> {
       [key: string]: { new (data: CredentialData<any>): Credential<any> };
     },
     K extends keyof M
-  >(tx: PoolClient, id: string, map: M): Promise<InstanceType<M[K]>>;
+  >(
+    tx: PoolClient,
+    id: string,
+    map: M,
+    options?: { forUpdate: boolean }
+  ): Promise<InstanceType<M[K]>>;
 
   public static read<
     M extends {
       [key: string]: { new (data: CredentialData<any>): Credential<any> };
     },
     K extends keyof M
-  >(tx: PoolClient, id: string[], map: M): Promise<InstanceType<M[K]>[]>;
+  >(
+    tx: PoolClient,
+    id: string[],
+    map: M,
+    options?: { forUpdate: boolean }
+  ): Promise<InstanceType<M[K]>[]>;
 
   public static async read<
     T,
@@ -123,11 +135,21 @@ export abstract class Credential<C> implements CredentialData<C> {
     },
     tx: PoolClient,
     id: string[] | string,
-    map?: M
+    mapOrOptions?: M | { forUpdate: boolean },
+    optionsOrUndefined?: { forUpdate: boolean }
   ): Promise<InstanceType<M[K]>[] | InstanceType<M[K]> | T | T[]> {
     if (typeof id !== "string" && !id.length) {
       return [];
     }
+
+    const map =
+      mapOrOptions && typeof mapOrOptions.forUpdate !== "boolean"
+        ? (mapOrOptions as M)
+        : undefined;
+
+    const options = (map === mapOrOptions
+      ? (optionsOrUndefined as { forUpdate: boolean })
+      : mapOrOptions) || { forUpdate: false };
 
     const result = await tx.query(
       `
@@ -146,6 +168,7 @@ export abstract class Credential<C> implements CredentialData<C> {
       WHERE
         authx.credential_record.entity_id = ANY($1)
         AND authx.credential_record.replacement_record_id IS NULL
+      ${options.forUpdate ? "FOR UPDATE" : ""}
       `,
       [typeof id === "string" ? [id] : id]
     );
