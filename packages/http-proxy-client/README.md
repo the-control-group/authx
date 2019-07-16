@@ -1,4 +1,4 @@
-# HTTP Proxy - Resource
+# HTTP Proxy - Client
 
 The AuthX proxy for resources is a flexible HTTP proxy that can inject access tokens into a request. It is designed to be deployed alongside an app or worker, and maintains an in-memory cache of fresh access tokens to add the minimun amount of latency. It relies on refresh tokens specified in the configuration or provided by rules.
 
