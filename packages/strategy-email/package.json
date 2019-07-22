@@ -7,23 +7,23 @@
   "dependencies": {
     "@authx/scopes": "^2.2.1",
     "@types/pg": "^7.4.14",
-    "@types/uuid": "^3.4.4",
-    "graphql": "^14.4.0",
+    "@types/uuid": "^3.4.5",
+    "graphql": "^14.4.2",
     "pg": "^7.8.1",
     "uuid": "^3.3.2"
   },
   "description": "",
   "devDependencies": {
     "@authx/authx": "^2.0.0-beta.0",
-    "@typescript-eslint/eslint-plugin": "^1.11.0",
-    "@typescript-eslint/parser": "^1.11.0",
-    "ava": "^2.1.0",
-    "eslint": "^6.0.1",
+    "@typescript-eslint/eslint-plugin": "^1.13.0",
+    "@typescript-eslint/parser": "^1.13.0",
+    "ava": "^2.2.0",
+    "eslint": "^6.1.0",
     "eslint-config-prettier": "^6.0.0",
     "eslint-plugin-prettier": "^3.0.0",
     "nodemon": "^1.19.1",
     "prettier": "^1.18.2",
-    "typescript": "^3.5.2"
+    "typescript": "^3.5.3"
   },
   "engines": {
     "node": ">=10"

@@ -7,18 +7,18 @@
   "dependencies": {
     "@authx/scopes": "^2.2.1",
     "@types/auth-header": "^1.0.1",
-    "@types/form-data": "^2.2.1",
+    "@types/form-data": "^2.5.0",
     "@types/graphql-api-koa": "^2.0.0",
     "@types/graphql-relay": "^0.4.9",
     "@types/jsonwebtoken": "^8.3.2",
-    "@types/koa": "^2.0.48",
-    "@types/koa-router": "^7.0.41",
+    "@types/koa": "^2.0.49",
+    "@types/koa-router": "^7.0.42",
     "@types/koa-send": "^4.1.2",
     "@types/pg": "^7.4.14",
-    "@types/uuid": "^3.4.4",
+    "@types/uuid": "^3.4.5",
     "auth-header": "^1.0.0",
-    "form-data": "^2.4.0",
-    "graphql": "^14.4.0",
+    "form-data": "^2.5.0",
+    "graphql": "^14.4.2",
     "graphql-api-koa": "^2.0.0",
     "graphql-playground-middleware-koa": "^1.6.12",
     "graphql-relay": "^0.6.0",
@@ -32,15 +32,15 @@
   },
   "description": "",
   "devDependencies": {
-    "@typescript-eslint/eslint-plugin": "^1.11.0",
-    "@typescript-eslint/parser": "^1.11.0",
-    "ava": "^2.1.0",
-    "eslint": "^6.0.1",
+    "@typescript-eslint/eslint-plugin": "^1.13.0",
+    "@typescript-eslint/parser": "^1.13.0",
+    "ava": "^2.2.0",
+    "eslint": "^6.1.0",
     "eslint-config-prettier": "^6.0.0",
     "eslint-plugin-prettier": "^3.0.0",
     "nodemon": "^1.19.1",
     "prettier": "^1.18.2",
-    "typescript": "^3.5.2"
+    "typescript": "^3.5.3"
   },
   "engines": {
     "node": ">=10"
@@ -62,7 +62,7 @@
   "main": "dist",
   "name": "@authx/authx",
   "optionalDependencies": {
-    "@opencensus/core": "^0.0.14",
+    "@opencensus/core": "^0.0.16",
     "graphql-middleware": "^3.0.2"
   },
   "peerDependencies": {
