@@ -55,11 +55,21 @@ export default async (ctx: ParameterizedContext<any, { [x]: Context }>) => {
     const tx = await pool.connect();
     try {
       // Make sure the body is an object.
-      if (!ctx.request.body || typeof ctx.request.body !== "object") {
+      const request: {
+        grant_type?: unknown;
+        client_id?: unknown;
+        client_secret?: unknown;
+        code?: unknown;
+        nonce?: unknown;
+        refresh_token?: unknown;
+        scope?: unknown;
+      } = (ctx.request as any).body;
+      if (!request || typeof request !== "object") {
         throw new OAuthError("invalid_request");
       }
 
-      const grantType: undefined | string = ctx.request.body.grant_type;
+      const grantType: undefined | string =
+        typeof request.grant_type === "string" ? request.grant_type : undefined;
 
       // Authorization Code
       // ==================
@@ -68,21 +78,17 @@ export default async (ctx: ParameterizedContext<any, { [x]: Context }>) => {
           tx.query("BEGIN DEFERRABLE");
           const now = Math.floor(Date.now() / 1000);
           const paramsClientId: undefined | string =
-            typeof ctx.request.body.client_id === "string"
-              ? ctx.request.body.client_id
+            typeof request.client_id === "string"
+              ? request.client_id
               : undefined;
           const paramsClientSecret: undefined | string =
-            typeof ctx.request.body.client_secret === "string"
-              ? ctx.request.body.client_secret
+            typeof request.client_secret === "string"
+              ? request.client_secret
               : undefined;
           const paramsCode: undefined | string =
-            typeof ctx.request.body.code === "string"
-              ? ctx.request.body.code
-              : undefined;
+            typeof request.code === "string" ? request.code : undefined;
           const paramsNonce: undefined | string =
-            typeof ctx.request.body.nonce === "string"
-              ? ctx.request.body.nonce
-              : undefined;
+            typeof request.nonce === "string" ? request.nonce : undefined;
 
           if (!paramsClientId || !paramsClientSecret || !paramsCode) {
             throw new OAuthError("invalid_request");
@@ -261,25 +267,21 @@ export default async (ctx: ParameterizedContext<any, { [x]: Context }>) => {
         try {
           tx.query("BEGIN DEFERRABLE");
           const paramsClientId: undefined | string =
-            typeof ctx.request.body.client_id === "string"
-              ? ctx.request.body.client_id
+            typeof request.client_id === "string"
+              ? request.client_id
               : undefined;
           const paramsClientSecret: undefined | string =
-            typeof ctx.request.body.client_secret === "string"
-              ? ctx.request.body.client_secret
+            typeof request.client_secret === "string"
+              ? request.client_secret
               : undefined;
           const paramsRefreshToken: undefined | string =
-            typeof ctx.request.body.refresh_token === "string"
-              ? ctx.request.body.refresh_token
+            typeof request.refresh_token === "string"
+              ? request.refresh_token
               : undefined;
           const paramsScope: undefined | string =
-            typeof ctx.request.body.scope === "string"
-              ? ctx.request.body.scope
-              : undefined;
+            typeof request.scope === "string" ? request.scope : undefined;
           const paramsNonce: undefined | string =
-            typeof ctx.request.body.nonce === "string"
-              ? ctx.request.body.nonce
-              : undefined;
+            typeof request.nonce === "string" ? request.nonce : undefined;
           if (!paramsClientId || !paramsClientSecret || !paramsRefreshToken) {
             throw new OAuthError("invalid_request");
           }
