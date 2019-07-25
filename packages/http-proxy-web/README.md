@@ -1,4 +1,4 @@
-# HTTP Proxy - Client
+# HTTP Proxy - Web
 
 The AuthX proxy for clients is a flexible HTTP proxy designed to sit in front of a client and manage the entire OAuth flow.
 
