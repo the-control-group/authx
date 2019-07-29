@@ -28,7 +28,7 @@ export class AuthX<
   StateT extends any = any,
   CustomT extends { [x]: Context } = { [x]: Context }
 > extends Router<StateT, CustomT> {
-  private readonly pool: Pool;
+  public readonly pool: Pool;
   public constructor(config: Config & IRouterOptions) {
     assertConfig(config);
     super(config);
