@@ -28,6 +28,7 @@ export class AuthX<
   StateT extends any = any,
   CustomT extends { [x]: Context } = { [x]: Context }
 > extends Router<StateT, CustomT> {
+  private readonly pool: Pool;
   public constructor(config: Config & IRouterOptions) {
     assertConfig(config);
     super(config);
@@ -38,13 +39,13 @@ export class AuthX<
         : new StrategyCollection(config.strategies);
 
     // create a database pool
-    const pool = new Pool(config.pg);
+    this.pool = new Pool(config.pg);
 
     // define the context middleware
     const contextMiddleware: Middleware<
       ParameterizedContext<any, any>
     > = async (ctx, next): Promise<void> => {
-      const tx = await pool.connect();
+      const tx = await this.pool.connect();
       try {
         let authorization = null;
 
@@ -77,7 +78,7 @@ export class AuthX<
           ...config,
           strategies,
           authorization,
-          pool
+          pool: this.pool
         };
 
         ctx[x] = context;
