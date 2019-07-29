@@ -2,6 +2,7 @@ import {
   GraphQLID,
   GraphQLNonNull,
   GraphQLBoolean,
+  GraphQLString,
   GraphQLObjectType
 } from "graphql";
 
@@ -54,6 +55,12 @@ export const GraphQLOpenIdCredential = new GraphQLObjectType<
         } finally {
           tx.release();
         }
+      }
+    },
+    subject: {
+      type: GraphQLString,
+      resolve(credential): string {
+        return credential.authorityUserId;
       }
     }
   })
