@@ -140,6 +140,9 @@ export interface Metadata {
   rule: undefined | Rule;
   behavior: undefined | Behavior;
   message: string;
+  authorizationId: undefined | string;
+  authorizationSubject: undefined | string;
+  authorizationScopes: undefined | ReadonlyArray<string>;
 }
 
 export default class AuthXResourceProxy extends EventEmitter {
@@ -254,7 +257,10 @@ export default class AuthXResourceProxy extends EventEmitter {
       response: response,
       rule: undefined,
       behavior: undefined,
-      message: "Request received."
+      message: "Request received.",
+      authorizationId: undefined,
+      authorizationSubject: undefined,
+      authorizationScopes: undefined
     };
 
     // Emit meta on request start.
@@ -316,7 +322,7 @@ export default class AuthXResourceProxy extends EventEmitter {
             // Verify the token against the key.
             const payload = verify(token, key, {
               algorithms: ["RS512"]
-            }) as string | { scopes: string[] };
+            }) as string | { sub?: string; aid?: string; scopes: string[] };
 
             // Ensure the token payload is correctly formatted.
             if (
@@ -340,6 +346,15 @@ export default class AuthXResourceProxy extends EventEmitter {
             }
 
             scopes = payload.scopes;
+            meta.authorizationScopes = scopes;
+
+            if (typeof payload.aid === "string") {
+              meta.authorizationId = payload.aid;
+            }
+
+            if (typeof payload.sub === "string") {
+              meta.authorizationSubject = payload.sub;
+            }
           } catch (error) {
             // The token is expired; there's no point in trying to verify
             // against additional public keys.
