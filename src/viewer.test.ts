@@ -59,7 +59,7 @@ const schema = createSchema(baseContext.strategies);
 test.before(async () => {
   // Create the test database.
   database = `authx-test-${Buffer.from(__dirname).toString("hex")}`;
-  let client = new Client();
+  const client = new Client();
   await client.connect();
   await client.query(`CREATE DATABASE "${database}";`);
   await client.end();
@@ -625,7 +625,7 @@ test.after.always(async () => {
   if (database && pool) {
     await pool.end();
 
-    let client = new Client();
+    const client = new Client();
     await client.connect();
     await client.query(`DROP DATABASE "${database}";`);
     await client.end();

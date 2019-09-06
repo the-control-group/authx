@@ -39,7 +39,9 @@ function getRefreshToken(secrets: Iterable<string>): null | string {
   return refreshToken;
 }
 
-export default async (ctx: ParameterizedContext<any, { [x]: Context }>) => {
+export default async (
+  ctx: ParameterizedContext<any, { [x]: Context }>
+): Promise<void> => {
   ctx.response.set("Cache-Control", "no-store");
   ctx.response.set("Pragma", "no-cache");
 

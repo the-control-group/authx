@@ -9,7 +9,7 @@ import {
   PasswordCredential
 } from "@authx/strategy-password";
 
-export default async () => {
+export default async (): Promise<void> => {
   const pool = new Pool();
   const tx = await pool.connect();
 

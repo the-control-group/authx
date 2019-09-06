@@ -80,7 +80,7 @@ export const authenticatePassword: GraphQLFieldConfig<
       }
 
       // find the user ID given identityAuthorityId and identityAuthorityUserId
-      var userId: string | null;
+      let userId: string | null;
       if (args.identityAuthorityId === authority.id) {
         userId = args.identityAuthorityUserId;
       } else {

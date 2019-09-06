@@ -1,8 +1,12 @@
+type PatternDescriptionMap = {
+  [pattern: string]: string;
+};
+
 export default (
-  realm: { [scope: string]: string } = {
+  realm: PatternDescriptionMap = {
     "authx.production": "The production AuthX instance."
   }
-) => [
+): [PatternDescriptionMap, PatternDescriptionMap, PatternDescriptionMap][] => [
   [
     realm,
     {

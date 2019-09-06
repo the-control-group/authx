@@ -98,7 +98,7 @@ test.before(async () => {
           request.headers.authorization.split(".")[1];
 
         if (encoded) {
-          for (var i = (encoded.length % 4) - 1; i >= 0; i--) {
+          for (let i = (encoded.length % 4) - 1; i >= 0; i--) {
             encoded += "=";
           }
         }
