@@ -7,25 +7,25 @@
   "dependencies": {
     "@authx/scopes": "^2.2.1",
     "@types/bcrypt": "^3.0.0",
-    "@types/pg": "^7.4.14",
+    "@types/pg": "^7.11.1",
     "@types/uuid": "^3.4.5",
     "bcrypt": "^3.0.6",
-    "graphql": "^14.4.2",
-    "pg": "^7.12.0",
-    "uuid": "^3.3.2"
+    "graphql": "^14.5.4",
+    "pg": "^7.12.1",
+    "uuid": "^3.3.3"
   },
   "description": "",
   "devDependencies": {
     "@authx/authx": "^2.0.0-beta.0",
-    "@typescript-eslint/eslint-plugin": "^1.13.0",
-    "@typescript-eslint/parser": "^1.13.0",
-    "ava": "^2.2.0",
-    "eslint": "^6.1.0",
-    "eslint-config-prettier": "^6.0.0",
+    "@typescript-eslint/eslint-plugin": "^2.1.0",
+    "@typescript-eslint/parser": "^2.1.0",
+    "ava": "^2.3.0",
+    "eslint": "^6.3.0",
+    "eslint-config-prettier": "^6.2.0",
     "eslint-plugin-prettier": "^3.0.0",
-    "nodemon": "^1.19.1",
+    "nodemon": "^1.19.2",
     "prettier": "^1.18.2",
-    "typescript": "^3.5.3"
+    "typescript": "^3.6.2"
   },
   "engines": {
     "node": ">=10"
