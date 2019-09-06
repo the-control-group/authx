@@ -1,7 +1,7 @@
 import { join, basename, extname } from "path";
 import MemoryFileSystem from "memory-fs";
 import HtmlWebpackPlugin from "html-webpack-plugin";
-import webpack from "webpack";
+import webpack, { Plugin } from "webpack";
 
 class BuildError extends Error {
   public errors: ReadonlyArray<string | Error> = [];
@@ -43,10 +43,13 @@ export default async function createInterface(
       ]
     },
     plugins: [
-      new HtmlWebpackPlugin({
+      // TODO: New type definitions between webpack and this plugin are
+      // incompatible, even though the underlying code is. This will likely be
+      // fixed shortly. If you're reading this, remove the cast through any.
+      (new HtmlWebpackPlugin({
         template: join(__dirname, "../client/index.html"),
         filename: "index.html"
-      })
+      }) as any) as Plugin
     ]
   });
 
