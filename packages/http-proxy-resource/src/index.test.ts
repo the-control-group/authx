@@ -34,9 +34,43 @@ test.before(async () => {
         const r = (): void => {
           response.statusCode = 200;
           response.setHeader("Content-Type", "application/json");
-          response.end(
-            '{"data": {"keys": ["-----BEGIN PUBLIC KEY-----\\nMIGfMA0GCSqGSIb3DQEBAQUAA4GNADCBiQKBgQCfb+nyTPFCntEXbrFPU5DeE0gC\\n4jXRcSFWDfCRgeqeQWqIW9DeMmCj13k0z6fQCiG3FATYosS64wAs+OiyGtu9q/Jy\\nUEVIBMF0upDJMA53AFFx+0Fb/i76JFPTY7SxzvioIFeKRwY8evIRWQWYO95Os6gK\\nBac/x5qiUn5fh2xM+wIDAQAB\\n-----END PUBLIC KEY-----"]}}'
-          );
+
+          let body = "";
+          request.on("data", data => {
+            body += data.toString();
+          });
+
+          request.on("end", () => {
+            if (body === '{"query": "query { keys }"}') {
+              response.end(
+                '{"data": {"keys": ["-----BEGIN PUBLIC KEY-----\\nMIGfMA0GCSqGSIb3DQEBAQUAA4GNADCBiQKBgQCfb+nyTPFCntEXbrFPU5DeE0gC\\n4jXRcSFWDfCRgeqeQWqIW9DeMmCj13k0z6fQCiG3FATYosS64wAs+OiyGtu9q/Jy\\nUEVIBMF0upDJMA53AFFx+0Fb/i76JFPTY7SxzvioIFeKRwY8evIRWQWYO95Os6gK\\nBac/x5qiUn5fh2xM+wIDAQAB\\n-----END PUBLIC KEY-----"]}}'
+              );
+            } else if (
+              request.headers.authorization ===
+              "Basic ZDQ5MDIxZGUtNDllNS00MjEwLWEyYzctYzM0NzM3MDQyMTQwOkdGRk53dHZQS09QemNJZHl4"
+            ) {
+              response.end(
+                '{"data": { "viewer": { "id": "d49021de-49e5-4210-a2c7-c34737042140", "enabled": true, "scopes": ["realm:resource.identifier:action", "realm2:**:*"] } }}'
+              );
+            } else if (
+              request.headers.authorization ===
+              "Basic OWY1YmU1OTktNGU2My00NzgzLTkxNWUtNTA3OTM4ZTc0ZjFhOkdGRk53dHZQS09QemNJZHl4"
+            ) {
+              response.end(
+                '{"data": { "viewer": { "id": "d49021de-49e5-4210-a2c7-c34737042140", "enabled": true, "scopes": [] } }}'
+              );
+            } else {
+              response.end(
+                '{"errors": [ "Query not known by the mock AuthX server." ]}'
+              );
+            }
+          });
+
+          request.on("error", error => {
+            console.error(error);
+            response.statusCode = 500;
+            response.end();
+          });
         };
 
         if (queue) queue.push(r);
@@ -145,6 +179,10 @@ test.before(async () => {
     ]
   });
 
+  proxy.on("error", error => {
+    console.log(error);
+  });
+
   await proxy.listen();
   const address = proxy && proxy.server.address();
   if (!address || typeof address === "string" || !address.port) {
@@ -174,7 +212,7 @@ test.serial("readiness depends on keys", async t => {
   );
 });
 
-test("passthrough: no token", async t => {
+test("passthrough: no authorization header", async t => {
   const result = await fetch(`http://127.0.0.1:${port}/passthrough`);
   t.assert(result.status === 200);
   t.deepEqual(await result.json(), {
@@ -182,7 +220,7 @@ test("passthrough: no token", async t => {
   });
 });
 
-test("passthrough: invalid token", async t => {
+test("passthrough: invalid bearer token", async t => {
   const result = await fetch(`http://127.0.0.1:${port}/passthrough`, {
     headers: {
       Authorization:
@@ -195,7 +233,7 @@ test("passthrough: invalid token", async t => {
   });
 });
 
-test("passthrough: valid token w/ empty scopes", async t => {
+test("passthrough: valid bearer token w/ empty scopes", async t => {
   const result = await fetch(`http://127.0.0.1:${port}/passthrough`, {
     headers: {
       Authorization:
@@ -209,7 +247,20 @@ test("passthrough: valid token w/ empty scopes", async t => {
   });
 });
 
-test("passthrough: valid token w/ some scopes", async t => {
+test("passthrough: invalid basic credentials", async t => {
+  const result = await fetch(`http://127.0.0.1:${port}/passthrough`, {
+    headers: {
+      Authorization:
+        "Basic NzhkYTM4ZDAtNDZhMC00NWM2LTgyODktYTU2ZWE3NzNjZGYxOnlmVFRuQ2hNbXpZcFZBZnU="
+    }
+  });
+  t.assert(result.status === 200);
+  t.deepEqual(await result.json(), {
+    url: "/passthrough"
+  });
+});
+
+test("passthrough: valid bearer token w/ some scopes", async t => {
   const result = await fetch(`http://127.0.0.1:${port}/passthrough`, {
     headers: {
       Authorization:
@@ -223,7 +274,21 @@ test("passthrough: valid token w/ some scopes", async t => {
   });
 });
 
-test("passthrough-with-token: invalid token", async t => {
+test("passthrough: valid basic credentials w/ some scopes", async t => {
+  const result = await fetch(`http://127.0.0.1:${port}/passthrough`, {
+    headers: {
+      Authorization:
+        "Basic ZDQ5MDIxZGUtNDllNS00MjEwLWEyYzctYzM0NzM3MDQyMTQwOkdGRk53dHZQS09QemNJZHl4"
+    }
+  });
+  t.assert(result.status === 200);
+  t.deepEqual(await result.json(), {
+    url: "/passthrough",
+    "X-OAuth-Scopes": "realm:resource.identifier:action realm2:**:*"
+  });
+});
+
+test("passthrough-with-token: invalid bearer token", async t => {
   const result = await fetch(
     `http://127.0.0.1:${port}/passthrough-with-token`,
     {
@@ -239,7 +304,23 @@ test("passthrough-with-token: invalid token", async t => {
   });
 });
 
-test("passthrough-with-token: valid token w/ empty scopes", async t => {
+test("passthrough-with-token: invalid basic credentials", async t => {
+  const result = await fetch(
+    `http://127.0.0.1:${port}/passthrough-with-token`,
+    {
+      headers: {
+        Authorization:
+          "Basic NzhkYTM4ZDAtNDZhMC00NWM2LTgyODktYTU2ZWE3NzNjZGYxOnlmVFRuQ2hNbXpZcFZBZnU="
+      }
+    }
+  );
+  t.assert(result.status === 200);
+  t.deepEqual(await result.json(), {
+    url: "/passthrough-with-token"
+  });
+});
+
+test("passthrough-with-token: valid bearer token w/ empty scopes", async t => {
   const result = await fetch(
     `http://127.0.0.1:${port}/passthrough-with-token`,
     {
@@ -258,7 +339,26 @@ test("passthrough-with-token: valid token w/ empty scopes", async t => {
   });
 });
 
-test("restrict-empty: invalid token", async t => {
+test("passthrough-with-token: valid basic credentials w/ empty scopes", async t => {
+  const result = await fetch(
+    `http://127.0.0.1:${port}/passthrough-with-token`,
+    {
+      headers: {
+        Authorization:
+          "Basic OWY1YmU1OTktNGU2My00NzgzLTkxNWUtNTA3OTM4ZTc0ZjFhOkdGRk53dHZQS09QemNJZHl4"
+      }
+    }
+  );
+  t.assert(result.status === 200);
+  t.deepEqual(await result.json(), {
+    url: "/passthrough-with-token",
+    "X-OAuth-Scopes": "",
+    Authorization:
+      "Basic OWY1YmU1OTktNGU2My00NzgzLTkxNWUtNTA3OTM4ZTc0ZjFhOkdGRk53dHZQS09QemNJZHl4"
+  });
+});
+
+test("restrict-empty: invalid bearer token", async t => {
   const result = await fetch(`http://127.0.0.1:${port}/restrict-empty`, {
     headers: {
       Authorization:
@@ -268,7 +368,17 @@ test("restrict-empty: invalid token", async t => {
   t.assert(result.status === 401);
 });
 
-test("restrict-empty: valid token w/ some scopes", async t => {
+test("restrict-empty: invalid basic credentials", async t => {
+  const result = await fetch(`http://127.0.0.1:${port}/restrict-empty`, {
+    headers: {
+      Authorization:
+        "Basic NzhkYTM4ZDAtNDZhMC00NWM2LTgyODktYTU2ZWE3NzNjZGYxOnlmVFRuQ2hNbXpZcFZBZnU="
+    }
+  });
+  t.assert(result.status === 401);
+});
+
+test("restrict-empty: valid bearer token w/ some scopes", async t => {
   const result = await fetch(`http://127.0.0.1:${port}/restrict-empty`, {
     headers: {
       Authorization:
@@ -283,7 +393,22 @@ test("restrict-empty: valid token w/ some scopes", async t => {
   });
 });
 
-test("restrict-scopes: valid token w/ empty scopes", async t => {
+test("restrict-empty: valid basic credentials w/ some scopes", async t => {
+  const result = await fetch(`http://127.0.0.1:${port}/restrict-empty`, {
+    headers: {
+      Authorization:
+        "Basic ZDQ5MDIxZGUtNDllNS00MjEwLWEyYzctYzM0NzM3MDQyMTQwOkdGRk53dHZQS09QemNJZHl4"
+    }
+  });
+  t.assert(result.status === 200);
+  t.deepEqual(await result.json(), {
+    url: "/restrict-empty",
+    "X-OAuth-Scopes": "realm:resource.identifier:action realm2:**:*",
+    "X-OAuth-Required-Scopes": ""
+  });
+});
+
+test("restrict-scopes: valid bearer token w/ empty scopes", async t => {
   const result = await fetch(`http://127.0.0.1:${port}/restrict-scopes`, {
     headers: {
       Authorization:
@@ -293,7 +418,17 @@ test("restrict-scopes: valid token w/ empty scopes", async t => {
   t.assert(result.status === 403);
 });
 
-test("restrict-scopes: valid token w/ some scopes", async t => {
+test("restrict-scopes: valid basic credentials w/ empty scopes", async t => {
+  const result = await fetch(`http://127.0.0.1:${port}/restrict-scopes`, {
+    headers: {
+      Authorization:
+        "Basic OWY1YmU1OTktNGU2My00NzgzLTkxNWUtNTA3OTM4ZTc0ZjFhOkdGRk53dHZQS09QemNJZHl4"
+    }
+  });
+  t.assert(result.status === 403);
+});
+
+test("restrict-scopes: valid bearer token w/ some scopes", async t => {
   const result = await fetch(`http://127.0.0.1:${port}/restrict-scopes`, {
     headers: {
       Authorization:
@@ -308,7 +443,22 @@ test("restrict-scopes: valid token w/ some scopes", async t => {
   });
 });
 
-test("rewrite-url: no token", async t => {
+test("restrict-scopes: valid basic credentials w/ some scopes", async t => {
+  const result = await fetch(`http://127.0.0.1:${port}/restrict-scopes`, {
+    headers: {
+      Authorization:
+        "Basic ZDQ5MDIxZGUtNDllNS00MjEwLWEyYzctYzM0NzM3MDQyMTQwOkdGRk53dHZQS09QemNJZHl4"
+    }
+  });
+  t.assert(result.status === 200);
+  t.deepEqual(await result.json(), {
+    url: "/restrict-scopes",
+    "X-OAuth-Scopes": "realm:resource.identifier:action realm2:**:*",
+    "X-OAuth-Required-Scopes": "realm2:foo:bar"
+  });
+});
+
+test("rewrite-url: no authorization header", async t => {
   const result = await fetch(`http://127.0.0.1:${port}/rewrite-url`);
   t.assert(result.status === 200);
   t.deepEqual(await result.json(), {

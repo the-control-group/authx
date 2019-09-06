@@ -106,14 +106,6 @@ interface Config {
   readonly authxPublicKeyRetryInterval?: number;
 
   /**
-   * The number of seconds for which the proxy will cache the AuthX server's
-   * token introspection response for a revocable token.
-   *
-   * @defaultValue `60`
-   */
-  readonly revocableTokenCacheDuration?: number;
-
-  /**
    * The pathname at which the proxy will provide a readiness check.
    *
    * @remarks
@@ -271,7 +263,16 @@ export default class AuthXResourceProxy extends EventEmitter {
       this.emit("request.finish", meta);
     });
 
+    let warning = "";
+
     function send(data?: string): void {
+      if (warning) {
+        response.setHeader(
+          "Warning",
+          `299 @authx/http-proxy-resource ${warning}`
+        );
+      }
+
       if (request.complete) {
         response.end(data);
       } else {
@@ -309,61 +310,156 @@ export default class AuthXResourceProxy extends EventEmitter {
         continue;
       }
 
-      // Extract the token from the authorization header.
-      const token =
-        request.headers.authorization &&
-        request.headers.authorization.replace(/^BEARER\s+/i, "");
-
-      // Try each public key.
       let scopes: null | string[] = null;
-      if (token) {
-        for (const key of keys) {
-          try {
-            // Verify the token against the key.
-            const payload = verify(token, key, {
-              algorithms: ["RS512"]
-            }) as string | { sub?: string; aid?: string; scopes: string[] };
 
-            // Ensure the token payload is correctly formatted.
-            if (
-              typeof payload !== "object" ||
-              !Array.isArray(payload.scopes) ||
-              !payload.scopes.every(
-                scope => typeof scope === "string" && validate(scope)
-              )
-            ) {
-              // This should never happen; if it does, it means that either:
-              // - The AuthX server generated a malformed token.
-              // - The private key has been compromised and was used to sign
-              //   a malformed token.
-              this.emit(
-                "error",
-                new Error(
-                  "A cryptographically verified token contained a malformed payload."
+      // Extract scopes from the authorization header.
+      const authorizationHeader = request.headers.authorization;
+      if (authorizationHeader) {
+        // BEARER
+        if (/^BEARER\s/i.test(authorizationHeader)) {
+          const token = authorizationHeader.replace(/^BEARER\s+/i, "");
+
+          // Try each public key.
+          let success = false;
+          for (const key of keys) {
+            try {
+              // Verify the token against the key.
+              const payload = verify(token, key, {
+                algorithms: ["RS512"]
+              }) as string | { sub?: string; aid?: string; scopes: string[] };
+
+              // Ensure the token payload is correctly formatted.
+              if (
+                typeof payload !== "object" ||
+                !Array.isArray(payload.scopes) ||
+                !payload.scopes.every(
+                  scope => typeof scope === "string" && validate(scope)
                 )
-              );
+              ) {
+                // This should never happen; if it does, it means that either:
+                // - The AuthX server generated a malformed token.
+                // - The private key has been compromised and was used to sign
+                //   a malformed token.
+                this.emit(
+                  "error",
+                  new Error(
+                    "A cryptographically verified token contained a malformed payload."
+                  )
+                );
+                break;
+              }
+
+              scopes = payload.scopes;
+              meta.authorizationScopes = scopes;
+
+              if (typeof payload.aid === "string") {
+                meta.authorizationId = payload.aid;
+              }
+
+              if (typeof payload.sub === "string") {
+                meta.authorizationSubject = payload.sub;
+              }
+
+              success = true;
               break;
-            }
+            } catch (error) {
+              // The token is expired; there's no point in trying to verify
+              // against additional public keys.
+              if (error instanceof TokenExpiredError) {
+                break;
+              }
 
-            scopes = payload.scopes;
-            meta.authorizationScopes = scopes;
-
-            if (typeof payload.aid === "string") {
-              meta.authorizationId = payload.aid;
+              // Keep trying public keys.
+              continue;
             }
+          }
 
-            if (typeof payload.sub === "string") {
-              meta.authorizationSubject = payload.sub;
-            }
+          if (!success) {
+            warning = "The submitted bearer token failed validation.";
+          }
+        }
+
+        // BASIC
+        else if (/^BASIC\s/i.test(authorizationHeader)) {
+          let viewer:
+            | undefined
+            | {
+                id: string;
+                enabled: boolean;
+                scopes?: null | string[];
+                user?: null | {
+                  id: string;
+                };
+              };
+
+          try {
+            const body = await (await fetch(this._config.authxUrl, {
+              method: "POST",
+              headers: {
+                authorization: authorizationHeader
+              },
+              body: `
+                query {
+                  viewer {
+                    id
+                    enabled
+                    scopes
+                    user {
+                      id
+                    }
+                  }
+                }
+              `
+            })).json();
+
+            viewer =
+              (typeof body === "object" &&
+                body &&
+                typeof body.data === "object" &&
+                body.data &&
+                typeof body.data.viewer === "object" &&
+                body.data.viewer) ||
+              undefined;
           } catch (error) {
-            // The token is expired; there's no point in trying to verify
-            // against additional public keys.
-            if (error instanceof TokenExpiredError) {
-              break;
-            }
+            this.emit("error", error);
+            response.statusCode = 500;
+            meta.message = "Error retreiving authorization from AuthX.";
+            meta.rule = rule;
+            send();
+            return;
+          }
 
-            // Keep trying public keys.
-            continue;
+          if (!viewer) {
+            warning =
+              "The submitted basic credentials failed to retreive an authorization. Make sure the authorization has the scope `authx:authorization.equal.self.current:read.basic`.";
+          } else if (!viewer.scopes) {
+            warning =
+              "The submitted basic credentials failed to retreive authorization scopes. Make sure the authorization has the scope `authx:authorization.equal.self.current:read.scopes`.";
+          } else if (!viewer.enabled) {
+            warning =
+              "The submitted basic credentials belong to a disabled authorization.";
+          } else if (typeof viewer.id !== "string") {
+            const error = new Error(
+              "The AuthX response was incorrectly formatted."
+            );
+            this.emit("error", error);
+            response.statusCode = 500;
+            response.statusMessage = error.message;
+            meta.message = error.message;
+            meta.rule = rule;
+            send();
+            return;
+          } else {
+            scopes = viewer.scopes;
+            meta.authorizationScopes = scopes;
+            meta.authorizationId = viewer.id;
+            if (
+              typeof viewer.user === "object" &&
+              viewer.user &&
+              typeof viewer.user.id === "string"
+            ) {
+              meta.authorizationSubject = viewer.user.id;
+            }
           }
         }
       }
@@ -386,7 +482,9 @@ export default class AuthXResourceProxy extends EventEmitter {
       // If behavior is undefined, then the custom behavior function will handle
       // responding to the request.
       if (!behavior) {
-        meta.message = "Request handled by custom behavior function.";
+        meta.message =
+          "Request handled by custom behavior function." +
+          (warning ? ` (${warning})` : "");
         meta.rule = rule;
         return;
       }
@@ -403,7 +501,8 @@ export default class AuthXResourceProxy extends EventEmitter {
         // There is no valid token.
         if (!scopes) {
           response.statusCode = 401;
-          meta.message = "Restricting access.";
+          meta.message =
+            "Restricting access." + (warning ? ` (${warning})` : "");
           meta.rule = rule;
           meta.behavior = behavior;
           send();
@@ -416,7 +515,8 @@ export default class AuthXResourceProxy extends EventEmitter {
           !isSuperset(scopes, behavior.requireScopes)
         ) {
           response.statusCode = 403;
-          meta.message = "Restricting access.";
+          meta.message =
+            "Restricting access." + (warning ? ` (${warning})` : "");
           meta.rule = rule;
           meta.behavior = behavior;
           send();
@@ -430,7 +530,7 @@ export default class AuthXResourceProxy extends EventEmitter {
       }
 
       // Proxy the request.
-      meta.message = "Request proxied.";
+      meta.message = "Request proxied." + (warning ? ` (${warning})` : "");
       meta.rule = rule;
       meta.behavior = behavior;
       this._proxy.web(request, response, behavior.proxyOptions);
@@ -443,7 +543,8 @@ export default class AuthXResourceProxy extends EventEmitter {
       new Error(`No rules matched requested URL "${request.url}".`)
     );
     response.statusCode = 404;
-    meta.message = "No rules matched requested URL.";
+    meta.message =
+      "No rules matched requested URL." + (warning ? ` (${warning})` : "");
     send();
   };
 

@@ -95,14 +95,6 @@ interface Config {
   readonly authxPublicKeyRetryInterval?: number;
 
   /**
-   * The number of seconds for which the proxy will cache the AuthX server's
-   * token introspection response for a revocable token.
-   *
-   * @defaultValue `60`
-   */
-  readonly revocableTokenCacheDuration?: number;
-
-  /**
    * The pathname at which the proxy will provide a readiness check.
    *
    * @remarks
@@ -207,11 +199,7 @@ The resource proxy accepts two kinds of access tokens from AuthX.
 
 ### Revocable
 
-> Note: This is not yet implemented!
-
-A revocable token is passed as HTTP Basic credentials in the `Authorization` header. The authorization ID is used as the "username" and the authoriztion secret is used as the "password". For each request with this type of token, the proxy makes a token introspection request to AuthX following [rfc7662](https://tools.ietf.org/html/rfc7662) to ensure that the token is active.
-
-If `revocableTokenCacheDuration` is configured, the proxy will cache the result of the introspection request for the configured number of seconds. Note that proxy instances do not share a cache, so a recently-revoked authorization may have different behavior between instances.
+A revocable token is passed as HTTP Basic credentials in the `Authorization` header. The authorization ID is used as the "username" and the authoriztion secret is used as the "password". For each request with this type of token, the proxy makes a request to AuthX to get a list of applicable scopes, using the same header. **For this to be possible, the authorization must include the scopes `authx:authorization.equal.self.current:read.basic` and `authx:authorization.equal.self.current:read.scopes`.**
 
 ### Self-Contained
 
