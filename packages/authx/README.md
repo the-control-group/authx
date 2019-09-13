@@ -143,66 +143,66 @@ AuthX uses its own authorization system to restrict access to its resources. Bel
 | ----- | ----------------------- | ---------------------------------- |
 | authx | credential.equal.self   | read .{basic&#124;details}         |
 | authx | credential.equal.lesser | read .{basic&#124;details}         |
-| authx | credential.equal.\*     | read .{basic&#124;details}         |
-| authx | credential._ ._         | read .{basic&#124;details}         |
+| authx | credential.equal.*      | read .{basic&#124;details}         |
+| authx | credential.* .*         | read .{basic&#124;details}         |
 | authx | credential.equal.self   | write.{basic&#124;details&#124;\*} |
 | authx | credential.equal.lesser | write.{basic&#124;details&#124;\*} |
-| authx | credential.equal.\*     | write.{basic&#124;details&#124;\*} |
-| authx | credential._ ._         | write.{basic&#124;details&#124;\*} |
+| authx | credential.equal.*      | write.{basic&#124;details&#124;\*} |
+| authx | credential.* .*         | write.{basic&#124;details&#124;\*} |
 
 | Realm | Context(.identifier) | Action                                             |
 | ----- | -------------------- | -------------------------------------------------- |
 | authx | role.equal.assigned  | read .{basic&#124;scopes&#124;assignments}         |
 | authx | role.equal.lesser    | read .{basic&#124;scopes&#124;assignments}         |
-| authx | role.equal.\*        | read .{basic&#124;scopes&#124;assignments}         |
-| authx | role._ ._            | read .{basic&#124;scopes&#124;assignments}         |
+| authx | role.equal.*         | read .{basic&#124;scopes&#124;assignments}         |
+| authx | role.* .*            | read .{basic&#124;scopes&#124;assignments}         |
 | authx | role.equal.assigned  | write.{basic&#124;scopes&#124;assignments&#124;\*} |
 | authx | role.equal.lesser    | write.{basic&#124;scopes&#124;assignments&#124;\*} |
-| authx | role.equal.\*        | write.{basic&#124;scopes&#124;assignments&#124;\*} |
-| authx | role._ ._            | write.{basic&#124;scopes&#124;assignments&#124;\*} |
+| authx | role.equal.*         | write.{basic&#124;scopes&#124;assignments&#124;\*} |
+| authx | role.* .*            | write.{basic&#124;scopes&#124;assignments&#124;\*} |
 
 | Realm | Context(.identifier)      | Action                                         |
 | ----- | ------------------------- | ---------------------------------------------- |
 | authx | grant.assigned            | read .{basic&#124;scopes&#124;secrets}         |
 | authx | grant.equal.self .current | read .{basic&#124;scopes&#124;secrets}         |
 | authx | grant.equal.self .granted | read .{basic&#124;scopes&#124;secrets}         |
-| authx | grant.equal.self .\*      | read .{basic&#124;scopes&#124;secrets}         |
-| authx | grant.equal.lesser.\*     | read .{basic&#124;scopes&#124;secrets}         |
-| authx | grant.equal._ ._          | read .{basic&#124;scopes&#124;secrets}         |
-| authx | grant._ ._ .\*            | read .{basic&#124;scopes&#124;secrets}         |
+| authx | grant.equal.self .*       | read .{basic&#124;scopes&#124;secrets}         |
+| authx | grant.equal.lesser.*      | read .{basic&#124;scopes&#124;secrets}         |
+| authx | grant.equal.* .*          | read .{basic&#124;scopes&#124;secrets}         |
+| authx | grant.* .* .*             | read .{basic&#124;scopes&#124;secrets}         |
 | authx | grant.equal.self .current | write.{basic&#124;scopes&#124;secrets&#124;\*} |
 | authx | grant.equal.self .granted | write.{basic&#124;scopes&#124;secrets&#124;\*} |
-| authx | grant.equal.self .\*      | write.{basic&#124;scopes&#124;secrets&#124;\*} |
-| authx | grant.equal.lesser.\*     | write.{basic&#124;scopes&#124;secrets&#124;\*} |
-| authx | grant.equal._ ._          | write.{basic&#124;scopes&#124;secrets&#124;\*} |
-| authx | grant._ ._ .\*            | write.{basic&#124;scopes&#124;secrets&#124;\*} |
+| authx | grant.equal.self .*       | write.{basic&#124;scopes&#124;secrets&#124;\*} |
+| authx | grant.equal.lesser.*      | write.{basic&#124;scopes&#124;secrets&#124;\*} |
+| authx | grant.equal.* .*          | write.{basic&#124;scopes&#124;secrets&#124;\*} |
+| authx | grant.* .* .*             | write.{basic&#124;scopes&#124;secrets&#124;\*} |
 
 | Realm | Context(.identifier)              | Action                                 |
 | ----- | --------------------------------- | -------------------------------------- |
 | authx | authorization.assigned            | read .{basic&#124;scopes&#124;secrets} |
 | authx | authorization.equal.self .current | read .{basic&#124;scopes&#124;secrets} |
 | authx | authorization.equal.self .granted | read .{basic&#124;scopes&#124;secrets} |
-| authx | authorization.equal.self .\*      | read .{basic&#124;scopes&#124;secrets} |
-| authx | authorization.equal.lesser.\*     | read .{basic&#124;scopes&#124;secrets} |
-| authx | authorization.equal._ ._          | read .{basic&#124;scopes&#124;secrets} |
-| authx | authorization._ ._ .\*            | read .{basic&#124;scopes&#124;secrets} |
+| authx | authorization.equal.self .*       | read .{basic&#124;scopes&#124;secrets} |
+| authx | authorization.equal.lesser.*      | read .{basic&#124;scopes&#124;secrets} |
+| authx | authorization.equal.* .*          | read .{basic&#124;scopes&#124;secrets} |
+| authx | authorization.* .* .*             | read .{basic&#124;scopes&#124;secrets} |
 | authx | authorization.equal.self .current | write.{basic&#124;scopes}              |
 | authx | authorization.equal.self .granted | write.{basic&#124;scopes&#124;\*}      |
-| authx | authorization.equal.self .\*      | write.{basic&#124;scopes&#124;\*}      |
-| authx | authorization.equal.lesser.\*     | write.{basic&#124;scopes&#124;\*}      |
-| authx | authorization.equal._ ._          | write.{basic&#124;scopes&#124;\*}      |
-| authx | authorization._ ._ .\*            | write.{basic&#124;scopes&#124;\*}      |
+| authx | authorization.equal.self .*       | write.{basic&#124;scopes&#124;\*}      |
+| authx | authorization.equal.lesser.*      | write.{basic&#124;scopes&#124;\*}      |
+| authx | authorization.equal.* .*          | write.{basic&#124;scopes&#124;\*}      |
+| authx | authorization.* .* .*             | write.{basic&#124;scopes&#124;\*}      |
 
 | Realm | Context(.identifier) | Action                |
 | ----- | -------------------- | --------------------- |
 | authx | user.equal.self      | read.{basic}          |
 | authx | user.equal.lesser    | read.{basic}          |
-| authx | user.equal.\*        | read.{basic}          |
-| authx | user._ ._            | read.{basic}          |
+| authx | user.equal.*         | read.{basic}          |
+| authx | user.* .*            | read.{basic}          |
 | authx | user.equal.self      | write.{basic&#124;\*} |
 | authx | user.equal.lesser    | write.{basic&#124;\*} |
-| authx | user.equal.\*        | write.{basic&#124;\*} |
-| authx | user._ ._            | write.{basic&#124;\*} |
+| authx | user.equal.*         | write.{basic&#124;\*} |
+| authx | user.* .*            | write.{basic&#124;\*} |
 
 ```
 authx:authority:read. {      details}
@@ -271,16 +271,16 @@ Users must have the following scopes to use OAuth:
 
 | Realm | Context(.identifier)             | Action       |
 | ----- | -------------------------------- | ------------ |
-| authx | client.\*                        | read.basic   |
+| authx | client.*                         | read.basic   |
 | authx | user.equal.self                  | read.basic   |
-| authx | grant.equal.self.\*              | read.basic   |
-| authx | grant.equal.self.\*              | read.scopes  |
-| authx | grant.equal.self.\*              | read.secrets |
-| authx | grant.equal.self.\*              | write.\*     |
-| authx | authorization.equal.self.\*      | read.basic   |
-| authx | authorization.equal.self.\*      | read.scopes  |
+| authx | grant.equal.self.*               | read.basic   |
+| authx | grant.equal.self.*               | read.scopes  |
+| authx | grant.equal.self.*               | read.secrets |
+| authx | grant.equal.self.*               | write.*      |
+| authx | authorization.equal.self.*       | read.basic   |
+| authx | authorization.equal.self.*       | read.scopes  |
 | authx | authorization.equal.self.current | read.secrets |
-| authx | authorization.equal.self.\*      | write.\*     |
+| authx | authorization.equal.self.*       | write.*      |
 
 ```
 authx:client.*:read.basic
@@ -301,7 +301,7 @@ The following scopes must be granted for a client to take full advantage of OAut
 | ----- | -------------------------------- | ----------- |
 | authx | grant.equal.self.granted         | read.basic  |
 | authx | grant.equal.self.granted         | read.scopes |
-| authx | authorization.equal.self.granted | write.\*    |
+| authx | authorization.equal.self.granted | write.*     |
 
 ```
 authx:grant.equal.self.granted:read.basic
