@@ -1,0 +1,58 @@
+{
+  "author": {
+    "email": "mike.marcacci@thecontrolgroup.com",
+    "name": "Mike Marcacci"
+  },
+  "bugs": "https://github.com/the-control-group/authx/issues",
+  "dependencies": {
+    "@types/koa": "^2.0.49",
+    "@types/koa-router": "^7.0.42",
+    "@types/node-fetch": "^2.5.0",
+    "koa": "^2.8.1",
+    "koa-body": "^4.1.1",
+    "koa-router": "^7.4.0",
+    "node-fetch": "^2.6.0"
+  },
+  "description": "",
+  "devDependencies": {
+    "@typescript-eslint/eslint-plugin": "^2.2.0",
+    "@typescript-eslint/parser": "^2.2.0",
+    "ava": "^2.3.0",
+    "eslint": "^6.3.0",
+    "eslint-config-prettier": "^6.2.0",
+    "eslint-plugin-prettier": "^3.0.0",
+    "prettier": "^1.18.2",
+    "typescript": "^3.6.2"
+  },
+  "engines": {
+    "node": ">=6"
+  },
+  "files": [
+    "dist",
+    "!dist/test.*"
+  ],
+  "keywords": [
+    "oauth",
+    "aim",
+    "acl",
+    "access control",
+    "permissions",
+    "scopes",
+    "glob",
+    "pattern"
+  ],
+  "license": "MIT",
+  "main": "dist",
+  "name": "@authx/scim-server",
+  "repository": "https://github.com/the-control-group/authx",
+  "scripts": {
+    "format": "prettier --list-different --write '**/*.{json,yml,md,ts}'",
+    "lint": "prettier -c '**/*.{json,yml,md,ts}' && eslint src --ext ts",
+    "build": "rm -rf dist && tsc",
+    "build:development": "rm -rf dist && tsc --watch",
+    "test": "ava --verbose dist/*.test.js",
+    "test:development": "ava --verbose --watch dist/*.test.js"
+  },
+  "types": "dist/index.d.ts",
+  "version": "1.0.0-beta.1"
+}
