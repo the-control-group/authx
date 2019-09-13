@@ -1,10 +1,17 @@
-import AbortController from "abort-controller";
 import EventEmitter from "events";
-import fetch from "node-fetch";
 import { createServer, Server, IncomingMessage, ServerResponse } from "http";
 import { createProxyServer, ServerOptions } from "http-proxy";
-import { verify, TokenExpiredError } from "jsonwebtoken";
-import { validate, isEqual, isSuperset } from "@authx/scopes";
+import { isEqual, isSuperset } from "@authx/scopes";
+import { AuthXKeyCache } from "./AuthXKeyCache";
+export { AuthXKeyCache } from "./AuthXKeyCache";
+import {
+  validateAuthorizationHeader,
+  NotAuthorizedError
+} from "./validateAuthorizationHeader";
+export {
+  validateAuthorizationHeader,
+  NotAuthorizedError
+} from "./validateAuthorizationHeader";
 
 interface Behavior {
   /**
@@ -142,103 +149,35 @@ export default class AuthXResourceProxy extends EventEmitter {
   private readonly _proxy: ReturnType<typeof createProxyServer>;
   private _closed: boolean = true;
   private _closing: boolean = false;
-  private _keys: null | ReadonlyArray<string> = null;
-  private _fetchTimeout: null | ReturnType<typeof setTimeout> = null;
-  private _fetchAbortController: null | AbortController = null;
-  private _fetchAbortTimeout: null | ReturnType<typeof setTimeout> = null;
+  private _cache: AuthXKeyCache;
   public readonly server: Server;
 
   public constructor(config: Config) {
     super();
     this._config = config;
+
+    this._cache = new AuthXKeyCache(config);
+    this._cache.on("error", (error: Error, ...args: any[]) =>
+      this.emit("error", error, ...args)
+    );
+    this._cache.on("ready", (...args: any[]) => this.emit("ready", ...args));
+
     this._proxy = createProxyServer({});
-    this._proxy.on("error", (...args) => this.emit("error", ...args));
+    this._proxy.on("error", (error: Error, ...args) =>
+      this.emit("error", error, ...args)
+    );
+
     this.server = createServer(this._callback);
     this.server.on("listening", () => {
       this._closed = false;
-      this._fetchKeys();
+      this._cache.start();
     });
     this.server.on("close", () => {
       this._closing = false;
       this._closed = true;
+      this._cache.stop();
     });
   }
-
-  private _fetchKeys = async (): Promise<void> => {
-    this._fetchTimeout = null;
-
-    // Don't fetch keys if we're closed or closing.
-    if (this._closed || this._closing) {
-      return;
-    }
-
-    this._fetchAbortController = new AbortController();
-    this._fetchAbortTimeout = setTimeout(() => {
-      if (this._fetchAbortController) {
-        this._fetchAbortController.abort();
-      }
-    }, (this._config.authxPublicKeyRefreshRequestTimeout || 30) * 1000);
-
-    try {
-      // Fetch the keys from AuthX.
-      // FIXME: This should not need to be cast through any. See:
-      // https://github.com/DefinitelyTyped/DefinitelyTyped/pull/35636
-      const response = await (await fetch(this._config.authxUrl + "/graphql", {
-        signal: this._fetchAbortController.signal,
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json"
-        },
-        body: '{"query": "query { keys }"}'
-      } as any)).json();
-
-      // Make sure we don't have any errors.
-      if (response.errors && response.errors[0])
-        throw new Error(response.errors[0]);
-
-      if (!response.data || !response.data.keys) {
-        throw new Error("The response from AuthX is missing keys.");
-      }
-
-      const keys: string[] = response.data.keys;
-
-      // Ensure that there is at least one valid key in the response.
-      if (
-        !keys ||
-        !Array.isArray(keys) ||
-        !keys.length ||
-        !keys.every(k => typeof k === "string")
-      ) {
-        throw new Error("An array of least one key must be returned by AuthX.");
-      }
-
-      // Cache the keys.
-      this._keys = keys;
-
-      // Fire off a ready event.
-      if (!this._closed && !this._closing) {
-        this.emit("ready");
-      }
-
-      // Fetch again in 1 minute.
-      this._fetchTimeout = setTimeout(
-        this._fetchKeys,
-        (this._config.authxPublicKeyRefreshInterval || 60) * 1000
-      );
-    } catch (error) {
-      this.emit("error", error);
-
-      // Fetch again in 10 seconds.
-      this._fetchTimeout = setTimeout(
-        this._fetchKeys,
-        (this._config.authxPublicKeyRetryInterval || 10) * 1000
-      );
-    } finally {
-      this._fetchAbortController = null;
-      clearTimeout(this._fetchAbortTimeout);
-      this._fetchAbortTimeout = null;
-    }
-  };
 
   private _callback = async (
     request: IncomingMessage,
@@ -283,7 +222,7 @@ export default class AuthXResourceProxy extends EventEmitter {
 
     // Serve the readiness URL.
     if (request.url === (this._config.readinessEndpoint || "/_ready")) {
-      if (this._closed || this._closing || !this._keys) {
+      if (this._closed || this._closing || !this._cache.keys) {
         response.statusCode = 503;
         meta.message = "Request handled by readiness endpoint: NOT READY.";
         send("NOT READY");
@@ -296,7 +235,7 @@ export default class AuthXResourceProxy extends EventEmitter {
       return;
     }
 
-    const keys = this._keys;
+    const keys = this._cache.keys;
     if (!keys) {
       response.statusCode = 503;
       meta.message = "Unable to find keys.";
@@ -315,151 +254,31 @@ export default class AuthXResourceProxy extends EventEmitter {
       // Extract scopes from the authorization header.
       const authorizationHeader = request.headers.authorization;
       if (authorizationHeader) {
-        // BEARER
-        if (/^BEARER\s/i.test(authorizationHeader)) {
-          const token = authorizationHeader.replace(/^BEARER\s+/i, "");
+        try {
+          const {
+            authorizationId,
+            authorizationSubject,
+            authorizationScopes
+          } = await validateAuthorizationHeader(
+            this._config.authxUrl,
+            keys,
+            authorizationHeader
+          );
 
-          // Try each public key.
-          let success = false;
-          for (const key of keys) {
-            try {
-              // Verify the token against the key.
-              const payload = verify(token, key, {
-                algorithms: ["RS512"]
-              }) as string | { sub?: string; aid?: string; scopes: string[] };
-
-              // Ensure the token payload is correctly formatted.
-              if (
-                typeof payload !== "object" ||
-                !Array.isArray(payload.scopes) ||
-                !payload.scopes.every(
-                  scope => typeof scope === "string" && validate(scope)
-                )
-              ) {
-                // This should never happen; if it does, it means that either:
-                // - The AuthX server generated a malformed token.
-                // - The private key has been compromised and was used to sign
-                //   a malformed token.
-                this.emit(
-                  "error",
-                  new Error(
-                    "A cryptographically verified token contained a malformed payload."
-                  )
-                );
-                break;
-              }
-
-              scopes = payload.scopes;
-              meta.authorizationScopes = scopes;
-
-              if (typeof payload.aid === "string") {
-                meta.authorizationId = payload.aid;
-              }
-
-              if (typeof payload.sub === "string") {
-                meta.authorizationSubject = payload.sub;
-              }
-
-              success = true;
-              break;
-            } catch (error) {
-              // The token is expired; there's no point in trying to verify
-              // against additional public keys.
-              if (error instanceof TokenExpiredError) {
-                break;
-              }
-
-              // Keep trying public keys.
-              continue;
-            }
-          }
-
-          if (!success) {
-            warning = "The submitted bearer token failed validation.";
-          }
-        }
-
-        // BASIC
-        else if (/^BASIC\s/i.test(authorizationHeader)) {
-          let viewer:
-            | undefined
-            | {
-                id: string;
-                enabled: boolean;
-                scopes?: null | string[];
-                user?: null | {
-                  id: string;
-                };
-              };
-
-          try {
-            const body = await (await fetch(this._config.authxUrl, {
-              method: "POST",
-              headers: {
-                authorization: authorizationHeader
-              },
-              body: `
-                query {
-                  viewer {
-                    id
-                    enabled
-                    scopes
-                    user {
-                      id
-                    }
-                  }
-                }
-              `
-            })).json();
-
-            viewer =
-              (typeof body === "object" &&
-                body &&
-                typeof body.data === "object" &&
-                body.data &&
-                typeof body.data.viewer === "object" &&
-                body.data.viewer) ||
-              undefined;
-          } catch (error) {
+          scopes = authorizationScopes;
+          meta.authorizationId = authorizationId;
+          meta.authorizationSubject = authorizationSubject;
+          meta.authorizationScopes = authorizationScopes;
+        } catch (error) {
+          if (error instanceof NotAuthorizedError) {
+            warning = error.message;
+          } else {
             this.emit("error", error);
             response.statusCode = 500;
-            meta.message = "Error retreiving authorization from AuthX.";
-            meta.rule = rule;
-            send();
-            return;
-          }
-
-          if (!viewer) {
-            warning =
-              "The submitted basic credentials failed to retreive an authorization. Make sure the authorization has the scope `authx:authorization.equal.self.current:read.basic`.";
-          } else if (!viewer.scopes) {
-            warning =
-              "The submitted basic credentials failed to retreive authorization scopes. Make sure the authorization has the scope `authx:authorization.equal.self.current:read.scopes`.";
-          } else if (!viewer.enabled) {
-            warning =
-              "The submitted basic credentials belong to a disabled authorization.";
-          } else if (typeof viewer.id !== "string") {
-            const error = new Error(
-              "The AuthX response was incorrectly formatted."
-            );
-            this.emit("error", error);
-            response.statusCode = 500;
-            response.statusMessage = error.message;
             meta.message = error.message;
             meta.rule = rule;
             send();
             return;
-          } else {
-            scopes = viewer.scopes;
-            meta.authorizationScopes = scopes;
-            meta.authorizationId = viewer.id;
-            if (
-              typeof viewer.user === "object" &&
-              viewer.user &&
-              typeof viewer.user.id === "string"
-            ) {
-              meta.authorizationSubject = viewer.user.id;
-            }
           }
         }
       }
@@ -569,12 +388,6 @@ export default class AuthXResourceProxy extends EventEmitter {
     }
 
     this._closing = true;
-
-    // Abort any in-flight key requests.
-    const abort = this._fetchAbortController;
-    if (abort) {
-      abort.abort();
-    }
 
     // Close the proxy.
     return new Promise(resolve => {
