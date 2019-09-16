@@ -1,18 +1,16 @@
 import body from "koa-body";
+import fetch from "node-fetch";
+
 import Router, { IRouterOptions } from "koa-router";
 import { Middleware, ParameterizedContext } from "koa";
+import { compileFilter, compileSorter } from "scim-query-filter-parser";
 
 import x from "./x";
 import { Config, assertConfig } from "./Config";
-import {
-  AuthXKeyCache,
-  validateAuthorizationHeader,
-  NotAuthorizedError
-} from "@authx/http-proxy-resource";
-import { isSuperset } from "@authx/scopes";
+import { AuthXKeyCache } from "@authx/http-proxy-resource";
 
 interface Context extends Config {
-  authorizationHeader: string;
+  keys: ReadonlyArray<string>;
 }
 
 export class ScimServer<
@@ -26,7 +24,7 @@ export class ScimServer<
     super(config);
     this._cache = new AuthXKeyCache(config);
 
-    // define the context middleware
+    // Add middleware to check authorization header.
     this.use((async (ctx, next): Promise<void> => {
       const keys = this._cache.keys;
       if (!keys) {
@@ -41,60 +39,85 @@ export class ScimServer<
         return;
       }
 
-      const authorizationHeader = ctx.request.header("authorization");
-      if (!authorizationHeader) {
-        ctx.response.status = 401;
-        ctx.response.body = {
-          schema: "urn:ietf:params:scim:api:messages:2.0:Error",
-          status: 401,
-          scimType: undefined,
-          detail: "No authorization header was provided."
-        };
-
-        return;
-      }
-
-      try {
-        const { authorizationScopes } = await validateAuthorizationHeader(
-          config.authxUrl,
-          keys,
-          authorizationHeader
-        );
-
-        if (!isSuperset(authorizationScopes, [`${config.realm}:**:**`])) {
-          ctx.response.status = 403;
-          ctx.response.body = {
-            schema: "urn:ietf:params:scim:api:messages:2.0:Error",
-            status: 403,
-            scimType: undefined,
-            detail: `The scope ${config.realm}:**:** is required to use the SCIM AuthX API.`
-          };
-
-          return;
-        }
-      } catch (error) {
-        if (!(error instanceof NotAuthorizedError)) {
-          throw error;
-        }
-
-        ctx.response.status = 401;
-        ctx.response.body = {
-          schema: "urn:ietf:params:scim:api:messages:2.0:Error",
-          status: 401,
-          scimType: undefined,
-          detail: error.message
-        };
-
-        return;
-      }
-
       ctx[x] = {
         ...config,
-        authorizationHeader
+        keys
       } as Context;
 
       await next();
     }) as Middleware<ParameterizedContext<any, any>>);
+
+    // Groups
+    // ------
+
+    // Users
+    // -----
+    this.get(
+      "/Users",
+      async (ctx, next): Promise<void> => {
+        const body = (await (await fetch(ctx[x].authxUrl, {
+          method: "POST",
+          headers: {
+            authorization: ctx.request.header("authorization")
+          },
+          body: `
+            query {
+              users {
+                edges {
+                  node {
+                    id
+                    name
+                    enabled
+
+                    credentials {
+                      edges {
+                        node {
+                          __typename
+                          id
+
+                          ...on EmailCredential {
+                            email
+                          }
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          `
+        })).json()) as {
+          readonly data?: {
+            readonly users?: {
+              readonly edges: ReadonlyArray<{
+                readonly node?: {
+                  readonly id: string;
+                  readonly name: string;
+                  readonly enabled: boolean;
+                };
+              }>;
+            };
+          };
+        };
+
+        const users =
+          body.data &&
+          body.data.users &&
+          body.data.users.edges &&
+          body.data.users.edges
+            .map(({ node }) => {
+              return (
+                node && {
+                  userName: Buffer.from(node.id).toString("hex"),
+                  id: node.id,
+                  displayName: node.name,
+                  active: node.enabled
+                }
+              );
+            })
+            .filter(u => u);
+      }
+    );
   }
 }
 

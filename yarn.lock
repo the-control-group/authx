@@ -764,6 +764,18 @@ anymatch@~3.1.1:
     normalize-path "^3.0.0"
     picomatch "^2.0.4"
 
+apg-conv-api@1.0.x:
+  version "1.0.0"
+  resolved "https://registry.yarnpkg.com/apg-conv-api/-/apg-conv-api-1.0.0.tgz#268507eda87cf981add7ef8bd68626f56dad8331"
+  integrity sha1-JoUH7ah8+YGt1++L1oYm9W2tgzE=
+
+apg-lib@^3.2.0:
+  version "3.2.0"
+  resolved "https://registry.yarnpkg.com/apg-lib/-/apg-lib-3.2.0.tgz#fb6015df5eef42c57b140e41d843539853d3d4aa"
+  integrity sha512-igSp4Zoq47Brp9B2mKXXE7tleC+bLWgMTgYSGCb5UIs3w+xz/qwCh2drtp7kyRtTN6GFcAwD3pXtqwtdfg+EHw==
+  dependencies:
+    apg-conv-api "1.0.x"
+
 apollo-link@^1.2.3:
   version "1.2.13"
   resolved "https://registry.yarnpkg.com/apollo-link/-/apollo-link-1.2.13.tgz#dff00fbf19dfcd90fddbc14b6a3f9a771acac6c4"
@@ -5443,6 +5455,13 @@ schema-utils@^1.0.0:
     ajv "^6.1.0"
     ajv-errors "^1.0.0"
     ajv-keywords "^3.1.0"
+
+scim-query-filter-parser@^2.0.0:
+  version "2.0.0"
+  resolved "https://registry.yarnpkg.com/scim-query-filter-parser/-/scim-query-filter-parser-2.0.0.tgz#3cb6ccdb67611a4b910ddb38073d6f76e4d21889"
+  integrity sha512-ppOBWNt+oCMj7+OdOoCCLR4/nmG2tGURsHwFiEpivZMesbeQnqPmbC+mCWVija7tFzk2RdVG9I2M9wPSmSi63g==
+  dependencies:
+    apg-lib "^3.2.0"
 
 semver-diff@^2.0.0:
   version "2.1.0"
