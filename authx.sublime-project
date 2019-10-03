@@ -38,6 +38,10 @@
       "folder_exclude_patterns": ["**/node_modules", "**/dist"]
     },
     {
+      "path": "packages/strategy-saml",
+      "folder_exclude_patterns": ["**/node_modules", "**/dist"]
+    },
+    {
       "path": "packages/tools",
       "folder_exclude_patterns": ["**/node_modules", "**/dist"]
     },

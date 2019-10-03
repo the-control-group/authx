@@ -1,0 +1,66 @@
+{
+  "author": {
+    "email": "mike.marcacci@thecontrolgroup.com",
+    "name": "Mike Marcacci"
+  },
+  "bugs": "https://github.com/the-control-group/authx/issues",
+  "dependencies": {
+    "@authx/scopes": "^2.2.1",
+    "@authx/strategy-email": "^1.0.0-beta.0",
+    "@types/pg": "^7.11.1",
+    "@types/saml2-js": "^1.6.8",
+    "@types/uuid": "^3.4.5",
+    "graphql": "^14.5.4",
+    "pg": "^7.12.1",
+    "saml2-js": "^2.0.3",
+    "uuid": "^3.3.3"
+  },
+  "description": "",
+  "devDependencies": {
+    "@authx/authx": "^2.0.0-beta.0",
+    "@typescript-eslint/eslint-plugin": "^2.2.0",
+    "@typescript-eslint/parser": "^2.2.0",
+    "ava": "^2.3.0",
+    "eslint": "^6.3.0",
+    "eslint-config-prettier": "^6.2.0",
+    "eslint-plugin-prettier": "^3.0.0",
+    "nodemon": "^1.19.2",
+    "prettier": "^1.18.2",
+    "typescript": "^3.6.2"
+  },
+  "engines": {
+    "node": ">=10"
+  },
+  "files": [
+    "dist",
+    "!dist/**.test.js",
+    "!dist/**.test.js.map",
+    "!dist/**.test.d.ts"
+  ],
+  "keywords": [
+    "oauth",
+    "aim",
+    "acl",
+    "access control",
+    "permissions"
+  ],
+  "license": "MIT",
+  "main": "dist/server",
+  "name": "@authx/strategy-saml",
+  "peerDependencies": {
+    "@authx/authx": "^2.0.0-beta.0"
+  },
+  "repository": "https://github.com/the-control-group/authx",
+  "scripts": {
+    "format": "prettier --list-different --write '**/*.{json,yml,md,ts,tsx}'",
+    "lint": "prettier -c '**/*.{json,yml,md,ts,tsx}' && eslint src --ext ts --ext tsx",
+    "build": "rm -rf dist && tsc",
+    "build:development": "rm -rf dist && tsc --watch",
+    "start": "NODE_ENV=production node dist/server",
+    "start:development": "NODE_ENV=development nodemon --delay 2 --inspect dist/server",
+    "test": "ava --verbose dist/*.test.js",
+    "test:development": "ava --verbose --watch dist/*.test.js"
+  },
+  "types": "dist/server/index.d.ts",
+  "version": "1.0.0-beta.10"
+}
