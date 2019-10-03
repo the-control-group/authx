@@ -7,24 +7,24 @@
   "dependencies": {
     "@authx/scopes": "^2.2.1",
     "@authx/strategy-email": "^1.0.0-beta.0",
-    "@types/pg": "^7.11.1",
+    "@types/pg": "^7.11.2",
     "@types/uuid": "^3.4.5",
-    "graphql": "^14.5.4",
+    "graphql": "^14.5.8",
     "pg": "^7.12.1",
     "uuid": "^3.3.3"
   },
   "description": "",
   "devDependencies": {
     "@authx/authx": "^2.0.0-beta.0",
-    "@typescript-eslint/eslint-plugin": "^2.2.0",
-    "@typescript-eslint/parser": "^2.2.0",
-    "ava": "^2.3.0",
-    "eslint": "^6.3.0",
-    "eslint-config-prettier": "^6.2.0",
-    "eslint-plugin-prettier": "^3.0.0",
-    "nodemon": "^1.19.2",
+    "@typescript-eslint/eslint-plugin": "^2.3.2",
+    "@typescript-eslint/parser": "^2.3.2",
+    "ava": "^2.4.0",
+    "eslint": "^6.5.1",
+    "eslint-config-prettier": "^6.3.0",
+    "eslint-plugin-prettier": "^3.1.1",
+    "nodemon": "^1.19.3",
     "prettier": "^1.18.2",
-    "typescript": "^3.6.2"
+    "typescript": "^3.6.3"
   },
   "engines": {
     "node": ">=10"
