@@ -58,10 +58,22 @@ t("isSuperset(a, b) - a.b ⊉ a", t => {
 t("isSuperset(a, b) - a ⊇ a", t => {
   t.is(isSuperset(["a"], ["a"]), true);
 });
-t("isSuperset(a, b) - * ⊇ *", t => {
+t("isSuperset(a, b) - a ⊇ a.", t => {
+  t.is(isSuperset(["a"], ["a", ""]), false);
+});
+t("isSuperset(a, b) - a. ⊇ a", t => {
+  t.is(isSuperset(["a", ""], ["a"]), false);
+});
+t("isSuperset(a, b) - a. ⊇ a.", t => {
+  t.is(isSuperset(["a", ""], ["a", ""]), true);
+});
+t("isSuperset(a, b) - * ⊇ a", t => {
   t.is(isSuperset([AnySingle], ["a"]), true);
 });
-t("isSuperset(a, b) - * ⊉ a", t => {
+t("isSuperset(a, b) - * ⊇ *", t => {
+  t.is(isSuperset([AnySingle], [AnySingle]), true);
+});
+t("isSuperset(a, b) - a ⊉ *", t => {
   t.is(isSuperset(["a"], [AnySingle]), false);
 });
 t("isSuperset(a, b) - a ⊉ **", t => {
