@@ -94,12 +94,14 @@ export async function validateAuthorizationHeader(
 
   // BASIC
   if (BASIC.test(authorizationHeader)) {
-    const body = await (await fetch(authxUrl, {
+    const body = await (await fetch(authxUrl + "/graphql", {
       method: "POST",
       headers: {
-        authorization: authorizationHeader
+        authorization: authorizationHeader,
+        "content-type": "application/json"
       },
-      body: `
+      body: JSON.stringify({
+        query: `
           query {
             viewer {
               id
@@ -111,6 +113,7 @@ export async function validateAuthorizationHeader(
             }
           }
         `
+      })
     })).json();
 
     const viewer:
