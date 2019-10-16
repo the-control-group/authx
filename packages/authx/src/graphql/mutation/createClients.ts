@@ -1,10 +1,13 @@
 import v4 from "uuid/v4";
 import { randomBytes } from "crypto";
 import { GraphQLFieldConfig, GraphQLList, GraphQLNonNull } from "graphql";
+import { getIntersection, simplify } from "@authx/scopes";
 
 import { Context } from "../../Context";
 import { GraphQLClient } from "../GraphQLClient";
-import { Client } from "../../model";
+import { Client, Role } from "../../model";
+import { makeAdministrationScopes } from "../../util/makeAdministrationScopes";
+
 import { ForbiddenError, ConflictError, NotFoundError } from "../../errors";
 import { GraphQLCreateClientInput } from "./GraphQLCreateClientInput";
 
@@ -17,6 +20,10 @@ export const createClients: GraphQLFieldConfig<
       name: string;
       description: string;
       urls: string[];
+      administration: {
+        roleId: string;
+        scopes: string[];
+      }[];
     }[];
   },
   Context
@@ -40,10 +47,7 @@ export const createClients: GraphQLFieldConfig<
     return args.clients.map(async input => {
       const tx = await pool.connect();
       try {
-        if (
-          // can create any new clients
-          !(await a.can(tx, `${realm}:client.*:write.*`))
-        ) {
+        if (!(await a.can(tx, `${realm}:client.:write.create`))) {
           throw new ForbiddenError(
             "You do not have permission to create a client."
           );
@@ -81,6 +85,46 @@ export const createClients: GraphQLFieldConfig<
               createdAt: new Date()
             }
           );
+
+          const possibleAdministrationScopes = makeAdministrationScopes(
+            await a.access(tx),
+            {
+              [`${realm}:client.:**`]: `${realm}:client.${id}:**`,
+              [`${realm}:client.:write.*`]: `${realm}:client.${id}:write.*`,
+              [`${realm}:client.:write.basic`]: `${realm}:client.${id}:write.basic`,
+              [`${realm}:client.:write.secrets`]: `${realm}:client.${id}:write.secrets`,
+              [`${realm}:client.:read.*`]: `${realm}:client.${id}:read.*`,
+              [`${realm}:client.:read.basic`]: `${realm}:client.${id}:read.basic`,
+              [`${realm}:client.:read.secrets`]: `${realm}:client.${id}:read.secrets`
+            }
+          );
+
+          // Add administration scopes.
+          for (const { roleId, scopes } of input.administration) {
+            const role = await Role.read(tx, roleId, { forUpdate: true });
+
+            if (!role.can(tx, "write.scopes")) {
+              throw new ForbiddenError(
+                `You do not have permission to modify the scopes of role ${roleId}.`
+              );
+            }
+
+            await Role.write(
+              tx,
+              {
+                ...role,
+                scopes: simplify([
+                  ...role.scopes,
+                  ...getIntersection(possibleAdministrationScopes, scopes)
+                ])
+              },
+              {
+                recordId: v4(),
+                createdByAuthorizationId: a.id,
+                createdAt: new Date()
+              }
+            );
+          }
 
           await tx.query("COMMIT");
           return client;

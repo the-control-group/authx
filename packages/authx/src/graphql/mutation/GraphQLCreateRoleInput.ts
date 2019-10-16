@@ -7,6 +7,8 @@ import {
   GraphQLInputObjectType
 } from "graphql";
 
+import { GraphQLAdministrationInput } from "../GraphQLAdministrationInput";
+
 export const GraphQLCreateRoleInput = new GraphQLInputObjectType({
   name: "CreateRoleInput",
   fields: () => ({
@@ -31,6 +33,12 @@ export const GraphQLCreateRoleInput = new GraphQLInputObjectType({
     },
     userIds: {
       type: new GraphQLNonNull(new GraphQLList(new GraphQLNonNull(GraphQLID)))
+    },
+    administration: {
+      type: new GraphQLList(new GraphQLNonNull(GraphQLAdministrationInput)),
+      description:
+        "An optional list of roles to which scopes will be added for the purpose of administering the created role.",
+      defaultValue: []
     }
   })
 });

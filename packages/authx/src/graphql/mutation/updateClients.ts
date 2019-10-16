@@ -90,13 +90,6 @@ export const updateClients: GraphQLFieldConfig<
           secrets = secrets.filter(id => !removeSecrets.has(id));
         }
 
-        // write.assignments -----------------------------------------------------
-        if (!(await before.isAccessibleBy(realm, a, tx, "write.assignments"))) {
-          throw new ForbiddenError(
-            "You do not have permission to update this client's assignments."
-          );
-        }
-
         const client = await Client.write(
           tx,
           {

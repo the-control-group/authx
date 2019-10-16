@@ -48,10 +48,10 @@ export default (
   // Client
   const commonClientActions = {
     "read.basic": "read the basic fields of",
-    "read.secret": "read the secrets of",
+    "read.secrets": "read the secrets of",
     "read.*": "read all fields of",
     "write.basic": "write basic fields for",
-    "write.secret": "write secrets for"
+    "write.secrets": "write secrets for"
   };
 
   const client: [
@@ -88,12 +88,12 @@ export default (
   // Role
   const commonRoleActions = {
     "read.basic": "read the basic fields of",
-    "read.scope": "read the scopes of",
-    "read.member": "read the list of users assigned to",
+    "read.scopes": "read the scopes of",
+    "read.users": "read the list of users assigned to",
     "read.*": "read all fields of",
     "write.basic": "write basic fields for",
-    "write.scope": "add and remove scopes for",
-    "write.member": "assign and unassign users for"
+    "write.scopes": "add and remove scopes for",
+    "write.users": "assign and unassign users for"
   };
 
   const role: [
@@ -200,8 +200,8 @@ export default (
 
   const commonGrantActions = {
     "read.basic": "read the basic fields of",
-    "read.scope": "read the scopes of",
-    "read.secret": "read the secrets of",
+    "read.scopes": "read the scopes of",
+    "read.secrets": "read the secrets of",
     "read.*": "read all fields of"
   };
 
@@ -224,8 +224,8 @@ export default (
       {
         ...commonGrantActions,
         "write.basic": "write basic fields for",
-        "write.scope": "add and remove scopes for",
-        "write.secret": "write secrets for",
+        "write.scopes": "add and remove scopes for",
+        "write.secrets": "write secrets for",
         "write.create": "create",
         "write.*": "write all fields for, or create",
         "*.*": "read and write all fields for, or create"
@@ -270,11 +270,11 @@ export default (
       },
       {
         "read.basic": "read the basic fields of",
-        "read.scope": "read the scopes of",
-        "read.secret": "read the secrets of",
+        "read.scopes": "read the scopes of",
+        "read.secrets": "read the secrets of",
         "write.basic": "write basic fields for",
-        "write.scope": "add and remove scopes for",
-        "write.secret": "write secrets for",
+        "write.scopes": "add and remove scopes for",
+        "write.secrets": "write secrets for",
         "write.create": "create",
         "write.*": "write all fields for, or create",
         "*.*": "read and write all fields for, or create"

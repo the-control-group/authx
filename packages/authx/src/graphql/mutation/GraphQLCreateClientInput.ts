@@ -7,6 +7,8 @@ import {
   GraphQLInputObjectType
 } from "graphql";
 
+import { GraphQLAdministrationInput } from "../GraphQLAdministrationInput";
+
 export const GraphQLCreateClientInput = new GraphQLInputObjectType({
   name: "CreateClientInput",
   fields: () => ({
@@ -28,6 +30,12 @@ export const GraphQLCreateClientInput = new GraphQLInputObjectType({
       type: new GraphQLNonNull(
         new GraphQLList(new GraphQLNonNull(GraphQLString))
       )
+    },
+    administration: {
+      type: new GraphQLList(new GraphQLNonNull(GraphQLAdministrationInput)),
+      description:
+        "An optional list of roles to which scopes will be added for the purpose of administering the created cliet.",
+      defaultValue: []
     }
   })
 });
