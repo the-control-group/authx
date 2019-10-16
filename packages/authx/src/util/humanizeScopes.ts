@@ -1,125 +1,138 @@
-import { getIntersection } from "@authx/scopes";
+import { isStrictSuperset, extract } from "@authx/scopes";
 
 export type PatternDescriptionMap = {
   [pattern: string]: string;
 };
 
+function escapeRegExp(key: string): string {
+  return key.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+}
+
+export function validateTemplate(template: string): boolean {
+  const patterns = template.split(":");
+  return (
+    patterns.length === 3 &&
+    patterns.every(pattern =>
+      pattern
+        .split(".")
+        .every(
+          part =>
+            part === "" ||
+            part === "*" ||
+            part === "**" ||
+            /^[a-zA-Z0-9_-]+$/.test(part) ||
+            /^\([a-zA-Z0-9_]+\)$/.test(part) ||
+            /^\{[a-zA-Z0-9_]+\}$/.test(part)
+        )
+    )
+  );
+}
+
+function substituteDescriptionMap(
+  map: PatternDescriptionMap,
+  substitutions: { [key: string]: null | string }
+): PatternDescriptionMap {
+  const patterns: { [key: string]: RegExp } = Object.create(null);
+
+  return Object.entries(map).reduce<{ [key: string]: string }>(
+    (acc, [key, value]) => {
+      for (const [variableKey, variableValue] of Object.entries(
+        substitutions
+      )) {
+        const pattern = (patterns[variableKey] =
+          patterns[variableKey] ||
+          new RegExp(`(?<!\\\\)(\\{${escapeRegExp(variableKey)}\\})`, "g"));
+
+        const _key = key.replace(pattern, variableValue || "");
+        value = value.replace(pattern, variableValue || "");
+
+        // If the variable value is null and it is used in the map key, we will
+        // remove the entire entry from the map.
+        if (variableValue === null && key !== _key) {
+          return acc;
+        }
+
+        key = _key;
+      }
+
+      acc[key] = value;
+      return acc;
+    },
+    {}
+  );
+}
+
 export function humanizeScopes(
-  configs: PatternDescriptionMap[],
-  context: {
+  maps: [PatternDescriptionMap, PatternDescriptionMap, PatternDescriptionMap][],
+  substitutions: {
     currentAuthorizationId: null | string;
     currentUserId: null | string;
     currentGrantId: null | string;
   },
-  scopes: string
-): ReadonlyArray<string> {
-  // Inject context variables
-
-  // Create combinations
-
-  // Test and extract variables from each scope
-
-  return [];
-}
-
-export class InvalidTemplateError extends Error {}
-
-export function extract(
-  template: string,
   scopes: string[]
-): ReadonlyArray<{
-  scope: string;
-  values: {
-    [key: string]: string | null;
-  };
-}> {
-  const domains = template.split(":");
+): ReadonlyArray<string> {
+  // Inject context variables.
+  const configs = maps.map(([realm, context, action]): [
+    PatternDescriptionMap,
+    PatternDescriptionMap,
+    PatternDescriptionMap
+  ] => {
+    // While we use lowerCamelCase in javascript, we use snake_case for
+    // substitutions in scopes.
+    const variables = {
+      /* eslint-disable @typescript-eslint/camelcase */
+      current_authorization_id: substitutions.currentAuthorizationId,
+      current_user_id: substitutions.currentUserId,
+      current_grant_id: substitutions.currentGrantId
+      /* eslint-enable @typescript-eslint/camelcase */
+    };
 
-  const extractionNames: Set<string> = new Set();
-  const extractionPositions: Map<number, Map<number, string>> = new Map();
-  const remappedDomains: string[] = [];
+    return [
+      substituteDescriptionMap(realm, variables),
+      substituteDescriptionMap(context, variables),
+      substituteDescriptionMap(action, variables)
+    ];
+  });
 
-  // Parse each template domain.
-  for (let d = 0; d < domains.length; d++) {
-    const domain = domains[d];
-    const domainSegments = domain.split(".");
-    const domainExtractionPositions: Map<number, string> = new Map();
-    const domainRemappedParts: string[] = [];
+  const resultScopes: string[] = [];
+  const resultText: string[] = [];
 
-    let domainIndexOfFirstAnyMultiple: number | null = null;
-    let domainIndexOfMostRecentExtraction: number | null = null;
+  // Create combinations.
+  for (const [realm, context, action] of configs) {
+    for (const [rk, rv] of Object.entries(realm)) {
+      for (const [ck, cv] of Object.entries(context)) {
+        for (const [ak, av] of Object.entries(action)) {
+          // Test and extract variables from each scope.
+          for (const { scope, parameters } of extract(
+            `${rk}:${ck}:${ak}`,
+            scopes
+          )) {
+            // Assemble the human readable text.
+            let text = `${rv}: ${av.slice(0, 1).toUpperCase()}${av.slice(
+              1
+            )} ${cv}.`;
 
-    // Parse each domain segment.
-    for (let s = 0; s < domainSegments.length; s++) {
-      const segment = domainSegments[s];
-      const match = segment.match(/^\(([a-z0-9_-]+)\)$/);
+            // Apply dynamic substitutions to the text.
+            for (const [variableKey, variableValue] of Object.entries(
+              parameters
+            )) {
+              const pattern = new RegExp(
+                `(?<!\\\\)(\\(${escapeRegExp(variableKey)}\\))`,
+                "g"
+              );
+              text = text.replace(pattern, variableValue);
+            }
 
-      // The segment is marked for extraction.
-      if (match && match[1]) {
-        domainIndexOfMostRecentExtraction = s;
-        const name = match[1];
-
-        // Ensure uniqueness of extraction name.
-        if (extractionNames.has(name)) {
-          throw new InvalidTemplateError(
-            `An extraction name of "${name}" cannot be used multiple times.`
-          );
-        } else {
-          extractionNames.add(name);
-        }
-
-        // Set the position and parts.
-        domainExtractionPositions.set(s, name);
-        domainRemappedParts[s] = "*";
-        continue;
-      }
-
-      // The segment is an AnyMultiple.
-      if (segment === "**") {
-        // Set the index of first AnyMultiple.
-        if (domainIndexOfFirstAnyMultiple === null) {
-          domainIndexOfFirstAnyMultiple = s;
-        }
-
-        // A template is invalid of an AnyMultiple is present on both sides of
-        // an extraction segment, as the extraction position is ambiguous.
-        if (
-          domainIndexOfMostRecentExtraction !== null &&
-          domainIndexOfFirstAnyMultiple < domainIndexOfMostRecentExtraction
-        ) {
-          throw new InvalidTemplateError(
-            "An extraction segment cannot have `**` on both sides."
-          );
+            resultScopes.push(scope);
+            resultText.push(text);
+          }
         }
       }
-
-      domainRemappedParts[s] = segment;
     }
-
-    // Assemble the remapped domain.
-    remappedDomains[d] = domainRemappedParts.join(".");
-    extractionPositions.set(d, domainExtractionPositions);
   }
 
-  // Get the intersections.
-  const intersections = getIntersection(remappedDomains.join(":"), scopes);
-
-  // Extract named values.
-  return intersections.map(scope => {
-    const values: { [name: string]: string } = Object.create(null);
-    for (const [d, domain] of scope.split(":").entries()) {
-      const domainExtractionPositions = extractionPositions.get(d);
-      if (!domainExtractionPositions) continue;
-      for (const [s, segment] of domain.split(".").entries()) {
-        const name = domainExtractionPositions.get(s);
-        if (!name) continue;
-        values[name] = segment === "**" ? "*" : segment;
-      }
-    }
-
-    return {
-      scope,
-      values
-    };
-  });
+  // Filter out redundant text.
+  return resultText.filter(
+    (text, i) => !isStrictSuperset(resultScopes, resultScopes[i])
+  );
 }

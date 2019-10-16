@@ -163,26 +163,6 @@ export const GraphQLUser: GraphQLObjectType<
           tx.release();
         }
       }
-    },
-    clients: {
-      type: GraphQLClientConnection,
-      description: "List all roles to which the user is assigned.",
-      args: connectionArgs,
-      async resolve(user, args, { realm, authorization: a, pool }: Context) {
-        const tx = await pool.connect();
-        try {
-          return a
-            ? connectionFromArray(
-                await filter(await user.clients(tx), client =>
-                  client.isAccessibleBy(realm, a, tx)
-                ),
-                args
-              )
-            : null;
-        } finally {
-          tx.release();
-        }
-      }
     }
   })
 });

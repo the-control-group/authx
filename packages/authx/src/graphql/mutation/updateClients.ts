@@ -20,8 +20,6 @@ export const updateClients: GraphQLFieldConfig<
       removeUrls: null | string[];
       generateSecrets: null | number;
       removeSecrets: null | string[];
-      assignUserIds: null | string[];
-      unassignUserIds: null | string[];
     }[];
   },
   Context
@@ -59,12 +57,12 @@ export const updateClients: GraphQLFieldConfig<
 
         let urls = [...before.urls];
 
-        // Assign users
+        // Add URLs
         if (input.addUrls) {
           urls = [...urls, ...input.addUrls];
         }
 
-        // Unassign users
+        // Remove URLs
         if (input.removeUrls) {
           const removeUrls = new Set(input.removeUrls);
           urls = urls.filter(id => !removeUrls.has(id));
@@ -99,19 +97,6 @@ export const updateClients: GraphQLFieldConfig<
           );
         }
 
-        let userIds = [...before.userIds];
-
-        // Assign users
-        if (input.assignUserIds) {
-          userIds = [...userIds, ...input.assignUserIds];
-        }
-
-        // Unassign users
-        if (input.unassignUserIds) {
-          const unassignUserIds = new Set(input.unassignUserIds);
-          userIds = userIds.filter(id => !unassignUserIds.has(id));
-        }
-
         const client = await Client.write(
           tx,
           {
@@ -123,8 +108,7 @@ export const updateClients: GraphQLFieldConfig<
             name: input.name || before.name,
             description: input.description || before.description,
             urls,
-            secrets,
-            userIds
+            secrets
           },
           {
             recordId: v4(),

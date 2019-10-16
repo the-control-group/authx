@@ -1,102 +1,90 @@
 import test from "ava";
-import { extract, InvalidTemplateError } from "./humanizeScopes";
+import { humanizeScopes } from "./humanizeScopes";
 
-test("single segment, concrete value", t => {
-  t.deepEqual(extract("foo:(bar):baz", ["foo:aaa:baz"]), [
-    {
-      scope: "foo:aaa:baz",
-      values: {
-        bar: "aaa"
-      }
-    }
-  ]);
+test("basic equal", t => {
+  t.deepEqual(
+    humanizeScopes(
+      [
+        [
+          { authx: "AuthX" },
+          { "user.c": 'the user with id "c"' },
+          { "read.basic": "read the basic fields of" }
+        ]
+      ],
+      { currentAuthorizationId: "a", currentGrantId: "b", currentUserId: "c" },
+      ["authx:user.c:read.basic"]
+    ),
+    ['AuthX: Read the basic fields of the user with id "c".']
+  );
 });
 
-test("single segment, any single value", t => {
-  t.deepEqual(extract("foo:(bar):baz", ["foo:*:baz"]), [
-    {
-      scope: "foo:*:baz",
-      values: {
-        bar: "*"
-      }
-    }
-  ]);
+test("basic superset", t => {
+  t.deepEqual(
+    humanizeScopes(
+      [
+        [
+          { authx: "AuthX" },
+          { "user.c": 'the user with id "c"' },
+          { "read.basic": "read the basic fields of" }
+        ]
+      ],
+      { currentAuthorizationId: "a", currentGrantId: "b", currentUserId: "c" },
+      ["authx:user.c:read.*"]
+    ),
+    ['AuthX: Read the basic fields of the user with id "c".']
+  );
 });
 
-test("single segment, any multiple value", t => {
-  t.deepEqual(extract("foo:(bar):baz", ["foo:**:baz"]), [
-    {
-      scope: "foo:*:baz",
-      values: {
-        bar: "*"
-      }
-    }
-  ]);
+test("basic static substitution", t => {
+  t.deepEqual(
+    humanizeScopes(
+      [
+        [
+          { authx: "AuthX" },
+          { "user.{current_user_id}": "the current user" },
+          { "read.basic": "read the basic fields of" }
+        ]
+      ],
+      { currentAuthorizationId: "a", currentGrantId: "b", currentUserId: "c" },
+      ["authx:user.c:read.*"]
+    ),
+    ["AuthX: Read the basic fields of the current user."]
+  );
 });
 
-test("multiple segments, any multiple value", t => {
-  t.deepEqual(extract("foo:(a).b.(c):baz", ["foo:**:baz"]), [
-    {
-      scope: "foo:*.b.*:baz",
-      values: {
-        a: "*",
-        c: "*"
-      }
-    }
-  ]);
+test("basic dynamic substitution", t => {
+  t.deepEqual(
+    humanizeScopes(
+      [
+        [
+          { authx: "AuthX" },
+          { "user.(id)": 'the user with id "(id)"' },
+          { "read.basic": "read the basic fields of" }
+        ]
+      ],
+      { currentAuthorizationId: "a", currentGrantId: "b", currentUserId: "c" },
+      ["authx:user.c:read.*"]
+    ),
+    ['AuthX: Read the basic fields of the user with id "c".']
+  );
 });
 
-test("multiple segments with prefix any multiple, any multiple value", t => {
-  t.deepEqual(extract("foo:**.(a).b.(c):baz", ["foo:**:baz"]), [
-    {
-      scope: "foo:*.**.b.*:baz",
-      values: {
-        a: "*",
-        c: "*"
-      }
-    }
-  ]);
-});
-
-test("multiple segments with suffix any multiple, any multiple value", t => {
-  t.deepEqual(extract("foo:(a).b.(c).**:baz", ["foo:**:baz"]), [
-    {
-      scope: "foo:*.b.*.**:baz",
-      values: {
-        a: "*",
-        c: "*"
-      }
-    }
-  ]);
-});
-
-test("multiple segments with infix any multiple, any multiple value", t => {
-  t.deepEqual(extract("foo:(a).**.(c):baz", ["foo:**:baz"]), [
-    {
-      scope: "foo:*.*.**:baz",
-      values: {
-        a: "*",
-        c: "*"
-      }
-    }
-  ]);
-});
-
-test("multiple segments with infix any multiple, any single values", t => {
-  t.deepEqual(extract("foo:(a).**.(c):baz", ["foo:*.*.*:baz"]), [
-    {
-      scope: "foo:*.*.*:baz",
-      values: {
-        a: "*",
-        c: "*"
-      }
-    }
-  ]);
-});
-
-test("multiple segments with surrounding any multiple, any single values", t => {
-  t.throws(
-    () => extract("foo:**.(a).**:baz", ["foo:*.*.*:baz"]),
-    InvalidTemplateError
+test("text simplification", t => {
+  t.deepEqual(
+    humanizeScopes(
+      [
+        [
+          { authx: "AuthX" },
+          { "user.(id)": 'the user with id "(id)"' },
+          {
+            "read.basic": "read the basic fields of",
+            "read.*": "read all fields of"
+          }
+        ]
+      ],
+      { currentAuthorizationId: "a", currentGrantId: "b", currentUserId: "c" },
+      ["authx:user.c:read.*"]
+    ),
+    ['AuthX: Read all fields of the user with id "c".']
   );
 });

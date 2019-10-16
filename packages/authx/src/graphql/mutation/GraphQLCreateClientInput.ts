@@ -28,9 +28,6 @@ export const GraphQLCreateClientInput = new GraphQLInputObjectType({
       type: new GraphQLNonNull(
         new GraphQLList(new GraphQLNonNull(GraphQLString))
       )
-    },
-    userIds: {
-      type: new GraphQLNonNull(new GraphQLList(new GraphQLNonNull(GraphQLID)))
     }
   })
 });

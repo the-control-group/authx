@@ -26,7 +26,6 @@ export class User implements UserData {
   private _credentials: null | Promise<Credential<any>[]> = null;
   private _roles: null | Promise<Role[]> = null;
   private _grants: null | Promise<Grant[]> = null;
-  private _clients: null | Promise<Client[]> = null;
 
   public constructor(data: UserData) {
     this.id = data.id;
@@ -196,33 +195,6 @@ export class User implements UserData {
           authx.role_record_user.user_id = $1
           AND authx.role_record.enabled = TRUE
           AND authx.role_record.replacement_record_id IS NULL
-        `,
-          [this.id]
-        )).rows.map(({ id }) => id)
-      ))());
-  }
-
-  public async clients(
-    tx: PoolClient,
-    refresh: boolean = false
-  ): Promise<Client[]> {
-    if (!refresh && this._clients) {
-      return this._clients;
-    }
-
-    return (this._clients = (async () =>
-      Client.read(
-        tx,
-        (await tx.query(
-          `
-        SELECT entity_id AS id
-        FROM authx.client_record
-        JOIN authx.client_record_user
-          ON authx.client_record_user.client_record_id = authx.client_record.record_id
-        WHERE
-          authx.client_record_user.user_id = $1
-          AND authx.client_record.enabled = TRUE
-          AND authx.client_record.replacement_record_id IS NULL
         `,
           [this.id]
         )).rows.map(({ id }) => id)

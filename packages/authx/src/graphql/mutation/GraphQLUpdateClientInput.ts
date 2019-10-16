@@ -29,12 +29,6 @@ export const GraphQLUpdateClientInput = new GraphQLInputObjectType({
     removeUrls: {
       type: new GraphQLList(new GraphQLNonNull(GraphQLString))
     },
-    assignUserIds: {
-      type: new GraphQLList(new GraphQLNonNull(GraphQLString))
-    },
-    unassignUserIds: {
-      type: new GraphQLList(new GraphQLNonNull(GraphQLString))
-    },
     generateSecrets: {
       type: GraphQLInt
     },

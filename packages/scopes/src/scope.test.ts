@@ -8,13 +8,14 @@ import {
   normalize,
   simplify,
   validate
-} from ".";
+} from "./scope";
 
 ([
   { args: ["client"], result: false },
   { args: ["client:"], result: false },
   { args: ["client:resource"], result: false },
-  { args: ["client:resource:"], result: false },
+  { args: ["client:resource:"], result: true },
+  { args: ["client:resource:action."], result: true },
   { args: ["client:resource:action:"], result: false },
   { args: ["a.%:resource:action"], result: false },
   { args: ["a*.b:resource:action"], result: false },

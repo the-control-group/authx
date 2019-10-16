@@ -20,7 +20,7 @@ realm  context  action
 
 ```
 
-Each domain can contain segments, separated by the `.` character. Domain segments can be `/[a-zA-Z0-9_]*/` strings or glob pattern identifiers `*` or `**`:
+Each domain can contain segments, separated by the `.` character. Domain segments can be `/[a-zA-Z0-9_-]*/` strings or glob pattern identifiers `*` or `**`:
 
 ```
 role.abc
@@ -47,7 +47,7 @@ Validate that a scope is correctly formatted.
 ```js
 import { validate } from "@authx/scopes";
 
-validate("realm:context.identifier:action");
+validate("realm:context.identifier:action.**");
 // => true
 
 validate("realm:context.***:action");

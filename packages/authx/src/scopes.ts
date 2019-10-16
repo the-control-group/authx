@@ -1,165 +1,294 @@
-type PatternDescriptionMap = {
-  [pattern: string]: string;
-};
+import { PatternDescriptionMap } from "./util/humanizeScopes";
 
 export default (
   realm: PatternDescriptionMap = {
-    "authx.production": "The production AuthX instance."
+    authx: "authx"
   }
-): [PatternDescriptionMap, PatternDescriptionMap, PatternDescriptionMap][] => [
-  [
-    realm,
-    {
-      authority: "All authorities."
-    },
-    {
-      "read.basic": "Read basic authority information.",
-      "read.*": "Read all authority information.",
-      "write.basic": "Write basic authority information.",
-      "write.*": "Write or create authorities."
-    }
-  ],
-  [
-    realm,
-    {
-      "client.assigned": "Clients to which {you} are assigned.",
-      "client.*": "All clients."
-    },
-    {
-      "read.basic": "Read basic clitnt information.",
-      "read.secrets": "Read the client secrets.",
-      "read.assignments": "Read the list of users assigned to the client.",
-      "write.basic": "Write basic client information.",
-      "write.secrets": "Write the client secrets.",
-      "write.assignments": "Write the list of users assigned to the client.",
-      "write.*": "Write or create client."
-    }
-  ],
-  [
-    realm,
-    {
-      "credential.equal.self": "Credentials {you} own..",
-      "credential.equal.lesser":
-        "Credentials of users with less access than {you}.",
-      "credential.equal.*":
-        "Credentials of users with the same or less access than {you}.",
-      "credential.*.*": "Credentials of all users."
-    },
-    {
-      "read.basic": "Read basic credential information.",
-      "read.*": "Read all credential information.",
-      "write.basic": "Write basic credential information.",
-      "write.*": "Write or create credentials."
-    }
-  ],
-  [
-    realm,
-    {
-      "role.equal.assigned": "Roles to which {you} are assigned.",
-      "role.equal.lesser": "Roles with less access than {you}.",
-      "role.equal.*": "Roles with the same or less access than {you}.",
-      "role.*.*": "All roles."
-    },
-    {
-      "read.basic": "Read basic role information.",
-      "read.scopes": "Read the role scopes.",
-      "read.assignments": "Read the list of users assigned to the role."
-    }
-  ],
-  [
-    realm,
-    {
-      "role.equal.lesser": "Roles with less access than {you}.",
-      "role.equal.*": "Roles with the same or less access than {you}.",
-      "role.*.*": "All roles."
-    },
-    {
-      "write.basic": "Write basic role information.",
-      "write.scopes": "Write the role scopes.",
-      "write.assignments": "Write the list of users assigned to the role.",
-      "write.*": "Write or create roles."
-    }
-  ],
-  [
-    realm,
-    {
-      "grant.assigned": "Grants for clients to which {you} are assigned."
-    },
-    {
-      "read.basic": "Read basic grant information.",
-      "read.scopes": "Read the grant scopes.",
-      "read.secrets": "Read the grant secrets."
-    }
-  ],
-  [
-    realm,
-    {
-      "grant.equal.self.granted":
-        "Grants {you} own which are the parent of the acting authorization.",
-      "grant.equal.self.*": "Grants {you} own.",
-      "grant.equal.lesser.*": "Grants of users with less access than {you}.",
-      "grant.equal.*.*":
-        "Grants of users with the same or less access than {you}.",
-      "grant.*.*.*": "Grants of all users."
-    },
-    {
-      "read.basic": "Read basic grant information.",
-      "read.scopes": "Read the grant scopes.",
-      "read.secrets": "Read the grant secrets.",
-      "write.basic": "Write basic grant information.",
-      "write.scopes": "Write the grant scopes.",
-      "write.secrets": "Write the grant secrets.",
-      "write.*": "Write or create grants."
-    }
-  ],
-  [
-    realm,
-    {
-      "authorization.assigned":
-        "Authorizations for clients to which {you} are assigned."
-    },
-    {
-      "read.basic": "Read basic authorization information.",
-      "read.scopes": "Read the authorization scopes.",
-      "read.secrets": "Read the authorization secrets."
-    }
-  ],
-  [
-    realm,
-    {
-      "authorization.equal.self.current":
-        "Authorizations {you} own which are the same as the acting authorization.",
-      "authorization.equal.self.granted":
-        "Authorizations {you} own which share a grant with the acting authorization.",
-      "authorization.equal.self.*": "Authorizations {you} own.",
-      "authorization.equal.lesser.*":
-        "Authorizations of users with less access than {you}.",
-      "authorization.equal.*.*":
-        "Authorizations of users with the same or less access than {you}.",
-      "authorization.*.*.*": "Authorizations of all users."
-    },
-    {
-      "read.basic": "Read basic authorization information.",
-      "read.scopes": "Read the authorization scopes.",
-      "read.secrets": "Read the authorization secrets.",
-      "write.basic": "Write basic authorization information.",
-      "write.scopes": "Write the authorization scopes.",
-      "write.secrets": "Write the authorization secrets.",
-      "write.*": "Write or create authorizations."
-    }
-  ],
-  [
-    realm,
-    {
-      "user.equal.self": "{you}",
-      "user.equal.lesser": "Users with less access than {you}.",
-      "user.equal.*": "Users with the same or less access than {you}.",
-      "user.*.*": "All users."
-    },
-    {
-      "read.basic": "Read basic user information.",
-      "write.basic": "Write basic user information.",
-      "write.*": "Write or create users."
-    }
-  ]
-];
+): [PatternDescriptionMap, PatternDescriptionMap, PatternDescriptionMap][] => {
+  // Authority
+  const commonAuthorityActions = {
+    "read.basic": "read the basic fields of",
+    "read.detail": "read potentially sensitive details of",
+    "read.*": "read all fields of",
+    "write.basic": "write basic fields for",
+    "write.detail": "write potentially sensitive details for"
+  };
+
+  const authority: [
+    PatternDescriptionMap,
+    PatternDescriptionMap,
+    PatternDescriptionMap
+  ][] = [
+    [
+      realm,
+      {
+        "authority.(id)": 'the authority with id "(id)"'
+      },
+      {
+        ...commonAuthorityActions,
+        "write.*": "write all fields for",
+        "*.*": "read and write all fields for"
+      }
+    ],
+    [
+      realm,
+      {
+        "authority.": "a new authority",
+        "authority.*": "any new or existing authority"
+      },
+      {
+        ...commonAuthorityActions,
+        "write.create": "create",
+        "write.*": "write all fields for, or create",
+        "*.*": "read and write all fields for, or create"
+      }
+    ]
+  ];
+
+  // Client
+  const commonClientActions = {
+    "read.basic": "read the basic fields of",
+    "read.secret": "read the secrets of",
+    "read.*": "read all fields of",
+    "write.basic": "write basic fields for",
+    "write.secret": "write secrets for"
+  };
+
+  const client: [
+    PatternDescriptionMap,
+    PatternDescriptionMap,
+    PatternDescriptionMap
+  ][] = [
+    [
+      realm,
+      {
+        "client.(id)": 'the client with id "(id)"'
+      },
+      {
+        ...commonClientActions,
+        "write.*": "write all fields for",
+        "*.*": "read and write all fields for"
+      }
+    ],
+    [
+      realm,
+      {
+        "client.": "a new client",
+        "client.*": "any new or existing client"
+      },
+      {
+        ...commonClientActions,
+        "write.create": "create",
+        "write.*": "write all fields for, or create",
+        "*.*": "read and write all fields for, or create"
+      }
+    ]
+  ];
+
+  // Role
+  const commonRoleActions = {
+    "read.basic": "read the basic fields of",
+    "read.scope": "read the scopes of",
+    "read.member": "read the list of users assigned to",
+    "read.*": "read all fields of",
+    "write.basic": "write basic fields for",
+    "write.scope": "add and remove scopes for",
+    "write.member": "assign and unassign users for"
+  };
+
+  const role: [
+    PatternDescriptionMap,
+    PatternDescriptionMap,
+    PatternDescriptionMap
+  ][] = [
+    [
+      realm,
+      {
+        "role.(id)": 'the role with id "(id)"'
+      },
+      {
+        ...commonRoleActions,
+        "write.*": "write all fields for",
+        "*.*": "read and write all fields for"
+      }
+    ],
+    [
+      realm,
+      {
+        "role.": "a new role",
+        "role.*": "any new or existing role"
+      },
+      {
+        ...commonRoleActions,
+        "write.create": "create",
+        "write.*": "write all fields for, or create",
+        "*.*": "read and write all fields for, or create"
+      }
+    ]
+  ];
+
+  // User
+  const commonUserActions = {
+    "read.basic": "read the basic fields of",
+    "write.basic": "write the basic fields of"
+  };
+
+  const user: [
+    PatternDescriptionMap,
+    PatternDescriptionMap,
+    PatternDescriptionMap
+  ][] = [
+    [
+      realm,
+      {
+        "user.(id)": 'the user with id "(id)"',
+        "user.{current_user_id}": "the current user"
+      },
+      {
+        ...commonUserActions,
+        "write.*": "write all fields for",
+        "*.*": "read and write all fields for"
+      }
+    ],
+    [
+      realm,
+      {
+        "user.": "a new user",
+        "user.*": "any new or existing user"
+      },
+      {
+        ...commonUserActions,
+        "write.create": "create",
+        "write.*": "write all fields for, or create",
+        "*.*": "read and write all fields for, or create"
+      }
+    ]
+  ];
+
+  // Credential
+  const credential: [
+    PatternDescriptionMap,
+    PatternDescriptionMap,
+    PatternDescriptionMap
+  ][] = [
+    [
+      realm,
+      {
+        "credential.(id)": 'the credential with id "(id)"',
+        "credential.*": "any new or existing credential",
+
+        "authority.(id).credentials":
+          'credentials belonging to the authority with id "(id)"',
+
+        "user.(id).credentials":
+          'credentials belonging to the user with id "(id)"',
+        "user.{current_user_id}.credentials":
+          "credentials belonging to the current user"
+      },
+      {
+        "read.basic": "read the basic fields of",
+        "read.detail": "read potentially sensitive details of",
+        "read.*": "read all fields of",
+        "write.basic": "write basic fields for",
+        "write.detail": "write potentially sensitive details for",
+        "write.create": "create",
+        "write.*": "write all fields for, or create",
+        "*.*": "read and write all fields for, or create"
+      }
+    ]
+  ];
+
+  const commonGrantActions = {
+    "read.basic": "read the basic fields of",
+    "read.scope": "read the scopes of",
+    "read.secret": "read the secrets of",
+    "read.*": "read all fields of"
+  };
+
+  const grant: [
+    PatternDescriptionMap,
+    PatternDescriptionMap,
+    PatternDescriptionMap
+  ][] = [
+    // Grant
+    [
+      realm,
+      {
+        "grant.(id)": 'the grant with id "(id)"',
+        "grant.{current_grant_id}": "the current grant",
+        "grant.*": "any new or existing grant",
+
+        "user.(id).grants": 'grants belonging to the user with id "(id)"',
+        "user.{current_user_id}.grants": "grants belonging to the current user"
+      },
+      {
+        ...commonGrantActions,
+        "write.basic": "write basic fields for",
+        "write.scope": "add and remove scopes for",
+        "write.secret": "write secrets for",
+        "write.create": "create",
+        "write.*": "write all fields for, or create",
+        "*.*": "read and write all fields for, or create"
+      }
+    ],
+    [
+      realm,
+      {
+        "client.(id).grants": 'grants associated with the client with id "(id)"'
+      },
+      {
+        ...commonGrantActions
+      }
+    ]
+  ];
+
+  // Authorization
+  const authorization: [
+    PatternDescriptionMap,
+    PatternDescriptionMap,
+    PatternDescriptionMap
+  ][] = [
+    [
+      realm,
+      {
+        "authorization.(id)": 'the authorization with id "(id)"',
+        "authorization.{current_authorization_id}": "the current authorization",
+        "authorization.*": "any new or existing authorization",
+
+        "grant.(id).authorizations":
+          "authorizations belonging to the same grant as {authorization}",
+        "grant.{current_grant_id}.authorization":
+          "authorizations belonging to the current grant",
+
+        "user.(id).authorizations":
+          'authorizations belonging to the user with id "(id)"',
+        "user.{current_user_id}.authorization":
+          "authorizations belonging to the current user",
+
+        "client.(id).authorizations":
+          'authorizations associated with the client with id "(id)"'
+      },
+      {
+        "read.basic": "read the basic fields of",
+        "read.scope": "read the scopes of",
+        "read.secret": "read the secrets of",
+        "write.basic": "write basic fields for",
+        "write.scope": "add and remove scopes for",
+        "write.secret": "write secrets for",
+        "write.create": "create",
+        "write.*": "write all fields for, or create",
+        "*.*": "read and write all fields for, or create"
+      }
+    ]
+  ];
+
+  return [
+    ...authority,
+    ...client,
+    ...role,
+    ...user,
+    ...credential,
+    ...grant,
+    ...authorization
+  ];
+};

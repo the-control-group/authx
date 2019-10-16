@@ -17,7 +17,6 @@ export const createClients: GraphQLFieldConfig<
       name: string;
       description: string;
       urls: string[];
-      userIds: string[];
     }[];
   },
   Context
@@ -43,12 +42,7 @@ export const createClients: GraphQLFieldConfig<
       try {
         if (
           // can create any new clients
-          !(await a.can(tx, `${realm}:client.*:write.*`)) &&
-          // can create assigned new clients
-          !(
-            (await a.can(tx, `${realm}:client.assigned:write.*`)) &&
-            input.userIds.includes(a.userId)
-          )
+          !(await a.can(tx, `${realm}:client.*:write.*`))
         ) {
           throw new ForbiddenError(
             "You do not have permission to create a client."
@@ -79,8 +73,7 @@ export const createClients: GraphQLFieldConfig<
               name: input.name,
               description: input.description,
               secrets: [randomBytes(16).toString("hex")],
-              urls: input.urls,
-              userIds: input.userIds
+              urls: input.urls
             },
             {
               recordId: v4(),
