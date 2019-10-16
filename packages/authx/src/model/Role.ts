@@ -38,30 +38,8 @@ export class Role implements RoleData {
     tx: PoolClient,
     action: string = "read.basic"
   ): Promise<boolean> {
-    // can access all roles
-    if (await a.can(tx, `${realm}:role.*.*:${action}`)) {
+    if (await a.can(tx, `${realm}:role.${this.id}:${action}`)) {
       return true;
-    }
-
-    // can access assigned roles
-    if (
-      this.userIds.has(a.userId) &&
-      (await a.can(tx, `${realm}:role.equal.assigned:${action}`))
-    ) {
-      return true;
-    }
-
-    // can access roles with lesser or equal access
-    if (await a.can(tx, `${realm}:role.equal.*:${action}`)) {
-      return isSuperset(await (await a.user(tx)).access(tx), this.access());
-    }
-
-    // can access roles with lesser access
-    if (await a.can(tx, `${realm}:role.equal.lesser:${action}`)) {
-      return isStrictSuperset(
-        await (await a.user(tx)).access(tx),
-        this.access()
-      );
     }
 
     return false;

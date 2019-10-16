@@ -49,42 +49,12 @@ export class Grant implements GrantData {
     tx: PoolClient,
     action: string = "read.basic"
   ): Promise<boolean> {
-    // can access all grants
-    if (await a.can(tx, `${realm}:grant.*.*.*:${action}`)) {
+    if (await a.can(tx, `${realm}:grant.${this.id}:${action}`)) {
       return true;
     }
 
-    // can access own grants that are a parent of this authorization
-    if (
-      this.userId === a.userId &&
-      this.id === a.grantId &&
-      (await a.can(tx, `${realm}:grant.equal.self.granted:${action}`))
-    ) {
+    if (await a.can(tx, `${realm}:user.${this.userId}.grants:${action}`)) {
       return true;
-    }
-
-    // can access own grants
-    if (
-      this.userId === a.userId &&
-      (await a.can(tx, `${realm}:grant.equal.self.*:${action}`))
-    ) {
-      return true;
-    }
-
-    // can access the grants of users with lesser or equal access
-    if (await a.can(tx, `${realm}:grant.equal.*.*:${action}`)) {
-      return isSuperset(
-        await (await a.user(tx)).access(tx),
-        await (await this.user(tx)).access(tx)
-      );
-    }
-
-    // can access the grants of users with lesser access
-    if (await a.can(tx, `${realm}:grant.equal.lesser.*:${action}`)) {
-      return isStrictSuperset(
-        await (await a.user(tx)).access(tx),
-        await (await this.user(tx)).access(tx)
-      );
     }
 
     return false;

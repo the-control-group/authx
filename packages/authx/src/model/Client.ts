@@ -38,8 +38,7 @@ export class Client implements ClientData {
     tx: PoolClient,
     action: string = "read.basic"
   ): Promise<boolean> {
-    // can access all vlients
-    if (await a.can(tx, `${realm}:client.*:${action}`)) {
+    if (await a.can(tx, `${realm}:client.${this.id}:${action}`)) {
       return true;
     }
 

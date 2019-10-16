@@ -45,50 +45,35 @@ export class Authorization implements AuthorizationData {
     tx: PoolClient,
     action: string = "read.basic"
   ): Promise<boolean> {
-    // can access all authorizations
-    if (await a.can(tx, `${realm}:authorization.*.*.*:${action}`)) {
+    if (await a.can(tx, `${realm}:authorization.${this.id}:${action}`)) {
       return true;
     }
 
-    // can access own authorizations with the same authorization
     if (
-      this.id === a.id &&
-      (await a.can(tx, `${realm}:authorization.equal.self.current:${action}`))
+      await a.can(tx, `${realm}:user.${this.userId}.authorizations:${action}`)
     ) {
       return true;
     }
 
-    // can access own authorizations with the same grant as this authorization
     if (
-      this.userId === a.userId &&
-      this.grantId === a.grantId &&
-      (await a.can(tx, `${realm}:authorization.equal.self.granted:${action}`))
+      this.grantId &&
+      (await a.can(
+        tx,
+        `${realm}:grant.${this.grantId}.authorizations:${action}`
+      ))
     ) {
       return true;
     }
 
-    // can access own authorizations
+    const grant = await this.grant(tx);
     if (
-      this.userId === a.userId &&
-      (await a.can(tx, `${realm}:authorization.equal.self.*:${action}`))
+      grant &&
+      (await a.can(
+        tx,
+        `${realm}:client.${grant.clientId}.authorizations:${action}`
+      ))
     ) {
       return true;
-    }
-
-    // can access the authorizations of users with lesser or equal access
-    if (await a.can(tx, `${realm}:authorization.equal.*.*:${action}`)) {
-      return isSuperset(
-        await (await a.user(tx)).access(tx),
-        await (await this.user(tx)).access(tx)
-      );
-    }
-
-    // can access the authorizations of users with lesser access
-    if (await a.can(tx, `${realm}:authorization.equal.lesser.*:${action}`)) {
-      return isStrictSuperset(
-        await (await a.user(tx)).access(tx),
-        await (await this.user(tx)).access(tx)
-      );
     }
 
     return false;

@@ -35,8 +35,11 @@ export abstract class Authority<A> implements AuthorityData<A> {
     tx: PoolClient,
     action: string = "read.basic"
   ): Promise<boolean> {
-    // can access all authorities
-    return await a.can(tx, `${realm}:authority:${action}`);
+    if (await a.can(tx, `${realm}:authority.${this.id}:${action}`)) {
+      return true;
+    }
+
+    return false;
   }
 
   public abstract credentials(

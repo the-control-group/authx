@@ -177,13 +177,13 @@ export default (
         "credential.(id)": 'the credential with id "(id)"',
         "credential.*": "any new or existing credential",
 
-        "authority.(id).credentials":
-          'credentials belonging to the authority with id "(id)"',
-
         "user.(id).credentials":
           'credentials belonging to the user with id "(id)"',
         "user.{current_user_id}.credentials":
-          "credentials belonging to the current user"
+          "credentials belonging to the current user",
+
+        "authority.(id).credentials":
+          'credentials belonging to the authority with id "(id)"'
       },
       {
         "read.basic": "read the basic fields of",
@@ -255,15 +255,15 @@ export default (
         "authorization.{current_authorization_id}": "the current authorization",
         "authorization.*": "any new or existing authorization",
 
-        "grant.(id).authorizations":
-          "authorizations belonging to the same grant as {authorization}",
-        "grant.{current_grant_id}.authorization":
-          "authorizations belonging to the current grant",
-
         "user.(id).authorizations":
           'authorizations belonging to the user with id "(id)"',
         "user.{current_user_id}.authorization":
           "authorizations belonging to the current user",
+
+        "grant.(id).authorizations":
+          "authorizations belonging to the same grant as {authorization}",
+        "grant.{current_grant_id}.authorization":
+          "authorizations belonging to the current grant",
 
         "client.(id).authorizations":
           'authorizations associated with the client with id "(id)"'
