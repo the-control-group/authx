@@ -8,10 +8,10 @@ export default (
   // Authority
   const commonAuthorityActions = {
     "read.basic": "read the basic fields of",
-    "read.detail": "read potentially sensitive details of",
+    "read.details": "read potentially sensitive details of",
     "read.*": "read all fields of",
     "write.basic": "write basic fields for",
-    "write.detail": "write potentially sensitive details for"
+    "write.details": "write potentially sensitive details for"
   };
 
   const authority: [
@@ -187,10 +187,10 @@ export default (
       },
       {
         "read.basic": "read the basic fields of",
-        "read.detail": "read potentially sensitive details of",
+        "read.details": "read potentially sensitive details of",
         "read.*": "read all fields of",
         "write.basic": "write basic fields for",
-        "write.detail": "write potentially sensitive details for",
+        "write.details": "write potentially sensitive details for",
         "write.create": "create",
         "write.*": "write all fields for, or create",
         "*.*": "read and write all fields for, or create"

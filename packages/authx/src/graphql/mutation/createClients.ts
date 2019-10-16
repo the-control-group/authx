@@ -88,15 +88,10 @@ export const createClients: GraphQLFieldConfig<
 
           const possibleAdministrationScopes = makeAdministrationScopes(
             await a.access(tx),
-            {
-              [`${realm}:client.:**`]: `${realm}:client.${id}:**`,
-              [`${realm}:client.:write.*`]: `${realm}:client.${id}:write.*`,
-              [`${realm}:client.:write.basic`]: `${realm}:client.${id}:write.basic`,
-              [`${realm}:client.:write.secrets`]: `${realm}:client.${id}:write.secrets`,
-              [`${realm}:client.:read.*`]: `${realm}:client.${id}:read.*`,
-              [`${realm}:client.:read.basic`]: `${realm}:client.${id}:read.basic`,
-              [`${realm}:client.:read.secrets`]: `${realm}:client.${id}:read.secrets`
-            }
+            realm,
+            "client",
+            id,
+            ["read.basic", "read.secrets", "write.basic", "write.secrets"]
           );
 
           // Add administration scopes.

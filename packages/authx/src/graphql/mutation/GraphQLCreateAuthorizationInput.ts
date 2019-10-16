@@ -24,7 +24,7 @@ export const GraphQLCreateAuthorizationInput = new GraphQLInputObjectType({
       type: new GraphQLNonNull(GraphQLID)
     },
     grantId: {
-      type: new GraphQLNonNull(GraphQLID)
+      type: GraphQLID
     },
     scopes: {
       type: new GraphQLNonNull(

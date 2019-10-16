@@ -75,9 +75,9 @@ export const updateRoles: GraphQLFieldConfig<
         }
 
         // write.assignments -----------------------------------------------------
-        if (!(await before.isAccessibleBy(realm, a, tx, "write.assignments"))) {
+        if (!(await before.isAccessibleBy(realm, a, tx, "write.users"))) {
           throw new ForbiddenError(
-            "You do not have permission to update this role's assignments."
+            "You do not have permission to update this role's users."
           );
         }
 

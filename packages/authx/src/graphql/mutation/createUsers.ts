@@ -1,9 +1,12 @@
 import v4 from "uuid/v4";
 import { GraphQLFieldConfig, GraphQLNonNull, GraphQLList } from "graphql";
+import { getIntersection, simplify } from "@authx/scopes";
 
 import { Context } from "../../Context";
 import { GraphQLUser } from "../GraphQLUser";
-import { User, UserType } from "../../model";
+import { User, UserType, Role } from "../../model";
+import { makeAdministrationScopes } from "../../util/makeAdministrationScopes";
+
 import { ForbiddenError, ConflictError, NotFoundError } from "../../errors";
 import { GraphQLCreateUserInput } from "./GraphQLCreateUserInput";
 
@@ -15,6 +18,10 @@ export const createUsers: GraphQLFieldConfig<
       type: UserType;
       enabled: boolean;
       name: string;
+      administration: {
+        roleId: string;
+        scopes: string[];
+      }[];
     }[];
   },
   Context
@@ -32,9 +39,7 @@ export const createUsers: GraphQLFieldConfig<
     const { pool, authorization: a, realm } = context;
 
     if (!a) {
-      throw new ForbiddenError(
-        "You must be authenticated to create a authorization."
-      );
+      throw new ForbiddenError("You must be authenticated to create a user.");
     }
 
     return args.users.map(async input => {
@@ -43,7 +48,7 @@ export const createUsers: GraphQLFieldConfig<
         // can create a new user
         if (!(await a.can(tx, `${realm}:user.*:write.*`))) {
           throw new ForbiddenError(
-            "You must be authenticated to create a authorization."
+            "You must be authenticated to create a user."
           );
         }
 
@@ -77,6 +82,41 @@ export const createUsers: GraphQLFieldConfig<
               createdAt: new Date()
             }
           );
+
+          const possibleAdministrationScopes = makeAdministrationScopes(
+            await a.access(tx),
+            realm,
+            "grant",
+            id,
+            ["read.basic", "write.basic"]
+          );
+
+          // Add administration scopes.
+          for (const { roleId, scopes } of input.administration) {
+            const role = await Role.read(tx, roleId, { forUpdate: true });
+
+            if (!role.can(tx, "write.scopes")) {
+              throw new ForbiddenError(
+                `You do not have permission to modify the scopes of role ${roleId}.`
+              );
+            }
+
+            await Role.write(
+              tx,
+              {
+                ...role,
+                scopes: simplify([
+                  ...role.scopes,
+                  ...getIntersection(possibleAdministrationScopes, scopes)
+                ])
+              },
+              {
+                recordId: v4(),
+                createdByAuthorizationId: a.id,
+                createdAt: new Date()
+              }
+            );
+          }
 
           await tx.query("COMMIT");
           return user;

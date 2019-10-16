@@ -1,11 +1,13 @@
 import v4 from "uuid/v4";
 import { randomBytes } from "crypto";
-import { isSuperset, isStrictSuperset } from "@authx/scopes";
+
+import { getIntersection, simplify } from "@authx/scopes";
 import { GraphQLFieldConfig, GraphQLList, GraphQLNonNull } from "graphql";
 
 import { Context } from "../../Context";
 import { GraphQLAuthorization } from "../GraphQLAuthorization";
-import { Authorization, User } from "../../model";
+import { Authorization, Grant, Role } from "../../model";
+import { makeAdministrationScopes } from "../../util/makeAdministrationScopes";
 import { ForbiddenError, ConflictError, NotFoundError } from "../../errors";
 import { GraphQLCreateAuthorizationInput } from "./GraphQLCreateAuthorizationInput";
 
@@ -16,8 +18,12 @@ export const createAuthorizations: GraphQLFieldConfig<
       id: null | string;
       enabled: boolean;
       userId: string;
-      grantId: string;
+      grantId: null | string;
       scopes: string[];
+      administration: {
+        roleId: string;
+        scopes: string[];
+      }[];
     }[];
   },
   Context
@@ -44,32 +50,30 @@ export const createAuthorizations: GraphQLFieldConfig<
       const tx = await pool.connect();
       try {
         if (
-          // can create authorizations for all users
-          !(await a.can(tx, `${realm}:authorization.*.*:write.*`)) &&
-          // can create authorizations for users with equal access
+          !(await a.can(tx, `${realm}:authorization.:write.create`)) &&
+          !(await a.can(
+            tx,
+            `${realm}:user.${input.userId}.authorizations:write.create`
+          )) &&
           !(
-            (await a.can(tx, `${realm}:authorization.equal.*:write.*`)) &&
-            isSuperset(
-              await (await a.user(tx)).access(tx),
-              await (await User.read(tx, input.userId)).access(tx)
-            )
+            input.grantId &&
+            (await a.can(
+              tx,
+              `${realm}:grant.${input.grantId}.authorizations:write.create`
+            ))
           ) &&
-          // can create authorizations for users with lesser access
           !(
-            (await a.can(tx, `${realm}:authorization.equal.lesser:write.*`)) &&
-            isStrictSuperset(
-              await (await a.user(tx)).access(tx),
-              await (await User.read(tx, input.userId)).access(tx)
-            )
-          ) &&
-          // can create authorizations for self
-          !(
-            (await a.can(tx, `${realm}:authorization.equal.self:write.*`)) &&
-            input.userId === a.userId
+            input.grantId &&
+            (await a.can(
+              tx,
+              `${realm}:client.${
+                (await Grant.read(tx, input.grantId)).clientId
+              }.authorizations:write.create`
+            ))
           )
         ) {
           throw new ForbiddenError(
-            "You must be authenticated to create a authorization."
+            "You do not have permission to create this grant."
           );
         }
 
@@ -106,6 +110,48 @@ export const createAuthorizations: GraphQLFieldConfig<
               createdAt: new Date()
             }
           );
+
+          const possibleAdministrationScopes = makeAdministrationScopes(
+            await a.access(tx),
+            realm,
+            "authorization",
+            id,
+            [
+              "read.basic",
+              "read.secrets",
+              "read.scopes",
+              "write.basic",
+              "write.secrets",
+              "write.scopes"
+            ]
+          );
+
+          // Add administration scopes.
+          for (const { roleId, scopes } of input.administration) {
+            const role = await Role.read(tx, roleId, { forUpdate: true });
+
+            if (!role.can(tx, "write.scopes")) {
+              throw new ForbiddenError(
+                `You do not have permission to modify the scopes of role ${roleId}.`
+              );
+            }
+
+            await Role.write(
+              tx,
+              {
+                ...role,
+                scopes: simplify([
+                  ...role.scopes,
+                  ...getIntersection(possibleAdministrationScopes, scopes)
+                ])
+              },
+              {
+                recordId: v4(),
+                createdByAuthorizationId: a.id,
+                createdAt: new Date()
+              }
+            );
+          }
 
           await tx.query("COMMIT");
           return authorization;

@@ -1,12 +1,13 @@
 import v4 from "uuid/v4";
 import { randomBytes } from "crypto";
 
-import { isSuperset, isStrictSuperset } from "@authx/scopes";
+import { getIntersection, simplify } from "@authx/scopes";
 import { GraphQLFieldConfig, GraphQLList, GraphQLNonNull } from "graphql";
 
 import { Context } from "../../Context";
 import { GraphQLGrant } from "../GraphQLGrant";
-import { Grant, User } from "../../model";
+import { Grant, Role } from "../../model";
+import { makeAdministrationScopes } from "../../util/makeAdministrationScopes";
 import { ForbiddenError, ConflictError, NotFoundError } from "../../errors";
 import { GraphQLCreateGrantInput } from "./GraphQLCreateGrantInput";
 
@@ -19,6 +20,10 @@ export const createGrants: GraphQLFieldConfig<
       userId: string;
       clientId: string;
       scopes: string[];
+      administration: {
+        roleId: string;
+        scopes: string[];
+      }[];
     }[];
   },
   Context
@@ -43,32 +48,18 @@ export const createGrants: GraphQLFieldConfig<
       const tx = await pool.connect();
       try {
         if (
-          // can create grants for all users
-          !(await a.can(tx, `${realm}:grant.*.*.*:write.*`)) &&
-          // can create grants for users with equal access
-          !(
-            (await a.can(tx, `${realm}:grant.equal.*.*:write.*`)) &&
-            isSuperset(
-              await (await a.user(tx)).access(tx),
-              await (await User.read(tx, input.userId)).access(tx)
-            )
-          ) &&
-          // can create grants for users with lesser access
-          !(
-            (await a.can(tx, `${realm}:grant.equal.lesser.*:write.*`)) &&
-            isStrictSuperset(
-              await (await a.user(tx)).access(tx),
-              await (await User.read(tx, input.userId)).access(tx)
-            )
-          ) &&
-          // can create grants for self
-          !(
-            (await a.can(tx, `${realm}:grant.equal.self.*:write.*`)) &&
-            input.userId === a.userId
-          )
+          !(await a.can(tx, `${realm}:grant.:write.create`)) &&
+          !(await a.can(
+            tx,
+            `${realm}:user.${input.userId}.grants:write.create`
+          )) &&
+          !(await a.can(
+            tx,
+            `${realm}:client.${input.clientId}.grants:write.create`
+          ))
         ) {
           throw new ForbiddenError(
-            "You do not have permission to create a grant."
+            "You do not have permission to create this grant."
           );
         }
 
@@ -114,6 +105,48 @@ export const createGrants: GraphQLFieldConfig<
               createdAt: new Date()
             }
           );
+
+          const possibleAdministrationScopes = makeAdministrationScopes(
+            await a.access(tx),
+            realm,
+            "grant",
+            id,
+            [
+              "read.basic",
+              "read.secrets",
+              "read.scopes",
+              "write.basic",
+              "write.secrets",
+              "write.scopes"
+            ]
+          );
+
+          // Add administration scopes.
+          for (const { roleId, scopes } of input.administration) {
+            const role = await Role.read(tx, roleId, { forUpdate: true });
+
+            if (!role.can(tx, "write.scopes")) {
+              throw new ForbiddenError(
+                `You do not have permission to modify the scopes of role ${roleId}.`
+              );
+            }
+
+            await Role.write(
+              tx,
+              {
+                ...role,
+                scopes: simplify([
+                  ...role.scopes,
+                  ...getIntersection(possibleAdministrationScopes, scopes)
+                ])
+              },
+              {
+                recordId: v4(),
+                createdByAuthorizationId: a.id,
+                createdAt: new Date()
+              }
+            );
+          }
 
           await tx.query("COMMIT");
           return grant;
