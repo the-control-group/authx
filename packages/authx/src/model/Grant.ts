@@ -71,16 +71,6 @@ export class Grant implements GrantData {
       return true;
     }
 
-    // can access grants for assigned clients
-    if (
-      // "assigned" grant scopes only apply for "read" actions
-      action.split(".")[0] === "read" &&
-      (await this.client(tx)).userIds.has(a.userId) &&
-      (await a.can(tx, `${realm}:grant.assigned:${action}`))
-    ) {
-      return true;
-    }
-
     // can access the grants of users with lesser or equal access
     if (await a.can(tx, `${realm}:grant.equal.*.*:${action}`)) {
       return isSuperset(

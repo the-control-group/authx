@@ -75,19 +75,6 @@ export class Authorization implements AuthorizationData {
       return true;
     }
 
-    // can access grants for assigned clients
-    // "assigned" grant scopes only apply for "read" actions
-    if (action.split(".")[0] === "read") {
-      const grant = await this.grant(tx);
-      if (
-        grant &&
-        (await grant.client(tx)).userIds.has(a.userId) &&
-        (await a.can(tx, `${realm}:grant.assigned:${action}`))
-      ) {
-        return true;
-      }
-    }
-
     // can access the authorizations of users with lesser or equal access
     if (await a.can(tx, `${realm}:authorization.equal.*.*:${action}`)) {
       return isSuperset(

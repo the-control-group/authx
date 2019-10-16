@@ -42,6 +42,8 @@ export class Client implements ClientData {
     if (await a.can(tx, `${realm}:client.*:${action}`)) {
       return true;
     }
+
+    return false;
   }
 
   public grants(tx: PoolClient, refresh: boolean = true): Promise<Grant[]> {

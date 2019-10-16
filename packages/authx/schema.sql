@@ -74,12 +74,6 @@ CREATE TABLE authx.client_record (
 
 CREATE UNIQUE INDEX ON authx.client_record USING BTREE (entity_id) WHERE replacement_record_id IS NULL;
 
-CREATE TABLE authx.client_record_user (
-  client_record_id UUID NOT NULL REFERENCES authx.client_record,
-  user_id UUID REFERENCES authx.user,
-  PRIMARY KEY(client_record_id, user_id)
-);
-
 
 
 
