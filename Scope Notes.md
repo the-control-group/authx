@@ -1,7 +1,7 @@
 Conditions to watch out for:
 
 - a user who has `write.scopes` on a role to which they are not assigned, and any scopes for a user other than self
-- or `write.assignments` on any role to which they are not assigned
+- or `write.users` on any role to which they are not assigned
 
 ## Flows
 
