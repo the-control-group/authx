@@ -1,11 +1,19 @@
 import v4 from "uuid/v4";
-import { isSuperset, isStrictSuperset } from "@authx/scopes";
+
+import { getIntersection, simplify } from "@authx/scopes";
 import { GraphQLFieldConfig, GraphQLList, GraphQLNonNull } from "graphql";
 
 import { Context } from "../../Context";
 import { GraphQLRole } from "../GraphQLRole";
 import { Role } from "../../model";
-import { ForbiddenError, ConflictError, NotFoundError } from "../../errors";
+import { makeAdministrationScopes } from "../../util/makeAdministrationScopes";
+import { validateIdFormat } from "../../util/validateIdFormat";
+import {
+  ForbiddenError,
+  ConflictError,
+  NotFoundError,
+  ValidationError
+} from "../../errors";
 import { GraphQLCreateRoleInput } from "./GraphQLCreateRoleInput";
 
 export const createRoles: GraphQLFieldConfig<
@@ -18,6 +26,10 @@ export const createRoles: GraphQLFieldConfig<
       description: string;
       scopes: string[];
       userIds: string[];
+      administration: {
+        roleId: string;
+        scopes: string[];
+      }[];
     }[];
   },
   Context
@@ -39,24 +51,29 @@ export const createRoles: GraphQLFieldConfig<
     }
 
     return args.roles.map(async input => {
+      if (typeof input.id === "string" && !validateIdFormat(input.id)) {
+        throw new ValidationError("The id is an invalid ID.");
+      }
+
+      for (const userId of input.userIds) {
+        if (!validateIdFormat(userId)) {
+          throw new ValidationError("A userId is an invalid ID.");
+        }
+      }
+
+      for (const { roleId } of input.administration) {
+        if (!validateIdFormat(roleId)) {
+          throw new ValidationError(
+            "An administration roleId is an invalid ID."
+          );
+        }
+      }
+
       const tx = await pool.connect();
       try {
-        if (
-          // can create any roles
-          !(await a.can(tx, `${realm}:role.*.*:write.*`)) &&
-          // can create roles with equal access
-          !(
-            (await a.can(tx, `${realm}:role.equal.*:write.*`)) &&
-            isSuperset(await (await a.user(tx)).access(tx), input.scopes)
-          ) &&
-          // can create roles with lesser access
-          !(
-            (await a.can(tx, `${realm}:role.equal.lesser:write.*`)) &&
-            isStrictSuperset(await (await a.user(tx)).access(tx), input.scopes)
-          )
-        ) {
+        if (!(await a.can(tx, `${realm}:grant.:write.create`))) {
           throw new ForbiddenError(
-            "You do not have permission to create a role."
+            "You do not have permission to create roles."
           );
         }
 
@@ -76,6 +93,61 @@ export const createRoles: GraphQLFieldConfig<
           }
 
           const id = v4();
+
+          const possibleAdministrationScopes = makeAdministrationScopes(
+            await a.access(tx),
+            realm,
+            "role",
+            id,
+            [
+              "read.basic",
+              "read.scopes",
+              "read.users",
+              "write.basic",
+              "write.scopes",
+              "write.users"
+            ]
+          );
+
+          let selfAdministrationScopes: string[] = [];
+
+          // Add administration scopes.
+          for (const { roleId, scopes } of input.administration) {
+            // The role designates itself for administration.
+            if (roleId === id) {
+              selfAdministrationScopes = [
+                ...selfAdministrationScopes,
+                ...getIntersection(possibleAdministrationScopes, scopes)
+              ];
+              continue;
+            }
+
+            // Make sure we have permission to add scopes to the role.
+            const role = await Role.read(tx, roleId, { forUpdate: true });
+            if (!role.can(tx, "write.scopes")) {
+              throw new ForbiddenError(
+                `You do not have permission to modify the scopes of role ${roleId}.`
+              );
+            }
+
+            // Update the role.
+            await Role.write(
+              tx,
+              {
+                ...role,
+                scopes: simplify([
+                  ...role.scopes,
+                  ...getIntersection(possibleAdministrationScopes, scopes)
+                ])
+              },
+              {
+                recordId: v4(),
+                createdByAuthorizationId: a.id,
+                createdAt: new Date()
+              }
+            );
+          }
+
           const role = await Role.write(
             tx,
             {
@@ -83,7 +155,7 @@ export const createRoles: GraphQLFieldConfig<
               enabled: input.enabled,
               name: input.name,
               description: input.description,
-              scopes: input.scopes,
+              scopes: simplify([...input.scopes, ...selfAdministrationScopes]),
               userIds: input.userIds
             },
             {
