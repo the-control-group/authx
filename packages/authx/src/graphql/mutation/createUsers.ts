@@ -1,13 +1,19 @@
 import v4 from "uuid/v4";
 import { GraphQLFieldConfig, GraphQLNonNull, GraphQLList } from "graphql";
-import { getIntersection, simplify } from "@authx/scopes";
+import { getIntersection, simplify, validate } from "@authx/scopes";
 
 import { Context } from "../../Context";
 import { GraphQLUser } from "../GraphQLUser";
 import { User, UserType, Role } from "../../model";
-import { makeAdministrationScopes } from "../../util/makeAdministrationScopes";
 
-import { ForbiddenError, ConflictError, NotFoundError } from "../../errors";
+import { makeAdministrationScopes } from "../../util/makeAdministrationScopes";
+import { validateIdFormat } from "../../util/validateIdFormat";
+import {
+  ForbiddenError,
+  ConflictError,
+  NotFoundError,
+  ValidationError
+} from "../../errors";
 import { GraphQLCreateUserInput } from "./GraphQLCreateUserInput";
 
 export const createUsers: GraphQLFieldConfig<
@@ -43,6 +49,28 @@ export const createUsers: GraphQLFieldConfig<
     }
 
     return args.users.map(async input => {
+      // Validate `id`.
+      if (typeof input.id === "string" && !validateIdFormat(input.id)) {
+        throw new ValidationError("The provided `id` is an invalid ID.");
+      }
+
+      // Validate `administration`.
+      for (const { roleId, scopes } of input.administration) {
+        if (!validateIdFormat(roleId)) {
+          throw new ValidationError(
+            "The provided `administration` list contains a `roleId` that is an invalid ID."
+          );
+        }
+
+        for (const scope of scopes) {
+          if (!validate(scope)) {
+            throw new ValidationError(
+              "The provided `administration` list contains a `scopes` list with an invalid scope."
+            );
+          }
+        }
+      }
+
       const tx = await pool.connect();
       try {
         // can create a new user

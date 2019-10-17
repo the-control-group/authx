@@ -5,7 +5,9 @@ import {
   Context,
   Credential,
   ForbiddenError,
-  NotFoundError
+  NotFoundError,
+  ValidationError,
+  validateIdFormat
 } from "@authx/authx";
 import { OpenIdCredential } from "../../model";
 import { GraphQLOpenIdCredential } from "../GraphQLOpenIdCredential";
@@ -45,6 +47,11 @@ export const updateOpenIdCredentials: GraphQLFieldConfig<
     }
 
     return args.credentials.map(async input => {
+      // Validate `id`.
+      if (!validateIdFormat(input.id)) {
+        throw new ValidationError("The provided `id` is an invalid ID.");
+      }
+
       const tx = await pool.connect();
       try {
         await tx.query("BEGIN DEFERRABLE");

@@ -8,10 +8,12 @@ import {
   ForbiddenError,
   ConflictError,
   NotFoundError,
+  ValidationError,
   Role,
-  makeAdministrationScopes
+  makeAdministrationScopes,
+  validateIdFormat
 } from "@authx/authx";
-import { getIntersection, simplify } from "@authx/scopes";
+import { getIntersection, simplify, validate } from "@authx/scopes";
 import { EmailCredential, EmailAuthority } from "../../model";
 import { GraphQLEmailCredential } from "../GraphQLEmailCredential";
 import { substitute } from "../../substitute";
@@ -61,6 +63,40 @@ export const createEmailCredentials: GraphQLFieldConfig<
     }
 
     return args.credentials.map(async input => {
+      // Validate `id`.
+      if (typeof input.id === "string" && !validateIdFormat(input.id)) {
+        throw new ValidationError("The provided `id` is an invalid ID.");
+      }
+
+      // Validate `authorityId`.
+      if (!validateIdFormat(input.authorityId)) {
+        throw new ValidationError(
+          "The provided `authorityId` is an invalid ID."
+        );
+      }
+
+      // Validate `userId`.
+      if (!validateIdFormat(input.userId)) {
+        throw new ValidationError("The provided `userId` is an invalid ID.");
+      }
+
+      // Validate `administration`.
+      for (const { roleId, scopes } of input.administration) {
+        if (!validateIdFormat(roleId)) {
+          throw new ValidationError(
+            "The provided `administration` list contains a `roleId` that is an invalid ID."
+          );
+        }
+
+        for (const scope of scopes) {
+          if (!validate(scope)) {
+            throw new ValidationError(
+              "The provided `administration` list contains a `scopes` list with an invalid scope."
+            );
+          }
+        }
+      }
+
       const tx = await pool.connect();
       try {
         await tx.query("BEGIN DEFERRABLE");
@@ -251,6 +287,41 @@ export const createEmailCredentials: GraphQLFieldConfig<
             createdAt: new Date()
           }
         );
+
+        const possibleAdministrationScopes = makeAdministrationScopes(
+          await a.access(tx),
+          realm,
+          "grant",
+          id,
+          ["read.basic", "read.details", "write.basic", "write.details"]
+        );
+
+        // Add administration scopes.
+        for (const { roleId, scopes } of input.administration) {
+          const role = await Role.read(tx, roleId, { forUpdate: true });
+
+          if (!role.can(tx, "write.scopes")) {
+            throw new ForbiddenError(
+              `You do not have permission to modify the scopes of role ${roleId}.`
+            );
+          }
+
+          await Role.write(
+            tx,
+            {
+              ...role,
+              scopes: simplify([
+                ...role.scopes,
+                ...getIntersection(possibleAdministrationScopes, scopes)
+              ])
+            },
+            {
+              recordId: v4(),
+              createdByAuthorizationId: a.id,
+              createdAt: new Date()
+            }
+          );
+        }
 
         await tx.query("COMMIT");
         return credential;

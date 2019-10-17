@@ -6,10 +6,12 @@ import {
   ForbiddenError,
   ConflictError,
   NotFoundError,
+  ValidationError,
   Role,
-  makeAdministrationScopes
+  makeAdministrationScopes,
+  validateIdFormat
 } from "@authx/authx";
-import { getIntersection, simplify } from "@authx/scopes";
+import { getIntersection, simplify, validate } from "@authx/scopes";
 import { EmailAuthority } from "../../model";
 import { GraphQLEmailAuthority } from "../GraphQLEmailAuthority";
 import { GraphQLCreateEmailAuthorityInput } from "./GraphQLCreateEmailAuthorityInput";
@@ -58,6 +60,28 @@ export const createEmailAuthorities: GraphQLFieldConfig<
     }
 
     return args.authorities.map(async input => {
+      // Validate `id`.
+      if (typeof input.id === "string" && !validateIdFormat(input.id)) {
+        throw new ValidationError("The provided `id` is an invalid ID.");
+      }
+
+      // Validate `administration`.
+      for (const { roleId, scopes } of input.administration) {
+        if (!validateIdFormat(roleId)) {
+          throw new ValidationError(
+            "The provided `administration` list contains a `roleId` that is an invalid ID."
+          );
+        }
+
+        for (const scope of scopes) {
+          if (!validate(scope)) {
+            throw new ValidationError(
+              "The provided `administration` list contains a `scopes` list with an invalid scope."
+            );
+          }
+        }
+      }
+
       const tx = await pool.connect();
       try {
         if (!(await a.can(tx, `${realm}:authority.:write.create`))) {

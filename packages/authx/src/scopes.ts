@@ -273,8 +273,6 @@ export default (
         "read.scopes": "read the scopes of",
         "read.secrets": "read the secrets of",
         "write.basic": "write basic fields for",
-        "write.scopes": "add and remove scopes for",
-        "write.secrets": "write secrets for",
         "write.create": "create",
         "write.*": "write all fields for, or create",
         "*.*": "read and write all fields for, or create"

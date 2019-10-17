@@ -1,14 +1,20 @@
 import v4 from "uuid/v4";
 import { randomBytes } from "crypto";
 
-import { getIntersection, simplify } from "@authx/scopes";
+import { getIntersection, simplify, validate } from "@authx/scopes";
 import { GraphQLFieldConfig, GraphQLList, GraphQLNonNull } from "graphql";
 
 import { Context } from "../../Context";
 import { GraphQLGrant } from "../GraphQLGrant";
 import { Grant, Role } from "../../model";
 import { makeAdministrationScopes } from "../../util/makeAdministrationScopes";
-import { ForbiddenError, ConflictError, NotFoundError } from "../../errors";
+import { validateIdFormat } from "../../util/validateIdFormat";
+import {
+  ForbiddenError,
+  ConflictError,
+  NotFoundError,
+  ValidationError
+} from "../../errors";
 import { GraphQLCreateGrantInput } from "./GraphQLCreateGrantInput";
 
 export const createGrants: GraphQLFieldConfig<
@@ -45,6 +51,47 @@ export const createGrants: GraphQLFieldConfig<
     }
 
     return args.grants.map(async input => {
+      // Validate `id`.
+      if (typeof input.id === "string" && !validateIdFormat(input.id)) {
+        throw new ValidationError("The provided `id` is an invalid ID.");
+      }
+
+      // Validate `userId`.
+      if (!validateIdFormat(input.userId)) {
+        throw new ValidationError("The provided `userId` is an invalid ID.");
+      }
+
+      // Validate `clientId`.
+      if (!validateIdFormat(input.clientId)) {
+        throw new ValidationError("The provided `clientId` is an invalid ID.");
+      }
+
+      // Validate `scopes`.
+      for (const scope of input.scopes) {
+        if (!validate(scope)) {
+          throw new ValidationError(
+            "The provided `scopes` list contains an invalid scope."
+          );
+        }
+      }
+
+      // Validate `administration`.
+      for (const { roleId, scopes } of input.administration) {
+        if (!validateIdFormat(roleId)) {
+          throw new ValidationError(
+            "The provided `administration` list contains a `roleId` that is an invalid ID."
+          );
+        }
+
+        for (const scope of scopes) {
+          if (!validate(scope)) {
+            throw new ValidationError(
+              "The provided `administration` list contains a `scopes` list with an invalid scope."
+            );
+          }
+        }
+      }
+
       const tx = await pool.connect();
       try {
         if (

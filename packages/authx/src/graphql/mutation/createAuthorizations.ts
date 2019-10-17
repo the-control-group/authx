@@ -1,14 +1,20 @@
 import v4 from "uuid/v4";
 import { randomBytes } from "crypto";
 
-import { getIntersection, simplify } from "@authx/scopes";
+import { getIntersection, simplify, validate } from "@authx/scopes";
 import { GraphQLFieldConfig, GraphQLList, GraphQLNonNull } from "graphql";
 
 import { Context } from "../../Context";
 import { GraphQLAuthorization } from "../GraphQLAuthorization";
 import { Authorization, Grant, Role } from "../../model";
 import { makeAdministrationScopes } from "../../util/makeAdministrationScopes";
-import { ForbiddenError, ConflictError, NotFoundError } from "../../errors";
+import { validateIdFormat } from "../../util/validateIdFormat";
+import {
+  ForbiddenError,
+  ConflictError,
+  NotFoundError,
+  ValidationError
+} from "../../errors";
 import { GraphQLCreateAuthorizationInput } from "./GraphQLCreateAuthorizationInput";
 
 export const createAuthorizations: GraphQLFieldConfig<
@@ -47,6 +53,50 @@ export const createAuthorizations: GraphQLFieldConfig<
     }
 
     return args.authorizations.map(async input => {
+      // Validate `id`.
+      if (typeof input.id === "string" && !validateIdFormat(input.id)) {
+        throw new ValidationError("The provided `id` is an invalid ID.");
+      }
+
+      // Validate `userId`.
+      if (!validateIdFormat(input.userId)) {
+        throw new ValidationError("The provided `userId` is an invalid ID.");
+      }
+
+      // Validate `grantId`.
+      if (
+        typeof input.grantId === "string" &&
+        !validateIdFormat(input.grantId)
+      ) {
+        throw new ValidationError("The provided `grantId` is an invalid ID.");
+      }
+
+      // Validate `scopes`.
+      for (const scope of input.scopes) {
+        if (!validate(scope)) {
+          throw new ValidationError(
+            "The provided `scopes` list contains an invalid scope."
+          );
+        }
+      }
+
+      // Validate `administration`.
+      for (const { roleId, scopes } of input.administration) {
+        if (!validateIdFormat(roleId)) {
+          throw new ValidationError(
+            "The provided `administration` list contains a `roleId` that is an invalid ID."
+          );
+        }
+
+        for (const scope of scopes) {
+          if (!validate(scope)) {
+            throw new ValidationError(
+              "The provided `administration` list contains a `scopes` list with an invalid scope."
+            );
+          }
+        }
+      }
+
       const tx = await pool.connect();
       try {
         if (
@@ -116,14 +166,7 @@ export const createAuthorizations: GraphQLFieldConfig<
             realm,
             "authorization",
             id,
-            [
-              "read.basic",
-              "read.secrets",
-              "read.scopes",
-              "write.basic",
-              "write.secrets",
-              "write.scopes"
-            ]
+            ["read.basic", "read.secrets", "read.scopes", "write.basic"]
           );
 
           // Add administration scopes.

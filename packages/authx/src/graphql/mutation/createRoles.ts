@@ -1,6 +1,6 @@
 import v4 from "uuid/v4";
 
-import { getIntersection, simplify } from "@authx/scopes";
+import { getIntersection, simplify, validate } from "@authx/scopes";
 import { GraphQLFieldConfig, GraphQLList, GraphQLNonNull } from "graphql";
 
 import { Context } from "../../Context";
@@ -51,21 +51,43 @@ export const createRoles: GraphQLFieldConfig<
     }
 
     return args.roles.map(async input => {
+      // Validate `id`.
       if (typeof input.id === "string" && !validateIdFormat(input.id)) {
-        throw new ValidationError("The id is an invalid ID.");
+        throw new ValidationError("The provided `id` is an invalid ID.");
       }
 
-      for (const userId of input.userIds) {
-        if (!validateIdFormat(userId)) {
-          throw new ValidationError("A userId is an invalid ID.");
+      // Validate `scopes`.
+      for (const scope of input.scopes) {
+        if (!validate(scope)) {
+          throw new ValidationError(
+            "The provided `scopes` list contains an invalid scope."
+          );
         }
       }
 
-      for (const { roleId } of input.administration) {
+      // Validate `userIds`.
+      for (const userId of input.userIds) {
+        if (!validateIdFormat(userId)) {
+          throw new ValidationError(
+            "The provided `userIds` list contains an invalid ID."
+          );
+        }
+      }
+
+      // Validate `administration`.
+      for (const { roleId, scopes } of input.administration) {
         if (!validateIdFormat(roleId)) {
           throw new ValidationError(
-            "An administration roleId is an invalid ID."
+            "The provided `administration` list contains a `roleId` that is an invalid ID."
           );
+        }
+
+        for (const scope of scopes) {
+          if (!validate(scope)) {
+            throw new ValidationError(
+              "The provided `administration` list contains a `scopes` list with an invalid scope."
+            );
+          }
         }
       }
 

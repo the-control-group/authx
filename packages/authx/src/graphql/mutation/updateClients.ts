@@ -1,11 +1,13 @@
 import v4 from "uuid/v4";
+import { URL } from "url";
 import { randomBytes } from "crypto";
 import { GraphQLFieldConfig, GraphQLList, GraphQLNonNull } from "graphql";
 
 import { Context } from "../../Context";
 import { GraphQLClient } from "../GraphQLClient";
 import { Client } from "../../model";
-import { ForbiddenError } from "../../errors";
+import { validateIdFormat } from "../../util/validateIdFormat";
+import { ForbiddenError, ValidationError } from "../../errors";
 import { GraphQLUpdateClientInput } from "./GraphQLUpdateClientInput";
 
 export const updateClients: GraphQLFieldConfig<
@@ -41,6 +43,24 @@ export const updateClients: GraphQLFieldConfig<
     }
 
     return args.clients.map(async input => {
+      // Validate `id`.
+      if (!validateIdFormat(input.id)) {
+        throw new ValidationError("The provided `id` is an invalid ID.");
+      }
+
+      // Validate `addUrls`.
+      if (Array.isArray(input.addUrls)) {
+        for (const url of input.addUrls) {
+          try {
+            new URL(url);
+          } catch (error) {
+            throw new ValidationError(
+              "The provided `addUrls` list contains an invalid URL."
+            );
+          }
+        }
+      }
+
       const tx = await pool.connect();
       try {
         await tx.query("BEGIN DEFERRABLE");

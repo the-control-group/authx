@@ -8,10 +8,12 @@ import {
   ForbiddenError,
   NotFoundError,
   ConflictError,
+  ValidationError,
   Role,
-  makeAdministrationScopes
+  makeAdministrationScopes,
+  validateIdFormat
 } from "@authx/authx";
-import { getIntersection, simplify } from "@authx/scopes";
+import { getIntersection, simplify, validate } from "@authx/scopes";
 import { PasswordCredential, PasswordAuthority } from "../../model";
 import { GraphQLPasswordCredential } from "../GraphQLPasswordCredential";
 import { GraphQLCreatePasswordCredentialInput } from "./GraphQLCreatePasswordCredentialInput";
@@ -59,6 +61,40 @@ export const createPasswordCredentials: GraphQLFieldConfig<
     }
 
     return args.credentials.map(async input => {
+      // Validate `id`.
+      if (typeof input.id === "string" && !validateIdFormat(input.id)) {
+        throw new ValidationError("The provided `id` is an invalid ID.");
+      }
+
+      // Validate `authorityId`.
+      if (!validateIdFormat(input.authorityId)) {
+        throw new ValidationError(
+          "The provided `authorityId` is an invalid ID."
+        );
+      }
+
+      // Validate `userId`.
+      if (!validateIdFormat(input.userId)) {
+        throw new ValidationError("The provided `userId` is an invalid ID.");
+      }
+
+      // Validate `administration`.
+      for (const { roleId, scopes } of input.administration) {
+        if (!validateIdFormat(roleId)) {
+          throw new ValidationError(
+            "The provided `administration` list contains a `roleId` that is an invalid ID."
+          );
+        }
+
+        for (const scope of scopes) {
+          if (!validate(scope)) {
+            throw new ValidationError(
+              "The provided `administration` list contains a `scopes` list with an invalid scope."
+            );
+          }
+        }
+      }
+
       const tx = await pool.connect();
       try {
         if (

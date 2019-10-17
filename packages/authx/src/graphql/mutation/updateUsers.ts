@@ -4,7 +4,8 @@ import { GraphQLFieldConfig, GraphQLNonNull, GraphQLList } from "graphql";
 import { Context } from "../../Context";
 import { GraphQLUser } from "../GraphQLUser";
 import { User } from "../../model";
-import { ForbiddenError } from "../../errors";
+import { validateIdFormat } from "../../util/validateIdFormat";
+import { ForbiddenError, ValidationError } from "../../errors";
 import { GraphQLUpdateUserInput } from "./GraphQLUpdateUserInput";
 
 export const updateUsers: GraphQLFieldConfig<
@@ -38,6 +39,12 @@ export const updateUsers: GraphQLFieldConfig<
 
     return args.users.map(async input => {
       const tx = await pool.connect();
+
+      // Validate `id`.
+      if (!validateIdFormat(input.id)) {
+        throw new ValidationError("The provided `id` is an invalid ID.");
+      }
+
       try {
         await tx.query("BEGIN DEFERRABLE");
 

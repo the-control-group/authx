@@ -1,11 +1,12 @@
 import v4 from "uuid/v4";
-import { isSuperset } from "@authx/scopes";
+import { isSuperset, validate } from "@authx/scopes";
 import { GraphQLFieldConfig, GraphQLList, GraphQLNonNull } from "graphql";
 
 import { Context } from "../../Context";
 import { GraphQLRole } from "../GraphQLRole";
 import { Role } from "../../model";
-import { ForbiddenError } from "../../errors";
+import { validateIdFormat } from "../../util/validateIdFormat";
+import { ForbiddenError, ValidationError } from "../../errors";
 import { GraphQLUpdateRoleInput } from "./GraphQLUpdateRoleInput";
 
 export const updateRoles: GraphQLFieldConfig<
@@ -40,6 +41,33 @@ export const updateRoles: GraphQLFieldConfig<
     }
 
     return args.roles.map(async input => {
+      // Validate `id`.
+      if (!validateIdFormat(input.id)) {
+        throw new ValidationError("The provided `id` is an invalid ID.");
+      }
+
+      // Validate `scopes`.
+      if (Array.isArray(input.scopes)) {
+        for (const scope of input.scopes) {
+          if (!validate(scope)) {
+            throw new ValidationError(
+              "The provided `scopes` list contains an invalid scope."
+            );
+          }
+        }
+      }
+
+      // Validate `userIds`.
+      if (Array.isArray(input.assignUserIds)) {
+        for (const userId of input.assignUserIds) {
+          if (!validateIdFormat(userId)) {
+            throw new ValidationError(
+              "The provided `assignUserIds` list contains an invalid ID."
+            );
+          }
+        }
+      }
+
       const tx = await pool.connect();
       try {
         await tx.query("BEGIN DEFERRABLE");

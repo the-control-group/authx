@@ -24,6 +24,7 @@ export * from "./StrategyCollection";
 export * from "./Config";
 export * from "./Context";
 export * from "./util/makeAdministrationScopes";
+export * from "./util/validateIdFormat";
 
 export class AuthX<
   StateT extends any = any,

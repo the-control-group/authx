@@ -1,11 +1,13 @@
 import v4 from "uuid/v4";
 import { randomBytes } from "crypto";
+import { validate } from "@authx/scopes";
 import { GraphQLFieldConfig, GraphQLList, GraphQLNonNull } from "graphql";
 
 import { Context } from "../../Context";
 import { GraphQLGrant } from "../GraphQLGrant";
 import { Grant } from "../../model";
-import { ForbiddenError } from "../../errors";
+import { validateIdFormat } from "../../util/validateIdFormat";
+import { ForbiddenError, ValidationError } from "../../errors";
 import { GraphQLUpdateGrantInput } from "./GraphQLUpdateGrantInput";
 
 export const updateGrants: GraphQLFieldConfig<
@@ -40,6 +42,22 @@ export const updateGrants: GraphQLFieldConfig<
     }
 
     return args.grants.map(async input => {
+      // Validate `id`.
+      if (!validateIdFormat(input.id)) {
+        throw new ValidationError("The provided `id` is an invalid ID.");
+      }
+
+      // Validate `scopes`.
+      if (Array.isArray(input.scopes)) {
+        for (const scope of input.scopes) {
+          if (!validate(scope)) {
+            throw new ValidationError(
+              "The provided `scopes` list contains an invalid scope."
+            );
+          }
+        }
+      }
+
       const tx = await pool.connect();
       try {
         await tx.query("BEGIN DEFERRABLE");

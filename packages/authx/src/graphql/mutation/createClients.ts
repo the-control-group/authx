@@ -1,14 +1,20 @@
 import v4 from "uuid/v4";
+import { URL } from "url";
 import { randomBytes } from "crypto";
 import { GraphQLFieldConfig, GraphQLList, GraphQLNonNull } from "graphql";
-import { getIntersection, simplify } from "@authx/scopes";
+import { getIntersection, simplify, validate } from "@authx/scopes";
 
 import { Context } from "../../Context";
 import { GraphQLClient } from "../GraphQLClient";
 import { Client, Role } from "../../model";
 import { makeAdministrationScopes } from "../../util/makeAdministrationScopes";
-
-import { ForbiddenError, ConflictError, NotFoundError } from "../../errors";
+import { validateIdFormat } from "../../util/validateIdFormat";
+import {
+  ForbiddenError,
+  ConflictError,
+  NotFoundError,
+  ValidationError
+} from "../../errors";
 import { GraphQLCreateClientInput } from "./GraphQLCreateClientInput";
 
 export const createClients: GraphQLFieldConfig<
@@ -45,6 +51,39 @@ export const createClients: GraphQLFieldConfig<
     }
 
     return args.clients.map(async input => {
+      // Validate `id`.
+      if (typeof input.id === "string" && !validateIdFormat(input.id)) {
+        throw new ValidationError("The provided `id` is an invalid ID.");
+      }
+
+      // Validate `urls`.
+      for (const url of input.urls) {
+        try {
+          new URL(url);
+        } catch (error) {
+          throw new ValidationError(
+            "The provided `urls` list contains an invalid URL."
+          );
+        }
+      }
+
+      // Validate `administration`.
+      for (const { roleId, scopes } of input.administration) {
+        if (!validateIdFormat(roleId)) {
+          throw new ValidationError(
+            "The provided `administration` list contains a `roleId` that is an invalid ID."
+          );
+        }
+
+        for (const scope of scopes) {
+          if (!validate(scope)) {
+            throw new ValidationError(
+              "The provided `administration` list contains a `scopes` list with an invalid scope."
+            );
+          }
+        }
+      }
+
       const tx = await pool.connect();
       try {
         if (!(await a.can(tx, `${realm}:client.:write.create`))) {
