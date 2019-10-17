@@ -3,8 +3,11 @@ import {
   GraphQLNonNull,
   GraphQLString,
   GraphQLBoolean,
-  GraphQLInputObjectType
+  GraphQLInputObjectType,
+  GraphQLList
 } from "graphql";
+
+import { GraphQLAdministrationInput } from "@authx/authx";
 
 export const GraphQLCreateEmailCredentialInput = new GraphQLInputObjectType({
   name: "CreateEmailCredentialInput",
@@ -33,6 +36,12 @@ export const GraphQLCreateEmailCredentialInput = new GraphQLInputObjectType({
       type: GraphQLString,
       description:
         "This is a unique code that was sent by the authority to prove control of the email address."
+    },
+    administration: {
+      type: new GraphQLList(new GraphQLNonNull(GraphQLAdministrationInput)),
+      description:
+        "An optional list of roles to which scopes will be added for the purpose of administering the created credential.",
+      defaultValue: []
     }
   })
 });

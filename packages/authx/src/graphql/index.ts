@@ -15,6 +15,7 @@ import { GraphQLAuthorization } from "./GraphQLAuthorization";
 import { GraphQLUser } from "./GraphQLUser";
 import { GraphQLUserType } from "./GraphQLUserType";
 
+export * from "./GraphQLAdministrationInput";
 export * from "./GraphQLAuthority";
 export * from "./GraphQLCredential";
 export * from "./GraphQLAuthority";

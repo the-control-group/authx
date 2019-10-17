@@ -7,8 +7,11 @@ import {
   Authority,
   ForbiddenError,
   NotFoundError,
-  ConflictError
+  ConflictError,
+  Role,
+  makeAdministrationScopes
 } from "@authx/authx";
+import { getIntersection, simplify } from "@authx/scopes";
 import { PasswordCredential, PasswordAuthority } from "../../model";
 import { GraphQLPasswordCredential } from "../GraphQLPasswordCredential";
 import { GraphQLCreatePasswordCredentialInput } from "./GraphQLCreatePasswordCredentialInput";
@@ -22,6 +25,10 @@ export const createPasswordCredentials: GraphQLFieldConfig<
       authorityId: string;
       userId: string;
       password: string;
+      administration: {
+        roleId: string;
+        scopes: string[];
+      }[];
     }[];
   },
   Context
@@ -54,58 +61,108 @@ export const createPasswordCredentials: GraphQLFieldConfig<
     return args.credentials.map(async input => {
       const tx = await pool.connect();
       try {
-        await tx.query("BEGIN DEFERRABLE");
-
-        // Make sure the ID isn't already in use.
-        if (input.id) {
-          try {
-            await PasswordCredential.read(tx, input.id, { forUpdate: true });
-            throw new ConflictError();
-          } catch (error) {
-            if (!(error instanceof NotFoundError)) {
-              throw error;
-            }
-          }
-        }
-
-        const id = v4();
-        const authority = await Authority.read(
-          tx,
-          input.authorityId,
-          authorityMap
-        );
-        if (!(authority instanceof PasswordAuthority)) {
-          throw new NotFoundError("No password authority exists with this ID.");
-        }
-
-        const data = new PasswordCredential({
-          id,
-          enabled: input.enabled,
-          authorityId: input.authorityId,
-          userId: input.userId,
-          authorityUserId: input.userId,
-          details: {
-            hash: await hash(input.password, authority.details.rounds)
-          }
-        });
-
-        if (!(await data.isAccessibleBy(realm, a, tx, "write.*"))) {
+        if (
+          !(await a.can(tx, `${realm}:credential.:write.create`)) &&
+          !(await a.can(
+            tx,
+            `${realm}:user.${input.userId}.credentials:write.create`
+          )) &&
+          !(await a.can(
+            tx,
+            `${realm}:authority.${input.authorityId}.credentials:write.create`
+          ))
+        ) {
           throw new ForbiddenError(
             "You do not have permission to create this credential."
           );
         }
+        try {
+          await tx.query("BEGIN DEFERRABLE");
 
-        const credential = await PasswordCredential.write(tx, data, {
-          recordId: v4(),
-          createdByAuthorizationId: a.id,
-          createdAt: new Date()
-        });
+          // Make sure the ID isn't already in use.
+          if (input.id) {
+            try {
+              await PasswordCredential.read(tx, input.id, { forUpdate: true });
+              throw new ConflictError();
+            } catch (error) {
+              if (!(error instanceof NotFoundError)) {
+                throw error;
+              }
+            }
+          }
 
-        await tx.query("COMMIT");
-        return credential;
-      } catch (error) {
-        await tx.query("ROLLBACK");
-        throw error;
+          const id = v4();
+          const authority = await Authority.read(
+            tx,
+            input.authorityId,
+            authorityMap
+          );
+          if (!(authority instanceof PasswordAuthority)) {
+            throw new NotFoundError(
+              "No password authority exists with this ID."
+            );
+          }
+
+          const credential = await PasswordCredential.write(
+            tx,
+            {
+              id,
+              enabled: input.enabled,
+              authorityId: input.authorityId,
+              userId: input.userId,
+              authorityUserId: input.userId,
+              details: {
+                hash: await hash(input.password, authority.details.rounds)
+              }
+            },
+            {
+              recordId: v4(),
+              createdByAuthorizationId: a.id,
+              createdAt: new Date()
+            }
+          );
+
+          const possibleAdministrationScopes = makeAdministrationScopes(
+            await a.access(tx),
+            realm,
+            "grant",
+            id,
+            ["read.basic", "read.details", "write.basic", "write.details"]
+          );
+
+          // Add administration scopes.
+          for (const { roleId, scopes } of input.administration) {
+            const role = await Role.read(tx, roleId, { forUpdate: true });
+
+            if (!role.can(tx, "write.scopes")) {
+              throw new ForbiddenError(
+                `You do not have permission to modify the scopes of role ${roleId}.`
+              );
+            }
+
+            await Role.write(
+              tx,
+              {
+                ...role,
+                scopes: simplify([
+                  ...role.scopes,
+                  ...getIntersection(possibleAdministrationScopes, scopes)
+                ])
+              },
+              {
+                recordId: v4(),
+                createdByAuthorizationId: a.id,
+                createdAt: new Date()
+              }
+            );
+          }
+
+          await tx.query("COMMIT");
+          return credential;
+        } catch (error) {
+          await tx.query("ROLLBACK");
+          throw error;
+        }
       } finally {
         tx.release();
       }

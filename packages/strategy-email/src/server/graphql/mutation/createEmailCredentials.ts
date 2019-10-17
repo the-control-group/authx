@@ -7,8 +7,11 @@ import {
   Authority,
   ForbiddenError,
   ConflictError,
-  NotFoundError
+  NotFoundError,
+  Role,
+  makeAdministrationScopes
 } from "@authx/authx";
+import { getIntersection, simplify } from "@authx/scopes";
 import { EmailCredential, EmailAuthority } from "../../model";
 import { GraphQLEmailCredential } from "../GraphQLEmailCredential";
 import { substitute } from "../../substitute";
@@ -24,6 +27,10 @@ export const createEmailCredentials: GraphQLFieldConfig<
       authorityId: string;
       email: string;
       proof: null | string;
+      administration: {
+        roleId: string;
+        scopes: string[];
+      }[];
     }[];
   },
   Context
@@ -74,20 +81,12 @@ export const createEmailCredentials: GraphQLFieldConfig<
         const authority = await Authority.read(
           tx,
           input.authorityId,
-          authorityMap
+          authorityMap,
+          { forUpdate: true }
         );
         if (!(authority instanceof EmailAuthority)) {
           throw new NotFoundError("No email authority exists with this ID.");
         }
-
-        const data = new EmailCredential({
-          id,
-          enabled: input.enabled,
-          authorityId: input.authorityId,
-          userId: input.userId,
-          authorityUserId: input.email,
-          details: {}
-        });
 
         // Check if the email is used in a different credential
         const existingCredentials = await EmailCredential.read(
@@ -101,8 +100,9 @@ export const createEmailCredentials: GraphQLFieldConfig<
             AND enabled = TRUE
             AND authority_id = $1
             AND authority_user_id = $2
+          FOR UPDATE
           `,
-            [authority.id, data.authorityUserId]
+            [authority.id, input.email]
           )).rows.map(({ id }) => id)
         );
 
@@ -112,13 +112,28 @@ export const createEmailCredentials: GraphQLFieldConfig<
           );
         }
 
-        if (!(await a.can(tx, `${realm}:credential.user.*.*:write.*`))) {
-          if (!(await data.isAccessibleBy(realm, a, tx, "write.*"))) {
+        if (!(await a.can(tx, `${realm}:credential.:write.create`))) {
+          if (
+            !(await a.can(
+              tx,
+              `${realm}:user.${input.userId}.credentials:write.create`
+            )) &&
+            !(await a.can(
+              tx,
+              `${realm}:authority.${input.authorityId}.credentials:write.create`
+            ))
+          ) {
             throw new ForbiddenError(
               "You do not have permission to create this credential."
             );
           }
+        }
 
+        if (
+          !(await a.can(tx, `${realm}:credential.*:write.create`)) &&
+          !(await a.can(tx, `${realm}:authority.*.credentials:write.create`)) &&
+          !(await a.can(tx, `${realm}:user.*.credentials:write.create`))
+        ) {
           // The user doesn't have permission to change the credentials of all
           // users, but has passed a proof that she controls the email address, so
           // we can treat it as hers.
@@ -220,11 +235,22 @@ export const createEmailCredentials: GraphQLFieldConfig<
           );
         }
 
-        const credential = await EmailCredential.write(tx, data, {
-          recordId: v4(),
-          createdByAuthorizationId: a.id,
-          createdAt: new Date()
-        });
+        const credential = await EmailCredential.write(
+          tx,
+          {
+            id,
+            enabled: input.enabled,
+            authorityId: input.authorityId,
+            userId: input.userId,
+            authorityUserId: input.email,
+            details: {}
+          },
+          {
+            recordId: v4(),
+            createdByAuthorizationId: a.id,
+            createdAt: new Date()
+          }
+        );
 
         await tx.query("COMMIT");
         return credential;

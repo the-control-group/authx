@@ -3,8 +3,11 @@ import {
   GraphQLNonNull,
   GraphQLString,
   GraphQLBoolean,
-  GraphQLInputObjectType
+  GraphQLInputObjectType,
+  GraphQLList
 } from "graphql";
+
+import { GraphQLAdministrationInput } from "@authx/authx";
 
 export const GraphQLCreatePasswordCredentialInput = new GraphQLInputObjectType({
   name: "CreatePasswordCredentialInput",
@@ -25,6 +28,12 @@ export const GraphQLCreatePasswordCredentialInput = new GraphQLInputObjectType({
     password: {
       type: new GraphQLNonNull(GraphQLString),
       description: "The plaintext password to use for this credential."
+    },
+    administration: {
+      type: new GraphQLList(new GraphQLNonNull(GraphQLAdministrationInput)),
+      description:
+        "An optional list of roles to which scopes will be added for the purpose of administering the created credential.",
+      defaultValue: []
     }
   })
 });

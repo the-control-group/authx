@@ -11,8 +11,11 @@ import {
   NotFoundError,
   ValidationError,
   ConflictError,
-  AuthenticationError
+  AuthenticationError,
+  Role,
+  makeAdministrationScopes
 } from "@authx/authx";
+import { getIntersection, simplify } from "@authx/scopes";
 import { OpenIdCredential, OpenIdAuthority } from "../../model";
 import { GraphQLOpenIdCredential } from "../GraphQLOpenIdCredential";
 import { GraphQLCreateOpenIdCredentialInput } from "./GraphQLCreateOpenIdCredentialInput";
@@ -27,6 +30,10 @@ export const createOpenIdCredentials: GraphQLFieldConfig<
       authorityId: string;
       code: null | string;
       subject: null | string;
+      administration: {
+        roleId: string;
+        scopes: string[];
+      }[];
     }[];
   },
   Context
@@ -200,15 +207,6 @@ export const createOpenIdCredentials: GraphQLFieldConfig<
           throw new Error("No subject was provided.");
         }
 
-        const data = new OpenIdCredential({
-          id,
-          enabled: input.enabled,
-          authorityId: input.authorityId,
-          userId: input.userId,
-          authorityUserId: subject,
-          details: {}
-        });
-
         // Check if the openid is used in a different credential
         const existingCredentials = await OpenIdCredential.read(
           tx,
@@ -222,7 +220,7 @@ export const createOpenIdCredentials: GraphQLFieldConfig<
             AND authority_id = $1
             AND authority_user_id = $2
           `,
-            [authority.id, data.authorityUserId]
+            [authority.id, subject]
           )).rows.map(({ id }) => id)
         );
 
@@ -232,21 +230,35 @@ export const createOpenIdCredentials: GraphQLFieldConfig<
           );
         }
 
-        if (!(await a.can(tx, `${realm}:credential.user.*.*:write.*`))) {
-          if (!(await data.isAccessibleBy(realm, a, tx, "write.*"))) {
+        if (!(await a.can(tx, `${realm}:credential.:write.create`))) {
+          if (
+            !(await a.can(
+              tx,
+              `${realm}:user.${input.userId}.credentials:write.create`
+            )) &&
+            !(await a.can(
+              tx,
+              `${realm}:authority.${input.authorityId}.credentials:write.create`
+            ))
+          ) {
             throw new ForbiddenError(
               "You do not have permission to create this credential."
             );
           }
+        }
 
-          // The user doesn't have permission to change the credentials of all
-          // users, so in order to save this credential, she must prove control of
-          // the account with the OpenID provider.
-          if (!input.code) {
-            throw new ForbiddenError(
-              "You do not have permission to create this credential without passing a valid `code`."
-            );
-          }
+        // The user doesn't have permission to change the credentials of all
+        // users, so in order to save this credential, she must prove control of
+        // the account with the OpenID provider.
+        if (
+          !(await a.can(tx, `${realm}:credential.*:write.create`)) &&
+          !(await a.can(tx, `${realm}:authority.*.credentials:write.create`)) &&
+          !(await a.can(tx, `${realm}:user.*.credentials:write.create`)) &&
+          !input.code
+        ) {
+          throw new ForbiddenError(
+            "You do not have permission to create this credential without passing a valid `code`."
+          );
         }
 
         // Disable the conflicting credential
@@ -265,11 +277,22 @@ export const createOpenIdCredentials: GraphQLFieldConfig<
           );
         }
 
-        const credential = await OpenIdCredential.write(tx, data, {
-          recordId: v4(),
-          createdByAuthorizationId: a.id,
-          createdAt: new Date()
-        });
+        const credential = await OpenIdCredential.write(
+          tx,
+          {
+            id,
+            enabled: input.enabled,
+            authorityId: input.authorityId,
+            userId: input.userId,
+            authorityUserId: subject,
+            details: {}
+          },
+          {
+            recordId: v4(),
+            createdByAuthorizationId: a.id,
+            createdAt: new Date()
+          }
+        );
 
         await tx.query("COMMIT");
         return credential;
