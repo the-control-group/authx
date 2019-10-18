@@ -10,8 +10,8 @@
     "@types/form-data": "^2.5.0",
     "@types/graphql-api-koa": "^2.0.2",
     "@types/graphql-relay": "^0.4.11",
-    "@types/jsonwebtoken": "^8.3.4",
-    "@types/koa": "^2.0.50",
+    "@types/jsonwebtoken": "^8.3.5",
+    "@types/koa": "^2.0.51",
     "@types/koa-router": "^7.0.42",
     "@types/koa-send": "^4.1.2",
     "@types/pg": "^7.11.2",
@@ -23,7 +23,7 @@
     "graphql-playground-middleware-koa": "^1.6.12",
     "graphql-relay": "^0.6.0",
     "jsonwebtoken": "^8.5.0",
-    "koa": "^2.8.2",
+    "koa": "^2.10.0",
     "koa-body": "^4.1.1",
     "koa-router": "^7.4.0",
     "node-fetch": "^2.5.0",
@@ -32,15 +32,15 @@
   },
   "description": "",
   "devDependencies": {
-    "@typescript-eslint/eslint-plugin": "^2.3.2",
-    "@typescript-eslint/parser": "^2.3.2",
+    "@typescript-eslint/eslint-plugin": "^2.4.0",
+    "@typescript-eslint/parser": "^2.4.0",
     "ava": "^2.4.0",
     "eslint": "^6.5.1",
-    "eslint-config-prettier": "^6.3.0",
+    "eslint-config-prettier": "^6.4.0",
     "eslint-plugin-prettier": "^3.1.1",
-    "nodemon": "^1.19.3",
+    "nodemon": "^1.19.4",
     "prettier": "^1.18.2",
-    "typescript": "^3.6.3"
+    "typescript": "^3.6.4"
   },
   "engines": {
     "node": ">=10"
@@ -62,7 +62,7 @@
   "main": "dist",
   "name": "@authx/authx",
   "optionalDependencies": {
-    "@opencensus/core": "^0.0.17",
+    "@opencensus/core": "^0.0.18",
     "graphql-middleware": "^4.0.1"
   },
   "peerDependencies": {
