@@ -95,7 +95,7 @@ export const createUsers: GraphQLFieldConfig<
             }
           }
 
-          const id = v4();
+          const id = input.id || v4();
           const user = await User.write(
             tx,
             {

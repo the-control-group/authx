@@ -14,8 +14,11 @@ import {
   Authority,
   Authorization,
   ForbiddenError,
-  AuthenticationError
+  AuthenticationError,
+  User
 } from "@authx/authx";
+
+import { isSuperset } from "@authx/scopes";
 import { EmailAuthority } from "../../model";
 import { substitute } from "../../substitute";
 
@@ -161,6 +164,27 @@ export const authenticateEmail: GraphQLFieldConfig<
 
         throw new ForbiddenError(
           "An email has been sent to this address with a code that can be used to prove control."
+        );
+      }
+
+      // Make sure the user can create new authorizations.
+      const user = await User.read(tx, credential.userId);
+      if (
+        !isSuperset(
+          await user.access(tx),
+          `${realm}:authorization.:write.create`
+        ) &&
+        !isSuperset(
+          await user.access(tx),
+          `${realm}:user.${credential.userId}.authorizations:write.create`
+        ) &&
+        !isSuperset(
+          await user.access(tx),
+          `${realm}:authority.${authority.id}.authorizations:write.create`
+        )
+      ) {
+        throw new ForbiddenError(
+          "You do not have permission to create this authorization"
         );
       }
 

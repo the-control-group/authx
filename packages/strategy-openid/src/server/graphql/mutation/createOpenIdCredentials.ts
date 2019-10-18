@@ -114,7 +114,7 @@ export const createOpenIdCredentials: GraphQLFieldConfig<
           }
         }
 
-        const id = v4();
+        const id = input.id || v4();
 
         // Fetch the authority.
         const authority = await Authority.read(

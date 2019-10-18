@@ -114,7 +114,7 @@ export const createRoles: GraphQLFieldConfig<
             }
           }
 
-          const id = v4();
+          const id = input.id || v4();
 
           const possibleAdministrationScopes = makeAdministrationScopes(
             await a.access(tx),

@@ -113,7 +113,7 @@ export const createEmailCredentials: GraphQLFieldConfig<
           }
         }
 
-        const id = v4();
+        const id = input.id || v4();
         const authority = await Authority.read(
           tx,
           input.authorityId,

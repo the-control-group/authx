@@ -21,8 +21,8 @@ import {
   AuthenticationError
 } from "@authx/authx";
 
+import { isSuperset } from "@authx/scopes";
 import { EmailAuthority } from "@authx/strategy-email";
-
 import { OpenIdAuthority, OpenIdCredential } from "../../model";
 
 export const authenticateOpenId: GraphQLFieldConfig<
@@ -270,6 +270,27 @@ export const authenticateOpenId: GraphQLFieldConfig<
 
       if (!credential) {
         throw new AuthenticationError("No such credential exists.");
+      }
+
+      // Make sure the user can create new authorizations.
+      const user = await User.read(tx, credential.userId);
+      if (
+        !isSuperset(
+          await user.access(tx),
+          `${realm}:authorization.:write.create`
+        ) &&
+        !isSuperset(
+          await user.access(tx),
+          `${realm}:user.${credential.userId}.authorizations:write.create`
+        ) &&
+        !isSuperset(
+          await user.access(tx),
+          `${realm}:authority.${authority.id}.authorizations:write.create`
+        )
+      ) {
+        throw new ForbiddenError(
+          "You do not have permission to create this authorization"
+        );
       }
 
       // Create a new authorization.

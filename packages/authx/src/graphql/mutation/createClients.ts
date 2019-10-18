@@ -107,7 +107,7 @@ export const createClients: GraphQLFieldConfig<
             }
           }
 
-          const id = v4();
+          const id = input.id || v4();
           const client = await Client.write(
             tx,
             {

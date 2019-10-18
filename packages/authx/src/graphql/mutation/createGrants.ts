@@ -125,7 +125,7 @@ export const createGrants: GraphQLFieldConfig<
             }
           }
 
-          const id = v4();
+          const id = input.id || v4();
           const now = Math.floor(Date.now() / 1000);
           const grant = await Grant.write(
             tx,

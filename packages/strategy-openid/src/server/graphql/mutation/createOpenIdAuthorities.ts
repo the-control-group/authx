@@ -105,7 +105,7 @@ export const createOpenIdAuthorities: GraphQLFieldConfig<
             }
           }
 
-          const id = v4();
+          const id = input.id || v4();
           const authority = await OpenIdAuthority.write(
             tx,
             {

@@ -97,7 +97,7 @@ export const createPasswordAuthorities: GraphQLFieldConfig<
             }
           }
 
-          const id = v4();
+          const id = input.id || v4();
           const authority = await PasswordAuthority.write(
             tx,
             {
