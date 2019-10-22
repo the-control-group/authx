@@ -1,6 +1,6 @@
 import v4 from "uuid/v4";
 import { randomBytes } from "crypto";
-import { validate } from "@authx/scopes";
+import { isValid } from "@authx/scopes";
 import { GraphQLFieldConfig, GraphQLList, GraphQLNonNull } from "graphql";
 
 import { Context } from "../../Context";
@@ -50,7 +50,7 @@ export const updateGrants: GraphQLFieldConfig<
       // Validate `scopes`.
       if (Array.isArray(input.scopes)) {
         for (const scope of input.scopes) {
-          if (!validate(scope)) {
+          if (!isValid(scope)) {
             throw new ValidationError(
               "The provided `scopes` list contains an invalid scope."
             );

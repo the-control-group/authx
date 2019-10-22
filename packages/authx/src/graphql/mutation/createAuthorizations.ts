@@ -1,7 +1,7 @@
 import v4 from "uuid/v4";
 import { randomBytes } from "crypto";
 
-import { getIntersection, simplify, validate } from "@authx/scopes";
+import { getIntersection, simplify, isValid } from "@authx/scopes";
 import { GraphQLFieldConfig, GraphQLList, GraphQLNonNull } from "graphql";
 
 import { Context } from "../../Context";
@@ -73,7 +73,7 @@ export const createAuthorizations: GraphQLFieldConfig<
 
       // Validate `scopes`.
       for (const scope of input.scopes) {
-        if (!validate(scope)) {
+        if (!isValid(scope)) {
           throw new ValidationError(
             "The provided `scopes` list contains an invalid scope."
           );
@@ -89,7 +89,7 @@ export const createAuthorizations: GraphQLFieldConfig<
         }
 
         for (const scope of scopes) {
-          if (!validate(scope)) {
+          if (!isValid(scope)) {
             throw new ValidationError(
               "The provided `administration` list contains a `scopes` list with an invalid scope."
             );

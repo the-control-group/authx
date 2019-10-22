@@ -13,7 +13,7 @@ import {
   GraphQLFetchOptionsOverride,
   GraphQLContext
 } from "graphql-react";
-import { validate, isSuperset, getDifference, simplify } from "@authx/scopes";
+import { isValid, isSuperset, getDifference, simplify } from "@authx/scopes";
 
 function Checkbox({
   value,
@@ -128,7 +128,7 @@ export function Authorize({
   // Parse the scopes
   const requestedScopes = paramsScope ? paramsScope.split(" ") : null;
   const requestedScopesAreValid = requestedScopes
-    ? requestedScopes.every(validate)
+    ? requestedScopes.every(isValid)
     : null;
 
   // Get the user, grant, and client from the API.

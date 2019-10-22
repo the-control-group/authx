@@ -1,5 +1,5 @@
 import v4 from "uuid/v4";
-import { isSuperset, validate } from "@authx/scopes";
+import { isSuperset, isValid } from "@authx/scopes";
 import { GraphQLFieldConfig, GraphQLList, GraphQLNonNull } from "graphql";
 
 import { Context } from "../../Context";
@@ -50,7 +50,7 @@ export const updateRoles: GraphQLFieldConfig<
       // Validate `scopes`.
       if (Array.isArray(input.scopes)) {
         for (const scope of input.scopes) {
-          if (!validate(scope)) {
+          if (!isValid(scope)) {
             throw new ValidationError(
               "The provided `scopes` list contains an invalid scope."
             );

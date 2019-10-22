@@ -45,9 +45,9 @@ export const role = [
             "1691f38d-92c8-4d86-9a89-da99528cfcb5"
           ],
           scopes: [
-            "authx:authorization.equal.self.*:**",
-            "authx:grant.equal.self.*:**",
-            "authx:user.equal.self:**"
+            "authx:user.{current_user_id}:**",
+            "authx:user.{current_user_id}.grants:**",
+            "authx:user.{current_user_id}.authorizations:**"
           ]
         },
         {
@@ -115,7 +115,7 @@ export const role = [
           name: "HR",
           description: "The best; the worst.",
           userIds: ["306eabbb-cc2b-4f88-be19-4bb6ec98e5c3"],
-          scopes: ["authx:user.**:**"]
+          scopes: ["authx:user.*:**"]
         },
         {
           recordId: "f94c5316-ce81-46e6-932a-0ac2c8fc886b",

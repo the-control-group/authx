@@ -1,6 +1,6 @@
 import v4 from "uuid/v4";
 import { GraphQLFieldConfig, GraphQLNonNull, GraphQLList } from "graphql";
-import { getIntersection, simplify, validate } from "@authx/scopes";
+import { getIntersection, simplify, isValid } from "@authx/scopes";
 
 import { Context } from "../../Context";
 import { GraphQLUser } from "../GraphQLUser";
@@ -63,7 +63,7 @@ export const createUsers: GraphQLFieldConfig<
         }
 
         for (const scope of scopes) {
-          if (!validate(scope)) {
+          if (!isValid(scope)) {
             throw new ValidationError(
               "The provided `administration` list contains a `scopes` list with an invalid scope."
             );
