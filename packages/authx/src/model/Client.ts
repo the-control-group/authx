@@ -1,6 +1,5 @@
 import { PoolClient } from "pg";
 import { Grant } from "./Grant";
-import { User } from "./User";
 import { Authorization } from "./Authorization";
 import { NotFoundError } from "../errors";
 
@@ -38,7 +37,15 @@ export class Client implements ClientData {
     tx: PoolClient,
     action: string = "read.basic"
   ): Promise<boolean> {
-    if (await a.can(tx, `${realm}:client.${this.id}:${action}`)) {
+    /* eslint-disable @typescript-eslint/camelcase */
+    const values: { [name: string]: string } = {
+      current_authorization_id: a.id,
+      current_user_id: a.userId,
+      ...(a.grantId ? { current_grant_id: a.grantId } : null)
+    };
+    /* eslint-enable @typescript-eslint/camelcase */
+
+    if (await a.can(tx, values, `${realm}:client.${this.id}:${action}`)) {
       return true;
     }
 

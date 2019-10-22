@@ -102,11 +102,24 @@ export const GraphQLAuthorization: GraphQLObjectType<
         args,
         { realm, authorization: a, pool }: Context
       ): Promise<null | string[]> {
+        if (!a) return null;
         const tx = await pool.connect();
         try {
-          return a &&
-            (await authorization.isAccessibleBy(realm, a, tx, "read.scopes"))
-            ? authorization.access(tx)
+          /* eslint-disable @typescript-eslint/camelcase */
+          const values: { [name: string]: string } = {
+            current_authorization_id: a.id,
+            current_user_id: a.userId,
+            ...(a.grantId ? { current_grant_id: a.grantId } : null)
+          };
+          /* eslint-enable @typescript-eslint/camelcase */
+
+          return (await authorization.isAccessibleBy(
+            realm,
+            a,
+            tx,
+            "read.scopes"
+          ))
+            ? authorization.access(tx, values)
             : null;
         } finally {
           tx.release();
@@ -155,10 +168,17 @@ export const GraphQLAuthorization: GraphQLObjectType<
 
           if (args.format === "bearer") {
             const grant = await authorization.grant(tx);
+            /* eslint-disable @typescript-eslint/camelcase */
+            const values: { [name: string]: string } = {
+              current_authorization_id: a.id,
+              current_user_id: a.userId,
+              ...(a.grantId ? { current_grant_id: a.grantId } : null)
+            };
+            /* eslint-enable @typescript-eslint/camelcase */
             return `Bearer ${jwt.sign(
               {
                 aid: authorization.id,
-                scopes: await authorization.access(tx)
+                scopes: await authorization.access(tx, values)
               },
               privateKey,
               {

@@ -91,9 +91,17 @@ export const createRoles: GraphQLFieldConfig<
         }
       }
 
+      /* eslint-disable @typescript-eslint/camelcase */
+      const values: { [name: string]: string } = {
+        current_authorization_id: a.id,
+        current_user_id: a.userId,
+        ...(a.grantId ? { current_grant_id: a.grantId } : null)
+      };
+      /* eslint-enable @typescript-eslint/camelcase */
+
       const tx = await pool.connect();
       try {
-        if (!(await a.can(tx, `${realm}:grant.:write.create`))) {
+        if (!(await a.can(tx, values, `${realm}:grant.:write.create`))) {
           throw new ForbiddenError(
             "You do not have permission to create roles."
           );
@@ -117,7 +125,7 @@ export const createRoles: GraphQLFieldConfig<
           const id = input.id || v4();
 
           const possibleAdministrationScopes = makeAdministrationScopes(
-            await a.access(tx),
+            await a.access(tx, values),
             realm,
             "role",
             id,
@@ -146,7 +154,8 @@ export const createRoles: GraphQLFieldConfig<
 
             // Make sure we have permission to add scopes to the role.
             const role = await Role.read(tx, roleId, { forUpdate: true });
-            if (!role.can(tx, "write.scopes")) {
+
+            if (!role.isAccessibleBy(realm, a, tx, "write.scopes")) {
               throw new ForbiddenError(
                 `You do not have permission to modify the scopes of role ${roleId}.`
               );

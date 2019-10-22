@@ -2,8 +2,7 @@ import { PoolClient } from "pg";
 import { Credential, CredentialData } from "./Credential";
 import { Grant } from "./Grant";
 import { Role } from "./Role";
-import { Client } from "./Client";
-import { simplify, isSuperset, isStrictSuperset } from "@authx/scopes";
+import { simplify, isSuperset } from "@authx/scopes";
 import { Authorization } from "./Authorization";
 import { NotFoundError } from "../errors";
 
@@ -40,7 +39,15 @@ export class User implements UserData {
     tx: PoolClient,
     action: string = "read.basic"
   ): Promise<boolean> {
-    if (await a.can(tx, `${realm}:user.${this.id}:${action}`)) {
+    /* eslint-disable @typescript-eslint/camelcase */
+    const values: { [name: string]: string } = {
+      current_authorization_id: a.id,
+      current_user_id: a.userId,
+      ...(a.grantId ? { current_grant_id: a.grantId } : null)
+    };
+    /* eslint-enable @typescript-eslint/camelcase */
+
+    if (await a.can(tx, values, `${realm}:user.${this.id}:${action}`)) {
       return true;
     }
 
@@ -178,12 +185,13 @@ export class User implements UserData {
 
   public async access(
     tx: PoolClient,
+    values: { [variable: string]: string },
     refresh: boolean = false
   ): Promise<string[]> {
     return this.enabled
       ? simplify(
           (await this.roles(tx, refresh))
-            .map(role => role.scopes)
+            .map(role => role.access(values))
             .reduce((a, b) => a.concat(b), [])
         )
       : [];
@@ -191,10 +199,11 @@ export class User implements UserData {
 
   public async can(
     tx: PoolClient,
+    values: { [variable: string]: string },
     scope: string[] | string,
     refresh: boolean = false
   ): Promise<boolean> {
-    return isSuperset(await this.access(tx, refresh), scope);
+    return isSuperset(await this.access(tx, values, refresh), scope);
   }
 
   public static read(

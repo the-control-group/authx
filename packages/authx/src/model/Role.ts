@@ -1,8 +1,9 @@
 import { PoolClient } from "pg";
 import { User } from "./User";
 import { Authorization } from "./Authorization";
-import { simplify, isSuperset, isStrictSuperset } from "@authx/scopes";
+import { simplify, isSuperset } from "@authx/scopes";
 import { NotFoundError } from "../errors";
+import { inject } from "../util/scopeTemplates";
 
 export interface RoleData {
   readonly id: string;
@@ -38,7 +39,14 @@ export class Role implements RoleData {
     tx: PoolClient,
     action: string = "read.basic"
   ): Promise<boolean> {
-    if (await a.can(tx, `${realm}:role.${this.id}:${action}`)) {
+    /* eslint-disable @typescript-eslint/camelcase */
+    const values: { [name: string]: string } = {
+      current_authorization_id: a.id,
+      current_user_id: a.userId,
+      ...(a.grantId ? { current_grant_id: a.grantId } : null)
+    };
+    /* eslint-enable @typescript-eslint/camelcase */
+    if (await a.can(tx, values, `${realm}:role.${this.id}:${action}`)) {
       return true;
     }
 
@@ -53,16 +61,15 @@ export class Role implements RoleData {
     return (this._users = User.read(tx, [...this.userIds]));
   }
 
-  public access(
-    authorizationId?: string,
-    userId?: string,
-    grantId?: string
-  ): string[] {
-    return this.scopes;
+  public access(values: { [variable: string]: string }): string[] {
+    return inject(this.scopes, values);
   }
 
-  public async can(tx: PoolClient, scope: string[] | string): Promise<boolean> {
-    return isSuperset(this.access(), scope);
+  public async can(
+    values: { [variable: string]: string },
+    scope: string[] | string
+  ): Promise<boolean> {
+    return isSuperset(this.access(values), scope);
   }
 
   public static read(

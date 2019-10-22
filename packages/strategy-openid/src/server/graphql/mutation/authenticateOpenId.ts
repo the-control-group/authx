@@ -272,19 +272,26 @@ export const authenticateOpenId: GraphQLFieldConfig<
         throw new AuthenticationError("No such credential exists.");
       }
 
+      /* eslint-disable @typescript-eslint/camelcase */
+      const values: { [name: string]: string } = {
+        current_authorization_id: authorizationId,
+        current_user_id: credential.userId
+      };
+      /* eslint-enable @typescript-eslint/camelcase */
+
       // Make sure the user can create new authorizations.
       const user = await User.read(tx, credential.userId);
       if (
         !isSuperset(
-          await user.access(tx),
+          await user.access(tx, values),
           `${realm}:authorization.:write.create`
         ) &&
         !isSuperset(
-          await user.access(tx),
+          await user.access(tx, values),
           `${realm}:user.${credential.userId}.authorizations:write.create`
         ) &&
         !isSuperset(
-          await user.access(tx),
+          await user.access(tx, values),
           `${realm}:authority.${authority.id}.authorizations:write.create`
         )
       ) {

@@ -84,9 +84,17 @@ export const createClients: GraphQLFieldConfig<
         }
       }
 
+      /* eslint-disable @typescript-eslint/camelcase */
+      const values: { [name: string]: string } = {
+        current_authorization_id: a.id,
+        current_user_id: a.userId,
+        ...(a.grantId ? { current_grant_id: a.grantId } : null)
+      };
+      /* eslint-enable @typescript-eslint/camelcase */
+
       const tx = await pool.connect();
       try {
-        if (!(await a.can(tx, `${realm}:client.:write.create`))) {
+        if (!(await a.can(tx, values, `${realm}:client.:write.create`))) {
           throw new ForbiddenError(
             "You do not have permission to create a client."
           );
@@ -126,7 +134,7 @@ export const createClients: GraphQLFieldConfig<
           );
 
           const possibleAdministrationScopes = makeAdministrationScopes(
-            await a.access(tx),
+            await a.access(tx, values),
             realm,
             "client",
             id,
@@ -137,7 +145,7 @@ export const createClients: GraphQLFieldConfig<
           for (const { roleId, scopes } of input.administration) {
             const role = await Role.read(tx, roleId, { forUpdate: true });
 
-            if (!role.can(tx, "write.scopes")) {
+            if (!role.isAccessibleBy(realm, a, tx, "write.scopes")) {
               throw new ForbiddenError(
                 `You do not have permission to modify the scopes of role ${roleId}.`
               );

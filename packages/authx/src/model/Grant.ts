@@ -2,12 +2,7 @@ import { PoolClient } from "pg";
 import { Client } from "./Client";
 import { User } from "./User";
 import { Authorization } from "./Authorization";
-import {
-  simplify,
-  getIntersection,
-  isSuperset,
-  isStrictSuperset
-} from "@authx/scopes";
+import { simplify, getIntersection, isSuperset } from "@authx/scopes";
 import { NotFoundError } from "../errors";
 
 export interface GrantData {
@@ -49,11 +44,21 @@ export class Grant implements GrantData {
     tx: PoolClient,
     action: string = "read.basic"
   ): Promise<boolean> {
-    if (await a.can(tx, `${realm}:grant.${this.id}:${action}`)) {
+    /* eslint-disable @typescript-eslint/camelcase */
+    const values: { [name: string]: string } = {
+      current_authorization_id: a.id,
+      current_user_id: a.userId,
+      ...(a.grantId ? { current_grant_id: a.grantId } : null)
+    };
+    /* eslint-enable @typescript-eslint/camelcase */
+
+    if (await a.can(tx, values, `${realm}:grant.${this.id}:${action}`)) {
       return true;
     }
 
-    if (await a.can(tx, `${realm}:user.${this.userId}.grants:${action}`)) {
+    if (
+      await a.can(tx, values, `${realm}:user.${this.userId}.grants:${action}`)
+    ) {
       return true;
     }
 
@@ -101,20 +106,22 @@ export class Grant implements GrantData {
 
   public async access(
     tx: PoolClient,
+    values: { [variable: string]: string },
     refresh: boolean = false
   ): Promise<string[]> {
     const user = await this.user(tx, refresh);
     return user.enabled
-      ? getIntersection(this.scopes, await user.access(tx, refresh))
+      ? getIntersection(this.scopes, await user.access(tx, values, refresh))
       : [];
   }
 
   public async can(
     tx: PoolClient,
+    values: { [variable: string]: string },
     scope: string,
     refresh: boolean = false
   ): Promise<boolean> {
-    return isSuperset(await this.access(tx, refresh), scope);
+    return isSuperset(await this.access(tx, values, refresh), scope);
   }
 
   public static read(

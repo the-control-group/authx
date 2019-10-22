@@ -97,6 +97,14 @@ export const createEmailCredentials: GraphQLFieldConfig<
         }
       }
 
+      /* eslint-disable @typescript-eslint/camelcase */
+      const values: { [name: string]: string } = {
+        current_authorization_id: a.id,
+        current_user_id: a.userId,
+        ...(a.grantId ? { current_grant_id: a.grantId } : null)
+      };
+      /* eslint-enable @typescript-eslint/camelcase */
+
       const tx = await pool.connect();
       try {
         await tx.query("BEGIN DEFERRABLE");
@@ -148,14 +156,16 @@ export const createEmailCredentials: GraphQLFieldConfig<
           );
         }
 
-        if (!(await a.can(tx, `${realm}:credential.:write.create`))) {
+        if (!(await a.can(tx, values, `${realm}:credential.:write.create`))) {
           if (
             !(await a.can(
               tx,
+              values,
               `${realm}:user.${input.userId}.credentials:write.create`
             )) &&
             !(await a.can(
               tx,
+              values,
               `${realm}:authority.${input.authorityId}.credentials:write.create`
             ))
           ) {
@@ -166,9 +176,13 @@ export const createEmailCredentials: GraphQLFieldConfig<
         }
 
         if (
-          !(await a.can(tx, `${realm}:credential.*:write.create`)) &&
-          !(await a.can(tx, `${realm}:authority.*.credentials:write.create`)) &&
-          !(await a.can(tx, `${realm}:user.*.credentials:write.create`))
+          !(await a.can(tx, values, `${realm}:credential.*:write.create`)) &&
+          !(await a.can(
+            tx,
+            values,
+            `${realm}:authority.*.credentials:write.create`
+          )) &&
+          !(await a.can(tx, values, `${realm}:user.*.credentials:write.create`))
         ) {
           // The user doesn't have permission to change the credentials of all
           // users, but has passed a proof that she controls the email address, so
@@ -289,7 +303,7 @@ export const createEmailCredentials: GraphQLFieldConfig<
         );
 
         const possibleAdministrationScopes = makeAdministrationScopes(
-          await a.access(tx),
+          await a.access(tx, values),
           realm,
           "grant",
           id,
@@ -300,7 +314,7 @@ export const createEmailCredentials: GraphQLFieldConfig<
         for (const { roleId, scopes } of input.administration) {
           const role = await Role.read(tx, roleId, { forUpdate: true });
 
-          if (!role.can(tx, "write.scopes")) {
+          if (!role.isAccessibleBy(realm, a, tx, "write.scopes")) {
             throw new ForbiddenError(
               `You do not have permission to modify the scopes of role ${roleId}.`
             );

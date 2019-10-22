@@ -18,7 +18,6 @@ import { GraphQLRoleConnection } from "./GraphQLRoleConnection";
 import { GraphQLUserType } from "./GraphQLUserType";
 import { GraphQLGrant } from "./GraphQLGrant";
 import { GraphQLGrantConnection } from "./GraphQLGrantConnection";
-import { GraphQLClientConnection } from "./GraphQLClientConnection";
 import { GraphQLAuthorizationConnection } from "./GraphQLAuthorizationConnection";
 import { GraphQLCredentialConnection } from "./GraphQLCredentialConnection";
 import { filter } from "../util/filter";

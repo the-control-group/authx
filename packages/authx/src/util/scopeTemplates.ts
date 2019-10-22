@@ -56,27 +56,6 @@ export function simplify(templates: string[]): string[] {
   // simplest approach to acheiving simplification with a characterset beyond
   // those allowed by the scope spec.
   return unsafeSimplify(templates);
-
-  /*
-  const literal: string[] = [];
-  const variable: Set<string> = new Set();
-
-  // Separate literal and variable templates.
-  for (const template of templates) {
-    if (template.includes("{")) {
-      variable.add(template);
-    } else {
-      literal.push(template);
-    }
-  }
-
-  // TODO: implement real algebraic simplification of variable template strings.
-  //
-  // For now, we are only doing exact deduplication of any templates with
-  // variables... this is clearly not ideal, but will work for our current
-  // needs.
-  return [...unsafeSimplify(literal), ...variable];
-  */
 }
 
 export function inject(
@@ -95,7 +74,7 @@ export function inject(
           continue;
         }
 
-        // If we have a string value, use it.
+        // If we have a value for the variable, use it.
         const value = values[segment.slice(1, segment.length - 1)];
         if (typeof value === "string") {
           segments.push(value);

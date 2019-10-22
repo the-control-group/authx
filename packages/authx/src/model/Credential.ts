@@ -4,8 +4,6 @@ import { User } from "./User";
 import { Authorization } from "./Authorization";
 import { NotFoundError } from "../errors";
 
-import { isSuperset, isStrictSuperset } from "@authx/scopes";
-
 export interface CredentialData<C> {
   readonly id: string;
   readonly enabled: boolean;
@@ -40,7 +38,15 @@ export abstract class Credential<C> implements CredentialData<C> {
     tx: PoolClient,
     action: string = "read.basic"
   ): Promise<boolean> {
-    if (await a.can(tx, `${realm}:credential.${this.id}:${action}`)) {
+    /* eslint-disable @typescript-eslint/camelcase */
+    const values: { [name: string]: string } = {
+      current_authorization_id: a.id,
+      current_user_id: a.userId,
+      ...(a.grantId ? { current_grant_id: a.grantId } : null)
+    };
+    /* eslint-enable @typescript-eslint/camelcase */
+
+    if (await a.can(tx, values, `${realm}:credential.${this.id}:${action}`)) {
       return true;
     }
 
@@ -48,6 +54,7 @@ export abstract class Credential<C> implements CredentialData<C> {
       this.userId === a.userId &&
       (await a.can(
         tx,
+        values,
         `${realm}:authority.${this.authorityId}.credentials:${action}`
       ))
     ) {
@@ -56,7 +63,11 @@ export abstract class Credential<C> implements CredentialData<C> {
 
     if (
       this.userId === a.userId &&
-      (await a.can(tx, `${realm}:user.${this.userId}.credentials:${action}`))
+      (await a.can(
+        tx,
+        values,
+        `${realm}:user.${this.userId}.credentials:${action}`
+      ))
     ) {
       return true;
     }
