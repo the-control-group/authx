@@ -7,8 +7,8 @@
   "dependencies": {},
   "description": "",
   "devDependencies": {
-    "@typescript-eslint/eslint-plugin": "^2.4.0",
-    "@typescript-eslint/parser": "^2.4.0",
+    "@typescript-eslint/eslint-plugin": "^2.5.0",
+    "@typescript-eslint/parser": "^2.5.0",
     "ava": "^2.4.0",
     "eslint": "^6.5.1",
     "eslint-config-prettier": "^6.4.0",
