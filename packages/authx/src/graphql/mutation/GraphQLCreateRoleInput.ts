@@ -8,6 +8,7 @@ import {
 } from "graphql";
 
 import { GraphQLAdministrationInput } from "../GraphQLAdministrationInput";
+import { GraphQLScopeTemplate } from "../GraphQLScopeTemplate";
 
 export const GraphQLCreateRoleInput = new GraphQLInputObjectType({
   name: "CreateRoleInput",
@@ -28,7 +29,7 @@ export const GraphQLCreateRoleInput = new GraphQLInputObjectType({
     },
     scopes: {
       type: new GraphQLNonNull(
-        new GraphQLList(new GraphQLNonNull(GraphQLString))
+        new GraphQLList(new GraphQLNonNull(GraphQLScopeTemplate))
       )
     },
     userIds: {

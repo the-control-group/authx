@@ -2,7 +2,6 @@ import v4 from "uuid/v4";
 import { URL } from "url";
 import { randomBytes } from "crypto";
 import { GraphQLFieldConfig, GraphQLList, GraphQLNonNull } from "graphql";
-
 import { Context } from "../../Context";
 import { GraphQLClient } from "../GraphQLClient";
 import { Client } from "../../model";

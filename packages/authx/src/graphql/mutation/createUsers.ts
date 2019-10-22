@@ -1,11 +1,9 @@
 import v4 from "uuid/v4";
 import { GraphQLFieldConfig, GraphQLNonNull, GraphQLList } from "graphql";
-import { getIntersection, simplify, isValid } from "@authx/scopes";
-
+import { getIntersection, simplify } from "@authx/scopes";
 import { Context } from "../../Context";
 import { GraphQLUser } from "../GraphQLUser";
 import { User, UserType, Role } from "../../model";
-
 import { makeAdministrationScopes } from "../../util/makeAdministrationScopes";
 import { validateIdFormat } from "../../util/validateIdFormat";
 import {
@@ -55,19 +53,11 @@ export const createUsers: GraphQLFieldConfig<
       }
 
       // Validate `administration`.
-      for (const { roleId, scopes } of input.administration) {
+      for (const { roleId } of input.administration) {
         if (!validateIdFormat(roleId)) {
           throw new ValidationError(
             "The provided `administration` list contains a `roleId` that is an invalid ID."
           );
-        }
-
-        for (const scope of scopes) {
-          if (!isValid(scope)) {
-            throw new ValidationError(
-              "The provided `administration` list contains a `scopes` list with an invalid scope."
-            );
-          }
         }
       }
 

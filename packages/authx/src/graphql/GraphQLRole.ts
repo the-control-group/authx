@@ -16,6 +16,7 @@ import {
 import { Role } from "../model";
 import { Context } from "../Context";
 import { GraphQLUserConnection } from "./GraphQLUserConnection";
+import { GraphQLScopeTemplate } from "./GraphQLScopeTemplate";
 import { filter } from "../util/filter";
 
 export const GraphQLRole = new GraphQLObjectType<Role, Context>({
@@ -53,7 +54,7 @@ export const GraphQLRole = new GraphQLObjectType<Role, Context>({
       }
     },
     scopes: {
-      type: new GraphQLList(GraphQLString),
+      type: new GraphQLList(GraphQLScopeTemplate),
       async resolve(
         role,
         args,

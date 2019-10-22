@@ -7,13 +7,13 @@ export function getDifference(
   collectionA: string[],
   collectionB: string[]
 ): string[] {
-  if (!scope.isValid(collectionA)) {
+  if (!scope.isValidScopeTemplate(collectionA)) {
     throw new scope.InvalidScopeError(
       "A scope in `scopeOrCollectionA` is invalid."
     );
   }
 
-  if (!scope.isValid(collectionB)) {
+  if (!scope.isValidScopeTemplate(collectionB)) {
     throw new scope.InvalidScopeError(
       "A scope in `scopeOrCollectionB` is invalid."
     );
@@ -26,13 +26,13 @@ export function getIntersection(
   scopeOrCollectionA: string[] | string,
   scopeOrCollectionB: string[] | string
 ): string[] {
-  if (!scope.isValid(scopeOrCollectionA)) {
+  if (!scope.isValidScopeTemplate(scopeOrCollectionA)) {
     throw new scope.InvalidScopeError(
       "One or more of the scopes in `scopeOrCollectionA` is invalid."
     );
   }
 
-  if (!scope.isValid(scopeOrCollectionB)) {
+  if (!scope.isValidScopeTemplate(scopeOrCollectionB)) {
     throw new scope.InvalidScopeError(
       "One or more of the scopes in `scopeOrCollectionB` is invalid."
     );
@@ -45,13 +45,13 @@ export function hasIntersection(
   scopeOrCollectionA: string[] | string,
   scopeOrCollectionB: string[] | string
 ): boolean {
-  if (!scope.isValid(scopeOrCollectionA)) {
+  if (!scope.isValidScopeTemplate(scopeOrCollectionA)) {
     throw new scope.InvalidScopeError(
       "One or more of the scopes in `scopeOrCollectionA` is invalid."
     );
   }
 
-  if (!scope.isValid(scopeOrCollectionB)) {
+  if (!scope.isValidScopeTemplate(scopeOrCollectionB)) {
     throw new scope.InvalidScopeError(
       "One or more of the scopes in `scopeOrCollectionB` is invalid."
     );
@@ -64,13 +64,13 @@ export function isEqual(
   scopeOrCollectionA: string[] | string,
   scopeOrCollectionB: string[] | string
 ): boolean {
-  if (!scope.isValid(scopeOrCollectionA)) {
+  if (!scope.isValidScopeTemplate(scopeOrCollectionA)) {
     throw new scope.InvalidScopeError(
       "One or more of the scopes in `scopeOrCollectionA` is invalid."
     );
   }
 
-  if (!scope.isValid(scopeOrCollectionB)) {
+  if (!scope.isValidScopeTemplate(scopeOrCollectionB)) {
     throw new scope.InvalidScopeError(
       "One or more of the scopes in `scopeOrCollectionB` is invalid."
     );
@@ -83,13 +83,13 @@ export function isStrictSubset(
   scopeOrCollectionA: string[] | string,
   scopeOrCollectionB: string[] | string
 ): boolean {
-  if (!scope.isValid(scopeOrCollectionA)) {
+  if (!scope.isValidScopeTemplate(scopeOrCollectionA)) {
     throw new scope.InvalidScopeError(
       "One or more of the scopes in `scopeOrCollectionA` is invalid."
     );
   }
 
-  if (!scope.isValid(scopeOrCollectionB)) {
+  if (!scope.isValidScopeTemplate(scopeOrCollectionB)) {
     throw new scope.InvalidScopeError(
       "One or more of the scopes in `scopeOrCollectionB` is invalid."
     );
@@ -102,13 +102,13 @@ export function isStrictSuperset(
   scopeOrCollectionA: string[] | string,
   scopeOrCollectionB: string[] | string
 ): boolean {
-  if (!scope.isValid(scopeOrCollectionA)) {
+  if (!scope.isValidScopeTemplate(scopeOrCollectionA)) {
     throw new scope.InvalidScopeError(
       "One or more of the scopes in `scopeOrCollectionA` is invalid."
     );
   }
 
-  if (!scope.isValid(scopeOrCollectionB)) {
+  if (!scope.isValidScopeTemplate(scopeOrCollectionB)) {
     throw new scope.InvalidScopeError(
       "One or more of the scopes in `scopeOrCollectionB` is invalid."
     );
@@ -121,13 +121,13 @@ export function isSubset(
   scopeOrCollectionA: string[] | string,
   scopeOrCollectionB: string[] | string
 ): boolean {
-  if (!scope.isValid(scopeOrCollectionA)) {
+  if (!scope.isValidScopeTemplate(scopeOrCollectionA)) {
     throw new scope.InvalidScopeError(
       "One or more of the scopes in `scopeOrCollectionA` is invalid."
     );
   }
 
-  if (!scope.isValid(scopeOrCollectionB)) {
+  if (!scope.isValidScopeTemplate(scopeOrCollectionB)) {
     throw new scope.InvalidScopeError(
       "One or more of the scopes in `scopeOrCollectionB` is invalid."
     );
@@ -140,13 +140,13 @@ export function isSuperset(
   scopeOrCollectionA: string[] | string,
   scopeOrCollectionB: string[] | string
 ): boolean {
-  if (!scope.isValid(scopeOrCollectionA)) {
+  if (!scope.isValidScopeTemplate(scopeOrCollectionA)) {
     throw new scope.InvalidScopeError(
       "One or more of the scopes in `scopeOrCollectionA` is invalid."
     );
   }
 
-  if (!scope.isValid(scopeOrCollectionB)) {
+  if (!scope.isValidScopeTemplate(scopeOrCollectionB)) {
     throw new scope.InvalidScopeError(
       "One or more of the scopes in `scopeOrCollectionB` is invalid."
     );
@@ -155,14 +155,15 @@ export function isSuperset(
   return scope.isSuperset(scopeOrCollectionA, scopeOrCollectionB);
 }
 
-export const isValid = scope.isValid;
+export const isValidScopeTemplate = scope.isValidScopeTemplate;
+export const isValidScope = scope.isValidScope;
 
 export function normalize(scope: string): string;
 export function normalize(collection: string[]): string[];
 export function normalize(
   scopeOrCollection: string | string[]
 ): string | string[] {
-  if (!scope.isValid(scopeOrCollection)) {
+  if (!scope.isValidScopeTemplate(scopeOrCollection)) {
     throw new scope.InvalidScopeError(
       "One or more of the scopes in `scopeOrCollection` is invalid."
     );
@@ -175,7 +176,7 @@ export function normalize(
 }
 
 export function simplify(collection: string[]): string[] {
-  if (!scope.isValid(collection)) {
+  if (!scope.isValidScopeTemplate(collection)) {
     throw new scope.InvalidScopeError(
       "One or more of the scopes in `collection` is invalid."
     );
@@ -215,6 +216,6 @@ export const limit = getIntersection;
 
 /**
  * @deprecated Since version 2.4. Will be deleted in version 3.0. Renamed to
- * {@link getIntersection}.
+ * {@link isValidScope}.
  */
-export const validate = isValid;
+export const validate = isValidScope;

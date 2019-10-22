@@ -36,10 +36,11 @@ Install with `npm install --save @authx/scopes`
 
 Please see [the tests](src/index.test.ts) for complete examples.
 
-### validate
+### isValidScope
 
 - ```ts
-  validate(scope: string): boolean`
+  isValidScope(scope: string): boolean
+  isValidScope(collection: string[]): boolean
   ```
 
 Validate that a scope is correctly formatted.
@@ -50,6 +51,31 @@ import { validate } from "@authx/scopes";
 validate("realm:context.identifier:action.**");
 // => true
 
+validate("realm:context.{identifier}:action");
+// => false
+
+validate("realm:context.***:action");
+// => false
+```
+
+### isValidScopeTemplate
+
+- ```ts
+  isValidScope(scope: string): boolean
+  isValidScope(collection: string[]): boolean
+  ```
+
+Validate that a scope template is correctly formatted.
+
+```js
+import { validate } from "@authx/scopes";
+
+validate("realm:context.identifier:action.**");
+// => true
+
+validate("realm:context.{identifier}:action");
+// => true
+
 validate("realm:context.***:action");
 // => false
 ```
@@ -58,6 +84,7 @@ validate("realm:context.***:action");
 
 - ```ts
   normalize(scope: string): string
+  normalize(collection: string[]): string[]
   ```
 - **_throws `InvalidScopeError` if the scope is invalid._**
 

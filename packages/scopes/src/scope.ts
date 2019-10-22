@@ -60,24 +60,43 @@ function intersect(
     .reduce((x, y) => x.concat(y), []);
 }
 
-export function isValid(scopeOrCollection: string | string[]): boolean {
+export function isValidScopeSegment(segment: string): boolean {
+  return (
+    segment === "" ||
+    segment === "*" ||
+    segment === "**" ||
+    /^[a-zA-Z0-9_-]+$/.test(segment)
+  );
+}
+
+export function isValidScopeTemplateSegment(segment: string): boolean {
+  return isValidScopeSegment(segment) || /^\{[a-zA-Z0-9_-]+\}$/.test(segment);
+}
+
+export function isValidScope(scopeOrCollection: string | string[]): boolean {
   if (Array.isArray(scopeOrCollection)) {
-    return scopeOrCollection.every(isValid);
+    return scopeOrCollection.every(isValidScope);
   }
 
-  const patterns = scopeOrCollection.split(":");
+  const domains = scopeOrCollection.split(":");
   return (
-    patterns.length === 3 &&
-    patterns.every(pattern =>
-      pattern
-        .split(".")
-        .every(
-          segment =>
-            segment === "" ||
-            segment === "*" ||
-            segment === "**" ||
-            /^[a-zA-Z0-9_-]+$/.test(segment)
-        )
+    domains.length === 3 &&
+    domains.every(pattern => pattern.split(".").every(isValidScopeSegment))
+  );
+}
+
+export function isValidScopeTemplate(
+  templateOrCollection: string | string[]
+): boolean {
+  if (Array.isArray(templateOrCollection)) {
+    return templateOrCollection.every(isValidScopeTemplate);
+  }
+
+  const domains = templateOrCollection.split(":");
+  return (
+    domains.length === 3 &&
+    domains.every(pattern =>
+      pattern.split(".").every(isValidScopeTemplateSegment)
     )
   );
 }

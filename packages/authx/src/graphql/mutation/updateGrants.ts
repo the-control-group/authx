@@ -1,8 +1,6 @@
 import v4 from "uuid/v4";
 import { randomBytes } from "crypto";
-import { isValid } from "@authx/scopes";
 import { GraphQLFieldConfig, GraphQLList, GraphQLNonNull } from "graphql";
-
 import { Context } from "../../Context";
 import { GraphQLGrant } from "../GraphQLGrant";
 import { Grant } from "../../model";
@@ -45,17 +43,6 @@ export const updateGrants: GraphQLFieldConfig<
       // Validate `id`.
       if (!validateIdFormat(input.id)) {
         throw new ValidationError("The provided `id` is an invalid ID.");
-      }
-
-      // Validate `scopes`.
-      if (Array.isArray(input.scopes)) {
-        for (const scope of input.scopes) {
-          if (!isValid(scope)) {
-            throw new ValidationError(
-              "The provided `scopes` list contains an invalid scope."
-            );
-          }
-        }
       }
 
       const tx = await pool.connect();

@@ -1,4 +1,4 @@
-import { getIntersection, isSuperset } from "./scope";
+import { isValidScopeSegment, getIntersection, isSuperset } from "./scope";
 
 export class InvalidTemplateError extends Error {}
 
@@ -47,12 +47,7 @@ function parse(
       }
 
       // The segment is invalid.
-      if (
-        segment !== "" &&
-        segment !== "*" &&
-        segment !== "**" &&
-        !/^[a-zA-Z0-9_-]+$/.test(segment)
-      ) {
+      if (!isValidScopeSegment(segment)) {
         throw new InvalidTemplateError(
           "The template contained an invalid segment."
         );

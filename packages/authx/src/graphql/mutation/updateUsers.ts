@@ -1,6 +1,5 @@
 import v4 from "uuid/v4";
 import { GraphQLFieldConfig, GraphQLNonNull, GraphQLList } from "graphql";
-
 import { Context } from "../../Context";
 import { GraphQLUser } from "../GraphQLUser";
 import { User } from "../../model";

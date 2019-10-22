@@ -13,6 +13,7 @@ import { Context } from "../Context";
 import { GraphQLGrant } from "./GraphQLGrant";
 import { GraphQLUser } from "./GraphQLUser";
 import { GraphQLTokenFormat } from "./GraphQLTokenFormat";
+import { GraphQLScope } from "./GraphQLScope";
 
 export const GraphQLAuthorization: GraphQLObjectType<
   Authorization,
@@ -78,7 +79,7 @@ export const GraphQLAuthorization: GraphQLObjectType<
       }
     },
     scopes: {
-      type: new GraphQLList(GraphQLString),
+      type: new GraphQLList(GraphQLScope),
       async resolve(
         authorization,
         args,
@@ -96,7 +97,7 @@ export const GraphQLAuthorization: GraphQLObjectType<
       }
     },
     access: {
-      type: GraphQLString,
+      type: new GraphQLList(GraphQLScope),
       async resolve(
         authorization,
         args,

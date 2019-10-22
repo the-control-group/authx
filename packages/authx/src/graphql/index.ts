@@ -24,6 +24,8 @@ export * from "./GraphQLCredential";
 export * from "./GraphQLCredential";
 export * from "./GraphQLGrant";
 export * from "./GraphQLRole";
+export * from "./GraphQLScope";
+export * from "./GraphQLScopeTemplate";
 export * from "./GraphQLTimestamp";
 export * from "./GraphQLTokenFormat";
 export * from "./GraphQLUser";

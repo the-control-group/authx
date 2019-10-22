@@ -18,6 +18,7 @@ import { Context } from "../Context";
 import { GraphQLClient } from "./GraphQLClient";
 import { GraphQLUser } from "./GraphQLUser";
 import { GraphQLAuthorizationConnection } from "./GraphQLAuthorizationConnection";
+import { GraphQLScope } from "./GraphQLScope";
 import { filter } from "../util/filter";
 
 export const GraphQLGrant: GraphQLObjectType<
@@ -100,7 +101,7 @@ export const GraphQLGrant: GraphQLObjectType<
       }
     },
     scopes: {
-      type: new GraphQLList(GraphQLString),
+      type: new GraphQLList(GraphQLScope),
       async resolve(
         grant,
         args,
