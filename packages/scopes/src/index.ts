@@ -10,12 +10,12 @@ export {
   isSuperset,
   normalize,
   simplify,
-  validate
+  isValid
 } from "./scope";
 
 export { extract } from "./parameter";
 
-import { isSuperset, hasIntersection, getIntersection } from "./scope";
+import { isSuperset, hasIntersection, getIntersection, isValid } from "./scope";
 
 /**
  * @deprecated Since version 2.1. Will be deleted in version 3.0. Replace
@@ -42,3 +42,9 @@ export const can = test;
  * {@link getIntersection}.
  */
 export const limit = getIntersection;
+
+/**
+ * @deprecated Since version 2.4. Will be deleted in version 3.0. Renamed to
+ * {@link getIntersection}.
+ */
+export const validate = isValid;

@@ -60,7 +60,7 @@ function intersect(
     .reduce((x, y) => x.concat(y), []);
 }
 
-export function validate(scope: string): boolean {
+export function isValid(scope: string): boolean {
   const patterns = scope.split(":");
   return (
     patterns.length === 3 &&
@@ -79,7 +79,7 @@ export function validate(scope: string): boolean {
 }
 
 export function normalize(scope: string): string {
-  if (!validate(scope)) {
+  if (!isValid(scope)) {
     throw new InvalidScopeError("The scope is invalid.");
   }
 
@@ -129,13 +129,13 @@ export function getIntersection(
       ? [scopeOrCollectionB]
       : scopeOrCollectionB;
 
-  if (!collectionA.every(validate)) {
+  if (!collectionA.every(isValid)) {
     throw new InvalidScopeError(
       "One or more of the scopes in `collectionA` is invalid."
     );
   }
 
-  if (!collectionB.every(validate)) {
+  if (!collectionB.every(isValid)) {
     throw new InvalidScopeError(
       "One or more of the scopes in `collectionB` is invalid."
     );
@@ -189,7 +189,7 @@ export function getDifference(
   collectionB: string[]
 ): string[] {
   const parsedCollectionA = collectionA.map(scope => {
-    if (!validate(scope)) {
+    if (!isValid(scope)) {
       throw new InvalidScopeError(
         "A scope in `scopeOrCollectionA` is invalid."
       );
@@ -199,7 +199,7 @@ export function getDifference(
   });
 
   const parsedCollectionB = collectionB.map(scope => {
-    if (!validate(scope)) {
+    if (!isValid(scope)) {
       throw new InvalidScopeError(
         "A scope in `scopeOrCollectionB` is invalid."
       );

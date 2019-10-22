@@ -7,7 +7,7 @@ import {
   isSuperset,
   normalize,
   simplify,
-  validate
+  isValid
 } from "./scope";
 
 ([
@@ -27,7 +27,7 @@ import {
   { args: ["**:**:**"], result: true },
   { args: ["***:**:**"], result: false }
 ] as { args: [string]; result: boolean }[]).forEach(({ args, result }) => {
-  t(`validate ${args[0]} => ${result}`, t => t.is(validate(...args), result));
+  t(`isValid ${args[0]} => ${result}`, t => t.is(isValid(...args), result));
 });
 
 ([
