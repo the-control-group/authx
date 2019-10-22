@@ -53,7 +53,11 @@ export class Role implements RoleData {
     return (this._users = User.read(tx, [...this.userIds]));
   }
 
-  public access(): string[] {
+  public access(
+    authorizationId?: string,
+    userId?: string,
+    grantId?: string
+  ): string[] {
     return this.scopes;
   }
 

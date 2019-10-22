@@ -60,8 +60,12 @@ function intersect(
     .reduce((x, y) => x.concat(y), []);
 }
 
-export function isValid(scope: string): boolean {
-  const patterns = scope.split(":");
+export function isValid(scopeOrCollection: string | string[]): boolean {
+  if (Array.isArray(scopeOrCollection)) {
+    return scopeOrCollection.every(isValid);
+  }
+
+  const patterns = scopeOrCollection.split(":");
   return (
     patterns.length === 3 &&
     patterns.every(pattern =>
@@ -78,12 +82,18 @@ export function isValid(scope: string): boolean {
   );
 }
 
-export function normalize(scope: string): string {
-  if (!isValid(scope)) {
-    throw new InvalidScopeError("The scope is invalid.");
+export function normalize(scope: string): string;
+export function normalize(collection: string[]): string[];
+export function normalize(
+  scopeOrCollection: string | string[]
+): string | string[] {
+  // INVARIENT: scopeOrCollection contains only valid scopes
+
+  if (Array.isArray(scopeOrCollection)) {
+    return scopeOrCollection.map(s => normalize(s));
   }
 
-  return scope
+  return scopeOrCollection
     .split(":")
     .map(domain =>
       domain
@@ -103,12 +113,18 @@ export function normalize(scope: string): string {
 }
 
 function s(winners: string[], candidate: string): string[] {
+  // INVARIENT: parsedCollectionA contains only valid scopes
+  // INVARIENT: parsedCollectionB contains only valid scopes
+
   if (isSuperset(winners, candidate)) return winners;
   return winners.concat(normalize(candidate));
 }
 
 // returns a de-duplicated array of scope rules
 export function simplify(collection: string[]): string[] {
+  // INVARIENT: parsedCollectionA contains only valid scopes
+  // INVARIENT: parsedCollectionB contains only valid scopes
+
   return collection
     .reduce(s, [])
     .reduceRight(s, [])
@@ -119,6 +135,9 @@ export function getIntersection(
   scopeOrCollectionA: string[] | string,
   scopeOrCollectionB: string[] | string
 ): string[] {
+  // INVARIENT: scopeOrCollectionA contains only valid scopes
+  // INVARIENT: scopeOrCollectionB contains only valid scopes
+
   const collectionA =
     typeof scopeOrCollectionA === "string"
       ? [scopeOrCollectionA]
@@ -128,18 +147,6 @@ export function getIntersection(
     typeof scopeOrCollectionB === "string"
       ? [scopeOrCollectionB]
       : scopeOrCollectionB;
-
-  if (!collectionA.every(isValid)) {
-    throw new InvalidScopeError(
-      "One or more of the scopes in `collectionA` is invalid."
-    );
-  }
-
-  if (!collectionB.every(isValid)) {
-    throw new InvalidScopeError(
-      "One or more of the scopes in `collectionB` is invalid."
-    );
-  }
 
   const patternsA = collectionA.map(parse).filter(p => p.length > 0);
   const patternsB = collectionB.map(parse).filter(p => p.length > 0);
@@ -160,6 +167,9 @@ export function hasIntersection(
   scopeOrCollectionA: string[] | string,
   scopeOrCollectionB: string[] | string
 ): boolean {
+  // INVARIENT: scopeOrCollectionA contains only valid scopes
+  // INVARIENT: scopeOrCollectionB contains only valid scopes
+
   return getIntersection(scopeOrCollectionA, scopeOrCollectionB).length > 0;
 }
 
@@ -167,6 +177,9 @@ export function isEqual(
   scopeOrCollectionA: string[] | string,
   scopeOrCollectionB: string[] | string
 ): boolean {
+  // INVARIENT: scopeOrCollectionA contains only valid scopes
+  // INVARIENT: scopeOrCollectionB contains only valid scopes
+
   const collectionA = simplify(
     typeof scopeOrCollectionA === "string"
       ? [scopeOrCollectionA]
@@ -188,25 +201,11 @@ export function getDifference(
   collectionA: string[],
   collectionB: string[]
 ): string[] {
-  const parsedCollectionA = collectionA.map(scope => {
-    if (!isValid(scope)) {
-      throw new InvalidScopeError(
-        "A scope in `scopeOrCollectionA` is invalid."
-      );
-    }
+  // INVARIENT: parsedCollectionA contains only valid scopes
+  // INVARIENT: parsedCollectionB contains only valid scopes
 
-    return parse(scope);
-  });
-
-  const parsedCollectionB = collectionB.map(scope => {
-    if (!isValid(scope)) {
-      throw new InvalidScopeError(
-        "A scope in `scopeOrCollectionB` is invalid."
-      );
-    }
-
-    return parse(scope);
-  });
+  const parsedCollectionA = collectionA.map(parse);
+  const parsedCollectionB = collectionB.map(parse);
 
   return parsedCollectionA
     .reduce((remaining, a) => {
@@ -226,6 +225,9 @@ export function isSuperset(
   scopeOrCollectionA: string[] | string,
   scopeOrCollectionB: string[] | string
 ): boolean {
+  // INVARIENT: parsedCollectionA contains only valid scopes
+  // INVARIENT: parsedCollectionB contains only valid scopes
+
   return (
     getDifference(
       Array.isArray(scopeOrCollectionA)
@@ -242,6 +244,9 @@ export function isStrictSuperset(
   scopeOrCollectionA: string[] | string,
   scopeOrCollectionB: string[] | string
 ): boolean {
+  // INVARIENT: parsedCollectionA contains only valid scopes
+  // INVARIENT: parsedCollectionB contains only valid scopes
+
   return (
     !isEqual(scopeOrCollectionA, scopeOrCollectionB) &&
     isSuperset(scopeOrCollectionA, scopeOrCollectionB)
@@ -252,6 +257,9 @@ export function isSubset(
   scopeOrCollectionA: string[] | string,
   scopeOrCollectionB: string[] | string
 ): boolean {
+  // INVARIENT: parsedCollectionA contains only valid scopes
+  // INVARIENT: parsedCollectionB contains only valid scopes
+
   return isSubset(scopeOrCollectionB, scopeOrCollectionA);
 }
 
@@ -259,6 +267,8 @@ export function isStrictSubset(
   scopeOrCollectionA: string[] | string,
   scopeOrCollectionB: string[] | string
 ): boolean {
+  // INVARIENT: parsedCollectionA contains only valid scopes
+  // INVARIENT: parsedCollectionB contains only valid scopes
   return (
     !isEqual(scopeOrCollectionA, scopeOrCollectionB) &&
     isSubset(scopeOrCollectionA, scopeOrCollectionB)
