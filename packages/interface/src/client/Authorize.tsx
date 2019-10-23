@@ -135,9 +135,23 @@ export function Authorize({
 
   // Parse the scopes
   const requestedScopeTemplates = paramsScope ? paramsScope.split(" ") : null;
-  const requestedScopeTemplatesAreValid = requestedScopeTemplates
-    ? requestedScopeTemplates.every(isValidScopeTemplate)
-    : null;
+  let requestedScopeTemplatesAreValid: boolean | null = null;
+  if (requestedScopeTemplates) {
+    try {
+      // Make sure that the template does not contain variables in addition to
+      // those that can be used here.
+      inject(requestedScopeTemplates, {
+        /* eslint-disable @typescript-eslint/camelcase */
+        current_grant_id: "",
+        current_user_id: ""
+        /* eslint-enable @typescript-eslint/camelcase */
+      });
+
+      requestedScopeTemplatesAreValid = true;
+    } catch (error) {
+      requestedScopeTemplatesAreValid = false;
+    }
+  }
 
   // Get the user, grant, and client from the API.
   const { loading, cacheValue } = useGraphQL<
@@ -204,8 +218,7 @@ export function Authorize({
       ? inject(requestedScopeTemplates, {
           /* eslint-disable @typescript-eslint/camelcase */
           current_grant_id: grant.id,
-          current_user_id: user.id,
-          current_authorization_id: null
+          current_user_id: user.id
           /* eslint-enable @typescript-eslint/camelcase */
         })
       : requestedScopeTemplates
@@ -248,19 +261,19 @@ export function Authorize({
           fetchOptionsOverride,
           operation: {
             query: `
-                mutation($id: ID!, $scopes: [String!]!) {
-                  updateGrants(
-                    grants: [{id: $id, scopes: $scopes, generateCodes: 1}]
-                  ) {
-                    codes
-                    scopes
-                  }
+              mutation($id: ID!, $scopes: [String!]!) {
+                updateGrants(
+                  grants: [{id: $id, scopes: $scopes, generateCodes: 1}]
+                ) {
+                  codes
+                  scopes
                 }
-              `,
+              }
+            `,
             variables: {
               id: grant.id,
               scopes: simplify(
-                [...(grant.scopes || []), ...requestedScopes].filter(
+                [...(grant.scopes || []), ...requestedScope].filter(
                   s => overrides[s] !== false
                 )
               )
@@ -287,20 +300,20 @@ export function Authorize({
           fetchOptionsOverride,
           operation: {
             query: `
-                mutation($id: ID!, $clientId: ID!, $userId: ID!, $scopes: [String!]!) {
-                  createGrants(
-                    grants: [{
-                      id: $id,
-                      clientId: $clientId,
-                      userId: $userId,
-                      scopes: $scopes
-                    }]
-                  ) {
-                    codes
-                    scopes
-                  }
+              mutation($id: ID!, $clientId: ID!, $userId: ID!, $scopes: [String!]!) {
+                createGrants(
+                  grants: [{
+                    id: $id,
+                    clientId: $clientId,
+                    userId: $userId,
+                    scopes: $scopes
+                  }]
+                ) {
+                  codes
+                  scopes
                 }
-              `,
+              }
+            `,
             variables: {
               id,
               clientId: client.id,
@@ -308,8 +321,7 @@ export function Authorize({
               scopes: inject(requestedScopes, {
                 /* eslint-disable @typescript-eslint/camelcase */
                 current_grant_id: id,
-                current_user_id: user.id,
-                current_authorization_id: null
+                current_user_id: user.id
                 /* eslint-enable @typescript-eslint/camelcase */
               })
             }
