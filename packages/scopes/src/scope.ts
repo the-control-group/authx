@@ -69,10 +69,6 @@ export function isValidScopeSegment(segment: string): boolean {
   );
 }
 
-export function isValidScopeTemplateSegment(segment: string): boolean {
-  return isValidScopeSegment(segment) || /^\{[a-zA-Z0-9_-]+\}$/.test(segment);
-}
-
 export function isValidScope(scopeOrCollection: string | string[]): boolean {
   if (Array.isArray(scopeOrCollection)) {
     return scopeOrCollection.every(isValidScope);
@@ -82,22 +78,6 @@ export function isValidScope(scopeOrCollection: string | string[]): boolean {
   return (
     domains.length === 3 &&
     domains.every(pattern => pattern.split(".").every(isValidScopeSegment))
-  );
-}
-
-export function isValidScopeTemplate(
-  templateOrCollection: string | string[]
-): boolean {
-  if (Array.isArray(templateOrCollection)) {
-    return templateOrCollection.every(isValidScopeTemplate);
-  }
-
-  const domains = templateOrCollection.split(":");
-  return (
-    domains.length === 3 &&
-    domains.every(pattern =>
-      pattern.split(".").every(isValidScopeTemplateSegment)
-    )
   );
 }
 

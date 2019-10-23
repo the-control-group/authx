@@ -41,7 +41,7 @@ export class Authorization implements AuthorizationData {
     action: string = "read.basic"
   ): Promise<boolean> {
     /* eslint-disable @typescript-eslint/camelcase */
-    const values: { [name: string]: string } = {
+    const values: { [name: string]: null | string } = {
       current_authorization_id: a.id,
       current_user_id: a.userId,
       ...(a.grantId ? { current_grant_id: a.grantId } : null)
@@ -115,7 +115,7 @@ export class Authorization implements AuthorizationData {
 
   public async access(
     tx: PoolClient,
-    values: { [variable: string]: string },
+    values: { [name: string]: null | string },
     refresh: boolean = false
   ): Promise<string[]> {
     const grant = await this.grant(tx, refresh);
@@ -133,7 +133,7 @@ export class Authorization implements AuthorizationData {
 
   public async can(
     tx: PoolClient,
-    values: { [variable: string]: string },
+    values: { [name: string]: null | string },
     scope: string[] | string,
     refresh: boolean = false
   ): Promise<boolean> {

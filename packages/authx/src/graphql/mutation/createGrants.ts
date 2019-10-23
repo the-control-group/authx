@@ -74,7 +74,7 @@ export const createGrants: GraphQLFieldConfig<
       }
 
       /* eslint-disable @typescript-eslint/camelcase */
-      const values: { [name: string]: string } = {
+      const values: { [name: string]: null | string } = {
         current_authorization_id: a.id,
         current_user_id: a.userId,
         ...(a.grantId ? { current_grant_id: a.grantId } : null)

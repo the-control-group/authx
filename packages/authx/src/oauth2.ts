@@ -4,10 +4,87 @@ import { randomBytes } from "crypto";
 import { Context } from "./Context";
 import { Client, Grant, Authorization } from "./model";
 import { NotFoundError } from "./errors";
-import { isEqual, isSuperset } from "@authx/scopes";
-import { isValid, inject } from "./util/scopeTemplates";
+import { inject, isEqual, isValidScopeTemplate } from "@authx/scopes";
 import { ParameterizedContext } from "koa";
+import { PoolClient } from "pg";
 import x from "./x";
+
+async function assertPermissions(
+  realm: string,
+  tx: PoolClient,
+  grant: Grant,
+  values: { [key: string]: null | string }
+): Promise<void> {
+  if (
+    // Check that we have every relevant scope from:
+    // - authx:grant.{current_grant_id}:**
+    !(await grant.can(tx, values, `${realm}:grant.${grant.id}:read.basic`)) ||
+    !(await grant.can(tx, values, `${realm}:grant.${grant.id}:read.scopes`)) ||
+    !(await grant.can(tx, values, `${realm}:grant.${grant.id}:read.secrets`)) ||
+    !(await grant.can(tx, values, `${realm}:grant.${grant.id}:write.basic`)) ||
+    !(await grant.can(tx, values, `${realm}:grant.${grant.id}:write.scopes`)) ||
+    !(await grant.can(
+      tx,
+      values,
+      `${realm}:grant.${grant.id}:write.secrets`
+    )) ||
+    // Check that we have every relevant scope from:
+    // - authx:grant.{current_grant_id}.authorizations:**
+    // - authx:authorization.*:**
+    !(
+      (await grant.can(
+        tx,
+        values,
+        `${realm}:grant.${grant.id}.authorizations:read.basic`
+      )) || (await grant.can(tx, values, `${realm}:authorization.*:read.basic`))
+    ) ||
+    !(
+      (await grant.can(
+        tx,
+        values,
+        `${realm}:grant.${grant.id}.authorizations:read.scopes`
+      )) ||
+      (await grant.can(tx, values, `${realm}:authorization.*:read.scopes`))
+    ) ||
+    !(
+      (await grant.can(
+        tx,
+        values,
+        `${realm}:grant.${grant.id}.authorizations:read.secrets`
+      )) ||
+      (await grant.can(tx, values, `${realm}:authorization.*:read.secrets`))
+    ) ||
+    !(
+      (await grant.can(
+        tx,
+        values,
+        `${realm}:grant.${grant.id}.authorizations:write.basic`
+      )) ||
+      (await grant.can(tx, values, `${realm}:authorization.*:write.basic`))
+    ) ||
+    !(
+      (await grant.can(
+        tx,
+        values,
+        `${realm}:grant.${grant.id}.authorizations:write.scopes`
+      )) ||
+      (await grant.can(tx, values, `${realm}:authorization.*:write.scopes`))
+    ) ||
+    !(
+      (await grant.can(
+        tx,
+        values,
+        `${realm}:grant.${grant.id}.authorizations:write.secrets`
+      )) ||
+      (await grant.can(tx, values, `${realm}:authorization.*:write.secrets`))
+    )
+  ) {
+    throw new OAuthError(
+      "invalid_grant",
+      "The grant contains insufficient permission for OAuth."
+    );
+  }
+}
 
 class OAuthError extends Error {
   public code: string;
@@ -170,128 +247,16 @@ export default async (
 
           const requestedScopes = grant.scopes;
 
-          /* eslint-disable @typescript-eslint/camelcase */
-          const values: { [name: string]: string } = {
+          const values: { [name: string]: null | string } = {
+            /* eslint-disable @typescript-eslint/camelcase */
             current_user_id: grant.userId,
-            current_grant_id: grant.id
+            current_grant_id: grant.id,
+            current_authorization_id: null
+            /* eslint-enable @typescript-eslint/camelcase */
           };
-          /* eslint-enable @typescript-eslint/camelcase */
 
           // Make sure we have the necessary access.
-          if (
-            // Check that we have every relevant scope from:
-            // - authx:grant.{current_grant_id}:**
-            !(await grant.can(
-              tx,
-              values,
-              `${realm}:grant.${grant.id}:read.basic`
-            )) ||
-            !(await grant.can(
-              tx,
-              values,
-              `${realm}:grant.${grant.id}:read.scopes`
-            )) ||
-            !(await grant.can(
-              tx,
-              values,
-              `${realm}:grant.${grant.id}:read.secrets`
-            )) ||
-            !(await grant.can(
-              tx,
-              values,
-              `${realm}:grant.${grant.id}:write.basic`
-            )) ||
-            !(await grant.can(
-              tx,
-              values,
-              `${realm}:grant.${grant.id}:write.scopes`
-            )) ||
-            !(await grant.can(
-              tx,
-              values,
-              `${realm}:grant.${grant.id}:write.secrets`
-            )) ||
-            // Check that we have every relevant scope from:
-            // - authx:grant.{current_grant_id}.authorizations:**
-            // - authx:authorization.*:**
-            !(
-              (await grant.can(
-                tx,
-                values,
-                `${realm}:grant.${grant.id}.authorizations:read.basic`
-              )) ||
-              (await grant.can(
-                tx,
-                values,
-                `${realm}:authorization.*:read.basic`
-              ))
-            ) ||
-            !(
-              (await grant.can(
-                tx,
-                values,
-                `${realm}:grant.${grant.id}.authorizations:read.scopes`
-              )) ||
-              (await grant.can(
-                tx,
-                values,
-                `${realm}:authorization.*:read.scopes`
-              ))
-            ) ||
-            !(
-              (await grant.can(
-                tx,
-                values,
-                `${realm}:grant.${grant.id}.authorizations:read.secrets`
-              )) ||
-              (await grant.can(
-                tx,
-                values,
-                `${realm}:authorization.*:read.secrets`
-              ))
-            ) ||
-            !(
-              (await grant.can(
-                tx,
-                values,
-                `${realm}:grant.${grant.id}.authorizations:write.basic`
-              )) ||
-              (await grant.can(
-                tx,
-                values,
-                `${realm}:authorization.*:write.basic`
-              ))
-            ) ||
-            !(
-              (await grant.can(
-                tx,
-                values,
-                `${realm}:grant.${grant.id}.authorizations:write.scopes`
-              )) ||
-              (await grant.can(
-                tx,
-                values,
-                `${realm}:authorization.*:write.scopes`
-              ))
-            ) ||
-            !(
-              (await grant.can(
-                tx,
-                values,
-                `${realm}:grant.${grant.id}.authorizations:write.secrets`
-              )) ||
-              (await grant.can(
-                tx,
-                values,
-                `${realm}:authorization.*:write.secrets`
-              ))
-            )
-          ) {
-            throw new OAuthError(
-              "invalid_grant",
-              "The grant contained insufficient permission for OAuth."
-            );
-          }
+          await assertPermissions(realm, tx, grant, values);
 
           // Look for an existing active authorization for this grant with the
           // same scopes
@@ -413,7 +378,10 @@ export default async (
           const requestedScopeTemplates = paramsScope
             ? paramsScope.split(" ")
             : [];
-          if (paramsScope && !requestedScopeTemplates.every(isValid)) {
+          if (
+            paramsScope &&
+            !requestedScopeTemplates.every(isValidScopeTemplate)
+          ) {
             throw new OAuthError("invalid_scope");
           }
 
@@ -481,128 +449,14 @@ export default async (
             );
           }
 
-          /* eslint-disable @typescript-eslint/camelcase */
-          const values: { [name: string]: string } = {
-            current_user_id: grant.userId,
-            current_grant_id: grant.id
-          };
-          /* eslint-enable @typescript-eslint/camelcase */
-
           // Make sure we have the necessary access.
-          if (
-            // Check that we have every relevant scope from:
-            // - authx:grant.{current_grant_id}:**
-            !(await grant.can(
-              tx,
-              values,
-              `${realm}:grant.${grant.id}:read.basic`
-            )) ||
-            !(await grant.can(
-              tx,
-              values,
-              `${realm}:grant.${grant.id}:read.scopes`
-            )) ||
-            !(await grant.can(
-              tx,
-              values,
-              `${realm}:grant.${grant.id}:read.secrets`
-            )) ||
-            !(await grant.can(
-              tx,
-              values,
-              `${realm}:grant.${grant.id}:write.basic`
-            )) ||
-            !(await grant.can(
-              tx,
-              values,
-              `${realm}:grant.${grant.id}:write.scopes`
-            )) ||
-            !(await grant.can(
-              tx,
-              values,
-              `${realm}:grant.${grant.id}:write.secrets`
-            )) ||
-            // Check that we have every relevant scope from:
-            // - authx:grant.{current_grant_id}.authorizations:**
-            // - authx:authorization.*:**
-            !(
-              (await grant.can(
-                tx,
-                values,
-                `${realm}:grant.${grant.id}.authorizations:read.basic`
-              )) ||
-              (await grant.can(
-                tx,
-                values,
-                `${realm}:authorization.*:read.basic`
-              ))
-            ) ||
-            !(
-              (await grant.can(
-                tx,
-                values,
-                `${realm}:grant.${grant.id}.authorizations:read.scopes`
-              )) ||
-              (await grant.can(
-                tx,
-                values,
-                `${realm}:authorization.*:read.scopes`
-              ))
-            ) ||
-            !(
-              (await grant.can(
-                tx,
-                values,
-                `${realm}:grant.${grant.id}.authorizations:read.secrets`
-              )) ||
-              (await grant.can(
-                tx,
-                values,
-                `${realm}:authorization.*:read.secrets`
-              ))
-            ) ||
-            !(
-              (await grant.can(
-                tx,
-                values,
-                `${realm}:grant.${grant.id}.authorizations:write.basic`
-              )) ||
-              (await grant.can(
-                tx,
-                values,
-                `${realm}:authorization.*:write.basic`
-              ))
-            ) ||
-            !(
-              (await grant.can(
-                tx,
-                values,
-                `${realm}:grant.${grant.id}.authorizations:write.scopes`
-              )) ||
-              (await grant.can(
-                tx,
-                values,
-                `${realm}:authorization.*:write.scopes`
-              ))
-            ) ||
-            !(
-              (await grant.can(
-                tx,
-                values,
-                `${realm}:grant.${grant.id}.authorizations:write.secrets`
-              )) ||
-              (await grant.can(
-                tx,
-                values,
-                `${realm}:authorization.*:write.secrets`
-              ))
-            )
-          ) {
-            throw new OAuthError(
-              "invalid_grant",
-              "The grant contained insufficient permission for OAuth."
-            );
-          }
+          await assertPermissions(realm, tx, grant, {
+            /* eslint-disable @typescript-eslint/camelcase */
+            current_user_id: grant.userId,
+            current_grant_id: grant.id,
+            current_authorization_id: null
+            /* eslint-enable @typescript-eslint/camelcase */
+          });
 
           // Look for an existing active authorization for this grant with the same scopes
           const authorizations = (await grant.authorizations(tx)).filter(
@@ -626,6 +480,7 @@ export default async (
             // Use an existing authorization.
             authorization = authorizations[0];
           } else {
+            // Create a new authorization.
             const authorizationId = v4();
             authorization = await Authorization.write(
               tx,

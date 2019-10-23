@@ -1,5 +1,5 @@
 import test from "ava";
-import { extract, InvalidTemplateError } from "./parameter";
+import { extract, InvalidPatternError } from "./parameter";
 
 test("extract(template, scopes) - single segment, concrete value", t => {
   t.deepEqual(extract("foo:(bar):baz", ["foo:aaa:baz"]), [
@@ -97,6 +97,6 @@ test("extract(template, scopes) - multiple segments with infix any multiple, any
 test("extract(template, scopes) - multiple segments with surrounding any multiple, any single values", t => {
   t.throws(
     () => extract("foo:**.(a).**:baz", ["foo:*.*.*:baz"]),
-    InvalidTemplateError
+    InvalidPatternError
   );
 });

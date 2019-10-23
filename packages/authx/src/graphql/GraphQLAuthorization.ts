@@ -107,7 +107,7 @@ export const GraphQLAuthorization: GraphQLObjectType<
         const tx = await pool.connect();
         try {
           /* eslint-disable @typescript-eslint/camelcase */
-          const values: { [name: string]: string } = {
+          const values: { [name: string]: null | string } = {
             current_authorization_id: a.id,
             current_user_id: a.userId,
             ...(a.grantId ? { current_grant_id: a.grantId } : null)
@@ -170,7 +170,7 @@ export const GraphQLAuthorization: GraphQLObjectType<
           if (args.format === "bearer") {
             const grant = await authorization.grant(tx);
             /* eslint-disable @typescript-eslint/camelcase */
-            const values: { [name: string]: string } = {
+            const values: { [name: string]: null | string } = {
               current_authorization_id: a.id,
               current_user_id: a.userId,
               ...(a.grantId ? { current_grant_id: a.grantId } : null)

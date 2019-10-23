@@ -13,7 +13,15 @@ import {
   GraphQLFetchOptionsOverride,
   GraphQLContext
 } from "graphql-react";
-import { isValid, isSuperset, getDifference, simplify } from "@authx/scopes";
+import {
+  isValidScopeTemplate,
+  isSuperset,
+  getDifference,
+  simplify,
+  inject
+} from "@authx/scopes";
+
+import v4 from "uuid/v4";
 
 function Checkbox({
   value,
@@ -126,9 +134,9 @@ export function Authorize({
   const paramsScope = url.searchParams.get("scope") || null;
 
   // Parse the scopes
-  const requestedScopes = paramsScope ? paramsScope.split(" ") : null;
-  const requestedScopesAreValid = requestedScopes
-    ? requestedScopes.every(isValid)
+  const requestedScopeTemplates = paramsScope ? paramsScope.split(" ") : null;
+  const requestedScopeTemplatesAreValid = requestedScopeTemplates
+    ? requestedScopeTemplates.every(isValidScopeTemplate)
     : null;
 
   // Get the user, grant, and client from the API.
@@ -191,13 +199,25 @@ export function Authorize({
   // These decisions override the default behavior, which is to
   const [overrides, setOverrides] = useState<{ [scope: string]: boolean }>({});
 
+  const requestedScopes = requestedScopeTemplates
+    ? user && grant
+      ? inject(requestedScopeTemplates, {
+          /* eslint-disable @typescript-eslint/camelcase */
+          current_grant_id: grant.id,
+          current_user_id: user.id,
+          current_authorization_id: null
+          /* eslint-enable @typescript-eslint/camelcase */
+        })
+      : requestedScopeTemplates
+    : [];
+
   const newRequestedScopes =
-    grant && grant.scopes && requestedScopes
+    grant && grant.scopes
       ? getDifference(
           grant.scopes.filter(s => overrides[s] !== false),
           requestedScopes
         )
-      : requestedScopes || [];
+      : requestedScopes;
 
   // API and errors
   const graphql = useContext<GraphQL>(GraphQLContext);
@@ -210,23 +230,24 @@ export function Authorize({
 
     setOperating(true);
     try {
-      const operation = grant
-        ? graphql.operate<
-            {
-              createGrants?: undefined;
-              updateGrants: null | ReadonlyArray<null | {
-                codes: null | string[];
-                scopes: null | string[];
-              }>;
-            },
-            {
-              id: string;
-              scopes: string[];
-            }
-          >({
-            fetchOptionsOverride,
-            operation: {
-              query: `
+      let operation;
+      if (grant) {
+        operation = graphql.operate<
+          {
+            createGrants?: undefined;
+            updateGrants: null | ReadonlyArray<null | {
+              codes: null | string[];
+              scopes: null | string[];
+            }>;
+          },
+          {
+            id: string;
+            scopes: string[];
+          }
+        >({
+          fetchOptionsOverride,
+          operation: {
+            query: `
                 mutation($id: ID!, $scopes: [String!]!) {
                   updateGrants(
                     grants: [{id: $id, scopes: $scopes, generateCodes: 1}]
@@ -236,36 +257,40 @@ export function Authorize({
                   }
                 }
               `,
-              variables: {
-                id: grant.id,
-                scopes: simplify(
-                  [...(grant.scopes || []), ...(requestedScopes || [])].filter(
-                    s => overrides[s] !== false
-                  )
+            variables: {
+              id: grant.id,
+              scopes: simplify(
+                [...(grant.scopes || []), ...requestedScopes].filter(
+                  s => overrides[s] !== false
                 )
-              }
+              )
             }
-          })
-        : graphql.operate<
-            {
-              updateGrants?: undefined;
-              createGrants: null | ReadonlyArray<null | {
-                codes: null | string[];
-                scopes: null | string[];
-              }>;
-            },
-            {
-              clientId: string;
-              userId: string;
-              scopes: string[];
-            }
-          >({
-            fetchOptionsOverride,
-            operation: {
-              query: `
-                mutation($clientId: ID!, $userId: ID!, $scopes: [String!]!) {
+          }
+        });
+      } else {
+        const id = v4();
+        operation = graphql.operate<
+          {
+            updateGrants?: undefined;
+            createGrants: null | ReadonlyArray<null | {
+              codes: null | string[];
+              scopes: null | string[];
+            }>;
+          },
+          {
+            id: string;
+            clientId: string;
+            userId: string;
+            scopes: string[];
+          }
+        >({
+          fetchOptionsOverride,
+          operation: {
+            query: `
+                mutation($id: ID!, $clientId: ID!, $userId: ID!, $scopes: [String!]!) {
                   createGrants(
                     grants: [{
+                      id: $id,
                       clientId: $clientId,
                       userId: $userId,
                       scopes: $scopes
@@ -276,13 +301,21 @@ export function Authorize({
                   }
                 }
               `,
-              variables: {
-                clientId: client.id,
-                userId: user.id,
-                scopes: [...(requestedScopes || [])]
-              }
+            variables: {
+              id,
+              clientId: client.id,
+              userId: user.id,
+              scopes: inject(requestedScopes, {
+                /* eslint-disable @typescript-eslint/camelcase */
+                current_grant_id: id,
+                current_user_id: user.id,
+                current_authorization_id: null
+                /* eslint-enable @typescript-eslint/camelcase */
+              })
             }
-          });
+          }
+        });
+      }
 
       const result = await operation.cacheValuePromise;
       if (result.fetchError) {
@@ -347,7 +380,7 @@ export function Authorize({
         );
       }
 
-      if (requestedScopesAreValid === false) {
+      if (requestedScopeTemplatesAreValid === false) {
         url.searchParams.append("error", "invalid_scope ");
         url.searchParams.append(
           "error_description",
@@ -366,8 +399,8 @@ export function Authorize({
       const grantedScopes = grant && grant.scopes;
       if (
         grantedScopes &&
-        requestedScopes &&
-        isSuperset(grantedScopes, requestedScopes)
+        requestedScopeTemplates &&
+        isSuperset(grantedScopes, requestedScopeTemplates)
       ) {
         // TODO: We need to allow the app to force us to show a confirmation
         // screen. IIRC this is part of the OpenID Connect spec, but I have
@@ -385,8 +418,8 @@ export function Authorize({
     urls,
     paramsState,
     paramsResponseType,
-    requestedScopes,
-    requestedScopesAreValid,
+    requestedScopeTemplates,
+    requestedScopeTemplatesAreValid,
     grant
   ]);
 
@@ -396,7 +429,7 @@ export function Authorize({
     !paramsRedirectUri ||
     (urls && !urls.includes(paramsRedirectUri)) ||
     paramsResponseType !== "code" ||
-    requestedScopesAreValid === false
+    requestedScopeTemplatesAreValid === false
   ) {
     return (
       <div>
@@ -426,7 +459,7 @@ export function Authorize({
               to &quot;code&quot;.
             </p>
           ) : null}
-          {requestedScopesAreValid === false ? (
+          {requestedScopeTemplatesAreValid === false ? (
             <p className="error">
               If set, the <span className="code">scope</span> must be contain a
               space-separated list of valid authx scopes.
@@ -579,7 +612,7 @@ export function Authorize({
               }}
               style={{ flex: "1", marginRight: "14px" }}
               type="button"
-              value="Grant Access"
+              value="Save &amp; Continue"
             />
             <input
               onClick={e => {
@@ -593,7 +626,7 @@ export function Authorize({
               className="danger"
               style={{ flex: "1", marginLeft: "11px" }}
               type="button"
-              value="Deny"
+              value="Cancel"
             />
           </div>
         )}

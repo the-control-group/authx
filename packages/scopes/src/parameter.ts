@@ -1,17 +1,17 @@
 import { isValidScopeSegment, getIntersection, isSuperset } from "./scope";
 
-export class InvalidTemplateError extends Error {}
+export class InvalidPatternError extends Error {}
 
 function parse(
-  template: string
+  pattern: string
 ): { scope: string; positions: Map<number, Map<number, string>> } {
-  const domains = template.split(":");
+  const domains = pattern.split(":");
 
   const parameterNames: Set<string> = new Set();
   const parameterPositions: Map<number, Map<number, string>> = new Map();
   const remappedDomains: string[] = [];
 
-  // Parse each template domain.
+  // Parse each pattern domain.
   for (let d = 0; d < domains.length; d++) {
     const domain = domains[d];
     const domainSegments = domain.split(".");
@@ -33,7 +33,7 @@ function parse(
 
         // Ensure uniqueness of parameter name.
         if (parameterNames.has(name)) {
-          throw new InvalidTemplateError(
+          throw new InvalidPatternError(
             `An parameter name of "${name}" cannot be used multiple times.`
           );
         } else {
@@ -48,8 +48,8 @@ function parse(
 
       // The segment is invalid.
       if (!isValidScopeSegment(segment)) {
-        throw new InvalidTemplateError(
-          "The template contained an invalid segment."
+        throw new InvalidPatternError(
+          "The pattern contained an invalid segment."
         );
       }
 
@@ -60,13 +60,13 @@ function parse(
           domainIndexOfFirstAnyMultiple = s;
         }
 
-        // A template is invalid if an "**" is present on both sides of a
+        // A pattern is invalid if an "**" is present on both sides of a
         // parameterized segment, as the parameter's position is ambiguous.
         if (
           domainIndexOfMostRecentParameter !== null &&
           domainIndexOfFirstAnyMultiple < domainIndexOfMostRecentParameter
         ) {
-          throw new InvalidTemplateError(
+          throw new InvalidPatternError(
             "An parameter segment cannot have `**` on both sides."
           );
         }
@@ -87,7 +87,7 @@ function parse(
 }
 
 export function extract(
-  template: string,
+  pattern: string,
   scopes: string[]
 ): ReadonlyArray<{
   scope: string;
@@ -95,8 +95,8 @@ export function extract(
     [key: string]: string;
   };
 }> {
-  // Parse the template.
-  const { scope, positions } = parse(template);
+  // Parse the pattern.
+  const { scope, positions } = parse(pattern);
 
   // Get the intersections.
   const intersections = getIntersection(scope, scopes);

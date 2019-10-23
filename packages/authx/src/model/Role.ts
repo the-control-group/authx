@@ -1,9 +1,8 @@
 import { PoolClient } from "pg";
 import { User } from "./User";
 import { Authorization } from "./Authorization";
-import { simplify, isSuperset } from "@authx/scopes";
+import { simplify, isSuperset, inject } from "@authx/scopes";
 import { NotFoundError } from "../errors";
-import { inject } from "../util/scopeTemplates";
 
 export interface RoleData {
   readonly id: string;
@@ -40,7 +39,7 @@ export class Role implements RoleData {
     action: string = "read.basic"
   ): Promise<boolean> {
     /* eslint-disable @typescript-eslint/camelcase */
-    const values: { [name: string]: string } = {
+    const values: { [name: string]: null | string } = {
       current_authorization_id: a.id,
       current_user_id: a.userId,
       ...(a.grantId ? { current_grant_id: a.grantId } : null)
@@ -61,12 +60,12 @@ export class Role implements RoleData {
     return (this._users = User.read(tx, [...this.userIds]));
   }
 
-  public access(values: { [variable: string]: string }): string[] {
+  public access(values: { [name: string]: null | string }): string[] {
     return inject(this.scopes, values);
   }
 
   public async can(
-    values: { [variable: string]: string },
+    values: { [name: string]: null | string },
     scope: string[] | string
   ): Promise<boolean> {
     return isSuperset(this.access(values), scope);
