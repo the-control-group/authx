@@ -1,5 +1,9 @@
 import { PatternDescriptionMap } from "./util/humanizeScopes";
 
+// "(entity_type).(authority_id).(authorization_id).(client_id).(credential_id).(grant_id).(role_id).(user_id)"
+
+// TODO: do we ever need grant_id? It is essentially a unique intersection of user_id and client_id, and as such is possibly completely redundant...
+
 export default (
   realm: PatternDescriptionMap = {
     authx: "authx"
@@ -22,7 +26,8 @@ export default (
     [
       realm,
       {
-        "authority.(id)": 'the authority with id "(id)"'
+        "authority.(authority_id).....":
+          'the authority with id "(authority_id)"'
       },
       {
         ...commonAuthorityActions,
@@ -33,8 +38,8 @@ export default (
     [
       realm,
       {
-        "authority.": "a new authority",
-        "authority.*": "any new or existing authority"
+        "authority......": "a new authority",
+        "authority.*.....": "any new or existing authority"
       },
       {
         ...commonAuthorityActions,
@@ -62,7 +67,7 @@ export default (
     [
       realm,
       {
-        "client.(id)": 'the client with id "(id)"'
+        "client...(client_id)....": 'the client with id "(client_id)"'
       },
       {
         ...commonClientActions,
@@ -73,8 +78,8 @@ export default (
     [
       realm,
       {
-        "client.": "a new client",
-        "client.*": "any new or existing client"
+        "client.......": "a new client",
+        "client...*....": "any new or existing client"
       },
       {
         ...commonClientActions,
@@ -104,7 +109,7 @@ export default (
     [
       realm,
       {
-        "role.(id)": 'the role with id "(id)"'
+        "role......(role_id).": 'the role with id "(role_id)"'
       },
       {
         ...commonRoleActions,
@@ -115,8 +120,8 @@ export default (
     [
       realm,
       {
-        "role.": "a new role",
-        "role.*": "any new or existing role"
+        "role.......": "a new role",
+        "role......*.": "any new or existing role"
       },
       {
         ...commonRoleActions,
@@ -141,8 +146,8 @@ export default (
     [
       realm,
       {
-        "user.(id)": 'the user with id "(id)"',
-        "user.{current_user_id}": "the current user"
+        "user.......(user_id)": 'the user with id "(user_id)"',
+        "user.......{current_user_id}": "the current user"
       },
       {
         ...commonUserActions,
@@ -153,8 +158,8 @@ export default (
     [
       realm,
       {
-        "user.": "a new user",
-        "user.*": "any new or existing user"
+        "user.......": "a new user",
+        "user.......*": "any new or existing user"
       },
       {
         ...commonUserActions,
@@ -174,16 +179,19 @@ export default (
     [
       realm,
       {
-        "credential.(id)": 'the credential with id "(id)"',
-        "credential.*": "any new or existing credential",
-
-        "user.(id).credentials":
-          'credentials belonging to the user with id "(id)"',
-        "user.{current_user_id}.credentials":
-          "credentials belonging to the current user",
-
-        "authority.(id).credentials":
-          'credentials belonging to the authority with id "(id)"'
+        "credential.(authority_id)...(credential_id)...(user_id)":
+          'the credential with id "(credential_id)"',
+        "credential.(authority_id)...*...(user_id)":
+          'any new or existing credential belonging to both the user with id "(user_id)" and authority with id "(authority_id)"',
+        "credential.(authority_id)...*...{current_user_id}":
+          'any new or existing credential belonging to both the current user and authority with id "(authority_id)"',
+        "credential.*...*...(user_id)":
+          'any new or existing credential belonging to the user with id "(user_id)"',
+        "credential.*...*...{current_user}":
+          "any new or existing credential belonging to the current user",
+        "credential.(authority_id)...*...*":
+          'any new or existing credential belonging to the authority with id "(authority_id)"',
+        "credential.*...*...*": "any new or existing credential"
       },
       {
         "read.basic": "read the basic fields of",
@@ -198,13 +206,6 @@ export default (
     ]
   ];
 
-  const commonGrantActions = {
-    "read.basic": "read the basic fields of",
-    "read.scopes": "read the scopes of",
-    "read.secrets": "read the secrets of",
-    "read.*": "read all fields of"
-  };
-
   const grant: [
     PatternDescriptionMap,
     PatternDescriptionMap,
@@ -214,30 +215,33 @@ export default (
     [
       realm,
       {
-        "grant.(id)": 'the grant with id "(id)"',
-        "grant.{current_grant_id}": "the current grant",
-        "grant.*": "any new or existing grant",
-
-        "user.(id).grants": 'grants belonging to the user with id "(id)"',
-        "user.{current_user_id}.grants": "grants belonging to the current user"
+        "grant...(client_id)..(grant_id)..(user_id)":
+          'the grant with id "(grant_id)"',
+        "grant...{current_client_id}..{current_grant_id}..{current_user_id}":
+          "the current grant",
+        "grant...(client_id)..*..(user_id)":
+          'any new or existing grant belonging to both the user with id "(user_id)" and the client with id "(client_id)"',
+        "grant...(client_id)..*..{current_user_id}":
+          'any new or existing grant belonging to both the current user and the client with id "(client_id)"',
+        "grant...*..*..(user_id)":
+          'any new or existing grant belonging to the user with id "(user_id)"',
+        "grant...*..*..{current_user_id}":
+          "any new or existing grant belonging to the current user",
+        "grant...(client_id)..*..*":
+          'any new or existing grant belonging to the client with id "(client_id)"',
+        "grant...*..*..*": "any new or existing grant"
       },
       {
-        ...commonGrantActions,
+        "read.basic": "read the basic fields of",
+        "read.scopes": "read the scopes of",
+        "read.secrets": "read the secrets of",
+        "read.*": "read all fields of",
         "write.basic": "write basic fields for",
         "write.scopes": "add and remove scopes for",
         "write.secrets": "write secrets for",
         "write.create": "create",
         "write.*": "write all fields for, or create",
         "*.*": "read and write all fields for, or create"
-      }
-    ],
-    [
-      realm,
-      {
-        "client.(id).grants": 'grants associated with the client with id "(id)"'
-      },
-      {
-        ...commonGrantActions
       }
     ]
   ];
@@ -251,22 +255,18 @@ export default (
     [
       realm,
       {
-        "authorization.(id)": 'the authorization with id "(id)"',
-        "authorization.{current_authorization_id}": "the current authorization",
-        "authorization.*": "any new or existing authorization",
-
-        "user.(id).authorizations":
-          'authorizations belonging to the user with id "(id)"',
-        "user.{current_user_id}.authorization":
-          "authorizations belonging to the current user",
-
-        "grant.(id).authorizations":
-          "authorizations belonging to the same grant as {authorization}",
-        "grant.{current_grant_id}.authorization":
-          "authorizations belonging to the current grant",
-
-        "client.(id).authorizations":
-          'authorizations associated with the client with id "(id)"'
+        "authorization..(authorization_id).(client_id)..(grant_id)..(user_id)":
+          'the authorization with id "(authorization_id)',
+        "authorization..{current_authorization_id}.(client_id)..{current_grant_id}..{current_user_id}":
+          "the current authorization",
+        "authorization..*.(client_id)..(grant_id)..(user_id)":
+          'any new or existing authorization belonging to the grant with id "(grant_id)"',
+        "authorization..*.{current_client_id}..{current_grant_id}..{current_user_id}":
+          "any new or existing authorization belonging to the current grant",
+        "authorization..*.(client_id)..*..*":
+          'any new or existing authorization belonging to the client with id "(client_id)"',
+        "authorization..*.*..*..(user_id)":
+          'any new or existing authorization belonging to the user with id "(user_id)"'
       },
       {
         "read.basic": "read the basic fields of",
