@@ -7,11 +7,13 @@ export default (
 ): [PatternDescriptionMap, PatternDescriptionMap, PatternDescriptionMap][] => {
   // Authority
   const commonAuthorityActions = {
-    "read.basic": "read the basic fields of",
-    "read.details": "read potentially sensitive details of",
-    "read.*": "read all fields of",
-    "write.basic": "write basic fields for",
-    "write.details": "write potentially sensitive details for"
+    "r....": "read the basic fields of",
+    "r.r...": "read potentially sensitive details of",
+    "r.*...": "read all fields of",
+    "w....": "write basic fields for",
+    "w.w...": "write potentially sensitive details for",
+    "w.*...": "write all fields of",
+    "*.*...": "read and write all fields of"
   };
 
   const authority: [
@@ -22,36 +24,33 @@ export default (
     [
       realm,
       {
-        "authority.(authority_id)....": 'the authority with id "(authority_id)"'
+        "authority.(authority_id).....":
+          'the authority with id "(authority_id)"'
       },
-      {
-        ...commonAuthorityActions,
-        "write.*": "write all fields for",
-        "*.*": "read and write all fields for"
-      }
+      commonAuthorityActions
     ],
     [
       realm,
       {
-        "authority.....": "a new authority",
-        "authority.*....": "any new or existing authority"
+        "authority......": "a new authority",
+        "authority.*.....": "any new or existing authority"
       },
       {
         ...commonAuthorityActions,
-        create: "create",
-        "write.*": "write all fields for",
-        "**": "read and write all fields for, or create"
+        "*.*...": "create, read and write all fields of"
       }
     ]
   ];
 
   // Client
   const commonClientActions = {
-    "read.basic": "read the basic fields of",
-    "read.secrets": "read the secrets of",
-    "read.*": "read all fields of",
-    "write.basic": "write basic fields for",
-    "write.secrets": "write secrets for"
+    "r....": "read the basic fields of",
+    "r...r.": "read secrets of",
+    "r...*.": "read all fields of",
+    "w....": "write basic fields for",
+    "w...w.": "write secrets for",
+    "w...*.": "write all fields of",
+    "*...*.": "read and write all fields of"
   };
 
   const client: [
@@ -62,38 +61,34 @@ export default (
     [
       realm,
       {
-        "client...(client_id)...": 'the client with id "(client_id)"'
+        "client...(client_id)....": 'the client with id "(client_id)"'
       },
-      {
-        ...commonClientActions,
-        "write.*": "write all fields for",
-        "*.*": "read and write all fields for"
-      }
+      commonClientActions
     ],
     [
       realm,
       {
-        "client......": "a new client",
-        "client...*...": "any new or existing client"
+        "client.......": "a new client",
+        "client...*....": "any new or existing client"
       },
       {
         ...commonClientActions,
-        create: "create",
-        "write.*": "write all fields for",
-        "**": "read and write all fields for, or create"
+        "*...*.": "create, read and write all fields of"
       }
     ]
   ];
 
   // Role
   const commonRoleActions = {
-    "read.basic": "read the basic fields of",
-    "read.scopes": "read the scopes of",
-    "read.users": "read the list of users assigned to",
-    "read.*": "read all fields of",
-    "write.basic": "write basic fields for",
-    "write.scopes": "add and remove scopes for",
-    "write.users": "assign and unassign users for"
+    "r....": "read the basic fields of",
+    "r..r..": "read scopes of",
+    "r....r": "read users of",
+    "r..*..*": "read all fields of",
+    "w....": "write basic fields for",
+    "w..w..": "write scopes for",
+    "w....w": "write users for",
+    "w..*..*": "write all fields of",
+    "*..*..*": "read and write all fields of"
   };
 
   const role: [
@@ -104,33 +99,28 @@ export default (
     [
       realm,
       {
-        "role.....(role_id).": 'the role with id "(role_id)"'
+        "role......(role_id).": 'the role with id "(role_id)"'
       },
-      {
-        ...commonRoleActions,
-        "write.*": "write all fields for",
-        "*.*": "read and write all fields for"
-      }
+      commonRoleActions
     ],
     [
       realm,
       {
-        "role......": "a new role",
-        "role.....*.": "any new or existing role"
+        "role.......": "a new role",
+        "role......*.": "any new or existing role"
       },
       {
         ...commonRoleActions,
-        create: "create",
-        "write.*": "write all fields for",
-        "**": "read and write all fields for, or create"
+        "*..*..*": "create, read and write all fields of"
       }
     ]
   ];
 
   // User
   const commonUserActions = {
-    "read.basic": "read the basic fields of",
-    "write.basic": "write the basic fields of"
+    "r....": "read the basic fields of",
+    "w....": "write basic fields for",
+    "*....": "read and write basic fields of"
   };
 
   const user: [
@@ -141,26 +131,20 @@ export default (
     [
       realm,
       {
-        "user......(user_id)": 'the user with id "(user_id)"',
-        "user......{current_user_id}": "the current user"
+        "user.......(user_id)": 'the user with id "(user_id)"',
+        "user.......{current_user_id}": "the current user"
       },
-      {
-        ...commonUserActions,
-        "write.*": "write all fields for",
-        "*.*": "read and write all fields for"
-      }
+      commonUserActions
     ],
     [
       realm,
       {
-        "user......": "a new user",
-        "user......*": "any new or existing user"
+        "user.......": "a new user",
+        "user.......*": "any new or existing user"
       },
       {
         ...commonUserActions,
-        create: "create",
-        "write.*": "write all fields for",
-        "**": "read and write all fields for, or create"
+        "*....": "create, read and write basic fields of"
       }
     ]
   ];
@@ -174,31 +158,30 @@ export default (
     [
       realm,
       {
-        "credential.(authority_id)...(credential_id)..(user_id)":
+        "credential.(authority_id)...(credential_id)...(user_id)":
           'the credential with id "(credential_id)"',
 
-        "credential.(authority_id)...*..(user_id)":
+        "credential.(authority_id)...*...(user_id)":
           'any new or existing credential belonging to both the user with id "(user_id)" and authority with id "(authority_id)"',
-        "credential.(authority_id)...*..{current_user_id}":
+        "credential.(authority_id)...*...{current_user_id}":
           'any new or existing credential belonging to both the current user and authority with id "(authority_id)"',
-        "credential.*...*..(user_id)":
+        "credential.*...*...(user_id)":
           'any new or existing credential belonging to the user with id "(user_id)"',
-        "credential.*...*..{current_user}":
+        "credential.*...*...{current_user}":
           "any new or existing credential belonging to the current user",
-        "credential.(authority_id)...*..*":
+        "credential.(authority_id)...*...*":
           'any new or existing credential belonging to the authority with id "(authority_id)"',
 
-        "credential.*...*..*": "any new or existing credential"
+        "credential.*...*...*": "any new or existing credential"
       },
       {
-        "read.basic": "read the basic fields of",
-        "read.details": "read potentially sensitive details of",
-        "read.*": "read all fields of",
-        "write.basic": "write basic fields for",
-        "write.details": "write potentially sensitive details for",
-        create: "create",
-        "write.*": "write all fields for",
-        "**": "read and write all fields for, or create"
+        "r....": "read the basic fields of",
+        "r.r...": "read potentially sensitive details of",
+        "r.*...": "read all fields of",
+        "w....": "write basic fields for",
+        "w.w...": "write potentially sensitive details for",
+        "w.*...": "write all fields of",
+        "*.*...": "create, read and write all fields of"
       }
     ]
   ];
@@ -212,37 +195,41 @@ export default (
     [
       realm,
       {
-        "grant...(client_id)...(user_id)":
+        "grant...(client_id)..(grant_id)..(user_id)":
+          'the grant with id "(grant_id)"',
+        "grant...{current_client_id}..{current_grant_id}..{current_user_id}":
+          "the current grant",
+
+        "grant...(client_id)..*..(user_id)":
           'any new or existing grant belonging to both the user with id "(user_id)" and the client with id "(client_id)"',
-        "grant...{current_client_id}...{current_user_id}":
+        "grant...{current_client_id}..*..{current_user_id}":
           "any new or existing grant belonging to both the current user and the current client",
-        "grant...(client_id)...{current_user_id}":
+        "grant...(client_id)..*..{current_user_id}":
           'any new or existing grant belonging to both the current user and the client with id "(client_id)"',
-        "grant...{current_client_id}...(user_id)":
+        "grant...{current_client_id}..*..(user_id)":
           'any new or existing grant belonging to both the user with id "(user_id)" and the current client',
 
-        "grant...*...(user_id)":
+        "grant...*..*..(user_id)":
           'any new or existing grant belonging to the user with id "(user_id)"',
-        "grant...*...{current_user_id}":
+        "grant...*..*..{current_user_id}":
           "any new or existing grant belonging to the current user",
-        "grant...(client_id)...*":
+        "grant...(client_id)..*..*":
           'any new or existing grant belonging to the client with id "(client_id)"',
-        "grant...{current_client_id}...*":
+        "grant...{current_client_id}..*..*":
           "any new or existing grant belonging to the current client",
 
-        "grant...*...*": "any new or existing grant"
+        "grant...*..*..*": "any new or existing grant"
       },
       {
-        "read.basic": "read the basic fields of",
-        "read.scopes": "read the scopes of",
-        "read.secrets": "read the secrets of",
-        "read.*": "read all fields of",
-        "write.basic": "write basic fields for",
-        "write.scopes": "add and remove scopes for",
-        "write.secrets": "write secrets for",
-        create: "create",
-        "write.*": "write all fields for",
-        "**": "read and write all fields for, or create"
+        "r....": "read the basic fields of",
+        "r..r..": "read scopes of",
+        "r...r.": "read secrets of",
+        "r..*.*.": "read all fields of",
+        "w....": "write basic fields for",
+        "w..w..": "read scopes of",
+        "w...w.": "read secrets of",
+        "w..*.*.": "read all fields of",
+        "*..*.*.": "create, read and write all fields of"
       }
     ]
   ];
@@ -256,40 +243,47 @@ export default (
     [
       realm,
       {
-        "authorization..(authorization_id).(client_id)...(user_id)":
+        "authorization..(authorization_id).(client_id)..(grant_id)..(user_id)":
           'the authorization with id "(authorization_id)',
-        "authorization..{current_authorization_id}.(client_id)...{current_user_id}":
+        "authorization..{current_authorization_id}.(client_id)..{current_grant_id}..{current_user_id}":
           "the current authorization",
 
-        "authorization..*.(client_id)...(user_id)":
+        "authorization..*.(client_id)..(grant_id)..(user_id)":
+          'any new or existing authorization belonging to the grant with id "(grant_id)"',
+        "authorization..*.{current_client_id}..{current_grant_id}..{current_user_id}":
+          "any new or existing authorization belonging to the current grant",
+
+        "authorization..*.(client_id)..*..(user_id)":
           'any new or existing authorization belonging to both the user with id "(user_id)" and the client with id "(client_id)"',
-        "authorization..*.{current_client_id}...{current_user_id}":
+        "authorization..*.{current_client_id}..*..{current_user_id}":
           "any new or existing authorization belonging to both the current user and the current client",
-        "authorization..*.{current_client_id}...(user_id)":
+        "authorization..*.{current_client_id}..*..(user_id)":
           'any new or existing authorization belonging to both the user with id "(user_id)" and the current client',
-        "authorization..*.(client_id)...{current_user_id}":
+        "authorization..*.(client_id)..*..{current_user_id}":
           'any new or existing authorization belonging to both the current user and the client with id "(client_id)"',
 
-        "authorization..*.(client_id)...*":
+        "authorization..*.(client_id)..*..*":
           'any new or existing authorization belonging to the client with id "(client_id)"',
-        "authorization..*.{current_client_id}...*":
+        "authorization..*.{current_client_id}..*..*":
           "any new or existing authorization belonging to the current client",
 
-        "authorization..*.*...(user_id)":
+        "authorization..*.*..*..(user_id)":
           'any new or existing authorization belonging to the user with id "(user_id)"',
-        "authorization..*.*...{current_user_id}":
+        "authorization..*.*..*..{current_user_id}":
           "any new or existing authorization belonging to the current user",
 
-        "authorization..*.*...*": "any new or existing authorization"
+        "authorization..*.*..*..*": "any new or existing authorization"
       },
       {
-        "read.basic": "read the basic fields of",
-        "read.scopes": "read the scopes of",
-        "read.secrets": "read the secrets of",
-        "write.basic": "write basic fields for",
-        create: "create",
-        "write.*": "write all fields for",
-        "**": "read and write all fields for, or create"
+        "r....": "read the basic fields of",
+        "r..r..": "read scopes of",
+        "r...r.": "read secrets of",
+        "r..*.*.": "read all fields of",
+        "w....": "write basic fields for",
+        "w..w..": "read scopes of",
+        "w...w.": "read secrets of",
+        "w..*.*.": "read all fields of",
+        "*..*.*.": "create, read and write all fields of"
       }
     ]
   ];
