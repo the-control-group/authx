@@ -38,7 +38,7 @@ export class Authorization implements AuthorizationData {
     realm: string,
     a: Authorization,
     tx: PoolClient,
-    action: string = "read.basic"
+    action: string = "r...."
   ): Promise<boolean> {
     /* eslint-disable @typescript-eslint/camelcase */
     const values: { [name: string]: null | string } = {
@@ -49,40 +49,11 @@ export class Authorization implements AuthorizationData {
     /* eslint-enable @typescript-eslint/camelcase */
 
     if (
-      await a.can(tx, values, `${realm}:authorization.${this.id}:${action}`)
-    ) {
-      return true;
-    }
-
-    if (
       await a.can(
         tx,
         values,
-        `${realm}:user.${this.userId}.authorizations:${action}`
+        `${realm}:v1.authorization..${this.id}.....:${action}`
       )
-    ) {
-      return true;
-    }
-
-    if (
-      this.grantId &&
-      (await a.can(
-        tx,
-        values,
-        `${realm}:grant.${this.grantId}.authorizations:${action}`
-      ))
-    ) {
-      return true;
-    }
-
-    const grant = await this.grant(tx);
-    if (
-      grant &&
-      (await a.can(
-        tx,
-        values,
-        `${realm}:client.${grant.clientId}.authorizations:${action}`
-      ))
     ) {
       return true;
     }

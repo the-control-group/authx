@@ -72,7 +72,7 @@ export const createUsers: GraphQLFieldConfig<
       const tx = await pool.connect();
       try {
         // can create a new user
-        if (!(await a.can(tx, values, `${realm}:user.*:write.*`))) {
+        if (!(await a.can(tx, values, `${realm}:user.......:*....`))) {
           throw new ForbiddenError(
             "You must be authenticated to create a user."
           );
@@ -114,14 +114,14 @@ export const createUsers: GraphQLFieldConfig<
             realm,
             "grant",
             id,
-            ["read.basic", "write.basic"]
+            ["r....", "w...."]
           );
 
           // Add administration scopes.
           for (const { roleId, scopes } of input.administration) {
             const role = await Role.read(tx, roleId, { forUpdate: true });
 
-            if (!role.isAccessibleBy(realm, a, tx, "write.scopes")) {
+            if (!role.isAccessibleBy(realm, a, tx, "w..w..")) {
               throw new ForbiddenError(
                 `You do not have permission to modify the scopes of role ${roleId}.`
               );

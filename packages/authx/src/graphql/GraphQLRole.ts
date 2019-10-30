@@ -39,8 +39,7 @@ export const GraphQLRole = new GraphQLObjectType<Role, Context>({
       ) {
         const tx = await pool.connect();
         try {
-          return a &&
-            (await role.isAccessibleBy(realm, a, tx, "read.assignments"))
+          return a && (await role.isAccessibleBy(realm, a, tx, "r....r"))
             ? connectionFromArray(
                 await filter(await role.users(tx), user =>
                   user.isAccessibleBy(realm, a, tx)
@@ -62,7 +61,7 @@ export const GraphQLRole = new GraphQLObjectType<Role, Context>({
       ): Promise<null | string[]> {
         const tx = await pool.connect();
         try {
-          return a && (await role.isAccessibleBy(realm, a, tx, "read.scopes"))
+          return a && (await role.isAccessibleBy(realm, a, tx, "r..r.."))
             ? role.scopes
             : null;
         } finally {

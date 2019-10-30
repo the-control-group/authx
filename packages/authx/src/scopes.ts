@@ -24,7 +24,7 @@ export default (
     [
       realm,
       {
-        "authority.(authority_id).....":
+        "v2.authority.(authority_id).....":
           'the authority with id "(authority_id)"'
       },
       commonAuthorityActions
@@ -32,8 +32,8 @@ export default (
     [
       realm,
       {
-        "authority......": "a new authority",
-        "authority.*.....": "any new or existing authority"
+        "v2.authority......": "a new authority",
+        "v2.authority.*.....": "any new or existing authority"
       },
       {
         ...commonAuthorityActions,
@@ -61,15 +61,15 @@ export default (
     [
       realm,
       {
-        "client...(client_id)....": 'the client with id "(client_id)"'
+        "v2.client...(client_id)....": 'the client with id "(client_id)"'
       },
       commonClientActions
     ],
     [
       realm,
       {
-        "client.......": "a new client",
-        "client...*....": "any new or existing client"
+        "v2.client.......": "a new client",
+        "v2.client...*....": "any new or existing client"
       },
       {
         ...commonClientActions,
@@ -99,15 +99,15 @@ export default (
     [
       realm,
       {
-        "role......(role_id).": 'the role with id "(role_id)"'
+        "v2.role......(role_id).": 'the role with id "(role_id)"'
       },
       commonRoleActions
     ],
     [
       realm,
       {
-        "role.......": "a new role",
-        "role......*.": "any new or existing role"
+        "v2.role.......": "a new role",
+        "v2.role......*.": "any new or existing role"
       },
       {
         ...commonRoleActions,
@@ -131,16 +131,16 @@ export default (
     [
       realm,
       {
-        "user.......(user_id)": 'the user with id "(user_id)"',
-        "user.......{current_user_id}": "the current user"
+        "v2.user.......(user_id)": 'the user with id "(user_id)"',
+        "v2.user.......{current_user_id}": "the current user"
       },
       commonUserActions
     ],
     [
       realm,
       {
-        "user.......": "a new user",
-        "user.......*": "any new or existing user"
+        "v2.user.......": "a new user",
+        "v2.user.......*": "any new or existing user"
       },
       {
         ...commonUserActions,
@@ -158,21 +158,21 @@ export default (
     [
       realm,
       {
-        "credential.(authority_id)...(credential_id)...(user_id)":
+        "v2.credential.(authority_id)...(credential_id)...(user_id)":
           'the credential with id "(credential_id)"',
 
-        "credential.(authority_id)...*...(user_id)":
+        "v2.credential.(authority_id)...*...(user_id)":
           'any new or existing credential belonging to both the user with id "(user_id)" and authority with id "(authority_id)"',
-        "credential.(authority_id)...*...{current_user_id}":
+        "v2.credential.(authority_id)...*...{current_user_id}":
           'any new or existing credential belonging to both the current user and authority with id "(authority_id)"',
-        "credential.*...*...(user_id)":
+        "v2.credential.*...*...(user_id)":
           'any new or existing credential belonging to the user with id "(user_id)"',
-        "credential.*...*...{current_user}":
+        "v2.credential.*...*...{current_user}":
           "any new or existing credential belonging to the current user",
-        "credential.(authority_id)...*...*":
+        "v2.credential.(authority_id)...*...*":
           'any new or existing credential belonging to the authority with id "(authority_id)"',
 
-        "credential.*...*...*": "any new or existing credential"
+        "v2.credential.*...*...*": "any new or existing credential"
       },
       {
         "r....": "read the basic fields of",
@@ -195,30 +195,30 @@ export default (
     [
       realm,
       {
-        "grant...(client_id)..(grant_id)..(user_id)":
+        "v2.grant...(client_id)..(grant_id)..(user_id)":
           'the grant with id "(grant_id)"',
-        "grant...{current_client_id}..{current_grant_id}..{current_user_id}":
+        "v2.grant...{current_client_id}..{current_grant_id}..{current_user_id}":
           "the current grant",
 
-        "grant...(client_id)..*..(user_id)":
+        "v2.grant...(client_id)..*..(user_id)":
           'any new or existing grant belonging to both the user with id "(user_id)" and the client with id "(client_id)"',
-        "grant...{current_client_id}..*..{current_user_id}":
+        "v2.grant...{current_client_id}..*..{current_user_id}":
           "any new or existing grant belonging to both the current user and the current client",
-        "grant...(client_id)..*..{current_user_id}":
+        "v2.grant...(client_id)..*..{current_user_id}":
           'any new or existing grant belonging to both the current user and the client with id "(client_id)"',
-        "grant...{current_client_id}..*..(user_id)":
+        "v2.grant...{current_client_id}..*..(user_id)":
           'any new or existing grant belonging to both the user with id "(user_id)" and the current client',
 
-        "grant...*..*..(user_id)":
+        "v2.grant...*..*..(user_id)":
           'any new or existing grant belonging to the user with id "(user_id)"',
-        "grant...*..*..{current_user_id}":
+        "v2.grant...*..*..{current_user_id}":
           "any new or existing grant belonging to the current user",
-        "grant...(client_id)..*..*":
+        "v2.grant...(client_id)..*..*":
           'any new or existing grant belonging to the client with id "(client_id)"',
-        "grant...{current_client_id}..*..*":
+        "v2.grant...{current_client_id}..*..*":
           "any new or existing grant belonging to the current client",
 
-        "grant...*..*..*": "any new or existing grant"
+        "v2.grant...*..*..*": "any new or existing grant"
       },
       {
         "r....": "read the basic fields of",
@@ -243,36 +243,36 @@ export default (
     [
       realm,
       {
-        "authorization..(authorization_id).(client_id)..(grant_id)..(user_id)":
+        "v2.authorization..(authorization_id).(client_id)..(grant_id)..(user_id)":
           'the authorization with id "(authorization_id)',
-        "authorization..{current_authorization_id}.(client_id)..{current_grant_id}..{current_user_id}":
+        "v2.authorization..{current_authorization_id}.(client_id)..{current_grant_id}..{current_user_id}":
           "the current authorization",
 
-        "authorization..*.(client_id)..(grant_id)..(user_id)":
+        "v2.authorization..*.(client_id)..(grant_id)..(user_id)":
           'any new or existing authorization belonging to the grant with id "(grant_id)"',
-        "authorization..*.{current_client_id}..{current_grant_id}..{current_user_id}":
+        "v2.authorization..*.{current_client_id}..{current_grant_id}..{current_user_id}":
           "any new or existing authorization belonging to the current grant",
 
-        "authorization..*.(client_id)..*..(user_id)":
+        "v2.authorization..*.(client_id)..*..(user_id)":
           'any new or existing authorization belonging to both the user with id "(user_id)" and the client with id "(client_id)"',
-        "authorization..*.{current_client_id}..*..{current_user_id}":
+        "v2.authorization..*.{current_client_id}..*..{current_user_id}":
           "any new or existing authorization belonging to both the current user and the current client",
-        "authorization..*.{current_client_id}..*..(user_id)":
+        "v2.authorization..*.{current_client_id}..*..(user_id)":
           'any new or existing authorization belonging to both the user with id "(user_id)" and the current client',
-        "authorization..*.(client_id)..*..{current_user_id}":
+        "v2.authorization..*.(client_id)..*..{current_user_id}":
           'any new or existing authorization belonging to both the current user and the client with id "(client_id)"',
 
-        "authorization..*.(client_id)..*..*":
+        "v2.authorization..*.(client_id)..*..*":
           'any new or existing authorization belonging to the client with id "(client_id)"',
-        "authorization..*.{current_client_id}..*..*":
+        "v2.authorization..*.{current_client_id}..*..*":
           "any new or existing authorization belonging to the current client",
 
-        "authorization..*.*..*..(user_id)":
+        "v2.authorization..*.*..*..(user_id)":
           'any new or existing authorization belonging to the user with id "(user_id)"',
-        "authorization..*.*..*..{current_user_id}":
+        "v2.authorization..*.*..*..{current_user_id}":
           "any new or existing authorization belonging to the current user",
 
-        "authorization..*.*..*..*": "any new or existing authorization"
+        "v2.authorization..*.*..*..*": "any new or existing authorization"
       },
       {
         "r....": "read the basic fields of",

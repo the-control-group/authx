@@ -36,7 +36,7 @@ export class Role implements RoleData {
     realm: string,
     a: Authorization,
     tx: PoolClient,
-    action: string = "read.basic"
+    action: string = "r...."
   ): Promise<boolean> {
     /* eslint-disable @typescript-eslint/camelcase */
     const values: { [name: string]: null | string } = {
@@ -45,7 +45,10 @@ export class Role implements RoleData {
       ...(a.grantId ? { current_grant_id: a.grantId } : null)
     };
     /* eslint-enable @typescript-eslint/camelcase */
-    if (await a.can(tx, values, `${realm}:role.${this.id}:${action}`)) {
+
+    if (
+      await a.can(tx, values, `${realm}:v1.role......${this.id}.:${action}`)
+    ) {
       return true;
     }
 

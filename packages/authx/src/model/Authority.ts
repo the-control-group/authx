@@ -33,7 +33,7 @@ export abstract class Authority<A> implements AuthorityData<A> {
     realm: string,
     a: Authorization,
     tx: PoolClient,
-    action: string = "read.basic"
+    action: string = "r...."
   ): Promise<boolean> {
     /* eslint-disable @typescript-eslint/camelcase */
     const values: { [name: string]: null | string } = {
@@ -43,7 +43,13 @@ export abstract class Authority<A> implements AuthorityData<A> {
     };
     /* eslint-enable @typescript-eslint/camelcase */
 
-    if (await a.can(tx, values, `${realm}:authority.${this.id}:${action}`)) {
+    if (
+      await a.can(
+        tx,
+        values,
+        `${realm}:v2.authority.${this.id}......:${action}`
+      )
+    ) {
       return true;
     }
 

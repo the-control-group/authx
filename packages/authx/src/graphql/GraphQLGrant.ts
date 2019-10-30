@@ -75,7 +75,7 @@ export const GraphQLGrant: GraphQLObjectType<
       ): Promise<null | string[]> {
         const tx = await pool.connect();
         try {
-          return a && (await grant.isAccessibleBy(realm, a, tx, "read.secrets"))
+          return a && (await grant.isAccessibleBy(realm, a, tx, "r...r."))
             ? [...grant.secrets]
             : null;
         } finally {
@@ -92,7 +92,7 @@ export const GraphQLGrant: GraphQLObjectType<
       ): Promise<null | string[]> {
         const tx = await pool.connect();
         try {
-          return a && (await grant.isAccessibleBy(realm, a, tx, "read.secrets"))
+          return a && (await grant.isAccessibleBy(realm, a, tx, "r...r."))
             ? [...grant.codes]
             : null;
         } finally {
@@ -109,7 +109,7 @@ export const GraphQLGrant: GraphQLObjectType<
       ): Promise<null | string[]> {
         const tx = await pool.connect();
         try {
-          return q && (await grant.isAccessibleBy(realm, q, tx, "read.scopes"))
+          return q && (await grant.isAccessibleBy(realm, q, tx, "r..r.."))
             ? grant.scopes
             : null;
         } finally {

@@ -70,7 +70,7 @@ export const GraphQLAuthorization: GraphQLObjectType<
         const tx = await pool.connect();
         try {
           return a &&
-            (await authorization.isAccessibleBy(realm, a, tx, "read.secrets"))
+            (await authorization.isAccessibleBy(realm, a, tx, "r...r."))
             ? authorization.secret
             : null;
         } finally {
@@ -88,7 +88,7 @@ export const GraphQLAuthorization: GraphQLObjectType<
         const tx = await pool.connect();
         try {
           return a &&
-            (await authorization.isAccessibleBy(realm, a, tx, "read.scopes"))
+            (await authorization.isAccessibleBy(realm, a, tx, "r..r.."))
             ? authorization.scopes
             : null;
         } finally {
@@ -114,12 +114,7 @@ export const GraphQLAuthorization: GraphQLObjectType<
           };
           /* eslint-enable @typescript-eslint/camelcase */
 
-          return (await authorization.isAccessibleBy(
-            realm,
-            a,
-            tx,
-            "read.scopes"
-          ))
+          return (await authorization.isAccessibleBy(realm, a, tx, "r..r.."))
             ? authorization.access(tx, values)
             : null;
         } finally {
@@ -149,13 +144,8 @@ export const GraphQLAuthorization: GraphQLObjectType<
         if (!a) return null;
         try {
           if (
-            !(await authorization.isAccessibleBy(
-              realm,
-              a,
-              tx,
-              "read.scopes"
-            )) ||
-            !(await authorization.isAccessibleBy(realm, a, tx, "read.secrets"))
+            !(await authorization.isAccessibleBy(realm, a, tx, "r..r..")) ||
+            !(await authorization.isAccessibleBy(realm, a, tx, "r...r."))
           ) {
             return null;
           }

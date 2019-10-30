@@ -37,7 +37,7 @@ export class User implements UserData {
     realm: string,
     a: Authorization,
     tx: PoolClient,
-    action: string = "read.basic"
+    action: string = "r...."
   ): Promise<boolean> {
     /* eslint-disable @typescript-eslint/camelcase */
     const values: { [name: string]: null | string } = {
@@ -47,7 +47,9 @@ export class User implements UserData {
     };
     /* eslint-enable @typescript-eslint/camelcase */
 
-    if (await a.can(tx, values, `${realm}:user.${this.id}:${action}`)) {
+    if (
+      await a.can(tx, values, `${realm}:v1.user.......${this.id}:${action}`)
+    ) {
       return true;
     }
 

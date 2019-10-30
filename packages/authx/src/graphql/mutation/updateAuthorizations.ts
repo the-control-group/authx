@@ -43,7 +43,7 @@ export const updateAuthorizations: GraphQLFieldConfig<
             forUpdate: true
           });
 
-          if (!(await before.isAccessibleBy(realm, a, tx, "write.basic"))) {
+          if (!(await before.isAccessibleBy(realm, a, tx, "w...."))) {
             throw new ForbiddenError(
               "You do not have permission to update this authorization."
             );

@@ -67,8 +67,8 @@ export const updateClients: GraphQLFieldConfig<
           forUpdate: true
         });
 
-        // write.basic -----------------------------------------------------------
-        if (!(await before.isAccessibleBy(realm, a, tx, "write.basic"))) {
+        // w.... -----------------------------------------------------------
+        if (!(await before.isAccessibleBy(realm, a, tx, "w...."))) {
           throw new ForbiddenError(
             "You do not have permission to update this client."
           );
@@ -87,8 +87,8 @@ export const updateClients: GraphQLFieldConfig<
           urls = urls.filter(id => !removeUrls.has(id));
         }
 
-        // write.secrets ---------------------------------------------------------
-        if (!(await before.isAccessibleBy(realm, a, tx, "write.secrets"))) {
+        // w...w. ---------------------------------------------------------
+        if (!(await before.isAccessibleBy(realm, a, tx, "w...w."))) {
           throw new ForbiddenError(
             "You do not have permission to update this client's secrets."
           );

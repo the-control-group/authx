@@ -42,7 +42,7 @@ export class Grant implements GrantData {
     realm: string,
     a: Authorization,
     tx: PoolClient,
-    action: string = "read.basic"
+    action: string = "r...."
   ): Promise<boolean> {
     /* eslint-disable @typescript-eslint/camelcase */
     const values: { [name: string]: null | string } = {
@@ -52,12 +52,8 @@ export class Grant implements GrantData {
     };
     /* eslint-enable @typescript-eslint/camelcase */
 
-    if (await a.can(tx, values, `${realm}:grant.${this.id}:${action}`)) {
-      return true;
-    }
-
     if (
-      await a.can(tx, values, `${realm}:user.${this.userId}.grants:${action}`)
+      await a.can(tx, values, `${realm}:v1.grant.....${this.id}..:${action}`)
     ) {
       return true;
     }

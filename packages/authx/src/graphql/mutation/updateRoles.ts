@@ -64,17 +64,17 @@ export const updateRoles: GraphQLFieldConfig<
           forUpdate: true
         });
 
-        // write.basic -----------------------------------------------------------
-        if (!(await before.isAccessibleBy(realm, a, tx, "write.basic"))) {
+        // w.... -----------------------------------------------------------
+        if (!(await before.isAccessibleBy(realm, a, tx, "w...."))) {
           throw new ForbiddenError(
             "You do not have permission to update this role."
           );
         }
 
-        // write.scopes ----------------------------------------------------------
+        // w..w.. ----------------------------------------------------------
         if (
           input.scopes &&
-          !(await before.isAccessibleBy(realm, a, tx, "write.scopes"))
+          !(await before.isAccessibleBy(realm, a, tx, "w..w.."))
         ) {
           throw new ForbiddenError(
             "You do not have permission to update this role's scopes."
@@ -96,7 +96,7 @@ export const updateRoles: GraphQLFieldConfig<
           const assignableScopes = roleIDs.length
             ? (await filter(
                 await Role.read(tx, roleIDs, { forUpdate: true }),
-                role => role.isAccessibleBy(realm, a, tx, "write.users")
+                role => role.isAccessibleBy(realm, a, tx, "w....w")
               )).reduce<string[]>((acc, { scopes }) => {
                 return [...acc, ...scopes];
               }, [])
@@ -108,8 +108,8 @@ export const updateRoles: GraphQLFieldConfig<
             );
         }
 
-        // write.users -----------------------------------------------------
-        if (!(await before.isAccessibleBy(realm, a, tx, "write.users"))) {
+        // w....w -----------------------------------------------------
+        if (!(await before.isAccessibleBy(realm, a, tx, "w....w"))) {
           throw new ForbiddenError(
             "You do not have permission to update this role's users."
           );

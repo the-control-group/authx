@@ -8,11 +8,11 @@ test("basic equal", t => {
         [
           { authx: "AuthX" },
           { "user.c": 'the user with id "c"' },
-          { "read.basic": "read the basic fields of" }
+          { "r....": "read the basic fields of" }
         ]
       ],
       { currentAuthorizationId: "a", currentGrantId: "b", currentUserId: "c" },
-      ["authx:user.c:read.basic"]
+      ["authx:user.c:r...."]
     ),
     ['AuthX: Read the basic fields of the user with id "c".']
   );
@@ -25,7 +25,7 @@ test("basic superset", t => {
         [
           { authx: "AuthX" },
           { "user.c": 'the user with id "c"' },
-          { "read.basic": "read the basic fields of" }
+          { "r....": "read the basic fields of" }
         ]
       ],
       { currentAuthorizationId: "a", currentGrantId: "b", currentUserId: "c" },
@@ -42,7 +42,7 @@ test("basic static substitution", t => {
         [
           { authx: "AuthX" },
           { "user.{current_user_id}": "the current user" },
-          { "read.basic": "read the basic fields of" }
+          { "r....": "read the basic fields of" }
         ]
       ],
       { currentAuthorizationId: "a", currentGrantId: "b", currentUserId: "c" },
@@ -59,7 +59,7 @@ test("basic dynamic substitution", t => {
         [
           { authx: "AuthX" },
           { "user.(id)": 'the user with id "(id)"' },
-          { "read.basic": "read the basic fields of" }
+          { "r....": "read the basic fields of" }
         ]
       ],
       { currentAuthorizationId: "a", currentGrantId: "b", currentUserId: "c" },
@@ -77,7 +77,7 @@ test("text simplification", t => {
           { authx: "AuthX" },
           { "user.(id)": 'the user with id "(id)"' },
           {
-            "read.basic": "read the basic fields of",
+            "r....": "read the basic fields of",
             "read.*": "read all fields of"
           }
         ]

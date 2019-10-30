@@ -52,7 +52,7 @@ export const updateGrants: GraphQLFieldConfig<
           forUpdate: true
         });
 
-        if (!(await before.isAccessibleBy(realm, a, tx, "write.basic"))) {
+        if (!(await before.isAccessibleBy(realm, a, tx, "w...."))) {
           throw new ForbiddenError(
             "You do not have permission to update this grant."
           );
@@ -60,7 +60,7 @@ export const updateGrants: GraphQLFieldConfig<
 
         if (
           input.scopes &&
-          !(await before.isAccessibleBy(realm, a, tx, "write.scopes"))
+          !(await before.isAccessibleBy(realm, a, tx, "w..w.."))
         ) {
           throw new ForbiddenError(
             "You do not have permission to update this grant's scopes."
@@ -72,7 +72,7 @@ export const updateGrants: GraphQLFieldConfig<
             input.removeSecrets ||
             input.generateCodes ||
             input.removeCodes) &&
-          !(await before.isAccessibleBy(realm, a, tx, "write.secrets"))
+          !(await before.isAccessibleBy(realm, a, tx, "w...w."))
         ) {
           throw new ForbiddenError(
             "You do not have permission to update this grant's secrets."

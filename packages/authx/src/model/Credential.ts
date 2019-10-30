@@ -36,7 +36,7 @@ export abstract class Credential<C> implements CredentialData<C> {
     realm: string,
     a: Authorization,
     tx: PoolClient,
-    action: string = "read.basic"
+    action: string = "r...."
   ): Promise<boolean> {
     /* eslint-disable @typescript-eslint/camelcase */
     const values: { [name: string]: null | string } = {
@@ -46,28 +46,12 @@ export abstract class Credential<C> implements CredentialData<C> {
     };
     /* eslint-enable @typescript-eslint/camelcase */
 
-    if (await a.can(tx, values, `${realm}:credential.${this.id}:${action}`)) {
-      return true;
-    }
-
     if (
-      this.userId === a.userId &&
-      (await a.can(
+      await a.can(
         tx,
         values,
-        `${realm}:authority.${this.authorityId}.credentials:${action}`
-      ))
-    ) {
-      return true;
-    }
-
-    if (
-      this.userId === a.userId &&
-      (await a.can(
-        tx,
-        values,
-        `${realm}:user.${this.userId}.credentials:${action}`
-      ))
+        `${realm}:v1.credential....${this.id}...:${action}`
+      )
     ) {
       return true;
     }

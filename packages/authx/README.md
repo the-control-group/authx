@@ -193,30 +193,14 @@ authx:v2.client.......:*..*.*.
 Users must have the following scopes to use OAuth:
 
 ```
-authx:authorization
-authx:client...*....
-authx:user.......{current_user_id}:read.basic
-authx:grant...*...{current_grant_id}.{current_user_id}:**
-
+authx:v2.client...*....:r....
+authx:v2.user.......{current_user_id}:r....
+authx:v2.grant...{current_client_id}..{current_grant_id}..{current_user_id}:*..*.*.
+authx:v2.authorization..*.{current_client_id}..{current_grant_id}..{current_user_id}:*..*.*.
 ```
 
-```
-authx:client.*:read.basic
-authx:user.equal.self:read.basic
-authx:grant.equal.self.*:read.basic
-authx:grant.equal.self.*:read.scopes
-authx:grant.equal.self.*:read.secrets
-authx:grant.equal.self.*:write.*
-authx:authorization.equal.self.*:read.basic
-authx:authorization.equal.self.*:read.scopes
-authx:authorization.equal.self.current:read.secrets
-authx:authorization.equal.self.*:write.*
-```
-
-The following scopes must be granted for a client to take full advantage of OAuth:
+The following scopes are implicit in an OAuth request:
 
 ```
-authx:grant.equal.self.granted:read.basic
-authx:grant.equal.self.granted:read.scopes
-authx:authorization.equal.self.granted:write.*
+authx:v2.authorization..*.{current_client_id}..{current_grant_id}..{current_user_id}:*..*.*.
 ```

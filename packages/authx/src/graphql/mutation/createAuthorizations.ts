@@ -88,34 +88,19 @@ export const createAuthorizations: GraphQLFieldConfig<
 
       const tx = await pool.connect();
       try {
+        const grant = input.grantId
+          ? await Grant.read(tx, input.grantId)
+          : null;
         if (
-          !(await a.can(tx, values, `${realm}:authorization.:write.create`)) &&
           !(await a.can(
             tx,
             values,
-            `${realm}:user.${input.userId}.authorizations:write.create`
-          )) &&
-          !(
-            input.grantId &&
-            (await a.can(
-              tx,
-              values,
-              `${realm}:grant.${input.grantId}.authorizations:write.create`
-            ))
-          ) &&
-          !(
-            input.grantId &&
-            (await a.can(
-              tx,
-              values,
-              `${realm}:client.${
-                (await Grant.read(tx, input.grantId)).clientId
-              }.authorizations:write.create`
-            ))
-          )
+            `${realm}:v2.authorization...${(grant && grant.clientId) ||
+              ""}..${(grant && grant.id) || ""}..${input.userId}:*..*.*.`
+          ))
         ) {
           throw new ForbiddenError(
-            "You do not have permission to create this grant."
+            "You do not have permission to create this authorization."
           );
         }
 
@@ -158,14 +143,14 @@ export const createAuthorizations: GraphQLFieldConfig<
             realm,
             "authorization",
             id,
-            ["read.basic", "read.secrets", "read.scopes", "write.basic"]
+            ["r....", "r...r.", "r..r..", "w...."]
           );
 
           // Add administration scopes.
           for (const { roleId, scopes } of input.administration) {
             const role = await Role.read(tx, roleId, { forUpdate: true });
 
-            if (!role.isAccessibleBy(realm, a, tx, "write.scopes")) {
+            if (!role.isAccessibleBy(realm, a, tx, "w..w..")) {
               throw new ForbiddenError(
                 `You do not have permission to modify the scopes of role ${roleId}.`
               );

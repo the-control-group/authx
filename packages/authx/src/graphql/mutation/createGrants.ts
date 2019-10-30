@@ -84,16 +84,10 @@ export const createGrants: GraphQLFieldConfig<
       const tx = await pool.connect();
       try {
         if (
-          !(await a.can(tx, values, `${realm}:grant.:write.create`)) &&
           !(await a.can(
             tx,
             values,
-            `${realm}:user.${input.userId}.grants:write.create`
-          )) &&
-          !(await a.can(
-            tx,
-            values,
-            `${realm}:client.${input.clientId}.grants:write.create`
+            `${realm}:grant...${input.clientId}....${input.userId}:*..*.*.`
           ))
         ) {
           throw new ForbiddenError(
@@ -149,21 +143,14 @@ export const createGrants: GraphQLFieldConfig<
             realm,
             "grant",
             id,
-            [
-              "read.basic",
-              "read.secrets",
-              "read.scopes",
-              "write.basic",
-              "write.secrets",
-              "write.scopes"
-            ]
+            ["r....", "r...r.", "r..r..", "w....", "w...w.", "w..w.."]
           );
 
           // Add administration scopes.
           for (const { roleId, scopes } of input.administration) {
             const role = await Role.read(tx, roleId, { forUpdate: true });
 
-            if (!role.isAccessibleBy(realm, a, tx, "write.scopes")) {
+            if (!role.isAccessibleBy(realm, a, tx, "w..w..")) {
               throw new ForbiddenError(
                 `You do not have permission to modify the scopes of role ${roleId}.`
               );
