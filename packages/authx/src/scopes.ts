@@ -1,7 +1,5 @@
 import { PatternDescriptionMap } from "./util/humanizeScopes";
 
-// "(entity_type).(authority_id).(authorization_id).(client_id).(credential_id).(role_id).(user_id)"
-
 export default (
   realm: PatternDescriptionMap = {
     authx: "authx"
@@ -40,9 +38,9 @@ export default (
       },
       {
         ...commonAuthorityActions,
-        "write.create": "create",
-        "write.*": "write all fields for, or create",
-        "*.*": "read and write all fields for, or create"
+        create: "create",
+        "write.*": "write all fields for",
+        "**": "read and write all fields for, or create"
       }
     ]
   ];
@@ -80,9 +78,9 @@ export default (
       },
       {
         ...commonClientActions,
-        "write.create": "create",
-        "write.*": "write all fields for, or create",
-        "*.*": "read and write all fields for, or create"
+        create: "create",
+        "write.*": "write all fields for",
+        "**": "read and write all fields for, or create"
       }
     ]
   ];
@@ -122,9 +120,9 @@ export default (
       },
       {
         ...commonRoleActions,
-        "write.create": "create",
-        "write.*": "write all fields for, or create",
-        "*.*": "read and write all fields for, or create"
+        create: "create",
+        "write.*": "write all fields for",
+        "**": "read and write all fields for, or create"
       }
     ]
   ];
@@ -160,9 +158,9 @@ export default (
       },
       {
         ...commonUserActions,
-        "write.create": "create",
-        "write.*": "write all fields for, or create",
-        "*.*": "read and write all fields for, or create"
+        create: "create",
+        "write.*": "write all fields for",
+        "**": "read and write all fields for, or create"
       }
     ]
   ];
@@ -198,9 +196,9 @@ export default (
         "read.*": "read all fields of",
         "write.basic": "write basic fields for",
         "write.details": "write potentially sensitive details for",
-        "write.create": "create",
-        "write.*": "write all fields for, or create",
-        "*.*": "read and write all fields for, or create"
+        create: "create",
+        "write.*": "write all fields for",
+        "**": "read and write all fields for, or create"
       }
     ]
   ];
@@ -242,9 +240,9 @@ export default (
         "write.basic": "write basic fields for",
         "write.scopes": "add and remove scopes for",
         "write.secrets": "write secrets for",
-        "write.create": "create",
-        "write.*": "write all fields for, or create",
-        "*.*": "read and write all fields for, or create"
+        create: "create",
+        "write.*": "write all fields for",
+        "**": "read and write all fields for, or create"
       }
     ]
   ];
@@ -289,9 +287,9 @@ export default (
         "read.scopes": "read the scopes of",
         "read.secrets": "read the secrets of",
         "write.basic": "write basic fields for",
-        "write.create": "create",
-        "write.*": "write all fields for, or create",
-        "*.*": "read and write all fields for, or create"
+        create: "create",
+        "write.*": "write all fields for",
+        "**": "read and write all fields for, or create"
       }
     ]
   ];

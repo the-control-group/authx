@@ -13,13 +13,7 @@ import {
   GraphQLFetchOptionsOverride,
   GraphQLContext
 } from "graphql-react";
-import {
-  isValidScopeTemplate,
-  isSuperset,
-  getDifference,
-  simplify,
-  inject
-} from "@authx/scopes";
+import { isSuperset, getDifference, simplify, inject } from "@authx/scopes";
 
 import v4 from "uuid/v4";
 
