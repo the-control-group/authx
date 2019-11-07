@@ -6,8 +6,9 @@ import {
 } from "graphql";
 import { Context } from "../../Context";
 import { GraphQLExplanation } from "../GraphQLExplanation";
+import { getExplanations } from "../../util/explanations";
 
-export const user: GraphQLFieldConfig<
+export const explanations: GraphQLFieldConfig<
   any,
   {
     scopes: string[];
@@ -26,6 +27,26 @@ export const user: GraphQLFieldConfig<
     args,
     context
   ): Promise<null | { scope: string; description: string }[]> {
-    return [];
+    const { pool, authorization: a } = context;
+
+    const tx = await pool.connect();
+    try {
+      const g = a && (await a.grant(tx));
+
+      getExplanations(
+        context.explanations,
+        {
+          currentAuthorizationId: (a && a.id) || null,
+          currentGrantId: (a && a.grantId) || null,
+          currentUserId: (a && a.userId) || null,
+          currentClientId: g && g.id
+        },
+        args.scopes
+      );
+
+      return [];
+    } finally {
+      tx.release();
+    }
   }
 };

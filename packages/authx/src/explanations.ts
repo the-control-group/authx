@@ -1,10 +1,14 @@
-import { DomainDescriptionMap } from "./util/explanations";
+import {
+  DomainDescriptionMap,
+  generateExplanationTemplates,
+  Explanation
+} from "./util/explanations";
 
-export default (
+export function createAuthXExplanations(
   realm: DomainDescriptionMap = {
     authx: "authx"
   }
-): [DomainDescriptionMap, DomainDescriptionMap, DomainDescriptionMap][] => {
+): ReadonlyArray<Explanation> {
   // Authority
   const commonAuthorityActions = {
     "r....": "read the basic fields of",
@@ -288,7 +292,7 @@ export default (
     ]
   ];
 
-  return [
+  return generateExplanationTemplates([
     ...authority,
     ...client,
     ...role,
@@ -296,5 +300,5 @@ export default (
     ...credential,
     ...grant,
     ...authorization
-  ];
-};
+  ]);
+}

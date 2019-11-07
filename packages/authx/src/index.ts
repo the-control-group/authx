@@ -14,6 +14,7 @@ import { createSchema } from "./graphql";
 import { fromBasic, fromBearer } from "./util/getAuthorization";
 import { StrategyCollection } from "./StrategyCollection";
 import { UnsupportedMediaTypeError } from "./errors";
+import { createAuthXExplanations } from "./explanations";
 
 export * from "./x";
 export * from "./errors";
@@ -34,6 +35,8 @@ export class AuthX<
   public constructor(config: Config & IRouterOptions) {
     assertConfig(config);
     super(config);
+
+    const explanations = createAuthXExplanations({ [config.realm]: "AuthX" });
 
     const strategies =
       config.strategies instanceof StrategyCollection
@@ -80,7 +83,8 @@ export class AuthX<
           ...config,
           strategies,
           authorization,
-          pool: this.pool
+          pool: this.pool,
+          explanations: [...(ctx[x] || {}).explanations, explanations]
         };
 
         ctx[x] = context;
