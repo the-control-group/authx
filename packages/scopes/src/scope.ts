@@ -1,48 +1,16 @@
-import * as pattern from "./pattern";
+import {
+  Domain,
+  AnySingle,
+  AnyMultiple,
+  getIntersection as domainGetIntersection,
+  isSuperset as domainIsSuperset
+} from "./domain";
 
-export class InvalidScopeError extends Error {}
+export { Domain, Segment, AnySingle, AnyMultiple } from "./domain";
 
-// Parse a scope string into a pattern.Pattern array
-function parse(scope: string): pattern.Pattern[] {
-  return scope.split(":").map(domain =>
-    domain.split(".").map(segment => {
-      switch (segment) {
-        case "**":
-          return pattern.AnyMultiple;
-        case "*":
-          return pattern.AnySingle;
-        default:
-          return segment;
-      }
-    })
-  );
-}
+export type Scope = Domain[];
 
-// Stringify a pattern.Pattern array
-function stringify(scope: pattern.Pattern[]): string {
-  return scope
-    .map(domain =>
-      domain
-        .map(segment => {
-          switch (segment) {
-            case pattern.AnyMultiple:
-              return "**";
-            case pattern.AnySingle:
-              return "*";
-            default:
-              return segment;
-          }
-        })
-        .join(".")
-    )
-    .join(":");
-}
-
-function intersect(
-  left: pattern.Pattern[],
-  rightA: pattern.Pattern[],
-  rightB: pattern.Pattern[]
-): pattern.Pattern[][] {
+function intersect(left: Scope, rightA: Scope, rightB: Scope): Scope[] {
   // INVARIENT: rightA.length === rightB.length
   // INVARIENT: rightA.length > 0
   // INVARIENT: rightB.length > 0
@@ -51,225 +19,152 @@ function intersect(
   const [b, ...restB] = rightB;
 
   if (!restA.length) {
-    return pattern.getIntersection(a, b).map(pattern => [...left, pattern]);
+    return domainGetIntersection(a, b).map(domain => [...left, domain]);
   }
 
-  return pattern
-    .getIntersection(a, b)
-    .map(pattern => intersect([...left, pattern], restA, restB))
+  return domainGetIntersection(a, b)
+    .map(domain => intersect([...left, domain], restA, restB))
     .reduce((x, y) => x.concat(y), []);
 }
 
-export function isValidScopeSegment(segment: string): boolean {
-  return (
-    segment === "" ||
-    segment === "*" ||
-    segment === "**" ||
-    /^[a-zA-Z0-9_-]+$/.test(segment)
+export function normalize(scope: Scope): Scope {
+  return scope.map(domain =>
+    domain.map((segment, i, segments) => {
+      if (
+        segment !== AnyMultiple ||
+        (segments[i + 1] !== AnyMultiple && segments[i + 1] !== AnySingle)
+      )
+        return segment;
+      segments[i + 1] = AnyMultiple;
+      return AnySingle;
+    })
   );
 }
 
-export function isValidScope(scopeOrCollection: string | string[]): boolean {
-  if (Array.isArray(scopeOrCollection)) {
-    return scopeOrCollection.every(isValidScope);
+function s(winners: Scope[], candidate: Scope): Scope[] {
+  if (!isSuperset(winners, [candidate])) {
+    winners.push(normalize(candidate));
   }
 
-  const domains = scopeOrCollection.split(":");
-  return (
-    domains.length === 3 &&
-    domains.every(pattern => pattern.split(".").every(isValidScopeSegment))
-  );
+  return winners;
 }
 
-export function normalize(scope: string): string;
-export function normalize(collection: string[]): string[];
-export function normalize(
-  scopeOrCollection: string | string[]
-): string | string[] {
-  // INVARIENT: scopeOrCollection contains only valid scopes
+function sort(scopeA: Scope, scopeB: Scope): number {
+  if (scopeA === scopeB) return 0;
+  const domainLength = Math.max(scopeA.length, scopeB.length);
+  for (let iDomain = 0; iDomain < domainLength; iDomain++) {
+    const domainA = scopeA[iDomain];
+    const domainB = scopeB[iDomain];
+    if (domainA === domainB) continue;
+    if (domainA === undefined) return 1;
+    if (domainB === undefined) return -1;
 
-  if (Array.isArray(scopeOrCollection)) {
-    return scopeOrCollection.map(s => normalize(s));
+    const segmentLength = Math.max(domainA.length, domainB.length);
+    for (let iSegment = 0; iSegment < segmentLength; iSegment++) {
+      const segmentA = domainA[iSegment];
+      const segmentB = domainB[iSegment];
+      if (segmentA === segmentB) continue;
+      if (segmentA === AnyMultiple) return -1;
+      if (segmentB === AnyMultiple) return 1;
+      if (segmentA === AnySingle) return -1;
+      if (segmentB === AnySingle) return 1;
+      if (segmentA === undefined) return 1;
+      if (segmentB === undefined) return -1;
+      return segmentA < segmentB ? -1 : 1;
+    }
   }
 
-  return scopeOrCollection
-    .split(":")
-    .map(domain =>
-      domain
-        .split(".")
-        .map((segment, i, segments) => {
-          if (
-            segment !== "**" ||
-            (segments[i + 1] !== "**" && segments[i + 1] !== "*")
-          )
-            return segment;
-          segments[i + 1] = "**";
-          return "*";
-        })
-        .join(".")
-    )
-    .join(":");
-}
-
-function s(winners: string[], candidate: string): string[] {
-  // INVARIENT: parsedCollectionA contains only valid scopes
-  // INVARIENT: parsedCollectionB contains only valid scopes
-
-  if (isSuperset(winners, candidate)) return winners;
-  return winners.concat(normalize(candidate));
+  return 0;
 }
 
 // returns a de-duplicated array of scope rules
-export function simplify(collection: string[]): string[] {
-  // INVARIENT: parsedCollectionA contains only valid scopes
-  // INVARIENT: parsedCollectionB contains only valid scopes
-
+export function simplify(collection: Scope[]): Scope[] {
   return collection
     .reduce(s, [])
     .reduceRight(s, [])
-    .sort();
+    .sort(sort);
 }
 
 export function getIntersection(
-  scopeOrCollectionA: string[] | string,
-  scopeOrCollectionB: string[] | string
-): string[] {
-  // INVARIENT: scopeOrCollectionA contains only valid scopes
-  // INVARIENT: scopeOrCollectionB contains only valid scopes
-
-  const collectionA =
-    typeof scopeOrCollectionA === "string"
-      ? [scopeOrCollectionA]
-      : scopeOrCollectionA;
-
-  const collectionB =
-    typeof scopeOrCollectionB === "string"
-      ? [scopeOrCollectionB]
-      : scopeOrCollectionB;
-
-  const patternsA = collectionA.map(parse).filter(p => p.length > 0);
-  const patternsB = collectionB.map(parse).filter(p => p.length > 0);
-
+  collectionA: Scope[],
+  collectionB: Scope[]
+): Scope[] {
   return simplify(
-    patternsA
+    collectionA
       .map(a =>
-        patternsB
+        collectionB
           .map(b => intersect([], a, b))
           .reduce((x, y) => x.concat(y), [])
       )
       .reduce((x, y) => x.concat(y), [])
-      .map(stringify)
   );
 }
 
 export function hasIntersection(
-  scopeOrCollectionA: string[] | string,
-  scopeOrCollectionB: string[] | string
+  collectionA: Scope[],
+  collectionB: Scope[]
 ): boolean {
-  // INVARIENT: scopeOrCollectionA contains only valid scopes
-  // INVARIENT: scopeOrCollectionB contains only valid scopes
-
-  return getIntersection(scopeOrCollectionA, scopeOrCollectionB).length > 0;
+  return getIntersection(collectionA, collectionB).length > 0;
 }
 
-export function isEqual(
-  scopeOrCollectionA: string[] | string,
-  scopeOrCollectionB: string[] | string
-): boolean {
-  // INVARIENT: scopeOrCollectionA contains only valid scopes
-  // INVARIENT: scopeOrCollectionB contains only valid scopes
+export function isEqual(collectionA: Scope[], collectionB: Scope[]): boolean {
+  const simplifiedCollectionA = simplify(collectionA);
+  const simplifiedCollectionB = simplify(collectionB);
+  if (simplifiedCollectionA.length !== simplifiedCollectionB.length) {
+    return false;
+  }
 
-  const collectionA = simplify(
-    typeof scopeOrCollectionA === "string"
-      ? [scopeOrCollectionA]
-      : scopeOrCollectionA
-  );
-  const collectionB = simplify(
-    typeof scopeOrCollectionB === "string"
-      ? [scopeOrCollectionB]
-      : scopeOrCollectionB
-  );
+  for (const [iScope, scopeA] of simplifiedCollectionA.entries()) {
+    for (const [iDomain, domainA] of scopeA.entries()) {
+      for (const [iSegment, segmentA] of domainA.entries()) {
+        if (segmentA !== simplifiedCollectionB[iScope][iDomain][iSegment]) {
+          return false;
+        }
+      }
+    }
+  }
 
-  return (
-    collectionA.length === collectionB.length &&
-    collectionA.every((a, i) => a === collectionB[i])
-  );
+  return true;
 }
 
 export function getDifference(
-  collectionA: string[],
-  collectionB: string[]
-): string[] {
-  // INVARIENT: parsedCollectionA contains only valid scopes
-  // INVARIENT: parsedCollectionB contains only valid scopes
-
-  const parsedCollectionA = collectionA.map(parse);
-  const parsedCollectionB = collectionB.map(parse);
-
-  return parsedCollectionA
-    .reduce((remaining, a) => {
-      return remaining.filter(
-        b =>
-          a.length !== b.length ||
-          a.some(
-            (patternA: pattern.Pattern, i: number) =>
-              !pattern.isSuperset(patternA, b[i])
-          )
-      );
-    }, parsedCollectionB)
-    .map(stringify);
+  collectionA: Scope[],
+  collectionB: Scope[]
+): Scope[] {
+  return collectionA.reduce((remaining, a) => {
+    return remaining.filter(
+      b =>
+        a.length !== b.length ||
+        a.some((domainA: Domain, i: number) => !domainIsSuperset(domainA, b[i]))
+    );
+  }, collectionB);
 }
 
 export function isSuperset(
-  scopeOrCollectionA: string[] | string,
-  scopeOrCollectionB: string[] | string
+  collectionA: Scope[],
+  collectionB: Scope[]
 ): boolean {
-  // INVARIENT: parsedCollectionA contains only valid scopes
-  // INVARIENT: parsedCollectionB contains only valid scopes
-
-  return (
-    getDifference(
-      Array.isArray(scopeOrCollectionA)
-        ? scopeOrCollectionA
-        : [scopeOrCollectionA],
-      Array.isArray(scopeOrCollectionB)
-        ? scopeOrCollectionB
-        : [scopeOrCollectionB]
-    ).length === 0
-  );
+  return getDifference(collectionA, collectionB).length === 0;
 }
 
 export function isStrictSuperset(
-  scopeOrCollectionA: string[] | string,
-  scopeOrCollectionB: string[] | string
+  collectionA: Scope[],
+  collectionB: Scope[]
 ): boolean {
-  // INVARIENT: parsedCollectionA contains only valid scopes
-  // INVARIENT: parsedCollectionB contains only valid scopes
-
   return (
-    !isEqual(scopeOrCollectionA, scopeOrCollectionB) &&
-    isSuperset(scopeOrCollectionA, scopeOrCollectionB)
+    !isEqual(collectionA, collectionB) && isSuperset(collectionA, collectionB)
   );
 }
 
-export function isSubset(
-  scopeOrCollectionA: string[] | string,
-  scopeOrCollectionB: string[] | string
-): boolean {
-  // INVARIENT: parsedCollectionA contains only valid scopes
-  // INVARIENT: parsedCollectionB contains only valid scopes
-
-  return isSubset(scopeOrCollectionB, scopeOrCollectionA);
+export function isSubset(collectionA: Scope[], collectionB: Scope[]): boolean {
+  return isSuperset(collectionB, collectionA);
 }
 
 export function isStrictSubset(
-  scopeOrCollectionA: string[] | string,
-  scopeOrCollectionB: string[] | string
+  collectionA: Scope[],
+  collectionB: Scope[]
 ): boolean {
-  // INVARIENT: parsedCollectionA contains only valid scopes
-  // INVARIENT: parsedCollectionB contains only valid scopes
   return (
-    !isEqual(scopeOrCollectionA, scopeOrCollectionB) &&
-    isSubset(scopeOrCollectionA, scopeOrCollectionB)
+    !isEqual(collectionA, collectionB) && isSubset(collectionA, collectionB)
   );
 }

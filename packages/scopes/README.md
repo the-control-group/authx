@@ -13,20 +13,76 @@ This is a small collection of utility functions for AuthX scopes. These scopes a
 Scopes are composed of 3 domains, separated by the `:` character:
 
 ```
-AuthX:role.abc:read
-|___| |______| |__|
-  |      |       |
-realm  context  action
-
+billing:customer.abc:read.basic
+|_____| |__________| |________|
+   |         |           |
+ realm    context      action
 ```
 
-Each domain can contain segments, separated by the `.` character. Domain segments can be `/[a-zA-Z0-9_-]*/` strings or glob pattern identifiers `*` or `**`:
+Each domain contains segments, separated by the `.` character.
+
+### Scope Literals
+
+A _scope literal_ – the form a scope always takes in a token, a grant, or on an authorization – is fully defined and ready to be used by a resource.
+
+Segments in scope literals can be:
+
+- The "single any" symbol: `*`
+- The "multiple any" symbol: `**`
+- A "substitution segment" matching the pattern: `/[a-zA-Z0-9_-]*/`
+
+For example, these are all valid _scope literals_:
 
 ```
-role.abc
-role.*
-**
+billing:customer.abc:read.basic
+billing:customer.*:*.basic
+billing:**:read.*
 ```
+
+### Scope Templates
+
+A _scope template_ is a contravariant (a superset) of a _scope literal_. In addition to the values allowed in the segments of a _scope literal_, the segments of a _scope template_ may contain:
+
+- A "template segment" matching the pattern: `/^\{[a-zA-Z0-9_-]+\}$/`
+
+For example, these are all valid _scope templates_:
+
+```
+billing:customer.{current_user_id}:read.basic
+authx:v2.authorization..*.{current_client_id}..{current_grant_id}..{current_user_id}:**
+```
+
+The purpose of a scope template is to describe a scope where a value is not currently known, but will be known at the time of grant creation or authorization creation. Scope templates are never passed in a token or authorization.
+
+### Parameterized Scope
+
+A _parameterized scope_ is a bivariant (a superset in one way, and a subset in another) of a _scope literal_. In addition to the values allowed in the segments of a _scope literal_, the segments of a _parameterized scope_ may contain:
+
+- A "parameterized segment" matching the pattern: `/^\([a-zA-Z0-9_-]+\)$/`
+
+A domain in a _parameterized scope_ must not contain the "multiple any" symbol on both sides of a "parameterized segment" as the position of the "parameterized segment" would become ambiguous.
+
+For example, these are all valid _parameterized scopes_:
+
+```
+billing:customer.(user_id):read.basic
+authx:v2.authorization..*.(client_id)..(grant_id)..(current_user_id):**
+authx:v2.**.(client_id)..(grant_id)..(current_user_id):**
+```
+
+However, the following is invalid:
+
+```
+authx:v2.**.(client_id)..**:**
+```
+
+The purpose of a parameterized scope is to extract a value from a particular scope literal. This is useful for resources, where knowing a value before starting an operation is preferable to checking the scope after an operation has begun. For example, an application may want to know all possible values of `user_id` given the parameterized scope `billing:customer.(user_id):read.basic` BEFORE querying a database.
+
+Parameterized scopes are never passed in a token or authorization.
+
+### Parameterized Scope Template
+
+Certain functions accept a parameterized scope template, allowing both "parameterized segments" and "template segments".
 
 ## Installation
 

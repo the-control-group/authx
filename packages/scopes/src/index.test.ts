@@ -7,7 +7,7 @@ import {
   isSuperset,
   normalize,
   simplify,
-  isValidScope,
+  isValidScopeLiteral,
   InvalidScopeError
 } from "./index";
 
@@ -152,14 +152,36 @@ t("isSuperset (invalid b)", t => {
   );
 });
 
-t("isValidScope (valid)", t => {
-  t.is(isValidScope("client:resource:action."), true);
+([
+  { args: ["client"], result: false },
+  { args: ["client:"], result: false },
+  { args: ["client:resource"], result: false },
+  { args: ["client:resource:"], result: true },
+  { args: ["client:resource:action."], result: true },
+  { args: ["client:resource:action:"], result: false },
+  { args: ["a.%:resource:action"], result: false },
+  { args: ["a*.b:resource:action"], result: false },
+  { args: ["client:resource:action"], result: true },
+  { args: ["a.b.c:d.e.f:g.h.i"], result: true },
+  { args: ["*.b.c:d.*.f:g.h.*"], result: true },
+  { args: ["**.b.c:d.**.f:g.h.**"], result: true },
+  { args: ["*:*:*"], result: true },
+  { args: ["**:**:**"], result: true },
+  { args: ["***:**:**"], result: false }
+] as { args: [string]; result: boolean }[]).forEach(({ args, result }) => {
+  t(`isValidScopeLiteral ${args[0]} => ${result}`, t =>
+    t.is(isValidScopeLiteral(...args), result)
+  );
 });
-t("isValidScope (template)", t => {
-  t.is(isValidScope("client:resource:action.{foo}"), false);
+
+t("isValidScopeLiteral (valid)", t => {
+  t.is(isValidScopeLiteral("client:resource:action."), true);
 });
-t("isValidScope (invalid)", t => {
-  t.is(isValidScope("client:resource:act:ion."), false);
+t("isValidScopeLiteral (template)", t => {
+  t.is(isValidScopeLiteral("client:resource:action.{foo}"), false);
+});
+t("isValidScopeLiteral (invalid)", t => {
+  t.is(isValidScopeLiteral("client:resource:act:ion."), false);
 });
 
 t("normalize (valid)", t => {

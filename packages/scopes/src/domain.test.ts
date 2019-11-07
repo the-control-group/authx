@@ -1,12 +1,12 @@
 import t from "ava";
 import {
-  Pattern,
+  Domain,
   AnyMultiple,
   AnySingle,
   getIntersection,
   isSuperset,
   compare
-} from "./pattern";
+} from "./domain";
 
 t("compare", t => {
   ([
@@ -42,8 +42,8 @@ t("compare", t => {
       after: [[AnySingle], [AnyMultiple], ["a"]]
     }
   ] as {
-    before: Pattern[];
-    after: Pattern[];
+    before: Domain[];
+    after: Domain[];
   }[]).forEach(({ before, after }) => {
     t.deepEqual(before.sort(compare), after);
   });
@@ -114,19 +114,19 @@ t(
   }
 );
 t(
-  "getIntersection(a, b) - should not find intersection of patterns of different cardinality (a < b)",
+  "getIntersection(a, b) - should not find intersection of domains of different cardinality (a < b)",
   t => {
     t.deepEqual(getIntersection(["a"], ["a", "b"]), []);
   }
 );
 t(
-  "getIntersection(a, b) - should not find intersection of patterns of different cardinality (a > b)",
+  "getIntersection(a, b) - should not find intersection of domains of different cardinality (a > b)",
   t => {
     t.deepEqual(getIntersection(["a", "b"], ["b"]), []);
   }
 );
 t(
-  "getIntersection(a, b) - should find intersection of multi-segment patterns",
+  "getIntersection(a, b) - should find intersection of multi-segment domains",
   t => {
     t.deepEqual(getIntersection(["a", "b", "c"], ["a", "b", "c"]), [
       ["a", "b", "c"]
@@ -152,25 +152,25 @@ t(
   }
 );
 t(
-  "getIntersection(a, b) - should not find intersection of patterns of different cardinality (* ∩ a.b)",
+  "getIntersection(a, b) - should not find intersection of domains of different cardinality (* ∩ a.b)",
   t => {
     t.deepEqual(getIntersection([AnySingle], ["a", "b"]), []);
   }
 );
 t(
-  "getIntersection(a, b) - should not find intersection of patterns of different cardinality (a ∩ *.b)",
+  "getIntersection(a, b) - should not find intersection of domains of different cardinality (a ∩ *.b)",
   t => {
     t.deepEqual(getIntersection(["a"], [AnySingle, "b"]), []);
   }
 );
 t(
-  "getIntersection(a, b) - should not find intersection of patterns of different cardinality (a ∩ a.*)",
+  "getIntersection(a, b) - should not find intersection of domains of different cardinality (a ∩ a.*)",
   t => {
     t.deepEqual(getIntersection(["a"], ["a", AnySingle]), []);
   }
 );
 t(
-  "getIntersection(a, b) - should find intersection of multi-segment patterns (*.b.c ∩ a.b.c)",
+  "getIntersection(a, b) - should find intersection of multi-segment domains (*.b.c ∩ a.b.c)",
   t => {
     t.deepEqual(getIntersection([AnySingle, "b", "c"], ["a", "b", "c"]), [
       ["a", "b", "c"]
@@ -178,7 +178,7 @@ t(
   }
 );
 t(
-  "getIntersection(a, b) - should find intersection of multi-segment patterns (a.*.c ∩ a.b.c)",
+  "getIntersection(a, b) - should find intersection of multi-segment domains (a.*.c ∩ a.b.c)",
   t => {
     t.deepEqual(getIntersection(["a", AnySingle, "c"], ["a", "b", "c"]), [
       ["a", "b", "c"]
@@ -186,7 +186,7 @@ t(
   }
 );
 t(
-  "getIntersection(a, b) - should find intersection of multi-segment patterns (a.b.* ∩ a.b.c)",
+  "getIntersection(a, b) - should find intersection of multi-segment domains (a.b.* ∩ a.b.c)",
   t => {
     t.deepEqual(getIntersection(["a", "b", AnySingle], ["a", "b", "c"]), [
       ["a", "b", "c"]
@@ -194,7 +194,7 @@ t(
   }
 );
 t(
-  "getIntersection(a, b) - should find intersection of multi-segment patterns (*.b.c ∩ *.b.c)",
+  "getIntersection(a, b) - should find intersection of multi-segment domains (*.b.c ∩ *.b.c)",
   t => {
     t.deepEqual(getIntersection([AnySingle, "b", "c"], [AnySingle, "b", "c"]), [
       [AnySingle, "b", "c"]

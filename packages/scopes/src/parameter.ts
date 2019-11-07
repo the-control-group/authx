@@ -1,122 +1,45 @@
-import { getIntersection, isSuperset } from "./scope";
-import { isValidScopeTemplateSegment } from "./template";
+import {
+  Scope,
+  AnySingle,
+  AnyMultiple,
+  getIntersection,
+  isSuperset
+} from "./scope";
 
-export class InvalidPatternError extends Error {}
-
-function parse(
-  pattern: string
-): { scope: string; positions: Map<number, Map<number, string>> } {
-  const domains = pattern.split(":");
-
-  const parameterNames: Set<string> = new Set();
-  const parameterPositions: Map<number, Map<number, string>> = new Map();
-  const remappedDomains: string[] = [];
-
-  // Parse each pattern domain.
-  for (let d = 0; d < domains.length; d++) {
-    const domain = domains[d];
-    const domainSegments = domain.split(".");
-    const domainParameterPositions: Map<number, string> = new Map();
-    const domainRemappedParts: string[] = [];
-
-    let domainIndexOfFirstAnyMultiple: number | null = null;
-    let domainIndexOfMostRecentParameter: number | null = null;
-
-    // Parse each domain segment.
-    for (let s = 0; s < domainSegments.length; s++) {
-      const segment = domainSegments[s];
-      const match = segment.match(/^\(([a-z0-9_]+)\)$/);
-
-      // The segment is marked for parameter.
-      if (match && match[1]) {
-        domainIndexOfMostRecentParameter = s;
-        const name = match[1];
-
-        // Ensure uniqueness of parameter name.
-        if (parameterNames.has(name)) {
-          throw new InvalidPatternError(
-            `An parameter name of "${name}" cannot be used multiple times.`
-          );
-        } else {
-          parameterNames.add(name);
-        }
-
-        // Set the position and parts.
-        domainParameterPositions.set(s, name);
-        domainRemappedParts[s] = "*";
-        continue;
-      }
-
-      // The segment is invalid.
-      if (!isValidScopeTemplateSegment(segment)) {
-        throw new InvalidPatternError(
-          "The pattern contained an invalid segment."
-        );
-      }
-
-      // The segment is an AnyMultiple.
-      if (segment === "**") {
-        // Set the index of first AnyMultiple.
-        if (domainIndexOfFirstAnyMultiple === null) {
-          domainIndexOfFirstAnyMultiple = s;
-        }
-
-        // A pattern is invalid if an "**" is present on both sides of a
-        // parameterized segment, as the parameter's position is ambiguous.
-        if (
-          domainIndexOfMostRecentParameter !== null &&
-          domainIndexOfFirstAnyMultiple < domainIndexOfMostRecentParameter
-        ) {
-          throw new InvalidPatternError(
-            "An parameter segment cannot have `**` on both sides."
-          );
-        }
-      }
-
-      domainRemappedParts[s] = segment;
-    }
-
-    // Assemble the remapped domain.
-    remappedDomains[d] = domainRemappedParts.join(".");
-    parameterPositions.set(d, domainParameterPositions);
-  }
-
-  return {
-    scope: remappedDomains.join(":"),
-    positions: parameterPositions
-  };
+export interface ParameterizedScope {
+  scope: Scope;
+  positions: Map<number, Map<number, string>>;
 }
 
 export function extract(
-  pattern: string,
-  scopes: string[]
+  { scope, positions }: ParameterizedScope,
+  collection: Scope[]
 ): ReadonlyArray<{
-  scope: string;
+  scope: Scope;
   parameters: {
-    [key: string]: string;
+    [key: string]: typeof AnySingle | string;
   };
 }> {
-  // Parse the pattern.
-  const { scope, positions } = parse(pattern);
-
   // Get the intersections.
-  const intersections = getIntersection(scope, scopes);
+  const intersections = getIntersection([scope], collection);
 
   // Extract parameters from each intersection.
   return intersections
-    .filter(scope => isSuperset(scopes, scope))
+    .filter(scope => isSuperset(collection, [scope]))
     .map(scope => {
-      const parameters: { [name: string]: string } = Object.create(null);
-      for (const [d, domain] of scope.split(":").entries()) {
+      const parameters: {
+        [name: string]: typeof AnySingle | string;
+      } = Object.create(null);
+      for (const [d, domain] of scope.entries()) {
         const domainParameterPositions = positions.get(d);
         if (!domainParameterPositions) continue;
-        for (const [s, segment] of domain.split(".").entries()) {
+        for (const [s, segment] of domain.entries()) {
           const name = domainParameterPositions.get(s);
           if (!name) continue;
 
-          // Because a parameter represents a single segment, a "*" will always
-          // be returned to note a wildcard.
-          parameters[name] = segment === "**" ? "*" : segment;
+          // Because a parameter represents a single segment, AnySingle will be
+          // returned even if the scope includes an AnyMultiple.
+          parameters[name] = segment === AnyMultiple ? AnySingle : segment;
         }
       }
 

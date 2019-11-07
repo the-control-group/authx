@@ -1,228 +1,236 @@
-import * as scope from "./scope";
-import * as extract from "./template";
-
 export {
-  inject,
+  InvalidScopeError,
+  InvalidValueError,
   MissingValueError,
-  InvalidTemplateError,
-  InvalidValueError
-} from "./template";
-export { extract, InvalidPatternError } from "./parameter";
-export { InvalidScopeError } from "./scope";
+  InvalidParameterizedScopeError,
+  inject
+} from "./parse";
+
+import * as SCOPE from "./scope";
+import {
+  parseScopeLiteral,
+  parseScopeTemplate,
+  parseParameterizedScopeLiteral,
+  parseParameterizedScopeTemplate,
+  InvalidScopeError,
+  InvalidParameterizedScopeError
+} from "./parse";
+import { print } from "./print";
 
 export function getDifference(
   collectionA: string[],
   collectionB: string[]
 ): string[] {
-  if (!extract.isValidScopeTemplate(collectionA)) {
-    throw new scope.InvalidScopeError(
-      "A scope in `scopeOrCollectionA` is invalid."
-    );
-  }
-
-  if (!extract.isValidScopeTemplate(collectionB)) {
-    throw new scope.InvalidScopeError(
-      "A scope in `scopeOrCollectionB` is invalid."
-    );
-  }
-
-  return scope.getDifference(collectionA, collectionB);
+  return SCOPE.getDifference(
+    collectionA.map(parseScopeTemplate),
+    collectionB.map(parseScopeTemplate)
+  ).map(print);
 }
 
 export function getIntersection(
   scopeOrCollectionA: string[] | string,
   scopeOrCollectionB: string[] | string
 ): string[] {
-  if (!extract.isValidScopeTemplate(scopeOrCollectionA)) {
-    throw new scope.InvalidScopeError(
-      "One or more of the scopes in `scopeOrCollectionA` is invalid."
-    );
-  }
+  const collectionA =
+    typeof scopeOrCollectionA === "string"
+      ? [scopeOrCollectionA]
+      : scopeOrCollectionA;
 
-  if (!extract.isValidScopeTemplate(scopeOrCollectionB)) {
-    throw new scope.InvalidScopeError(
-      "One or more of the scopes in `scopeOrCollectionB` is invalid."
-    );
-  }
+  const collectionB =
+    typeof scopeOrCollectionB === "string"
+      ? [scopeOrCollectionB]
+      : scopeOrCollectionB;
 
-  return scope.getIntersection(scopeOrCollectionA, scopeOrCollectionB);
+  return SCOPE.getIntersection(
+    collectionA.map(parseScopeTemplate),
+    collectionB.map(parseScopeTemplate)
+  ).map(print);
 }
 
 export function hasIntersection(
   scopeOrCollectionA: string[] | string,
   scopeOrCollectionB: string[] | string
 ): boolean {
-  if (!extract.isValidScopeTemplate(scopeOrCollectionA)) {
-    throw new scope.InvalidScopeError(
-      "One or more of the scopes in `scopeOrCollectionA` is invalid."
-    );
-  }
+  const collectionA =
+    typeof scopeOrCollectionA === "string"
+      ? [scopeOrCollectionA]
+      : scopeOrCollectionA;
 
-  if (!extract.isValidScopeTemplate(scopeOrCollectionB)) {
-    throw new scope.InvalidScopeError(
-      "One or more of the scopes in `scopeOrCollectionB` is invalid."
-    );
-  }
+  const collectionB =
+    typeof scopeOrCollectionB === "string"
+      ? [scopeOrCollectionB]
+      : scopeOrCollectionB;
 
-  return scope.hasIntersection(scopeOrCollectionA, scopeOrCollectionB);
+  return SCOPE.hasIntersection(
+    collectionA.map(parseScopeTemplate),
+    collectionB.map(parseScopeTemplate)
+  );
 }
 
 export function isEqual(
   scopeOrCollectionA: string[] | string,
   scopeOrCollectionB: string[] | string
 ): boolean {
-  if (!extract.isValidScopeTemplate(scopeOrCollectionA)) {
-    throw new scope.InvalidScopeError(
-      "One or more of the scopes in `scopeOrCollectionA` is invalid."
-    );
-  }
+  const collectionA =
+    typeof scopeOrCollectionA === "string"
+      ? [scopeOrCollectionA]
+      : scopeOrCollectionA;
 
-  if (!extract.isValidScopeTemplate(scopeOrCollectionB)) {
-    throw new scope.InvalidScopeError(
-      "One or more of the scopes in `scopeOrCollectionB` is invalid."
-    );
-  }
+  const collectionB =
+    typeof scopeOrCollectionB === "string"
+      ? [scopeOrCollectionB]
+      : scopeOrCollectionB;
 
-  return scope.isEqual(scopeOrCollectionA, scopeOrCollectionB);
+  return SCOPE.isEqual(
+    collectionA.map(parseScopeTemplate),
+    collectionB.map(parseScopeTemplate)
+  );
 }
 
 export function isStrictSubset(
   scopeOrCollectionA: string[] | string,
   scopeOrCollectionB: string[] | string
 ): boolean {
-  if (!extract.isValidScopeTemplate(scopeOrCollectionA)) {
-    throw new scope.InvalidScopeError(
-      "One or more of the scopes in `scopeOrCollectionA` is invalid."
-    );
-  }
+  const collectionA =
+    typeof scopeOrCollectionA === "string"
+      ? [scopeOrCollectionA]
+      : scopeOrCollectionA;
 
-  if (!extract.isValidScopeTemplate(scopeOrCollectionB)) {
-    throw new scope.InvalidScopeError(
-      "One or more of the scopes in `scopeOrCollectionB` is invalid."
-    );
-  }
+  const collectionB =
+    typeof scopeOrCollectionB === "string"
+      ? [scopeOrCollectionB]
+      : scopeOrCollectionB;
 
-  return scope.isStrictSubset(scopeOrCollectionA, scopeOrCollectionB);
+  return SCOPE.isStrictSubset(
+    collectionA.map(parseScopeTemplate),
+    collectionB.map(parseScopeTemplate)
+  );
 }
 
 export function isStrictSuperset(
   scopeOrCollectionA: string[] | string,
   scopeOrCollectionB: string[] | string
 ): boolean {
-  if (!extract.isValidScopeTemplate(scopeOrCollectionA)) {
-    throw new scope.InvalidScopeError(
-      "One or more of the scopes in `scopeOrCollectionA` is invalid."
-    );
-  }
+  const collectionA =
+    typeof scopeOrCollectionA === "string"
+      ? [scopeOrCollectionA]
+      : scopeOrCollectionA;
 
-  if (!extract.isValidScopeTemplate(scopeOrCollectionB)) {
-    throw new scope.InvalidScopeError(
-      "One or more of the scopes in `scopeOrCollectionB` is invalid."
-    );
-  }
+  const collectionB =
+    typeof scopeOrCollectionB === "string"
+      ? [scopeOrCollectionB]
+      : scopeOrCollectionB;
 
-  return scope.isStrictSuperset(scopeOrCollectionA, scopeOrCollectionB);
+  return SCOPE.isStrictSuperset(
+    collectionA.map(parseScopeTemplate),
+    collectionB.map(parseScopeTemplate)
+  );
 }
 
 export function isSubset(
   scopeOrCollectionA: string[] | string,
   scopeOrCollectionB: string[] | string
 ): boolean {
-  if (!extract.isValidScopeTemplate(scopeOrCollectionA)) {
-    throw new scope.InvalidScopeError(
-      "One or more of the scopes in `scopeOrCollectionA` is invalid."
-    );
-  }
+  const collectionA =
+    typeof scopeOrCollectionA === "string"
+      ? [scopeOrCollectionA]
+      : scopeOrCollectionA;
 
-  if (!extract.isValidScopeTemplate(scopeOrCollectionB)) {
-    throw new scope.InvalidScopeError(
-      "One or more of the scopes in `scopeOrCollectionB` is invalid."
-    );
-  }
+  const collectionB =
+    typeof scopeOrCollectionB === "string"
+      ? [scopeOrCollectionB]
+      : scopeOrCollectionB;
 
-  return scope.isSubset(scopeOrCollectionA, scopeOrCollectionB);
+  return SCOPE.isSubset(
+    collectionA.map(parseScopeTemplate),
+    collectionB.map(parseScopeTemplate)
+  );
 }
 
 export function isSuperset(
   scopeOrCollectionA: string[] | string,
   scopeOrCollectionB: string[] | string
 ): boolean {
-  if (!extract.isValidScopeTemplate(scopeOrCollectionA)) {
-    throw new scope.InvalidScopeError(
-      "One or more of the scopes in `scopeOrCollectionA` is invalid."
-    );
-  }
+  const collectionA =
+    typeof scopeOrCollectionA === "string"
+      ? [scopeOrCollectionA]
+      : scopeOrCollectionA;
 
-  if (!extract.isValidScopeTemplate(scopeOrCollectionB)) {
-    throw new scope.InvalidScopeError(
-      "One or more of the scopes in `scopeOrCollectionB` is invalid."
-    );
-  }
+  const collectionB =
+    typeof scopeOrCollectionB === "string"
+      ? [scopeOrCollectionB]
+      : scopeOrCollectionB;
 
-  return scope.isSuperset(scopeOrCollectionA, scopeOrCollectionB);
+  return SCOPE.isSuperset(
+    collectionA.map(parseScopeTemplate),
+    collectionB.map(parseScopeTemplate)
+  );
 }
 
-export const isValidScopeTemplate = extract.isValidScopeTemplate;
-export const isValidScope = scope.isValidScope;
+export function isValidScopeLiteral(scope: string): boolean {
+  try {
+    parseScopeLiteral(scope);
+    return true;
+  } catch (error) {
+    if (error instanceof InvalidScopeError) {
+      return false;
+    }
+
+    throw error;
+  }
+}
+
+export function isValidScopeTemplate(scope: string): boolean {
+  try {
+    parseScopeTemplate(scope);
+    return true;
+  } catch (error) {
+    if (error instanceof InvalidScopeError) {
+      return false;
+    }
+
+    throw error;
+  }
+}
+
+export function isValidParameterizedScopeLiteral(scope: string): boolean {
+  try {
+    parseParameterizedScopeLiteral(scope);
+    return true;
+  } catch (error) {
+    if (error instanceof InvalidParameterizedScopeError) {
+      return false;
+    }
+
+    throw error;
+  }
+}
+
+export function isValidParameterizedScopeTemplate(scope: string): boolean {
+  try {
+    parseParameterizedScopeTemplate(scope);
+    return true;
+  } catch (error) {
+    if (error instanceof InvalidParameterizedScopeError) {
+      return false;
+    }
+
+    throw error;
+  }
+}
 
 export function normalize(scope: string): string;
 export function normalize(collection: string[]): string[];
 export function normalize(
   scopeOrCollection: string | string[]
 ): string | string[] {
-  if (!extract.isValidScopeTemplate(scopeOrCollection)) {
-    throw new scope.InvalidScopeError(
-      "One or more of the scopes in `scopeOrCollection` is invalid."
-    );
+  if (typeof scopeOrCollection !== "string") {
+    return scopeOrCollection.map(normalize as (scope: string) => string);
   }
 
-  // This is a silly refinement to help typescript...
-  return Array.isArray(scopeOrCollection)
-    ? scope.normalize(scopeOrCollection)
-    : scope.normalize(scopeOrCollection);
+  return print(SCOPE.normalize(parseScopeTemplate(scopeOrCollection)));
 }
 
 export function simplify(collection: string[]): string[] {
-  if (!extract.isValidScopeTemplate(collection)) {
-    throw new scope.InvalidScopeError(
-      "One or more of the scopes in `collection` is invalid."
-    );
-  }
-
-  return scope.simplify(collection);
+  return SCOPE.simplify(collection.map(parseScopeTemplate)).map(print);
 }
-
-// Deprecated
-// -----------------------------------------------------------------------------
-
-/**
- * @deprecated Since version 2.1. Will be deleted in version 3.0. Replace
- * "strict" calls with {@link isSuperset}, and weak mode with
- * {@link hasIntersection}.
- */
-export function test(
-  rule: string | string[],
-  subject: string,
-  strict: boolean = true
-): boolean {
-  return strict ? isSuperset(rule, subject) : hasIntersection(rule, subject);
-}
-
-/**
- * @deprecated Since version 2.1. Will be deleted in version 3.0. Replace
- * "strict" calls with {@link isSuperset}, and weak mode with
- * {@link hasIntersection}.
- */
-export const can = test;
-
-/**
- * @deprecated Since version 2.1. Will be deleted in version 3.0. Renamed to
- * {@link getIntersection}.
- */
-export const limit = getIntersection;
-
-/**
- * @deprecated Since version 2.4. Will be deleted in version 3.0. Renamed to
- * {@link isValidScope}.
- */
-export const validate = isValidScope;
