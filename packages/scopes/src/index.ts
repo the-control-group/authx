@@ -6,6 +6,8 @@ export {
   inject
 } from "./parse";
 
+import * as PARAMETER from "./parameter";
+
 import * as SCOPE from "./scope";
 import {
   parseScopeLiteral,
@@ -233,4 +235,28 @@ export function normalize(
 
 export function simplify(collection: string[]): string[] {
   return SCOPE.simplify(collection.map(parseScopeTemplate)).map(print);
+}
+
+export function extract(
+  scope: string,
+  collection: string[]
+): ReadonlyArray<{
+  query: string;
+  result: string;
+  parameters: { [key: string]: string };
+}> {
+  return PARAMETER.extract(
+    parseParameterizedScopeTemplate(scope),
+    collection.map(parseScopeTemplate)
+  ).map(({ query, result, parameters }) => ({
+    query: print(query),
+    result: print(result),
+    parameters: Object.entries(parameters).reduce<{ [key: string]: string }>(
+      (acc, [key, value]) => {
+        acc[key] = value === SCOPE.AnySingle ? "*" : value;
+        return acc;
+      },
+      {}
+    )
+  }));
 }

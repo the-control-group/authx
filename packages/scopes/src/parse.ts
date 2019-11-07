@@ -1,4 +1,11 @@
-import { Scope, Domain, Segment, AnySingle, AnyMultiple } from "./scope";
+import {
+  Scope,
+  Domain,
+  Segment,
+  AnySingle,
+  AnyMultiple,
+  normalize
+} from "./scope";
 import { ParameterizedScope } from "./parameter";
 
 export const LITERAL_SEGMENT = /^[a-zA-Z0-9_-]*$/;
@@ -53,7 +60,7 @@ function parseScope(scopeString: string, allowTemplateSegments = false): Scope {
     );
   }
 
-  return domainStrings.map(domain => domain.split(".").map(parse));
+  return normalize(domainStrings.map(domain => domain.split(".").map(parse)));
 }
 
 export function parseScopeLiteral(scopeString: string): Scope {
@@ -161,7 +168,7 @@ function parseParameterizedScope(
   }
 
   return {
-    scope: scope,
+    scope: normalize(scope),
     positions: positions
   };
 }

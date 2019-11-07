@@ -19,27 +19,27 @@ t("compare", t => {
     { before: [["a"], [AnyMultiple]], after: [[AnyMultiple], ["a"]] },
     {
       before: [[AnyMultiple], [AnySingle]],
-      after: [[AnySingle], [AnyMultiple]]
+      after: [[AnyMultiple], [AnySingle]]
     },
     {
       before: [[AnySingle], [AnyMultiple]],
-      after: [[AnySingle], [AnyMultiple]]
+      after: [[AnyMultiple], [AnySingle]]
     },
     {
       before: [["a"], [AnySingle], [AnyMultiple]],
-      after: [[AnySingle], [AnyMultiple], ["a"]]
+      after: [[AnyMultiple], [AnySingle], ["a"]]
     },
     {
       before: [["a"], [AnyMultiple], [AnySingle]],
-      after: [[AnySingle], [AnyMultiple], ["a"]]
+      after: [[AnyMultiple], [AnySingle], ["a"]]
     },
     {
       before: [[AnySingle], ["a"], [AnyMultiple]],
-      after: [[AnySingle], [AnyMultiple], ["a"]]
+      after: [[AnyMultiple], [AnySingle], ["a"]]
     },
     {
-      before: [[AnyMultiple], [AnySingle], ["a"]],
-      after: [[AnySingle], [AnyMultiple], ["a"]]
+      before: [[AnySingle], [AnyMultiple], ["a"]],
+      after: [[AnyMultiple], [AnySingle], ["a"]]
     }
   ] as {
     before: Domain[];
@@ -235,7 +235,7 @@ t(
   "getIntersection(a, b) - should find intersection of AnyMultiple with more than one AnyMultiple (* ∩ **)",
   t => {
     t.deepEqual(getIntersection([AnyMultiple], [AnyMultiple, AnyMultiple]), [
-      [AnySingle, AnyMultiple]
+      [AnyMultiple, AnySingle]
     ]);
   }
 );
@@ -243,7 +243,7 @@ t(
   "getIntersection(a, b) - should find intersection of AnyMultiple with more than one AnyMultiple (** ∩ *)",
   t => {
     t.deepEqual(getIntersection([AnyMultiple], [AnyMultiple, AnyMultiple]), [
-      [AnySingle, AnyMultiple]
+      [AnyMultiple, AnySingle]
     ]);
   }
 );

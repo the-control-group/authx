@@ -117,44 +117,61 @@ function s(winners: Domain[], candidate: Domain): Domain[] {
 }
 
 function simplify(collection: Domain[]): Domain[] {
-  return collection.reduce(s, []).reduceRight(s, []);
+  return collection
+    .map(normalize)
+    .reduce(s, [])
+    .reduceRight(s, []);
 }
 
 export function compare(a: Domain, b: Domain): 0 | -1 | 1 {
-  for (let i = 0; i < a.length; i++) {
-    if (i > b.length) {
-      return 1;
-    }
-
-    const segmentA: Segment = a[i];
-    const segmentB: Segment = b[i];
-
-    if (segmentA === segmentB) {
-      continue;
-    }
-
-    if (segmentA === AnySingle) return -1;
-    if (segmentB === AnySingle) return 1;
+  const length = Math.max(a.length, b.length);
+  for (let i = 0; i < length; i++) {
+    const segmentA = a[i];
+    const segmentB = b[i];
+    if (segmentA === segmentB) continue;
     if (segmentA === AnyMultiple) return -1;
     if (segmentB === AnyMultiple) return 1;
-    return segmentA > segmentB ? 1 : -1;
+    if (segmentA === AnySingle) return -1;
+    if (segmentB === AnySingle) return 1;
+    if (segmentA === undefined) return 1;
+    if (segmentB === undefined) return -1;
+    return segmentA < segmentB ? -1 : 1;
   }
 
-  return a.length < b.length ? -1 : 0;
+  return 0;
 }
 
 export function normalize(domain: Domain): Domain {
-  return domain.map((segment, i, segments) => {
-    if (
-      segment !== AnyMultiple ||
-      (segments[i + 1] !== AnyMultiple && segments[i + 1] !== AnySingle)
-    ) {
-      return segment;
+  const normalized: Domain = [];
+
+  let beginningOfAnySequence: number | null = null;
+  for (const [i, segment] of domain.entries()) {
+    if (segment === AnyMultiple) {
+      if (beginningOfAnySequence === null) {
+        beginningOfAnySequence = i;
+        normalized[i] = segment;
+      } else {
+        normalized[beginningOfAnySequence] = AnyMultiple;
+        normalized[i] = AnySingle;
+      }
+
+      continue;
     }
 
-    segments[i + 1] = AnyMultiple;
-    return AnySingle;
-  });
+    if (segment === AnySingle) {
+      if (beginningOfAnySequence === null) {
+        beginningOfAnySequence = i;
+      }
+
+      normalized[i] = segment;
+      continue;
+    }
+
+    beginningOfAnySequence = null;
+    normalized[i] = segment;
+  }
+
+  return normalized;
 }
 
 export function getIntersection(a: Domain, b: Domain): Domain[] {

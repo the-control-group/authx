@@ -4,11 +4,6 @@ export interface DomainDescriptionMap {
   [domain: string]: string;
 }
 
-export interface ExplanationTemplate {
-  pattern: string;
-  description: string;
-}
-
 export interface Explanation {
   scope: string;
   description: string;
@@ -16,7 +11,7 @@ export interface Explanation {
 
 export function generateExplanationTemplates(
   config: [DomainDescriptionMap, DomainDescriptionMap, DomainDescriptionMap][]
-): ReadonlyArray<ExplanationTemplate> {
+): ReadonlyArray<Explanation> {
   const results = [];
 
   for (const [realm, context, action] of config) {
@@ -24,7 +19,7 @@ export function generateExplanationTemplates(
       for (const [ck, cv] of Object.entries(context)) {
         for (const [ak, av] of Object.entries(action)) {
           results.push({
-            pattern: `${rk}:${ck}:${ak}`,
+            scope: `${rk}:${ck}:${ak}`,
             description: `${rv}: ${av.slice(0, 1).toUpperCase()}${av.slice(
               1
             )} ${cv}.`
@@ -41,15 +36,24 @@ function escapeRegExp(key: string): string {
   return key.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
 }
 
-function sortByPrecedence(
-  a: { precedence: number },
-  b: { precedence: number }
+function sortByFreedom(
+  { degreesOfFreedom: a }: { degreesOfFreedom: number[] },
+  { degreesOfFreedom: b }: { degreesOfFreedom: number[] }
 ): number {
-  return a.precedence < b.precedence ? 1 : a.precedence > b.precedence ? -1 : 0;
+  if (a === b) return 0;
+  const length = Math.max(a.length, b.length);
+  for (let i = 0; i < length; i++) {
+    if (a[i] === b[i]) continue;
+    if (a[i] === undefined) 1;
+    if (a[i] === undefined) -1;
+    return a[i] < b[i] ? -1 : 1;
+  }
+
+  return 0;
 }
 
 export function getExplanations(
-  templates: ReadonlyArray<ExplanationTemplate>,
+  templates: ReadonlyArray<Explanation>,
   substitutions: {
     currentAuthorizationId: null | string;
     currentUserId: null | string;
@@ -59,19 +63,19 @@ export function getExplanations(
   scopes: string[]
 ): ReadonlyArray<Explanation> {
   const explanationsByScope: {
-    [scope: string]: (Explanation & { precedence: number })[];
+    [scope: string]: (Explanation & { degreesOfFreedom: number[] })[];
   } = Object.create(null);
 
   for (const template of templates) {
-    // Test and extract variables from each scope.
-    for (const { scope: scopeTemplate, parameters } of extract(
-      template.pattern,
-      scopes
-    )) {
-      console.log(template.pattern);
-      console.log(scopeTemplate, "\n\n");
+    let templateScope: string = template.scope;
 
-      const scope = inject(scopeTemplate, {
+    // The score represents the degrees of freedom between the explanation
+    // template and the matched scope. The lower the score, the more exact the
+    // match.
+
+    const templateSegmentCount = template.scope.split("{").length - 1;
+    if (templateSegmentCount) {
+      const injection = inject(template.scope, {
         /* eslint-disable @typescript-eslint/camelcase */
         current_authorization_id: substitutions.currentAuthorizationId,
         current_user_id: substitutions.currentUserId,
@@ -80,8 +84,17 @@ export function getExplanations(
         /* eslint-enable @typescript-eslint/camelcase */
       });
 
-      if (!scope) continue;
+      if (injection === null) {
+        continue;
+      }
 
+      templateScope = injection;
+    }
+
+    for (const { query, result, parameters } of extract(
+      templateScope,
+      scopes
+    )) {
       // Apply dynamic substitutions to the description.
       let description = template.description;
       for (const [variableKey, variableValue] of Object.entries(parameters)) {
@@ -92,14 +105,24 @@ export function getExplanations(
         description = description.replace(domain, variableValue);
       }
 
-      explanationsByScope[scope] = explanationsByScope[scope] || [];
-      explanationsByScope[scope].push({
-        scope,
+      explanationsByScope[result] = explanationsByScope[result] || [];
+      explanationsByScope[result].push({
+        scope: result,
         description: description,
-        precedence:
-          0 +
-          (template.pattern.includes("(") ? -2 : 0) +
-          (template.pattern.includes("{") ? -1 : 0)
+
+        // TODO: I don't believe these are necessarily correct. However, they
+        // work with my limited initial test cases, and I've already spent far
+        // too much time on this.
+        degreesOfFreedom: [
+          // The "exact" degree of freedom.
+          isStrictSuperset(query, result) ? 1 : 0,
+
+          // The "parameter" degrees of freedom.
+          Object.keys(parameters).length,
+
+          // The "template" degrees of freedom.
+          templateSegmentCount
+        ]
       });
     }
   }
@@ -118,7 +141,7 @@ export function getExplanations(
       continue;
     }
 
-    const explanation = explanationsByScope[scope].sort(sortByPrecedence)[0];
+    const explanation = explanationsByScope[scope].sort(sortByFreedom)[0];
     if (explanation) {
       filteredResults.push({
         scope: explanation.scope,

@@ -2,8 +2,9 @@ import {
   Domain,
   AnySingle,
   AnyMultiple,
-  getIntersection as domainGetIntersection,
-  isSuperset as domainIsSuperset
+  getIntersection as getDomainIntersection,
+  isSuperset as domainIsSuperset,
+  compare as compareDomain
 } from "./domain";
 
 export { Domain, Segment, AnySingle, AnyMultiple } from "./domain";
@@ -19,12 +20,12 @@ function intersect(left: Scope, rightA: Scope, rightB: Scope): Scope[] {
   const [b, ...restB] = rightB;
 
   if (!restA.length) {
-    return domainGetIntersection(a, b).map(domain => [...left, domain]);
+    return getDomainIntersection(a, b).map(domain => [...left, domain]);
   }
 
-  return domainGetIntersection(a, b)
+  return getDomainIntersection(a, b)
     .map(domain => intersect([...left, domain], restA, restB))
-    .reduce((x, y) => x.concat(y), []);
+    .reduce((x, y) => [...x, ...y], []);
 }
 
 export function normalize(scope: Scope): Scope {
@@ -41,15 +42,7 @@ export function normalize(scope: Scope): Scope {
   );
 }
 
-function s(winners: Scope[], candidate: Scope): Scope[] {
-  if (!isSuperset(winners, [candidate])) {
-    winners.push(normalize(candidate));
-  }
-
-  return winners;
-}
-
-function sort(scopeA: Scope, scopeB: Scope): number {
+export function compare(scopeA: Scope, scopeB: Scope): number {
   if (scopeA === scopeB) return 0;
   const domainLength = Math.max(scopeA.length, scopeB.length);
   for (let iDomain = 0; iDomain < domainLength; iDomain++) {
@@ -59,22 +52,23 @@ function sort(scopeA: Scope, scopeB: Scope): number {
     if (domainA === undefined) return 1;
     if (domainB === undefined) return -1;
 
-    const segmentLength = Math.max(domainA.length, domainB.length);
-    for (let iSegment = 0; iSegment < segmentLength; iSegment++) {
-      const segmentA = domainA[iSegment];
-      const segmentB = domainB[iSegment];
-      if (segmentA === segmentB) continue;
-      if (segmentA === AnyMultiple) return -1;
-      if (segmentB === AnyMultiple) return 1;
-      if (segmentA === AnySingle) return -1;
-      if (segmentB === AnySingle) return 1;
-      if (segmentA === undefined) return 1;
-      if (segmentB === undefined) return -1;
-      return segmentA < segmentB ? -1 : 1;
+    const domainResult = compareDomain(domainA, domainB);
+    if (domainResult === 0) {
+      continue;
     }
+
+    return domainResult;
   }
 
   return 0;
+}
+
+function s(winners: Scope[], candidate: Scope): Scope[] {
+  if (isSuperset(winners, [candidate])) {
+    return winners;
+  }
+
+  return [...winners, normalize(candidate)];
 }
 
 // returns a de-duplicated array of scope rules
@@ -82,7 +76,7 @@ export function simplify(collection: Scope[]): Scope[] {
   return collection
     .reduce(s, [])
     .reduceRight(s, [])
-    .sort(sort);
+    .sort(compare);
 }
 
 export function getIntersection(
@@ -94,9 +88,9 @@ export function getIntersection(
       .map(a =>
         collectionB
           .map(b => intersect([], a, b))
-          .reduce((x, y) => x.concat(y), [])
+          .reduce((x, y) => [...x, ...y], [])
       )
-      .reduce((x, y) => x.concat(y), [])
+      .reduce((x, y) => [...x, ...y], [])
   );
 }
 

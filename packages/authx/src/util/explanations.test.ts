@@ -3,52 +3,52 @@ import { generateExplanationTemplates, getExplanations } from "./explanations";
 
 const userExplanationTemplates = [
   {
-    pattern: "authx:v2.user.......(user_id):r....",
+    scope: "authx:v2.user.......(user_id):r....",
     description: 'AuthX: Read the basic fields of the user with id "(user_id)".'
   },
   {
-    pattern: "authx:v2.user.......(user_id):w....",
+    scope: "authx:v2.user.......(user_id):w....",
     description: 'AuthX: Write basic fields for the user with id "(user_id)".'
   },
   {
-    pattern: "authx:v2.user.......(user_id):*....",
+    scope: "authx:v2.user.......(user_id):*....",
     description:
       'AuthX: Read and write basic fields of the user with id "(user_id)".'
   },
   {
-    pattern: "authx:v2.user.......{current_user_id}:r....",
+    scope: "authx:v2.user.......{current_user_id}:r....",
     description: "AuthX: Read the basic fields of the current user."
   },
   {
-    pattern: "authx:v2.user.......{current_user_id}:w....",
+    scope: "authx:v2.user.......{current_user_id}:w....",
     description: "AuthX: Write basic fields for the current user."
   },
   {
-    pattern: "authx:v2.user.......{current_user_id}:*....",
+    scope: "authx:v2.user.......{current_user_id}:*....",
     description: "AuthX: Read and write basic fields of the current user."
   },
   {
-    pattern: "authx:v2.user.......:r....",
+    scope: "authx:v2.user.......:r....",
     description: "AuthX: Read the basic fields of a new user."
   },
   {
-    pattern: "authx:v2.user.......:w....",
+    scope: "authx:v2.user.......:w....",
     description: "AuthX: Write basic fields for a new user."
   },
   {
-    pattern: "authx:v2.user.......:*....",
+    scope: "authx:v2.user.......:*....",
     description: "AuthX: Create, read and write basic fields of a new user."
   },
   {
-    pattern: "authx:v2.user.......*:r....",
+    scope: "authx:v2.user.......*:r....",
     description: "AuthX: Read the basic fields of any new or existing user."
   },
   {
-    pattern: "authx:v2.user.......*:w....",
+    scope: "authx:v2.user.......*:w....",
     description: "AuthX: Write basic fields for any new or existing user."
   },
   {
-    pattern: "authx:v2.user.......*:*....",
+    scope: "authx:v2.user.......*:*....",
     description:
       "AuthX: Create, read and write basic fields of any new or existing user."
   }
@@ -149,7 +149,7 @@ test("excessive superset", t => {
   );
 });
 
-test.only("basic static substitution", t => {
+test("basic static substitution", t => {
   t.deepEqual(
     getExplanations(
       userExplanationTemplates,
@@ -164,7 +164,7 @@ test.only("basic static substitution", t => {
     [
       {
         scope: "authx:v2.user.......d:r....",
-        description: "AuthX: Read the basic fields of the current user"
+        description: "AuthX: Read the basic fields of the current user."
       }
     ]
   );

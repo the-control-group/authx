@@ -12,40 +12,63 @@ export interface ParameterizedScope {
 }
 
 export function extract(
-  { scope, positions }: ParameterizedScope,
+  { scope: query, positions }: ParameterizedScope,
   collection: Scope[]
 ): ReadonlyArray<{
-  scope: Scope;
+  query: Scope;
+  result: Scope;
   parameters: {
     [key: string]: typeof AnySingle | string;
   };
 }> {
+  const finish: {
+    query: Scope;
+    result: Scope;
+    parameters: {
+      [key: string]: typeof AnySingle | string;
+    };
+  }[] = [];
+
   // Get the intersections.
-  const intersections = getIntersection([scope], collection);
+  const intersections = getIntersection([query], collection);
 
   // Extract parameters from each intersection.
-  return intersections
-    .filter(scope => isSuperset(collection, [scope]))
-    .map(scope => {
-      const parameters: {
-        [name: string]: typeof AnySingle | string;
-      } = Object.create(null);
-      for (const [d, domain] of scope.entries()) {
-        const domainParameterPositions = positions.get(d);
-        if (!domainParameterPositions) continue;
-        for (const [s, segment] of domain.entries()) {
-          const name = domainParameterPositions.get(s);
-          if (!name) continue;
+  for (const intersection of intersections) {
+    const parameters: {
+      [name: string]: typeof AnySingle | string;
+    } = Object.create(null);
 
-          // Because a parameter represents a single segment, AnySingle will be
-          // returned even if the scope includes an AnyMultiple.
-          parameters[name] = segment === AnyMultiple ? AnySingle : segment;
+    const result: Scope = [];
+
+    for (const [d, domain] of intersection.entries()) {
+      const domainParameterPositions = positions.get(d);
+      result[d] = [];
+
+      for (const [s, segment] of domain.entries()) {
+        const name =
+          domainParameterPositions && domainParameterPositions.get(s);
+
+        if (!name) {
+          result[d][s] = query[d][s];
+          continue;
         }
-      }
 
-      return {
-        scope,
-        parameters
-      };
+        // Because a parameter represents a single segment, AnySingle will be
+        // returned even if the scope includes an AnyMultiple.
+        parameters[name] = segment === AnyMultiple ? AnySingle : segment;
+        result[d][s] = segment;
+      }
+    }
+
+    if (!isSuperset(collection, [result])) {
+      continue;
+    }
+
+    finish.push({
+      query,
+      result,
+      parameters
     });
+  }
+  return finish;
 }

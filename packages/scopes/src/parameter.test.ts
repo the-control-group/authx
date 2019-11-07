@@ -17,7 +17,8 @@ test("extract(template, scopes) - single segment, concrete value", t => {
     ),
     [
       {
-        scope: parseScopeLiteral("foo:aaa:baz"),
+        query: parseScopeLiteral("foo:*:baz"),
+        result: parseScopeLiteral("foo:aaa:baz"),
         parameters: {
           bar: "aaa"
         }
@@ -34,7 +35,8 @@ test("extract(template, scopes) - single segment, any single value", t => {
     ),
     [
       {
-        scope: parseScopeLiteral("foo:*:baz"),
+        query: parseScopeLiteral("foo:*:baz"),
+        result: parseScopeLiteral("foo:*:baz"),
         parameters: {
           bar: AnySingle
         }
@@ -51,7 +53,8 @@ test("extract(template, scopes) - single segment, any multiple value", t => {
     ),
     [
       {
-        scope: parseScopeLiteral("foo:*:baz"),
+        query: parseScopeLiteral("foo:*:baz"),
+        result: parseScopeLiteral("foo:*:baz"),
         parameters: {
           bar: AnySingle
         }
@@ -68,7 +71,8 @@ test("extract(template, scopes) - multiple segments, any multiple value", t => {
     ),
     [
       {
-        scope: parseScopeLiteral("foo:*.b.*:baz"),
+        query: parseScopeLiteral("foo:*.b.*:baz"),
+        result: parseScopeLiteral("foo:*.b.*:baz"),
         parameters: {
           a: AnySingle,
           c: AnySingle
@@ -86,7 +90,8 @@ test("extract(template, scopes) - multiple segments with prefix any multiple, an
     ),
     [
       {
-        scope: parseScopeLiteral("foo:*.**.b.*:baz"),
+        query: parseScopeLiteral("foo:**.*.b.*:baz"),
+        result: parseScopeLiteral("foo:**.*.b.*:baz"),
         parameters: {
           a: AnySingle,
           c: AnySingle
@@ -104,7 +109,8 @@ test("extract(template, scopes) - multiple segments with suffix any multiple, an
     ),
     [
       {
-        scope: parseScopeLiteral("foo:*.b.*.**:baz"),
+        query: parseScopeLiteral("foo:*.b.**.*:baz"),
+        result: parseScopeLiteral("foo:*.b.**.*:baz"),
         parameters: {
           a: AnySingle,
           c: AnySingle
@@ -122,7 +128,8 @@ test("extract(template, scopes) - multiple segments with infix any multiple, any
     ),
     [
       {
-        scope: parseScopeLiteral("foo:*.*.**:baz"),
+        query: parseScopeLiteral("foo:**.*.*:baz"),
+        result: parseScopeLiteral("foo:**.*.*:baz"),
         parameters: {
           a: AnySingle,
           c: AnySingle
@@ -140,13 +147,24 @@ test("extract(template, scopes) - multiple segments with infix any multiple, any
     ),
     [
       {
-        scope: parseScopeLiteral("foo:*.*.*:baz"),
+        query: parseScopeLiteral("foo:**.*.*:baz"),
+        result: parseScopeLiteral("foo:*.*.*:baz"),
         parameters: {
           a: AnySingle,
           c: AnySingle
         }
       }
     ]
+  );
+});
+
+test("extract(template, scopes) - ", t => {
+  t.deepEqual(
+    extract(
+      parseParameterizedScopeLiteral("foo:(a).b.*:baz"),
+      ["foo:a.b.c:baz"].map(parseScopeLiteral)
+    ),
+    []
   );
 });
 
