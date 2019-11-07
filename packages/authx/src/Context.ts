@@ -19,6 +19,6 @@ export interface Context {
   }) => Promise<any>;
   readonly pool: Pool;
   readonly strategies: StrategyCollection;
-  readonly authorization: null | Authorization;
   readonly explanations: ReadonlyArray<Explanation>;
+  authorization: null | Authorization;
 }

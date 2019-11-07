@@ -28,7 +28,7 @@ export function createAuthXExplanations(
     [
       realm,
       {
-        "v2.authority.(authority_id).....":
+        "v2.authority.(authority_id)......":
           'the authority with id "(authority_id)"'
       },
       commonAuthorityActions
@@ -36,8 +36,8 @@ export function createAuthXExplanations(
     [
       realm,
       {
-        "v2.authority......": "a new authority",
-        "v2.authority.*.....": "any new or existing authority"
+        "v2.authority.......": "a new authority",
+        "v2.authority.*......": "any new or existing authority"
       },
       {
         ...commonAuthorityActions,
@@ -171,7 +171,7 @@ export function createAuthXExplanations(
           'any new or existing credential belonging to both the current user and authority with id "(authority_id)"',
         "v2.credential.*...*...(user_id)":
           'any new or existing credential belonging to the user with id "(user_id)"',
-        "v2.credential.*...*...{current_user}":
+        "v2.credential.*...*...{current_user_id}":
           "any new or existing credential belonging to the current user",
         "v2.credential.(authority_id)...*...*":
           'any new or existing credential belonging to the authority with id "(authority_id)"',
@@ -230,10 +230,10 @@ export function createAuthXExplanations(
         "r...r.": "read secrets of",
         "r..*.*.": "read all fields of",
         "w....": "write basic fields for",
-        "w..w..": "read scopes of",
-        "w...w.": "read secrets of",
-        "w..*.*.": "read all fields of",
-        "*..*.*.": "create, read and write all fields of"
+        "w..w..": "write scopes for",
+        "w...w.": "write secrets for",
+        "w..*.*.": "write all fields for",
+        "*..*.*.": "create, read and write all fields for"
       }
     ]
   ];
@@ -284,10 +284,10 @@ export function createAuthXExplanations(
         "r...r.": "read secrets of",
         "r..*.*.": "read all fields of",
         "w....": "write basic fields for",
-        "w..w..": "read scopes of",
-        "w...w.": "read secrets of",
-        "w..*.*.": "read all fields of",
-        "*..*.*.": "create, read and write all fields of"
+        "w..w..": "write scopes for",
+        "w...w.": "write secrets for",
+        "w..*.*.": "write all fields for",
+        "*..*.*.": "create, read and write all fields for"
       }
     ]
   ];
@@ -299,6 +299,25 @@ export function createAuthXExplanations(
     ...user,
     ...credential,
     ...grant,
-    ...authorization
+    ...authorization,
+    [
+      realm,
+      { "v2.*.*.*.*.*.*.*.*": "any new or existing entity" },
+      {
+        "r....": "read the basic fields of",
+        "r..r..": "read scopes of",
+        "r....r": "read users of",
+        "w....": "write basic fields for",
+        "w..w..": "write scopes for",
+        "w....w": "write users for",
+        "r.r...": "read potentially sensitive details of",
+        "w.w...": "write potentially sensitive details for",
+        "r...r.": "read secrets of",
+        "w...w.": "read secrets of",
+        "r.*.*.*.*": "read all fields of",
+        "w.*.*.*.*": "write all fields for",
+        "*.*.*.*.*": "create, read, and write all fields for"
+      }
+    ]
   ]);
 }

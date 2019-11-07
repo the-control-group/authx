@@ -133,10 +133,10 @@ export function getExplanations(
   const filteredResults: Explanation[] = [];
   for (const scope of allExplanationScopes) {
     if (
-      // The scope is part of a broader applicable explanation.
-      isStrictSuperset(allExplanationScopes, scope) &&
       // The scope was not explicly requested.
-      !scopes.includes(scope)
+      !scopes.includes(scope) &&
+      // The scope is part of a broader applicable explanation.
+      allExplanationScopes.some(s => isStrictSuperset(s, scope))
     ) {
       continue;
     }

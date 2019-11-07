@@ -13,7 +13,7 @@ import {
   makeAdministrationScopes,
   validateIdFormat
 } from "@authx/authx";
-import { getIntersection, simplify, validate } from "@authx/scopes";
+import { getIntersection, simplify, isValidScopeLiteral } from "@authx/scopes";
 import { PasswordCredential, PasswordAuthority } from "../../model";
 import { GraphQLPasswordCredential } from "../GraphQLPasswordCredential";
 import { GraphQLCreatePasswordCredentialInput } from "./GraphQLCreatePasswordCredentialInput";
@@ -87,7 +87,7 @@ export const createPasswordCredentials: GraphQLFieldConfig<
         }
 
         for (const scope of scopes) {
-          if (!validate(scope)) {
+          if (!isValidScopeLiteral(scope)) {
             throw new ValidationError(
               "The provided `administration` list contains a `scopes` list with an invalid scope."
             );

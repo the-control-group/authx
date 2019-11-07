@@ -15,7 +15,7 @@ export const explanations: GraphQLFieldConfig<
   },
   Context
 > = {
-  type: GraphQLExplanation,
+  type: new GraphQLList(GraphQLExplanation),
   description: "Fetch explanations of scopes.",
   args: {
     scopes: {
@@ -26,25 +26,23 @@ export const explanations: GraphQLFieldConfig<
     source,
     args,
     context
-  ): Promise<null | { scope: string; description: string }[]> {
+  ): Promise<null | ReadonlyArray<{ scope: string; description: string }>> {
     const { pool, authorization: a } = context;
 
     const tx = await pool.connect();
     try {
       const g = a && (await a.grant(tx));
 
-      getExplanations(
+      return getExplanations(
         context.explanations,
         {
           currentAuthorizationId: (a && a.id) || null,
           currentGrantId: (a && a.grantId) || null,
           currentUserId: (a && a.userId) || null,
-          currentClientId: g && g.id
+          currentClientId: (g && g.id) || null
         },
         args.scopes
       );
-
-      return [];
     } finally {
       tx.release();
     }

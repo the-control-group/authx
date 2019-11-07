@@ -11,7 +11,7 @@ import {
   makeAdministrationScopes,
   validateIdFormat
 } from "@authx/authx";
-import { getIntersection, simplify, validate } from "@authx/scopes";
+import { getIntersection, simplify, isValidScopeLiteral } from "@authx/scopes";
 import { OpenIdAuthority } from "../../model";
 import { GraphQLOpenIdAuthority } from "../GraphQLOpenIdAuthority";
 import { GraphQLCreateOpenIdAuthorityInput } from "./GraphQLCreateOpenIdAuthorityInput";
@@ -74,7 +74,7 @@ export const createOpenIdAuthorities: GraphQLFieldConfig<
         }
 
         for (const scope of scopes) {
-          if (!validate(scope)) {
+          if (!isValidScopeLiteral(scope)) {
             throw new ValidationError(
               "The provided `administration` list contains a `scopes` list with an invalid scope."
             );

@@ -84,7 +84,7 @@ export class AuthX<
           strategies,
           authorization,
           pool: this.pool,
-          explanations: [...(ctx[x] || {}).explanations, explanations]
+          explanations: explanations
         };
 
         ctx[x] = context;

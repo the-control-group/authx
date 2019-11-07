@@ -267,7 +267,7 @@ export function Authorize({
             variables: {
               id: grant.id,
               scopes: simplify(
-                [...(grant.scopes || []), ...requestedScope].filter(
+                [...(grant.scopes || []), ...requestedScopes].filter(
                   s => overrides[s] !== false
                 )
               )

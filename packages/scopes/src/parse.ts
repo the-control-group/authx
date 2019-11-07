@@ -292,7 +292,7 @@ export function inject(
 
           // If no value was set, we will throw an error.
           throw new MissingValueError(
-            `No value was available for a template variable.`,
+            `No value was available for template variable named "${name}".`,
             name
           );
         })
