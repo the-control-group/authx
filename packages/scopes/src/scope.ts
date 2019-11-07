@@ -1,10 +1,9 @@
 import {
   Domain,
-  AnySingle,
-  AnyMultiple,
   getIntersection as getDomainIntersection,
   isSuperset as domainIsSuperset,
-  compare as compareDomain
+  compare as compareDomain,
+  normalize as normalizeDomain
 } from "./domain";
 
 export { Domain, Segment, AnySingle, AnyMultiple } from "./domain";
@@ -29,17 +28,7 @@ function intersect(left: Scope, rightA: Scope, rightB: Scope): Scope[] {
 }
 
 export function normalize(scope: Scope): Scope {
-  return scope.map(domain =>
-    domain.map((segment, i, segments) => {
-      if (
-        segment !== AnyMultiple ||
-        (segments[i + 1] !== AnyMultiple && segments[i + 1] !== AnySingle)
-      )
-        return segment;
-      segments[i + 1] = AnyMultiple;
-      return AnySingle;
-    })
-  );
+  return scope.map(normalizeDomain);
 }
 
 export function compare(scopeA: Scope, scopeB: Scope): number {

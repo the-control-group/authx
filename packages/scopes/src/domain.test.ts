@@ -235,7 +235,7 @@ t(
   "getIntersection(a, b) - should find intersection of AnyMultiple with more than one AnyMultiple (* ∩ **)",
   t => {
     t.deepEqual(getIntersection([AnyMultiple], [AnyMultiple, AnyMultiple]), [
-      [AnyMultiple, AnySingle]
+      [AnySingle, AnyMultiple]
     ]);
   }
 );
@@ -243,7 +243,7 @@ t(
   "getIntersection(a, b) - should find intersection of AnyMultiple with more than one AnyMultiple (** ∩ *)",
   t => {
     t.deepEqual(getIntersection([AnyMultiple], [AnyMultiple, AnyMultiple]), [
-      [AnyMultiple, AnySingle]
+      [AnySingle, AnyMultiple]
     ]);
   }
 );

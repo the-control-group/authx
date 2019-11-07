@@ -144,30 +144,16 @@ export function compare(a: Domain, b: Domain): 0 | -1 | 1 {
 export function normalize(domain: Domain): Domain {
   const normalized: Domain = [];
 
-  let beginningOfAnySequence: number | null = null;
   for (const [i, segment] of domain.entries()) {
-    if (segment === AnyMultiple) {
-      if (beginningOfAnySequence === null) {
-        beginningOfAnySequence = i;
-        normalized[i] = segment;
-      } else {
-        normalized[beginningOfAnySequence] = AnyMultiple;
-        normalized[i] = AnySingle;
-      }
-
+    if (
+      (segment === AnyMultiple || segment === AnySingle) &&
+      normalized[i - 1] === AnyMultiple
+    ) {
+      normalized[i - 1] = AnySingle;
+      normalized[i] = AnyMultiple;
       continue;
     }
 
-    if (segment === AnySingle) {
-      if (beginningOfAnySequence === null) {
-        beginningOfAnySequence = i;
-      }
-
-      normalized[i] = segment;
-      continue;
-    }
-
-    beginningOfAnySequence = null;
     normalized[i] = segment;
   }
 
