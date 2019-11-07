@@ -48,7 +48,7 @@ export class User implements UserData {
     /* eslint-enable @typescript-eslint/camelcase */
 
     if (
-      await a.can(tx, values, `${realm}:v1.user.......${this.id}:${action}`)
+      await a.can(tx, values, `${realm}:v2.user.......${this.id}:${action}`)
     ) {
       return true;
     }

@@ -10,10 +10,12 @@ import {
 import jwt from "jsonwebtoken";
 import { Grant, Authorization, User } from "../model";
 import { Context } from "../Context";
+import { GraphQLExplanation } from "./GraphQLExplanation";
 import { GraphQLGrant } from "./GraphQLGrant";
 import { GraphQLUser } from "./GraphQLUser";
 import { GraphQLTokenFormat } from "./GraphQLTokenFormat";
 import { GraphQLScope } from "./GraphQLScope";
+import { getExplanations } from "../util/explanations";
 
 export const GraphQLAuthorization: GraphQLObjectType<
   Authorization,
@@ -91,6 +93,34 @@ export const GraphQLAuthorization: GraphQLObjectType<
             (await authorization.isAccessibleBy(realm, a, tx, "r..r.."))
             ? authorization.scopes
             : null;
+        } finally {
+          tx.release();
+        }
+      }
+    },
+    explanations: {
+      type: new GraphQLList(GraphQLExplanation),
+      async resolve(
+        grant,
+        args,
+        { realm, authorization: a, pool, explanations }: Context
+      ): Promise<null | ReadonlyArray<{ scope: string; description: string }>> {
+        const tx = await pool.connect();
+        try {
+          if (!a || !(await grant.isAccessibleBy(realm, a, tx, "r..r.."))) {
+            return null;
+          }
+          const g = a && (await a.grant(tx));
+          return getExplanations(
+            explanations,
+            {
+              currentAuthorizationId: (a && a.id) || null,
+              currentGrantId: (a && a.grantId) || null,
+              currentUserId: (a && a.userId) || null,
+              currentClientId: (g && g.id) || null
+            },
+            grant.scopes
+          );
         } finally {
           tx.release();
         }

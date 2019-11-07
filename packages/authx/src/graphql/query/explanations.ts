@@ -25,16 +25,14 @@ export const explanations: GraphQLFieldConfig<
   async resolve(
     source,
     args,
-    context
+    { pool, authorization: a, explanations }
   ): Promise<null | ReadonlyArray<{ scope: string; description: string }>> {
-    const { pool, authorization: a } = context;
-
     const tx = await pool.connect();
     try {
       const g = a && (await a.grant(tx));
 
       return getExplanations(
-        context.explanations,
+        explanations,
         {
           currentAuthorizationId: (a && a.id) || null,
           currentGrantId: (a && a.grantId) || null,

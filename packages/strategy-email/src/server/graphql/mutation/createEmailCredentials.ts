@@ -10,10 +10,9 @@ import {
   NotFoundError,
   ValidationError,
   Role,
-  makeAdministrationScopes,
   validateIdFormat
 } from "@authx/authx";
-import { getIntersection, simplify, isValidScopeLiteral } from "@authx/scopes";
+import { isSuperset, simplify, isValidScopeLiteral } from "@authx/scopes";
 import { EmailCredential, EmailAuthority } from "../../model";
 import { GraphQLEmailCredential } from "../GraphQLEmailCredential";
 import { substitute } from "../../substitute";
@@ -302,13 +301,15 @@ export const createEmailCredentials: GraphQLFieldConfig<
           }
         );
 
-        const possibleAdministrationScopes = makeAdministrationScopes(
-          await a.access(tx, values),
-          realm,
-          "grant",
-          id,
-          ["read.basic", "read.details", "write.basic", "write.details"]
-        );
+        const possibleAdministrationScopes = [
+          `${realm}:v2.credential.${credential.authorityId}...${id}...${credential.userId}:r....`,
+          `${realm}:v2.credential.${credential.authorityId}...${id}...${credential.userId}:r.r...`,
+          `${realm}:v2.credential.${credential.authorityId}...${id}...${credential.userId}:r.*...`,
+          `${realm}:v2.credential.${credential.authorityId}...${id}...${credential.userId}:w....`,
+          `${realm}:v2.credential.${credential.authorityId}...${id}...${credential.userId}:w.w...`,
+          `${realm}:v2.credential.${credential.authorityId}...${id}...${credential.userId}:w.*...`,
+          `${realm}:v2.credential.${credential.authorityId}...${id}...${credential.userId}:*.*...`
+        ];
 
         // Add administration scopes.
         for (const { roleId, scopes } of input.administration) {
@@ -326,7 +327,9 @@ export const createEmailCredentials: GraphQLFieldConfig<
               ...role,
               scopes: simplify([
                 ...role.scopes,
-                ...getIntersection(possibleAdministrationScopes, scopes)
+                ...possibleAdministrationScopes.filter(possible =>
+                  isSuperset(scopes, possible)
+                )
               ])
             },
             {

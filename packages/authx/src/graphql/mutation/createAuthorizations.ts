@@ -1,11 +1,10 @@
 import v4 from "uuid/v4";
 import { randomBytes } from "crypto";
-import { getIntersection, simplify } from "@authx/scopes";
+import { isSuperset, simplify } from "@authx/scopes";
 import { GraphQLFieldConfig, GraphQLList, GraphQLNonNull } from "graphql";
 import { Context } from "../../Context";
 import { GraphQLAuthorization } from "../GraphQLAuthorization";
 import { Authorization, Grant, Role } from "../../model";
-import { makeAdministrationScopes } from "../../util/makeAdministrationScopes";
 import { validateIdFormat } from "../../util/validateIdFormat";
 import {
   ForbiddenError,
@@ -138,13 +137,22 @@ export const createAuthorizations: GraphQLFieldConfig<
             }
           );
 
-          const possibleAdministrationScopes = makeAdministrationScopes(
-            await a.access(tx, values),
-            realm,
-            "authorization",
-            id,
-            ["r....", "r...r.", "r..r..", "w...."]
-          );
+          const grant = await authorization.grant(tx);
+
+          const possibleAdministrationScopes = [
+            `${realm}:v2.authorization..${id}.${(grant && grant.clientId) ||
+              ""}..${(grant && grant.id) || ""}..*:r....`,
+            `${realm}:v2.authorization..${id}.${(grant && grant.clientId) ||
+              ""}..${(grant && grant.id) || ""}..*:r...r.`,
+            `${realm}:v2.authorization..${id}.${(grant && grant.clientId) ||
+              ""}..${(grant && grant.id) || ""}..*:r..r..`,
+            `${realm}:v2.authorization..${id}.${(grant && grant.clientId) ||
+              ""}..${(grant && grant.id) || ""}..*:r..*.*.`,
+            `${realm}:v2.authorization..${id}.${(grant && grant.clientId) ||
+              ""}..${(grant && grant.id) || ""}..*:w....`,
+            `${realm}:v2.authorization..${id}.${(grant && grant.clientId) ||
+              ""}..${(grant && grant.id) || ""}..*:*..*.*.`
+          ];
 
           // Add administration scopes.
           for (const { roleId, scopes } of input.administration) {
@@ -162,7 +170,9 @@ export const createAuthorizations: GraphQLFieldConfig<
                 ...role,
                 scopes: simplify([
                   ...role.scopes,
-                  ...getIntersection(possibleAdministrationScopes, scopes)
+                  ...possibleAdministrationScopes.filter(possible =>
+                    isSuperset(scopes, possible)
+                  )
                 ])
               },
               {

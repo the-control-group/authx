@@ -2,11 +2,10 @@ import v4 from "uuid/v4";
 import { URL } from "url";
 import { randomBytes } from "crypto";
 import { GraphQLFieldConfig, GraphQLList, GraphQLNonNull } from "graphql";
-import { getIntersection, simplify } from "@authx/scopes";
+import { isSuperset, simplify } from "@authx/scopes";
 import { Context } from "../../Context";
 import { GraphQLClient } from "../GraphQLClient";
 import { Client, Role } from "../../model";
-import { makeAdministrationScopes } from "../../util/makeAdministrationScopes";
 import { validateIdFormat } from "../../util/validateIdFormat";
 import {
   ForbiddenError,
@@ -124,13 +123,15 @@ export const createClients: GraphQLFieldConfig<
             }
           );
 
-          const possibleAdministrationScopes = makeAdministrationScopes(
-            await a.access(tx, values),
-            realm,
-            "client",
-            id,
-            ["r....", "r...r.", "w....", "w...w."]
-          );
+          const possibleAdministrationScopes = [
+            `${realm}:v2.client...${id}....:r....`,
+            `${realm}:v2.client...${id}....:r...r.`,
+            `${realm}:v2.client...${id}....:r...*.`,
+            `${realm}:v2.client...${id}....:w....`,
+            `${realm}:v2.client...${id}....:w...w.`,
+            `${realm}:v2.client...${id}....:w...*.`,
+            `${realm}:v2.client...${id}....:*...*.`
+          ];
 
           // Add administration scopes.
           for (const { roleId, scopes } of input.administration) {
@@ -148,7 +149,9 @@ export const createClients: GraphQLFieldConfig<
                 ...role,
                 scopes: simplify([
                   ...role.scopes,
-                  ...getIntersection(possibleAdministrationScopes, scopes)
+                  ...possibleAdministrationScopes.filter(possible =>
+                    isSuperset(scopes, possible)
+                  )
                 ])
               },
               {

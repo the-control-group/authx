@@ -47,7 +47,7 @@ export class Role implements RoleData {
     /* eslint-enable @typescript-eslint/camelcase */
 
     if (
-      await a.can(tx, values, `${realm}:v1.role......${this.id}.:${action}`)
+      await a.can(tx, values, `${realm}:v2.role......${this.id}.:${action}`)
     ) {
       return true;
     }

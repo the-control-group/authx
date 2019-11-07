@@ -8,10 +8,9 @@ import {
   NotFoundError,
   ValidationError,
   Role,
-  makeAdministrationScopes,
   validateIdFormat
 } from "@authx/authx";
-import { getIntersection, simplify, isValidScopeLiteral } from "@authx/scopes";
+import { isSuperset, simplify, isValidScopeLiteral } from "@authx/scopes";
 import { PasswordAuthority } from "../../model";
 import { GraphQLPasswordAuthority } from "../GraphQLPasswordAuthority";
 import { GraphQLCreatePasswordAuthorityInput } from "./GraphQLCreatePasswordAuthorityInput";
@@ -125,13 +124,15 @@ export const createPasswordAuthorities: GraphQLFieldConfig<
             }
           );
 
-          const possibleAdministrationScopes = makeAdministrationScopes(
-            await a.access(tx, values),
-            realm,
-            "client",
-            id,
-            ["read.basic", "read.details", "write.basic", "write.details"]
-          );
+          const possibleAdministrationScopes = [
+            `${realm}:v2.authority.${id}......:r....`,
+            `${realm}:v2.authority.${id}......:r.r...`,
+            `${realm}:v2.authority.${id}......:r.*...`,
+            `${realm}:v2.authority.${id}......:w....`,
+            `${realm}:v2.authority.${id}......:w.w...`,
+            `${realm}:v2.authority.${id}......:w.*...`,
+            `${realm}:v2.authority.${id}......:*.*...`
+          ];
 
           // Add administration scopes.
           for (const { roleId, scopes } of input.administration) {
@@ -149,7 +150,9 @@ export const createPasswordAuthorities: GraphQLFieldConfig<
                 ...role,
                 scopes: simplify([
                   ...role.scopes,
-                  ...getIntersection(possibleAdministrationScopes, scopes)
+                  ...possibleAdministrationScopes.filter(possible =>
+                    isSuperset(scopes, possible)
+                  )
                 ])
               },
               {

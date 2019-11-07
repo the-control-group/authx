@@ -18,8 +18,10 @@ import { Context } from "../Context";
 import { GraphQLClient } from "./GraphQLClient";
 import { GraphQLUser } from "./GraphQLUser";
 import { GraphQLAuthorizationConnection } from "./GraphQLAuthorizationConnection";
+import { GraphQLExplanation } from "./GraphQLExplanation";
 import { GraphQLScope } from "./GraphQLScope";
 import { filter } from "../util/filter";
+import { getExplanations } from "../util/explanations";
 
 export const GraphQLGrant: GraphQLObjectType<
   Grant,
@@ -105,13 +107,41 @@ export const GraphQLGrant: GraphQLObjectType<
       async resolve(
         grant,
         args,
-        { realm, authorization: q, pool }: Context
+        { realm, authorization: a, pool }: Context
       ): Promise<null | string[]> {
         const tx = await pool.connect();
         try {
-          return q && (await grant.isAccessibleBy(realm, q, tx, "r..r.."))
+          return a && (await grant.isAccessibleBy(realm, a, tx, "r..r.."))
             ? grant.scopes
             : null;
+        } finally {
+          tx.release();
+        }
+      }
+    },
+    explanations: {
+      type: new GraphQLList(GraphQLExplanation),
+      async resolve(
+        grant,
+        args,
+        { realm, authorization: a, pool, explanations }: Context
+      ): Promise<null | ReadonlyArray<{ scope: string; description: string }>> {
+        const tx = await pool.connect();
+        try {
+          if (!a || !(await grant.isAccessibleBy(realm, a, tx, "r..r.."))) {
+            return null;
+          }
+          const g = a && (await a.grant(tx));
+          return getExplanations(
+            explanations,
+            {
+              currentAuthorizationId: (a && a.id) || null,
+              currentGrantId: (a && a.grantId) || null,
+              currentUserId: (a && a.userId) || null,
+              currentClientId: (g && g.id) || null
+            },
+            grant.scopes
+          );
         } finally {
           tx.release();
         }

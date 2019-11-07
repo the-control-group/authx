@@ -52,7 +52,7 @@ export class Authorization implements AuthorizationData {
       await a.can(
         tx,
         values,
-        `${realm}:v1.authorization..${this.id}.....:${action}`
+        `${realm}:v2.authorization..${this.id}.....:${action}`
       )
     ) {
       return true;

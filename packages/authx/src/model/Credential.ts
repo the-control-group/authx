@@ -50,7 +50,7 @@ export abstract class Credential<C> implements CredentialData<C> {
       await a.can(
         tx,
         values,
-        `${realm}:v1.credential....${this.id}...:${action}`
+        `${realm}:v2.credential....${this.id}...:${action}`
       )
     ) {
       return true;

@@ -1,11 +1,10 @@
 import v4 from "uuid/v4";
 import { randomBytes } from "crypto";
-import { getIntersection, simplify } from "@authx/scopes";
+import { isSuperset, simplify } from "@authx/scopes";
 import { GraphQLFieldConfig, GraphQLList, GraphQLNonNull } from "graphql";
 import { Context } from "../../Context";
 import { GraphQLGrant } from "../GraphQLGrant";
 import { Grant, Role } from "../../model";
-import { makeAdministrationScopes } from "../../util/makeAdministrationScopes";
 import { validateIdFormat } from "../../util/validateIdFormat";
 import {
   ForbiddenError,
@@ -138,13 +137,17 @@ export const createGrants: GraphQLFieldConfig<
             }
           );
 
-          const possibleAdministrationScopes = makeAdministrationScopes(
-            await a.access(tx, values),
-            realm,
-            "grant",
-            id,
-            ["r....", "r...r.", "r..r..", "w....", "w...w.", "w..w.."]
-          );
+          const possibleAdministrationScopes = [
+            `${realm}:v2.grant...${grant.clientId}..${id}..${grant.userId}:r....`,
+            `${realm}:v2.grant...${grant.clientId}..${id}..${grant.userId}:r...r.`,
+            `${realm}:v2.grant...${grant.clientId}..${id}..${grant.userId}:r..r..`,
+            `${realm}:v2.grant...${grant.clientId}..${id}..${grant.userId}:r..*.*.`,
+            `${realm}:v2.grant...${grant.clientId}..${id}..${grant.userId}:w....`,
+            `${realm}:v2.grant...${grant.clientId}..${id}..${grant.userId}:w...w.`,
+            `${realm}:v2.grant...${grant.clientId}..${id}..${grant.userId}:w..w..`,
+            `${realm}:v2.grant...${grant.clientId}..${id}..${grant.userId}:w..*.*.`,
+            `${realm}:v2.grant...${grant.clientId}..${id}..${grant.userId}:*..*.*.`
+          ];
 
           // Add administration scopes.
           for (const { roleId, scopes } of input.administration) {
@@ -162,7 +165,9 @@ export const createGrants: GraphQLFieldConfig<
                 ...role,
                 scopes: simplify([
                   ...role.scopes,
-                  ...getIntersection(possibleAdministrationScopes, scopes)
+                  ...possibleAdministrationScopes.filter(possible =>
+                    isSuperset(scopes, possible)
+                  )
                 ])
               },
               {
