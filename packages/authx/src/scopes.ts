@@ -1,10 +1,10 @@
-import { PatternDescriptionMap } from "./util/humanizeScopes";
+import { DomainDescriptionMap } from "./util/explanations";
 
 export default (
-  realm: PatternDescriptionMap = {
+  realm: DomainDescriptionMap = {
     authx: "authx"
   }
-): [PatternDescriptionMap, PatternDescriptionMap, PatternDescriptionMap][] => {
+): [DomainDescriptionMap, DomainDescriptionMap, DomainDescriptionMap][] => {
   // Authority
   const commonAuthorityActions = {
     "r....": "read the basic fields of",
@@ -17,9 +17,9 @@ export default (
   };
 
   const authority: [
-    PatternDescriptionMap,
-    PatternDescriptionMap,
-    PatternDescriptionMap
+    DomainDescriptionMap,
+    DomainDescriptionMap,
+    DomainDescriptionMap
   ][] = [
     [
       realm,
@@ -54,9 +54,9 @@ export default (
   };
 
   const client: [
-    PatternDescriptionMap,
-    PatternDescriptionMap,
-    PatternDescriptionMap
+    DomainDescriptionMap,
+    DomainDescriptionMap,
+    DomainDescriptionMap
   ][] = [
     [
       realm,
@@ -92,9 +92,9 @@ export default (
   };
 
   const role: [
-    PatternDescriptionMap,
-    PatternDescriptionMap,
-    PatternDescriptionMap
+    DomainDescriptionMap,
+    DomainDescriptionMap,
+    DomainDescriptionMap
   ][] = [
     [
       realm,
@@ -124,9 +124,9 @@ export default (
   };
 
   const user: [
-    PatternDescriptionMap,
-    PatternDescriptionMap,
-    PatternDescriptionMap
+    DomainDescriptionMap,
+    DomainDescriptionMap,
+    DomainDescriptionMap
   ][] = [
     [
       realm,
@@ -151,9 +151,9 @@ export default (
 
   // Credential
   const credential: [
-    PatternDescriptionMap,
-    PatternDescriptionMap,
-    PatternDescriptionMap
+    DomainDescriptionMap,
+    DomainDescriptionMap,
+    DomainDescriptionMap
   ][] = [
     [
       realm,
@@ -187,9 +187,9 @@ export default (
   ];
 
   const grant: [
-    PatternDescriptionMap,
-    PatternDescriptionMap,
-    PatternDescriptionMap
+    DomainDescriptionMap,
+    DomainDescriptionMap,
+    DomainDescriptionMap
   ][] = [
     // Grant
     [
@@ -236,9 +236,9 @@ export default (
 
   // Authorization
   const authorization: [
-    PatternDescriptionMap,
-    PatternDescriptionMap,
-    PatternDescriptionMap
+    DomainDescriptionMap,
+    DomainDescriptionMap,
+    DomainDescriptionMap
   ][] = [
     [
       realm,
