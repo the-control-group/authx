@@ -116,7 +116,7 @@ export const GraphQLUser: GraphQLObjectType<
       args: {
         clientId: {
           type: new GraphQLNonNull(GraphQLID),
-          description: "A ID of the client."
+          description: "The ID of a client."
         }
       },
       description: "Look for a grant between this user and a client.",

@@ -101,25 +101,28 @@ export const GraphQLAuthorization: GraphQLObjectType<
     explanations: {
       type: new GraphQLList(GraphQLExplanation),
       async resolve(
-        grant,
+        authorization,
         args,
         { realm, authorization: a, pool, explanations }: Context
       ): Promise<null | ReadonlyArray<{ scope: string; description: string }>> {
         const tx = await pool.connect();
         try {
-          if (!a || !(await grant.isAccessibleBy(realm, a, tx, "r..r.."))) {
+          if (
+            !a ||
+            !(await authorization.isAccessibleBy(realm, a, tx, "r..r.."))
+          ) {
             return null;
           }
-          const g = a && (await a.grant(tx));
+          const grant = await authorization.grant(tx);
           return getExplanations(
             explanations,
             {
-              currentAuthorizationId: (a && a.id) || null,
-              currentGrantId: (a && a.grantId) || null,
-              currentUserId: (a && a.userId) || null,
-              currentClientId: (g && g.id) || null
+              currentAuthorizationId: authorization.id,
+              currentGrantId: authorization.grantId,
+              currentUserId: authorization.userId,
+              currentClientId: grant && grant.clientId
             },
-            grant.scopes
+            authorization.scopes
           );
         } finally {
           tx.release();

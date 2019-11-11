@@ -19,6 +19,7 @@ import { GraphQLClient } from "./GraphQLClient";
 import { GraphQLUser } from "./GraphQLUser";
 import { GraphQLAuthorizationConnection } from "./GraphQLAuthorizationConnection";
 import { GraphQLExplanation } from "./GraphQLExplanation";
+import { GraphQLScopeTemplate } from "./GraphQLScopeTemplate";
 import { GraphQLScope } from "./GraphQLScope";
 import { filter } from "../util/filter";
 import { getExplanations } from "../util/explanations";
@@ -121,6 +122,7 @@ export const GraphQLGrant: GraphQLObjectType<
     },
     explanations: {
       type: new GraphQLList(GraphQLExplanation),
+      description: "Fetch explanations of the grant's scopes.",
       async resolve(
         grant,
         args,
@@ -131,14 +133,13 @@ export const GraphQLGrant: GraphQLObjectType<
           if (!a || !(await grant.isAccessibleBy(realm, a, tx, "r..r.."))) {
             return null;
           }
-          const g = a && (await a.grant(tx));
           return getExplanations(
             explanations,
             {
-              currentAuthorizationId: (a && a.id) || null,
-              currentGrantId: (a && a.grantId) || null,
-              currentUserId: (a && a.userId) || null,
-              currentClientId: (g && g.id) || null
+              currentAuthorizationId: null,
+              currentGrantId: grant.id,
+              currentUserId: grant.userId,
+              currentClientId: grant.clientId || null
             },
             grant.scopes
           );

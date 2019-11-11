@@ -65,7 +65,7 @@ export class Client implements ClientData {
         (await tx.query(
           `
             SELECT entity_id AS id
-            FROM authx.grant_records
+            FROM authx.grant_record
             WHERE
               client_id = $1
               AND replacement_record_id IS NULL
@@ -73,6 +73,32 @@ export class Client implements ClientData {
           [this.id]
         )).rows.map(({ id }) => id)
       ))());
+  }
+
+  public async grant(tx: PoolClient, userId: string): Promise<null | Grant> {
+    const result = await tx.query(
+      `
+      SELECT entity_id AS id
+      FROM authx.grant_record
+      WHERE
+        user_id = $1
+        AND client_id = $2
+        AND replacement_record_id IS NULL
+      `,
+      [userId, this.id]
+    );
+
+    if (result.rows.length > 1) {
+      throw new Error(
+        "INVARIANT: It must be impossible for the same user and client to have multiple enabled grants.."
+      );
+    }
+
+    if (result.rows.length) {
+      return Grant.read(tx, result.rows[0].id);
+    }
+
+    return null;
   }
 
   public static read(

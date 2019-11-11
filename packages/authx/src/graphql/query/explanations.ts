@@ -1,11 +1,7 @@
-import {
-  GraphQLFieldConfig,
-  GraphQLID,
-  GraphQLNonNull,
-  GraphQLList
-} from "graphql";
+import { GraphQLFieldConfig, GraphQLNonNull, GraphQLList } from "graphql";
 import { Context } from "../../Context";
 import { GraphQLExplanation } from "../GraphQLExplanation";
+import { GraphQLScopeTemplate } from "../GraphQLScopeTemplate";
 import { getExplanations } from "../../util/explanations";
 
 export const explanations: GraphQLFieldConfig<
@@ -19,7 +15,9 @@ export const explanations: GraphQLFieldConfig<
   description: "Fetch explanations of scopes.",
   args: {
     scopes: {
-      type: new GraphQLNonNull(new GraphQLList(new GraphQLNonNull(GraphQLID)))
+      type: new GraphQLNonNull(
+        new GraphQLList(new GraphQLNonNull(GraphQLScopeTemplate))
+      )
     }
   },
   async resolve(

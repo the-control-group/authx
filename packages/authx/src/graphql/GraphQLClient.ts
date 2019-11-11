@@ -7,8 +7,18 @@ import {
   GraphQLObjectType
 } from "graphql";
 
+import {
+  connectionFromArray,
+  connectionArgs,
+  ConnectionArguments
+} from "graphql-relay";
+
+import { Grant } from "../model";
 import { Client } from "../model";
 import { Context } from "../Context";
+import { GraphQLGrant } from "./GraphQLGrant";
+import { GraphQLGrantConnection } from "./GraphQLGrantConnection";
+import { filter } from "../util/filter";
 
 export const GraphQLClient = new GraphQLObjectType<Client, Context>({
   name: "Client",
@@ -37,6 +47,50 @@ export const GraphQLClient = new GraphQLObjectType<Client, Context>({
         }
       }
     },
-    urls: { type: new GraphQLList(GraphQLString) }
+    urls: { type: new GraphQLList(GraphQLString) },
+    grants: {
+      type: GraphQLGrantConnection,
+      description: "List all of the client's grants.",
+      args: connectionArgs,
+      async resolve(client, args, { realm, authorization: a, pool }: Context) {
+        const tx = await pool.connect();
+        try {
+          return a
+            ? connectionFromArray(
+                await filter(await client.grants(tx), grant =>
+                  grant.isAccessibleBy(realm, a, tx)
+                ),
+                args
+              )
+            : null;
+        } finally {
+          tx.release();
+        }
+      }
+    },
+    grant: {
+      type: GraphQLGrant,
+      args: {
+        userId: {
+          type: new GraphQLNonNull(GraphQLID),
+          description: "The ID of a user."
+        }
+      },
+      description: "Look for a grant between this user and a client.",
+      async resolve(
+        client,
+        args,
+        { realm, authorization: a, pool }: Context
+      ): Promise<null | Grant> {
+        if (!a) return null;
+        const tx = await pool.connect();
+        try {
+          const grant = await client.grant(tx, args.userId);
+          return grant && grant.isAccessibleBy(realm, a, tx) ? grant : null;
+        } finally {
+          tx.release();
+        }
+      }
+    }
   })
 });

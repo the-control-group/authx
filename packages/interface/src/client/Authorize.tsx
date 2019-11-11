@@ -4,7 +4,9 @@ import React, {
   useEffect,
   useContext,
   useCallback,
-  useState
+  useState,
+  ReactChild,
+  useMemo
 } from "react";
 
 import {
@@ -16,6 +18,56 @@ import {
 import { isSuperset, getDifference, simplify, inject } from "@authx/scopes";
 
 import v4 from "uuid/v4";
+
+function Scope({ children }: { children: ReactChild }): ReactElement {
+  return (
+    <div
+      style={{
+        width: "0",
+        minWidth: "100%",
+        boxSizing: "border-box",
+        position: "relative",
+        margin: "0",
+        padding: "0",
+        borderRadius: "7px",
+        overflow: "hidden"
+      }}
+    >
+      <span
+        style={{
+          position: "absolute",
+          top: "0",
+          left: "0",
+          bottom: "0",
+          width: "14px",
+          background:
+            "linear-gradient(-90deg, rgba(22,23,23,0) 0%, rgba(22,23,23,1) 75%)"
+        }}
+      />
+      <pre
+        style={{
+          margin: "0",
+          overflow: "auto",
+          background: "hsl(180, 2%, 9%)",
+          padding: "14px 14px"
+        }}
+      >
+        {children}
+      </pre>
+      <span
+        style={{
+          position: "absolute",
+          top: "0",
+          right: "0",
+          bottom: "0",
+          width: "14px",
+          background:
+            "linear-gradient(90deg, rgba(22,23,23,0) 0%, rgba(22,23,23,1) 75%)"
+        }}
+      />
+    </div>
+  );
+}
 
 function Checkbox({
   value,
@@ -127,6 +179,9 @@ export function Authorize({
   const paramsRedirectUri = url.searchParams.get("redirect_uri") || null;
   const paramsScope = url.searchParams.get("scope") || null;
 
+  // If we end up creating a new grant, this is the ID we'll use.
+  const [newGrantId, setNewGrantId] = useState(() => v4());
+
   // Parse the scopes
   const requestedScopeTemplates = paramsScope ? paramsScope.split(" ") : null;
   let requestedScopeTemplatesAreValid: boolean | null = null;
@@ -136,6 +191,7 @@ export function Authorize({
       // those that can be used here.
       inject(requestedScopeTemplates, {
         /* eslint-disable @typescript-eslint/camelcase */
+        current_client_id: "",
         current_grant_id: "",
         current_user_id: ""
         /* eslint-enable @typescript-eslint/camelcase */
@@ -157,6 +213,10 @@ export function Authorize({
           grant: null | {
             id: string;
             scopes: null | string[];
+            explanations: null | ReadonlyArray<null | {
+              scope: string;
+              description: string;
+            }>;
           };
         };
       };
@@ -166,7 +226,7 @@ export function Authorize({
         urls: string[];
       };
     },
-    { clientId: string }
+    { clientId: string; requestedScopes: string[] }
   >({
     fetchOptionsOverride,
     loadOnMount: paramsClientId ? true : false,
@@ -180,6 +240,10 @@ export function Authorize({
               grant(clientId: $clientId) {
                 id
                 scopes
+                explanations {
+                  scope
+                  description
+                }
               }
             }
           }
@@ -191,7 +255,11 @@ export function Authorize({
           }
         }
       `,
-      variables: { clientId: paramsClientId || "" }
+      variables: {
+        clientId: paramsClientId || "",
+        requestedScopes:
+          (requestedScopeTemplatesAreValid && requestedScopeTemplates) || []
+      }
     }
   });
 
@@ -207,16 +275,22 @@ export function Authorize({
   // These decisions override the default behavior, which is to
   const [overrides, setOverrides] = useState<{ [scope: string]: boolean }>({});
 
-  const requestedScopes = requestedScopeTemplates
-    ? user && grant
-      ? inject(requestedScopeTemplates, {
-          /* eslint-disable @typescript-eslint/camelcase */
-          current_grant_id: grant.id,
-          current_user_id: user.id
-          /* eslint-enable @typescript-eslint/camelcase */
-        })
-      : requestedScopeTemplates
-    : [];
+  const clientId = (client && client.id) || null;
+  const grantId = (grant && grant.id) || newGrantId;
+  const userId = (user && user.id) || null;
+  const requestedScopes = useMemo(
+    () =>
+      requestedScopeTemplates
+        ? inject(requestedScopeTemplates, {
+            /* eslint-disable @typescript-eslint/camelcase */
+            current_client_id: clientId,
+            current_grant_id: grantId,
+            current_user_id: userId
+            /* eslint-enable @typescript-eslint/camelcase */
+          })
+        : [],
+    [requestedScopeTemplates, clientId, grantId, userId]
+  );
 
   const newRequestedScopes =
     grant && grant.scopes
@@ -255,7 +329,7 @@ export function Authorize({
           fetchOptionsOverride,
           operation: {
             query: `
-              mutation($id: ID!, $scopes: [String!]!) {
+              mutation($id: ID!, $scopes: [Scope!]!) {
                 updateGrants(
                   grants: [{id: $id, scopes: $scopes, generateCodes: 1}]
                 ) {
@@ -275,7 +349,6 @@ export function Authorize({
           }
         });
       } else {
-        const id = v4();
         operation = graphql.operate<
           {
             updateGrants?: undefined;
@@ -294,7 +367,7 @@ export function Authorize({
           fetchOptionsOverride,
           operation: {
             query: `
-              mutation($id: ID!, $clientId: ID!, $userId: ID!, $scopes: [String!]!) {
+              mutation($id: ID!, $clientId: ID!, $userId: ID!, $scopes: [Scope!]!) {
                 createGrants(
                   grants: [{
                     id: $id,
@@ -309,15 +382,10 @@ export function Authorize({
               }
             `,
             variables: {
-              id,
+              id: newGrantId,
               clientId: client.id,
               userId: user.id,
-              scopes: inject(requestedScopes, {
-                /* eslint-disable @typescript-eslint/camelcase */
-                current_grant_id: id,
-                current_user_id: user.id
-                /* eslint-enable @typescript-eslint/camelcase */
-              })
+              scopes: requestedScopes
             }
           }
         });
@@ -534,30 +602,82 @@ export function Authorize({
                   The app <strong>{client.name}</strong> has previously been
                   granted the following scopes:
                 </p>
-                <div className="info" style={{ display: "flex" }}>
-                  <table style={{ flex: 1 }}>
-                    <tbody>
-                      {grant.scopes.map((s, i) => (
-                        <tr key={i}>
-                          <td>
-                            <pre>{s}</pre>
-                          </td>
-                          <td style={{ width: "100px" }}>
-                            <Checkbox
-                              value={overrides[s] === false ? false : true}
-                              onChange={v =>
-                                setOverrides({
-                                  ...overrides,
-                                  [s]: v
-                                })
-                              }
-                            />
-                          </td>
-                        </tr>
-                      )) || null}
-                    </tbody>
-                  </table>
-                </div>
+                <table className="info">
+                  <tbody>
+                    {grant.scopes.map((s, i) => {
+                      const explanations =
+                        ((grant.explanations &&
+                          grant.explanations.filter(e => {
+                            return e && isSuperset(s, e.scope);
+                          })) as ReadonlyArray<{
+                          scope: string;
+                          description: string;
+                        }>) || [];
+                      return (
+                        <Fragment key={i}>
+                          <tr>
+                            <td
+                              colSpan={2}
+                              style={{
+                                paddingBottom: "0px",
+                                borderTop:
+                                  i > 0
+                                    ? "2px solid hsla(0, 0%, 100%, 0.04)"
+                                    : undefined
+                              }}
+                            >
+                              <Scope>{s}</Scope>
+                            </td>
+                          </tr>
+                          <tr>
+                            <td>
+                              {explanations.length ? (
+                                <ul
+                                  style={{
+                                    fontSize: "14px",
+                                    padding: "0 0 0 10px",
+                                    margin: "0"
+                                  }}
+                                >
+                                  {explanations.map(e => (
+                                    <li
+                                      style={{ margin: "10px" }}
+                                      key={e.scope}
+                                    >
+                                      {e.description}
+                                    </li>
+                                  ))}
+                                </ul>
+                              ) : (
+                                <div
+                                  style={{
+                                    opacity: 0.8,
+                                    fontSize: "14px",
+                                    textAlign: "center",
+                                    margin: "10px"
+                                  }}
+                                >
+                                  No explanations found.
+                                </div>
+                              )}
+                            </td>
+                            <td style={{ width: "100px" }}>
+                              <Checkbox
+                                value={overrides[s] === false ? false : true}
+                                onChange={v =>
+                                  setOverrides({
+                                    ...overrides,
+                                    [s]: v
+                                  })
+                                }
+                              />
+                            </td>
+                          </tr>
+                        </Fragment>
+                      );
+                    }) || null}
+                  </tbody>
+                </table>
               </>
             ) : null}
 
@@ -572,30 +692,83 @@ export function Authorize({
                   </p>
                 )}
 
-                <div className="info" style={{ display: "flex" }}>
-                  <table style={{ flex: 1 }}>
-                    <tbody>
-                      {newRequestedScopes.map((s, i) => (
-                        <tr key={i}>
-                          <td>
-                            <pre>{s}</pre>
-                          </td>
-                          <td style={{ width: "100px" }}>
-                            <Checkbox
-                              value={overrides[s] === false ? false : true}
-                              onChange={v =>
-                                setOverrides({
-                                  ...overrides,
-                                  [s]: v
-                                })
-                              }
-                            />
-                          </td>
-                        </tr>
-                      )) || null}
-                    </tbody>
-                  </table>
-                </div>
+                <table className="info">
+                  <tbody>
+                    {newRequestedScopes.map((s, i) => {
+                      const explanations =
+                        ((grant &&
+                          grant.explanations &&
+                          grant.explanations.filter(e => {
+                            return e && isSuperset(s, e.scope);
+                          })) as ReadonlyArray<{
+                          scope: string;
+                          description: string;
+                        }>) || [];
+                      return (
+                        <Fragment key={i}>
+                          <tr>
+                            <td
+                              colSpan={2}
+                              style={{
+                                paddingBottom: "0px",
+                                borderTop:
+                                  i > 0
+                                    ? "2px solid hsla(0, 0%, 100%, 0.04)"
+                                    : undefined
+                              }}
+                            >
+                              <Scope>{s}</Scope>
+                            </td>
+                          </tr>
+                          <tr>
+                            <td>
+                              {explanations.length ? (
+                                <ul
+                                  style={{
+                                    fontSize: "14px",
+                                    padding: "0 0 0 10px",
+                                    margin: "0"
+                                  }}
+                                >
+                                  {explanations.map(e => (
+                                    <li
+                                      style={{ margin: "10px" }}
+                                      key={e.scope}
+                                    >
+                                      {e.description}
+                                    </li>
+                                  ))}
+                                </ul>
+                              ) : (
+                                <div
+                                  style={{
+                                    opacity: 0.8,
+                                    fontSize: "14px",
+                                    textAlign: "center",
+                                    margin: "10px"
+                                  }}
+                                >
+                                  No explanations found.
+                                </div>
+                              )}
+                            </td>
+                            <td style={{ width: "100px" }}>
+                              <Checkbox
+                                value={overrides[s] === false ? false : true}
+                                onChange={v =>
+                                  setOverrides({
+                                    ...overrides,
+                                    [s]: v
+                                  })
+                                }
+                              />
+                            </td>
+                          </tr>
+                        </Fragment>
+                      );
+                    }) || null}
+                  </tbody>
+                </table>
               </>
             ) : null}
           </div>
