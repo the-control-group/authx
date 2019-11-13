@@ -1,8 +1,6 @@
 import { GraphQLFieldConfig, GraphQLNonNull, GraphQLList } from "graphql";
 import { Context } from "../../Context";
 import { GraphQLExplanation } from "../GraphQLExplanation";
-import { GraphQLScopeTemplate } from "../GraphQLScopeTemplate";
-import { getExplanations } from "../../util/explanations";
 
 export const explanations: GraphQLFieldConfig<
   any,
@@ -11,36 +9,13 @@ export const explanations: GraphQLFieldConfig<
   },
   Context
 > = {
-  type: new GraphQLList(GraphQLExplanation),
+  type: new GraphQLList(new GraphQLNonNull(GraphQLExplanation)),
   description: "Fetch explanations of scopes.",
-  // args: {
-  //   scopes: {
-  //     type: new GraphQLNonNull(
-  //       new GraphQLList(new GraphQLNonNull(GraphQLScopeTemplate))
-  //     )
-  //   }
-  // },
-  async resolve(
+  resolve(
     source,
     args,
-    { pool, authorization: a, explanations }
-  ): Promise<null | ReadonlyArray<{ scope: string; description: string }>> {
+    { explanations }
+  ): ReadonlyArray<{ scope: string; description: string }> {
     return explanations;
-    // const tx = await pool.connect();
-    // try {
-    //   const g = a && (await a.grant(tx));
-    //   return getExplanations(
-    //     explanations,
-    //     args.scopes,
-    //     {
-    //       currentAuthorizationId: (a && a.id) || null,
-    //       currentGrantId: (a && a.grantId) || null,
-    //       currentUserId: (a && a.userId) || null,
-    //       currentClientId: (g && g.id) || null
-    //     }
-    //   );
-    // } finally {
-    //   tx.release();
-    // }
   }
 };

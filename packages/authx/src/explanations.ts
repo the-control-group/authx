@@ -65,7 +65,8 @@ export function createAuthXExplanations(
     [
       realm,
       {
-        "v2.client...(client_id)....": 'the client with id "(client_id)"'
+        "v2.client...(client_id)....": 'the client with id "(client_id)"',
+        "v2.client...{current_client_id}....": "the current client"
       },
       commonClientActions
     ],
