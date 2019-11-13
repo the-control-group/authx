@@ -111,7 +111,27 @@ export const createUsers: GraphQLFieldConfig<
           const possibleAdministrationScopes = [
             `${realm}:v2.user.......${id}:r....`,
             `${realm}:v2.user.......${id}:w....`,
-            `${realm}:v2.user.......${id}:*....`
+            `${realm}:v2.user.......${id}:*....`,
+
+            `${realm}:v2.grant...*..*..${id}:r....`,
+            `${realm}:v2.grant...*..*..${id}:r...r.`,
+            `${realm}:v2.grant...*..*..${id}:r..r..`,
+            `${realm}:v2.grant...*..*..${id}:r..*.*.`,
+            `${realm}:v2.grant...*..*..${id}:w....`,
+            `${realm}:v2.grant...*..*..${id}:w...w.`,
+            `${realm}:v2.grant...*..*..${id}:w..w..`,
+            `${realm}:v2.grant...*..*..${id}:w..*.*.`,
+            `${realm}:v2.grant...*..*..${id}:*..*.*.`,
+
+            `${realm}:v2.authorization..*.*..*..${id}:r....`,
+            `${realm}:v2.authorization..*.*..*..${id}:r..r..`,
+            `${realm}:v2.authorization..*.*..*..${id}:r...r.`,
+            `${realm}:v2.authorization..*.*..*..${id}:r..*.*.`,
+            `${realm}:v2.authorization..*.*..*..${id}:w....`,
+            `${realm}:v2.authorization..*.*..*..${id}:w..w..`,
+            `${realm}:v2.authorization..*.*..*..${id}:w...w.`,
+            `${realm}:v2.authorization..*.*..*..${id}:w..*.*.`,
+            `${realm}:v2.authorization..*.*..*..${id}:*..*.*.`
           ];
 
           // Add administration scopes.

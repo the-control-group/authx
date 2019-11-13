@@ -146,7 +146,17 @@ export const createGrants: GraphQLFieldConfig<
             `${realm}:v2.grant...${grant.clientId}..${id}..${grant.userId}:w...w.`,
             `${realm}:v2.grant...${grant.clientId}..${id}..${grant.userId}:w..w..`,
             `${realm}:v2.grant...${grant.clientId}..${id}..${grant.userId}:w..*.*.`,
-            `${realm}:v2.grant...${grant.clientId}..${id}..${grant.userId}:*..*.*.`
+            `${realm}:v2.grant...${grant.clientId}..${id}..${grant.userId}:*..*.*.`,
+
+            `${realm}:v2.authorization..*.${grant.clientId}..${id}..${grant.userId}:r....`,
+            `${realm}:v2.authorization..*.${grant.clientId}..${id}..${grant.userId}:r..r..`,
+            `${realm}:v2.authorization..*.${grant.clientId}..${id}..${grant.userId}:r...r.`,
+            `${realm}:v2.authorization..*.${grant.clientId}..${id}..${grant.userId}:r..*.*.`,
+            `${realm}:v2.authorization..*.${grant.clientId}..${id}..${grant.userId}:w....`,
+            `${realm}:v2.authorization..*.${grant.clientId}..${id}..${grant.userId}:w..w..`,
+            `${realm}:v2.authorization..*.${grant.clientId}..${id}..${grant.userId}:w...w.`,
+            `${realm}:v2.authorization..*.${grant.clientId}..${id}..${grant.userId}:w..*.*.`,
+            `${realm}:v2.authorization..*.${grant.clientId}..${id}..${grant.userId}:*..*.*.`
           ];
 
           // Add administration scopes.

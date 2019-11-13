@@ -130,7 +130,24 @@ export const createClients: GraphQLFieldConfig<
             `${realm}:v2.client...${id}....:w....`,
             `${realm}:v2.client...${id}....:w...w.`,
             `${realm}:v2.client...${id}....:w...*.`,
-            `${realm}:v2.client...${id}....:*...*.`
+            `${realm}:v2.client...${id}....:*...*.`,
+
+            `${realm}:v2.grant...${id}..*..*:r....`,
+            `${realm}:v2.grant...${id}..*..*:r..r..`,
+            `${realm}:v2.grant...${id}..*..*:r...r.`,
+            `${realm}:v2.grant...${id}..*..*:r..*.*.`,
+            `${realm}:v2.grant...${id}..*..*:w....`,
+            `${realm}:v2.grant...${id}..*..*:w...w.`,
+
+            `${realm}:v2.authorization..*.${id}..*..*:r....`,
+            `${realm}:v2.authorization..*.${id}..*..*:r..r..`,
+            `${realm}:v2.authorization..*.${id}..*..*:r...r.`,
+            `${realm}:v2.authorization..*.${id}..*..*:r..*.*.`,
+            `${realm}:v2.authorization..*.${id}..*..*:w....`,
+            `${realm}:v2.authorization..*.${id}..*..*:w..w..`,
+            `${realm}:v2.authorization..*.${id}..*..*:w...w.`,
+            `${realm}:v2.authorization..*.${id}..*..*:w..*.*.`,
+            `${realm}:v2.authorization..*.${id}..*..*:*..*.*.`
           ];
 
           // Add administration scopes.
