@@ -7,11 +7,7 @@ import {
   GraphQLObjectType
 } from "graphql";
 
-import {
-  connectionFromArray,
-  connectionArgs,
-  ConnectionArguments
-} from "graphql-relay";
+import { connectionFromArray, connectionArgs } from "graphql-relay";
 
 import { Grant } from "../model";
 import { Client } from "../model";

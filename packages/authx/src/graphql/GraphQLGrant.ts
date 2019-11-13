@@ -19,7 +19,6 @@ import { GraphQLClient } from "./GraphQLClient";
 import { GraphQLUser } from "./GraphQLUser";
 import { GraphQLAuthorizationConnection } from "./GraphQLAuthorizationConnection";
 import { GraphQLExplanation } from "./GraphQLExplanation";
-import { GraphQLScopeTemplate } from "./GraphQLScopeTemplate";
 import { GraphQLScope } from "./GraphQLScope";
 import { filter } from "../util/filter";
 import { Explanation, match } from "../util/explanations";

@@ -110,23 +110,7 @@ test("Deep query on viewer.", async t => {
               urls: [
                 "https://www.dundermifflin.com",
                 "https://admin.dundermifflin.com"
-              ],
-              users: {
-                edges: [
-                  {
-                    cursor: "YXJyYXljb25uZWN0aW9uOjA=",
-                    node: {
-                      id: "51192909-3664-44d5-be62-c6b45f0b0ee6"
-                    }
-                  }
-                ],
-                pageInfo: {
-                  endCursor: "YXJyYXljb25uZWN0aW9uOjA=",
-                  hasNextPage: false,
-                  hasPreviousPage: false,
-                  startCursor: "YXJyYXljb25uZWN0aW9uOjA="
-                }
-              }
+              ]
             },
             secrets: [
               "ZTQ2NzA3NjItYmViNy00MzVjLTk0YWYtMDU1Yjk1MWY5N2U2OjE1NTM5MjUzNDA6ZDQ5NDJjZGFhYTY1ZTg4YmQ2MWQ1MDIyZjlmN2E0ZGU="
@@ -336,9 +320,9 @@ test("Deep query on viewer.", async t => {
                       }
                     },
                     scopes: [
-                      "authx:authorization.equal.self.*:**",
-                      "authx:grant.equal.self.*:**",
-                      "authx:user.equal.self:**"
+                      "authx:user.{current_user_id}.authorizations:**",
+                      "authx:user.{current_user_id}.grants:**",
+                      "authx:user.{current_user_id}:**"
                     ]
                   }
                 },
@@ -376,22 +360,6 @@ test("Deep query on viewer.", async t => {
                 hasPreviousPage: false,
                 startCursor: "YXJyYXljb25uZWN0aW9uOjA="
               }
-            },
-            clients: {
-              edges: [
-                {
-                  cursor: "YXJyYXljb25uZWN0aW9uOjA=",
-                  node: {
-                    id: "702d2103-a1b3-4873-b36b-dc8823fe95d1"
-                  }
-                }
-              ],
-              pageInfo: {
-                endCursor: "YXJyYXljb25uZWN0aW9uOjA=",
-                hasNextPage: false,
-                hasPreviousPage: false,
-                startCursor: "YXJyYXljb25uZWN0aW9uOjA="
-              }
             }
           },
           secret:
@@ -425,20 +393,6 @@ test("Deep query on viewer.", async t => {
                 description
                 secrets
                 urls
-                users {
-                  pageInfo {
-                    startCursor
-                    endCursor
-                    hasNextPage
-                    hasPreviousPage
-                  }
-                  edges {
-                    cursor
-                    node {
-                      id
-                    }
-                  }
-                }
               }
               secrets
               codes
@@ -593,20 +547,6 @@ test("Deep query on viewer.", async t => {
                       }
                     }
                     scopes
-                  }
-                }
-              }
-              clients {
-                pageInfo {
-                  startCursor
-                  endCursor
-                  hasNextPage
-                  hasPreviousPage
-                }
-                edges {
-                  cursor
-                  node {
-                    id
                   }
                 }
               }
