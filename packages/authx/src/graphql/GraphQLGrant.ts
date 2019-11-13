@@ -22,7 +22,7 @@ import { GraphQLExplanation } from "./GraphQLExplanation";
 import { GraphQLScopeTemplate } from "./GraphQLScopeTemplate";
 import { GraphQLScope } from "./GraphQLScope";
 import { filter } from "../util/filter";
-import { getExplanations } from "../util/explanations";
+import { Explanation, match } from "../util/explanations";
 
 export const GraphQLGrant: GraphQLObjectType<
   Grant,
@@ -127,13 +127,13 @@ export const GraphQLGrant: GraphQLObjectType<
         grant,
         args,
         { realm, authorization: a, pool, explanations }: Context
-      ): Promise<null | ReadonlyArray<{ scope: string; description: string }>> {
+      ): Promise<null | Explanation[]> {
         const tx = await pool.connect();
         try {
           if (!a || !(await grant.isAccessibleBy(realm, a, tx, "r..r.."))) {
             return null;
           }
-          return getExplanations(explanations, grant.scopes, {
+          return match(explanations, grant.scopes, {
             currentAuthorizationId: null,
             currentGrantId: grant.id,
             currentUserId: grant.userId,

@@ -17,7 +17,7 @@ import {
 } from "graphql-react";
 
 import { isSuperset, getDifference, simplify, inject } from "@authx/scopes";
-import { getExplanations } from "@authx/authx/dist/util/explanations";
+import { match } from "@authx/authx/dist/util/explanations";
 
 import v4 from "uuid/v4";
 
@@ -299,7 +299,7 @@ export function Authorize({
   const grantedScopesExplanations = useMemo(
     () =>
       explanations && grantedScopes
-        ? getExplanations(explanations, grantedScopes, {
+        ? match(explanations, grantedScopes, {
             currentAuthorizationId: null,
             currentGrantId: grantId,
             currentUserId: userId,
@@ -320,7 +320,7 @@ export function Authorize({
   const newRequestedScopesExplanations = useMemo(
     () =>
       explanations
-        ? getExplanations(explanations, newRequestedScopes, {
+        ? match(explanations, newRequestedScopes, {
             currentAuthorizationId: null,
             currentGrantId: grantId,
             currentUserId: userId,

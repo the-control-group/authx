@@ -1,6 +1,6 @@
 import {
   DomainDescriptionMap,
-  generateExplanationTemplates,
+  generate,
   Explanation
 } from "./util/explanations";
 
@@ -293,7 +293,7 @@ export function createAuthXExplanations(
     ]
   ];
 
-  return generateExplanationTemplates([
+  return generate([
     ...authority,
     ...client,
     ...role,

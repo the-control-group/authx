@@ -1,5 +1,5 @@
 import test from "ava";
-import { generateExplanationTemplates, getExplanations } from "./explanations";
+import { generate, match } from "./explanations";
 
 const userExplanationTemplates = [
   {
@@ -170,7 +170,7 @@ const roleExplanationTemplates = [
 
 test("generateExplanationTemplates", t => {
   t.deepEqual(
-    generateExplanationTemplates([
+    generate([
       [
         { authx: "AuthX" },
         {
@@ -202,7 +202,7 @@ test("generateExplanationTemplates", t => {
 
 test("basic equal", t => {
   t.deepEqual(
-    getExplanations(userExplanationTemplates, ["authx:v2.user.......:r...."], {
+    match(userExplanationTemplates, ["authx:v2.user.......:r...."], {
       currentAuthorizationId: "a",
       currentClientId: "b",
       currentGrantId: "c",
@@ -219,7 +219,7 @@ test("basic equal", t => {
 
 test("basic superset", t => {
   t.deepEqual(
-    getExplanations(userExplanationTemplates, ["authx:v2.user.......*:r...."], {
+    match(userExplanationTemplates, ["authx:v2.user.......*:r...."], {
       currentAuthorizationId: "a",
       currentClientId: "b",
       currentGrantId: "c",
@@ -236,16 +236,12 @@ test("basic superset", t => {
 
 test("excessive superset", t => {
   t.deepEqual(
-    getExplanations(
-      userExplanationTemplates,
-      ["authx:v2.user....*.*.*.*:r...."],
-      {
-        currentAuthorizationId: "a",
-        currentClientId: "b",
-        currentGrantId: "c",
-        currentUserId: "d"
-      }
-    ),
+    match(userExplanationTemplates, ["authx:v2.user....*.*.*.*:r...."], {
+      currentAuthorizationId: "a",
+      currentClientId: "b",
+      currentGrantId: "c",
+      currentUserId: "d"
+    }),
     [
       {
         scope: "authx:v2.user.......*:r....",
@@ -257,7 +253,7 @@ test("excessive superset", t => {
 
 test("anymultiple superset", t => {
   t.deepEqual(
-    getExplanations(
+    match(
       [...userExplanationTemplates, ...roleExplanationTemplates],
       ["authx:**:**"],
       {
@@ -284,7 +280,7 @@ test("anymultiple superset", t => {
 
 test("null substitutions", t => {
   t.deepEqual(
-    getExplanations(
+    match(
       [...userExplanationTemplates, ...roleExplanationTemplates],
       ["authx:**:**"],
       {
@@ -311,7 +307,7 @@ test("null substitutions", t => {
 
 test("basic static substitution", t => {
   t.deepEqual(
-    getExplanations(userExplanationTemplates, ["authx:v2.user.......d:r...."], {
+    match(userExplanationTemplates, ["authx:v2.user.......d:r...."], {
       currentAuthorizationId: "a",
       currentClientId: "b",
       currentGrantId: "c",
@@ -328,7 +324,7 @@ test("basic static substitution", t => {
 
 test("basic dynamic substitution", t => {
   t.deepEqual(
-    getExplanations(userExplanationTemplates, ["authx:v2.user.......x:r...."], {
+    match(userExplanationTemplates, ["authx:v2.user.......x:r...."], {
       currentAuthorizationId: "a",
       currentClientId: "b",
       currentGrantId: "c",

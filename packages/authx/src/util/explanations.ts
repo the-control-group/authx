@@ -9,9 +9,9 @@ export interface Explanation {
   description: string;
 }
 
-export function generateExplanationTemplates(
+export function generate(
   config: [DomainDescriptionMap, DomainDescriptionMap, DomainDescriptionMap][]
-): ReadonlyArray<Explanation> {
+): Explanation[] {
   const results = [];
 
   for (const [realm, context, action] of config) {
@@ -52,8 +52,8 @@ function sortByFreedom(
   return 0;
 }
 
-export function getExplanations(
-  templates: ReadonlyArray<Explanation>,
+export function match(
+  explanations: Explanation[] | readonly Explanation[],
   scopes: string[],
   substitutions: {
     currentAuthorizationId: null | string;
@@ -61,12 +61,12 @@ export function getExplanations(
     currentGrantId: null | string;
     currentClientId: null | string;
   }
-): ReadonlyArray<Explanation> {
+): Explanation[] {
   const explanationsByScope: {
     [scope: string]: (Explanation & { degreesOfFreedom: number[] })[];
   } = Object.create(null);
 
-  for (const template of templates) {
+  for (const template of explanations) {
     let templateScope: string = template.scope;
 
     // The score represents the degrees of freedom between the explanation

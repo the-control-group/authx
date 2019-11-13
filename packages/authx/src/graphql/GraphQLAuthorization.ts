@@ -15,7 +15,7 @@ import { GraphQLGrant } from "./GraphQLGrant";
 import { GraphQLUser } from "./GraphQLUser";
 import { GraphQLTokenFormat } from "./GraphQLTokenFormat";
 import { GraphQLScope } from "./GraphQLScope";
-import { getExplanations } from "../util/explanations";
+import { Explanation, match } from "../util/explanations";
 
 export const GraphQLAuthorization: GraphQLObjectType<
   Authorization,
@@ -104,7 +104,7 @@ export const GraphQLAuthorization: GraphQLObjectType<
         authorization,
         args,
         { realm, authorization: a, pool, explanations }: Context
-      ): Promise<null | ReadonlyArray<{ scope: string; description: string }>> {
+      ): Promise<null | Explanation[]> {
         const tx = await pool.connect();
         try {
           if (
@@ -114,7 +114,7 @@ export const GraphQLAuthorization: GraphQLObjectType<
             return null;
           }
           const grant = await authorization.grant(tx);
-          return getExplanations(explanations, authorization.scopes, {
+          return match(explanations, authorization.scopes, {
             currentAuthorizationId: authorization.id,
             currentGrantId: authorization.grantId,
             currentUserId: authorization.userId,
