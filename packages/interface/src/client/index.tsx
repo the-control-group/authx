@@ -4,7 +4,7 @@ import { Root } from "./Root";
 import { Strategy } from "../Strategy";
 import { GraphQL, GraphQLContext } from "graphql-react";
 
-declare var __STRATEGIES__: ReadonlyArray<Strategy>;
+declare const __STRATEGIES__: ReadonlyArray<Strategy>;
 
 // Instantiate the app.
 const graphql = new GraphQL();

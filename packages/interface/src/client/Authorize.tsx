@@ -21,6 +21,8 @@ import { match } from "@authx/authx/dist/util/explanations";
 
 import v4 from "uuid/v4";
 
+declare const __REALM__: string;
+
 function Scope({ children }: { children: ReactChild }): ReactElement {
   return (
     <div
@@ -284,13 +286,19 @@ export function Authorize({
   const requestedScopes = useMemo(
     () =>
       requestedScopeTemplates
-        ? inject(requestedScopeTemplates, {
-            /* eslint-disable @typescript-eslint/camelcase */
-            current_client_id: clientId,
-            current_grant_id: grantId,
-            current_user_id: userId
-            /* eslint-enable @typescript-eslint/camelcase */
-          })
+        ? inject(
+            [
+              ...requestedScopeTemplates,
+              `${__REALM__}:v2.authorization..*.{current_client_id}..{current_grant_id}..{current_user_id}:*..*.*.`
+            ],
+            {
+              /* eslint-disable @typescript-eslint/camelcase */
+              current_client_id: clientId,
+              current_grant_id: grantId,
+              current_user_id: userId
+              /* eslint-enable @typescript-eslint/camelcase */
+            }
+          )
         : [],
     [requestedScopeTemplates, clientId, grantId, userId]
   );
@@ -456,6 +464,7 @@ export function Authorize({
       if (paramsState) url.searchParams.set("state", paramsState);
       url.searchParams.set("code", code);
       setRedirecting(true);
+      setSpeculativeGrantId(v4());
       window.location.replace(url.href);
     } catch (error) {
       setErrors([error.message]);
@@ -495,6 +504,7 @@ export function Authorize({
       // We have an error to redirect
       if (url.searchParams.has("error")) {
         setRedirecting(true);
+        setSpeculativeGrantId(v4());
         window.location.replace(url.href);
         return;
       }
@@ -827,6 +837,7 @@ export function Authorize({
                 url.searchParams.set("error", "access_denied");
                 if (paramsState) url.searchParams.set("state", paramsState);
                 setRedirecting(true);
+                setSpeculativeGrantId(v4());
                 window.location.replace(url.href);
               }}
               className="danger"
