@@ -54,13 +54,13 @@ function sortByFreedom(
 
 export function getExplanations(
   templates: ReadonlyArray<Explanation>,
+  scopes: string[],
   substitutions: {
     currentAuthorizationId: null | string;
     currentUserId: null | string;
     currentGrantId: null | string;
     currentClientId: null | string;
-  },
-  scopes: string[]
+  }
 ): ReadonlyArray<Explanation> {
   const explanationsByScope: {
     [scope: string]: (Explanation & { degreesOfFreedom: number[] })[];

@@ -133,16 +133,12 @@ export const GraphQLGrant: GraphQLObjectType<
           if (!a || !(await grant.isAccessibleBy(realm, a, tx, "r..r.."))) {
             return null;
           }
-          return getExplanations(
-            explanations,
-            {
-              currentAuthorizationId: null,
-              currentGrantId: grant.id,
-              currentUserId: grant.userId,
-              currentClientId: grant.clientId || null
-            },
-            grant.scopes
-          );
+          return getExplanations(explanations, grant.scopes, {
+            currentAuthorizationId: null,
+            currentGrantId: grant.id,
+            currentUserId: grant.userId,
+            currentClientId: grant.clientId || null
+          });
         } finally {
           tx.release();
         }

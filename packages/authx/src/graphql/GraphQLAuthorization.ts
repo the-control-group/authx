@@ -114,16 +114,12 @@ export const GraphQLAuthorization: GraphQLObjectType<
             return null;
           }
           const grant = await authorization.grant(tx);
-          return getExplanations(
-            explanations,
-            {
-              currentAuthorizationId: authorization.id,
-              currentGrantId: authorization.grantId,
-              currentUserId: authorization.userId,
-              currentClientId: grant && grant.clientId
-            },
-            authorization.scopes
-          );
+          return getExplanations(explanations, authorization.scopes, {
+            currentAuthorizationId: authorization.id,
+            currentGrantId: authorization.grantId,
+            currentUserId: authorization.userId,
+            currentClientId: grant && grant.clientId
+          });
         } finally {
           tx.release();
         }

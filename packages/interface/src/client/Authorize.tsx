@@ -15,7 +15,9 @@ import {
   GraphQLFetchOptionsOverride,
   GraphQLContext
 } from "graphql-react";
+
 import { isSuperset, getDifference, simplify, inject } from "@authx/scopes";
+import { getExplanations } from "@authx/authx/dist/util/explanations";
 
 import v4 from "uuid/v4";
 
@@ -180,7 +182,7 @@ export function Authorize({
   const paramsScope = url.searchParams.get("scope") || null;
 
   // If we end up creating a new grant, this is the ID we'll use.
-  const [newGrantId, setNewGrantId] = useState(() => v4());
+  const [speculativeGrantId, setSpeculativeGrantId] = useState(() => v4());
 
   // Parse the scopes
   const requestedScopeTemplates = paramsScope ? paramsScope.split(" ") : null;
@@ -213,10 +215,6 @@ export function Authorize({
           grant: null | {
             id: string;
             scopes: null | string[];
-            explanations: null | ReadonlyArray<null | {
-              scope: string;
-              description: string;
-            }>;
           };
         };
       };
@@ -225,8 +223,12 @@ export function Authorize({
         name: string;
         urls: string[];
       };
+      explanations: null | ReadonlyArray<{
+        scope: string;
+        description: string;
+      }>;
     },
-    { clientId: string; requestedScopes: string[] }
+    { clientId: string }
   >({
     fetchOptionsOverride,
     loadOnMount: paramsClientId ? true : false,
@@ -240,10 +242,6 @@ export function Authorize({
               grant(clientId: $clientId) {
                 id
                 scopes
-                explanations {
-                  scope
-                  description
-                }
               }
             }
           }
@@ -253,12 +251,15 @@ export function Authorize({
             name
             urls
           }
+
+          explanations {
+            scope
+            description
+          }
         }
       `,
       variables: {
-        clientId: paramsClientId || "",
-        requestedScopes:
-          (requestedScopeTemplatesAreValid && requestedScopeTemplates) || []
+        clientId: paramsClientId || ""
       }
     }
   });
@@ -271,12 +272,14 @@ export function Authorize({
   const client = cacheValue && cacheValue.data && cacheValue.data.client;
   const grant = user && user.grant;
   const urls = client && client.urls;
+  const explanations =
+    cacheValue && cacheValue.data && cacheValue.data.explanations;
 
   // These decisions override the default behavior, which is to
   const [overrides, setOverrides] = useState<{ [scope: string]: boolean }>({});
 
   const clientId = (client && client.id) || null;
-  const grantId = (grant && grant.id) || newGrantId;
+  const grantId = (grant && grant.id) || speculativeGrantId;
   const userId = (user && user.id) || null;
   const requestedScopes = useMemo(
     () =>
@@ -292,6 +295,20 @@ export function Authorize({
     [requestedScopeTemplates, clientId, grantId, userId]
   );
 
+  const grantedScopes = grant && grant.scopes;
+  const grantedScopesExplanations = useMemo(
+    () =>
+      explanations && grantedScopes
+        ? getExplanations(explanations, grantedScopes, {
+            currentAuthorizationId: null,
+            currentGrantId: grantId,
+            currentUserId: userId,
+            currentClientId: clientId
+          })
+        : [],
+    [explanations, grantedScopes, clientId, grantId, userId]
+  );
+
   const newRequestedScopes =
     grant && grant.scopes
       ? getDifference(
@@ -299,6 +316,19 @@ export function Authorize({
           requestedScopes
         )
       : requestedScopes;
+
+  const newRequestedScopesExplanations = useMemo(
+    () =>
+      explanations
+        ? getExplanations(explanations, newRequestedScopes, {
+            currentAuthorizationId: null,
+            currentGrantId: grantId,
+            currentUserId: userId,
+            currentClientId: clientId
+          })
+        : [],
+    [explanations, newRequestedScopes, clientId, grantId, userId]
+  );
 
   // API and errors
   const graphql = useContext<GraphQL>(GraphQLContext);
@@ -382,7 +412,7 @@ export function Authorize({
               }
             `,
             variables: {
-              id: newGrantId,
+              id: speculativeGrantId,
               clientId: client.id,
               userId: user.id,
               scopes: requestedScopes
@@ -606,10 +636,9 @@ export function Authorize({
                   <tbody>
                     {grant.scopes.map((s, i) => {
                       const explanations =
-                        ((grant.explanations &&
-                          grant.explanations.filter(e => {
-                            return e && isSuperset(s, e.scope);
-                          })) as ReadonlyArray<{
+                        (grantedScopesExplanations.filter(e => {
+                          return e && isSuperset(s, e.scope);
+                        }) as ReadonlyArray<{
                           scope: string;
                           description: string;
                         }>) || [];
@@ -696,11 +725,9 @@ export function Authorize({
                   <tbody>
                     {newRequestedScopes.map((s, i) => {
                       const explanations =
-                        ((grant &&
-                          grant.explanations &&
-                          grant.explanations.filter(e => {
-                            return e && isSuperset(s, e.scope);
-                          })) as ReadonlyArray<{
+                        (newRequestedScopesExplanations.filter(e => {
+                          return e && isSuperset(s, e.scope);
+                        }) as ReadonlyArray<{
                           scope: string;
                           description: string;
                         }>) || [];
