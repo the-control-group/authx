@@ -8,7 +8,7 @@
     "@authx/scopes": "^2.2.1",
     "@authx/strategy-email": "^1.0.0-beta.0",
     "@types/pg": "^7.11.2",
-    "@types/uuid": "^3.4.5",
+    "@types/uuid": "^3.4.6",
     "graphql": "^14.5.8",
     "pg": "^7.12.1",
     "uuid": "^3.3.3"
@@ -16,15 +16,15 @@
   "description": "",
   "devDependencies": {
     "@authx/authx": "^2.0.0-beta.0",
-    "@typescript-eslint/eslint-plugin": "^2.5.0",
-    "@typescript-eslint/parser": "^2.5.0",
+    "@typescript-eslint/eslint-plugin": "^2.8.0",
+    "@typescript-eslint/parser": "^2.8.0",
     "ava": "^2.4.0",
-    "eslint": "^6.5.1",
-    "eslint-config-prettier": "^6.4.0",
+    "eslint": "^6.6.0",
+    "eslint-config-prettier": "^6.6.0",
     "eslint-plugin-prettier": "^3.1.1",
     "nodemon": "^1.19.4",
-    "prettier": "^1.18.2",
-    "typescript": "^3.6.4"
+    "prettier": "^1.19.1",
+    "typescript": "^3.7.2"
   },
   "engines": {
     "node": ">=10"

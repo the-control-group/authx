@@ -44,7 +44,8 @@ export class Authorization implements AuthorizationData {
     const values: { [name: string]: null | string } = {
       current_authorization_id: a.id,
       current_user_id: a.userId,
-      ...(a.grantId ? { current_grant_id: a.grantId } : null)
+      current_grant_id: a.grantId ?? null,
+      current_client_id: (await a.grant(tx))?.clientId ?? null
     };
     /* eslint-enable @typescript-eslint/camelcase */
 

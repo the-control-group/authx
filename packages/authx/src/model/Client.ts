@@ -41,7 +41,8 @@ export class Client implements ClientData {
     const values: { [name: string]: null | string } = {
       current_authorization_id: a.id,
       current_user_id: a.userId,
-      ...(a.grantId ? { current_grant_id: a.grantId } : null)
+      current_grant_id: a.grantId ?? null,
+      current_client_id: (await a.grant(tx))?.clientId ?? null
     };
     /* eslint-enable @typescript-eslint/camelcase */
 
@@ -62,16 +63,18 @@ export class Client implements ClientData {
     return (this._grants = (async () =>
       Grant.read(
         tx,
-        (await tx.query(
-          `
+        (
+          await tx.query(
+            `
             SELECT entity_id AS id
             FROM authx.grant_record
             WHERE
               client_id = $1
               AND replacement_record_id IS NULL
             `,
-          [this.id]
-        )).rows.map(({ id }) => id)
+            [this.id]
+          )
+        ).rows.map(({ id }) => id)
       ))());
   }
 

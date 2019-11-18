@@ -43,7 +43,8 @@ export class User implements UserData {
     const values: { [name: string]: null | string } = {
       current_authorization_id: a.id,
       current_user_id: a.userId,
-      ...(a.grantId ? { current_grant_id: a.grantId } : null)
+      current_grant_id: a.grantId ?? null,
+      current_client_id: (await a.grant(tx))?.clientId ?? null
     };
     /* eslint-enable @typescript-eslint/camelcase */
 
@@ -67,16 +68,18 @@ export class User implements UserData {
     return (this._authorizations = (async () =>
       Authorization.read(
         tx,
-        (await tx.query(
-          `
+        (
+          await tx.query(
+            `
           SELECT entity_id AS id
           FROM authx.authorization_record
           WHERE
             user_id = $1
             AND replacement_record_id IS NULL
           `,
-          [this.id]
-        )).rows.map(({ id }) => id)
+            [this.id]
+          )
+        ).rows.map(({ id }) => id)
       ))());
   }
 
@@ -94,16 +97,18 @@ export class User implements UserData {
     return (this._credentials = (async () =>
       Credential.read(
         tx,
-        (await tx.query(
-          `
+        (
+          await tx.query(
+            `
           SELECT entity_id AS id
           FROM authx.credential_record
           WHERE
             user_id = $1
             AND replacement_record_id IS NULL
           `,
-          [this.id]
-        )).rows.map(({ id }) => id),
+            [this.id]
+          )
+        ).rows.map(({ id }) => id),
         map
       ))());
   }
@@ -119,16 +124,18 @@ export class User implements UserData {
     return (this._grants = (async () =>
       Grant.read(
         tx,
-        (await tx.query(
-          `
+        (
+          await tx.query(
+            `
           SELECT entity_id AS id
           FROM authx.grant_record
           WHERE
             user_id = $1
             AND replacement_record_id IS NULL
           `,
-          [this.id]
-        )).rows.map(({ id }) => id)
+            [this.id]
+          )
+        ).rows.map(({ id }) => id)
       ))());
   }
 
@@ -169,8 +176,9 @@ export class User implements UserData {
     return (this._roles = (async () =>
       Role.read(
         tx,
-        (await tx.query(
-          `
+        (
+          await tx.query(
+            `
         SELECT entity_id AS id
         FROM authx.role_record
         JOIN authx.role_record_user
@@ -180,8 +188,9 @@ export class User implements UserData {
           AND authx.role_record.enabled = TRUE
           AND authx.role_record.replacement_record_id IS NULL
         `,
-          [this.id]
-        )).rows.map(({ id }) => id)
+            [this.id]
+          )
+        ).rows.map(({ id }) => id)
       ))());
   }
 

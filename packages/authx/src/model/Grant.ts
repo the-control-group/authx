@@ -48,7 +48,8 @@ export class Grant implements GrantData {
     const values: { [name: string]: null | string } = {
       current_authorization_id: a.id,
       current_user_id: a.userId,
-      ...(a.grantId ? { current_grant_id: a.grantId } : null)
+      current_grant_id: a.grantId ?? null,
+      current_client_id: (await a.grant(tx))?.clientId ?? null
     };
     /* eslint-enable @typescript-eslint/camelcase */
 
@@ -87,16 +88,18 @@ export class Grant implements GrantData {
     return (this._authorizations = (async () =>
       Authorization.read(
         tx,
-        (await tx.query(
-          `
+        (
+          await tx.query(
+            `
           SELECT entity_id AS id
           FROM authx.authorization_record
           WHERE
             grant_id = $1
             AND replacement_record_id IS NULL
           `,
-          [this.id]
-        )).rows.map(({ id }) => id)
+            [this.id]
+          )
+        ).rows.map(({ id }) => id)
       ))());
   }
 

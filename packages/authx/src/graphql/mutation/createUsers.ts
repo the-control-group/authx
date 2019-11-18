@@ -60,16 +60,17 @@ export const createUsers: GraphQLFieldConfig<
         }
       }
 
-      /* eslint-disable @typescript-eslint/camelcase */
-      const values: { [name: string]: null | string } = {
-        current_authorization_id: a.id,
-        current_user_id: a.userId,
-        ...(a.grantId ? { current_grant_id: a.grantId } : null)
-      };
-      /* eslint-enable @typescript-eslint/camelcase */
-
       const tx = await pool.connect();
       try {
+        /* eslint-disable @typescript-eslint/camelcase */
+        const values: { [name: string]: null | string } = {
+          current_authorization_id: a.id,
+          current_user_id: a.userId,
+          current_grant_id: a.grantId ?? null,
+          current_client_id: (await a.grant(tx))?.clientId ?? null
+        };
+        /* eslint-enable @typescript-eslint/camelcase */
+
         // can create a new user
         if (!(await a.can(tx, values, `${realm}:user.......:*....`))) {
           throw new ForbiddenError(

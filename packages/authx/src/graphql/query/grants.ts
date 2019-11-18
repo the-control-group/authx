@@ -48,7 +48,10 @@ export const grants: GraphQLFieldConfig<
         return [];
       }
 
-      const grants = await Grant.read(tx, ids.rows.map(({ id }) => id));
+      const grants = await Grant.read(
+        tx,
+        ids.rows.map(({ id }) => id)
+      );
 
       return connectionFromArray(
         await filter(grants, grant => grant.isAccessibleBy(realm, a, tx)),

@@ -204,3 +204,5 @@ The following scopes are implicit in an OAuth request:
 ```
 authx:v2.authorization..*.{current_client_id}..{current_grant_id}..{current_user_id}:*..*.*.
 ```
+
+## Human Readable Descriptions

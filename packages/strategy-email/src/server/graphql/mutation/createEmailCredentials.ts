@@ -134,8 +134,9 @@ export const createEmailCredentials: GraphQLFieldConfig<
         // Check if the email is used in a different credential
         const existingCredentials = await EmailCredential.read(
           tx,
-          (await tx.query(
-            `
+          (
+            await tx.query(
+              `
           SELECT entity_id as id
           FROM authx.credential_record
           WHERE
@@ -145,8 +146,9 @@ export const createEmailCredentials: GraphQLFieldConfig<
             AND authority_user_id = $2
           FOR UPDATE
           `,
-            [authority.id, input.email]
-          )).rows.map(({ id }) => id)
+              [authority.id, input.email]
+            )
+          ).rows.map(({ id }) => id)
         );
 
         if (existingCredentials.length > 1) {

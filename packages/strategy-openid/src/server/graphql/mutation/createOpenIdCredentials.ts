@@ -252,8 +252,9 @@ export const createOpenIdCredentials: GraphQLFieldConfig<
         // Check if the openid is used in a different credential
         const existingCredentials = await OpenIdCredential.read(
           tx,
-          (await tx.query(
-            `
+          (
+            await tx.query(
+              `
           SELECT entity_id as id
           FROM authx.credential_record
           WHERE
@@ -262,8 +263,9 @@ export const createOpenIdCredentials: GraphQLFieldConfig<
             AND authority_id = $1
             AND authority_user_id = $2
           `,
-            [authority.id, subject]
-          )).rows.map(({ id }) => id)
+              [authority.id, subject]
+            )
+          ).rows.map(({ id }) => id)
         );
 
         if (existingCredentials.length > 1) {

@@ -46,9 +46,10 @@ export class AuthX<
     this.pool = new Pool(config.pg);
 
     // define the context middleware
-    const contextMiddleware: Middleware<
-      ParameterizedContext<any, any>
-    > = async (ctx, next): Promise<void> => {
+    const contextMiddleware: Middleware<ParameterizedContext<
+      any,
+      any
+    >> = async (ctx, next): Promise<void> => {
       const tx = await this.pool.connect();
       try {
         let authorization = null;

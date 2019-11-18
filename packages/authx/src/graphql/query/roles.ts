@@ -48,7 +48,10 @@ export const roles: GraphQLFieldConfig<
         return [];
       }
 
-      const roles = await Role.read(tx, ids.rows.map(({ id }) => id));
+      const roles = await Role.read(
+        tx,
+        ids.rows.map(({ id }) => id)
+      );
 
       return connectionFromArray(
         await filter(roles, role => role.isAccessibleBy(realm, a, tx)),

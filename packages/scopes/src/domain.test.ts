@@ -285,7 +285,10 @@ t(
   t => {
     t.deepEqual(
       getIntersection([AnyMultiple, "b"], ["a", AnyMultiple]).sort(compare),
-      [["a", AnyMultiple, "b"], ["a", "b"]]
+      [
+        ["a", AnyMultiple, "b"],
+        ["a", "b"]
+      ]
     );
   }
 );

@@ -8,7 +8,6 @@ import password from "@authx/strategy-password";
 
 let database: string;
 let pool: Pool;
-
 const baseContext = {
   realm: "authx",
   base: "http://localhost/",
@@ -86,6 +85,203 @@ test("Deep query on viewer.", async t => {
   } finally {
     tx.release();
   }
+
+  const result = await execute({
+    schema,
+    contextValue: {
+      ...baseContext,
+      pool,
+      authorization
+    },
+    document: parse(/* GraphQL */ `
+      query {
+        viewer {
+          id
+          enabled
+          grant {
+            id
+            enabled
+            user {
+              id
+            }
+            client {
+              id
+              enabled
+              name
+              description
+              secrets
+              urls
+            }
+            secrets
+            codes
+            scopes
+            authorizations {
+              pageInfo {
+                startCursor
+                endCursor
+                hasNextPage
+                hasPreviousPage
+              }
+              edges {
+                cursor
+                node {
+                  id
+                }
+              }
+            }
+          }
+          user {
+            id
+            enabled
+            type
+            name
+            authorizations {
+              pageInfo {
+                startCursor
+                endCursor
+                hasNextPage
+                hasPreviousPage
+              }
+              edges {
+                cursor
+                node {
+                  id
+                }
+              }
+            }
+            credentials {
+              pageInfo {
+                startCursor
+                endCursor
+                hasNextPage
+                hasPreviousPage
+              }
+              edges {
+                cursor
+                node {
+                  id
+                  enabled
+                  user {
+                    id
+                  }
+                  authority {
+                    id
+                    enabled
+                    name
+                    description
+
+                    ... on EmailAuthority {
+                      privateKey
+                      publicKeys
+                      proofValidityDuration
+                      authenticationEmailSubject
+                      authenticationEmailText
+                      authenticationEmailHtml
+                      verificationEmailSubject
+                      verificationEmailText
+                      verificationEmailHtml
+                    }
+
+                    ... on PasswordAuthority {
+                      rounds
+                    }
+                  }
+
+                  authority {
+                    id
+                    enabled
+                    name
+                    description
+                  }
+
+                  ... on EmailCredential {
+                    email
+                    authority {
+                      privateKey
+                      publicKeys
+                      proofValidityDuration
+                      authenticationEmailSubject
+                      authenticationEmailText
+                      authenticationEmailHtml
+                      verificationEmailSubject
+                      verificationEmailText
+                      verificationEmailHtml
+                    }
+                  }
+
+                  ... on PasswordCredential {
+                    authority {
+                      rounds
+                    }
+                    hash
+                  }
+                }
+              }
+            }
+            grants {
+              pageInfo {
+                startCursor
+                endCursor
+                hasNextPage
+                hasPreviousPage
+              }
+              edges {
+                cursor
+                node {
+                  id
+                }
+              }
+            }
+            grant(clientId: "17436d83-6022-4101-bf9f-997f1550f57c") {
+              id
+            }
+            roles {
+              pageInfo {
+                startCursor
+                endCursor
+                hasNextPage
+                hasPreviousPage
+              }
+              edges {
+                cursor
+                node {
+                  id
+                  enabled
+                  name
+                  description
+                  users {
+                    pageInfo {
+                      startCursor
+                      endCursor
+                      hasNextPage
+                      hasPreviousPage
+                    }
+                    edges {
+                      cursor
+                      node {
+                        id
+                        enabled
+                      }
+                    }
+                  }
+                  scopes
+                }
+              }
+            }
+          }
+          secret
+          scopes
+        }
+      }
+    `)
+  });
+
+  if (result.errors) {
+    for (const error of result.errors) {
+      console.error(error.stack);
+    }
+  }
+
   t.deepEqual(
     {
       data: {
@@ -243,7 +439,7 @@ test("Deep query on viewer.", async t => {
                   node: {
                     id: "e833c8b8-acf1-42a1-9809-2bedab7d58c7",
                     enabled: true,
-                    name: "Default User",
+                    name: "Basic User",
                     description:
                       "This role provides the basic abilities needed for a human user.",
                     users: {
@@ -320,9 +516,10 @@ test("Deep query on viewer.", async t => {
                       }
                     },
                     scopes: [
-                      "authx:user.{current_user_id}.authorizations:**",
-                      "authx:user.{current_user_id}.grants:**",
-                      "authx:user.{current_user_id}:**"
+                      "authx:v2.authorization..*.{current_client_id}..{current_grant_id}..{current_user_id}:*..*.*.",
+                      "authx:v2.client...*....:r....",
+                      "authx:v2.grant...{current_client_id}..{current_grant_id}..{current_user_id}:*..*.*.",
+                      "authx:v2.user.......{current_user_id}:r...."
                     ]
                   }
                 },
@@ -368,195 +565,7 @@ test("Deep query on viewer.", async t => {
         }
       }
     },
-    await execute({
-      schema,
-      contextValue: {
-        ...baseContext,
-        pool,
-        authorization
-      },
-      document: parse(/* GraphQL */ `
-        query {
-          viewer {
-            id
-            enabled
-            grant {
-              id
-              enabled
-              user {
-                id
-              }
-              client {
-                id
-                enabled
-                name
-                description
-                secrets
-                urls
-              }
-              secrets
-              codes
-              scopes
-              authorizations {
-                pageInfo {
-                  startCursor
-                  endCursor
-                  hasNextPage
-                  hasPreviousPage
-                }
-                edges {
-                  cursor
-                  node {
-                    id
-                  }
-                }
-              }
-            }
-            user {
-              id
-              enabled
-              type
-              name
-              authorizations {
-                pageInfo {
-                  startCursor
-                  endCursor
-                  hasNextPage
-                  hasPreviousPage
-                }
-                edges {
-                  cursor
-                  node {
-                    id
-                  }
-                }
-              }
-              credentials {
-                pageInfo {
-                  startCursor
-                  endCursor
-                  hasNextPage
-                  hasPreviousPage
-                }
-                edges {
-                  cursor
-                  node {
-                    id
-                    enabled
-                    user {
-                      id
-                    }
-                    authority {
-                      id
-                      enabled
-                      name
-                      description
-
-                      ... on EmailAuthority {
-                        privateKey
-                        publicKeys
-                        proofValidityDuration
-                        authenticationEmailSubject
-                        authenticationEmailText
-                        authenticationEmailHtml
-                        verificationEmailSubject
-                        verificationEmailText
-                        verificationEmailHtml
-                      }
-
-                      ... on PasswordAuthority {
-                        rounds
-                      }
-                    }
-
-                    authority {
-                      id
-                      enabled
-                      name
-                      description
-                    }
-
-                    ... on EmailCredential {
-                      email
-                      authority {
-                        privateKey
-                        publicKeys
-                        proofValidityDuration
-                        authenticationEmailSubject
-                        authenticationEmailText
-                        authenticationEmailHtml
-                        verificationEmailSubject
-                        verificationEmailText
-                        verificationEmailHtml
-                      }
-                    }
-
-                    ... on PasswordCredential {
-                      authority {
-                        rounds
-                      }
-                      hash
-                    }
-                  }
-                }
-              }
-              grants {
-                pageInfo {
-                  startCursor
-                  endCursor
-                  hasNextPage
-                  hasPreviousPage
-                }
-                edges {
-                  cursor
-                  node {
-                    id
-                  }
-                }
-              }
-              grant(clientId: "17436d83-6022-4101-bf9f-997f1550f57c") {
-                id
-              }
-              roles {
-                pageInfo {
-                  startCursor
-                  endCursor
-                  hasNextPage
-                  hasPreviousPage
-                }
-                edges {
-                  cursor
-                  node {
-                    id
-                    enabled
-                    name
-                    description
-                    users {
-                      pageInfo {
-                        startCursor
-                        endCursor
-                        hasNextPage
-                        hasPreviousPage
-                      }
-                      edges {
-                        cursor
-                        node {
-                          id
-                          enabled
-                        }
-                      }
-                    }
-                    scopes
-                  }
-                }
-              }
-            }
-            secret
-            scopes
-          }
-        }
-      `)
-    })
+    result
   );
 });
 
