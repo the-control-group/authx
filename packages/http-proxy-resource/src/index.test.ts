@@ -17,21 +17,21 @@ let mockTarget: {
 let proxy: AuthXResourceProxy;
 let port: number;
 
-const PRIVATE = `-----BEGIN RSA PRIVATE KEY-----
-MIICXQIBAAKBgQCpLHK8iuVyzngAGvCHRyXroshmzxV3ZjDZBs0kz3mIwD0fIrUL
-FrToSYRf5Lex7Nr2NF3kl9FbhNL8x1de0tynkUHjK9nxP/RCoM5BxzxGOF5QLIJt
-N1cgwJBphncfUkAwOom8O7kuksfFzKk1RkM0hQWAwGI0Q2+lzy0NrXtSNQIDAQAB
-AoGAbmlxFPb+G7j/fuoWM+ROroTWkKr1UrEijnKu7yhuJL965NhNGsieF8DroX5w
-GbMBkZDJ+wjO/hEpdwtPTbcHhU7D7rNStwwTbonZjuaZM5yPylOdMnDDbrwgKGSy
-i3hy9MEECTdCH1/y5yG4NdfPwRHr7WDM5xBrqcDK/eHpXGECQQD0sIxPmpNGyz/1
-oqMcMZMEwy3eCr/26C+5dciuROkfx/doXI+Afo9I+S5kXv1KBvgq7DKd6IIwQS+6
-b/TIm2YtAkEAsP5Ok1EZQoEpOpWa66f5i7KyrSFjtQwpI/uRjznzDO9CEXCnuRu2
-IgjR4L/peQtvIBdn+VH8QhOFd0dTH53pKQJAKtjPeREEQR1OMeEs1r8Hk4np+ju/
-qai20q8BWSLP/7SwaiHrLwD6bjjUGtdXWyMlSb7ajjQst+5yQR9hqc8scQJBAKJw
-g8UIxVoYGLK/43MsswbXds0Wu9/JzWhM1obQ9JSGceh3sDdfi4Uo+xZ+i9Sf/dlC
-Ihbce9xY9kFGoK9/yiECQQC2ZEaLy6dcuozv8tz/YjzGukcsaNrGZcxZo8b5qRRF
-BZGH6mhHwbbyilc8Tt5f5zHRRe5JrWH39ORtSsdlPb/+
------END RSA PRIVATE KEY-----`;
+// const PRIVATE = `-----BEGIN RSA PRIVATE KEY-----
+// MIICXQIBAAKBgQCpLHK8iuVyzngAGvCHRyXroshmzxV3ZjDZBs0kz3mIwD0fIrUL
+// FrToSYRf5Lex7Nr2NF3kl9FbhNL8x1de0tynkUHjK9nxP/RCoM5BxzxGOF5QLIJt
+// N1cgwJBphncfUkAwOom8O7kuksfFzKk1RkM0hQWAwGI0Q2+lzy0NrXtSNQIDAQAB
+// AoGAbmlxFPb+G7j/fuoWM+ROroTWkKr1UrEijnKu7yhuJL965NhNGsieF8DroX5w
+// GbMBkZDJ+wjO/hEpdwtPTbcHhU7D7rNStwwTbonZjuaZM5yPylOdMnDDbrwgKGSy
+// i3hy9MEECTdCH1/y5yG4NdfPwRHr7WDM5xBrqcDK/eHpXGECQQD0sIxPmpNGyz/1
+// oqMcMZMEwy3eCr/26C+5dciuROkfx/doXI+Afo9I+S5kXv1KBvgq7DKd6IIwQS+6
+// b/TIm2YtAkEAsP5Ok1EZQoEpOpWa66f5i7KyrSFjtQwpI/uRjznzDO9CEXCnuRu2
+// IgjR4L/peQtvIBdn+VH8QhOFd0dTH53pKQJAKtjPeREEQR1OMeEs1r8Hk4np+ju/
+// qai20q8BWSLP/7SwaiHrLwD6bjjUGtdXWyMlSb7ajjQst+5yQR9hqc8scQJBAKJw
+// g8UIxVoYGLK/43MsswbXds0Wu9/JzWhM1obQ9JSGceh3sDdfi4Uo+xZ+i9Sf/dlC
+// Ihbce9xY9kFGoK9/yiECQQC2ZEaLy6dcuozv8tz/YjzGukcsaNrGZcxZo8b5qRRF
+// BZGH6mhHwbbyilc8Tt5f5zHRRe5JrWH39ORtSsdlPb/+
+// -----END RSA PRIVATE KEY-----`;
 
 const PUBLIC = `-----BEGIN PUBLIC KEY-----
 MIGfMA0GCSqGSIb3DQEBAQUAA4GNADCBiQKBgQCpLHK8iuVyzngAGvCHRyXroshm
@@ -41,7 +41,7 @@ wGI0Q2+lzy0NrXtSNQIDAQAB
 -----END PUBLIC KEY-----`;
 
 test.before(async () => {
-  const mocks = await Promise.all([
+  const mocks = (await Promise.all([
     // Mock an AuthX server.
     new Promise<{
       server: Server;
@@ -142,7 +142,17 @@ test.before(async () => {
 
       server.listen();
     })
-  ]);
+  ])) as [
+    {
+      server: Server;
+      port: number;
+      enable: () => void;
+    },
+    {
+      server: Server;
+      port: number;
+    }
+  ];
 
   mockAuthX = mocks[0];
   mockTarget = mocks[1];
