@@ -18,7 +18,6 @@ import { GraphQLRoleConnection } from "./GraphQLRoleConnection";
 import { GraphQLUserType } from "./GraphQLUserType";
 import { GraphQLGrant } from "./GraphQLGrant";
 import { GraphQLGrantConnection } from "./GraphQLGrantConnection";
-import { GraphQLClientConnection } from "./GraphQLClientConnection";
 import { GraphQLAuthorizationConnection } from "./GraphQLAuthorizationConnection";
 import { GraphQLCredentialConnection } from "./GraphQLCredentialConnection";
 import { filter } from "../util/filter";
@@ -117,7 +116,7 @@ export const GraphQLUser: GraphQLObjectType<
       args: {
         clientId: {
           type: new GraphQLNonNull(GraphQLID),
-          description: "A ID of the client."
+          description: "The ID of a client."
         }
       },
       description: "Look for a grant between this user and a client.",
@@ -149,32 +148,7 @@ export const GraphQLUser: GraphQLObjectType<
                   await user.roles(tx),
                   async role =>
                     (await role.isAccessibleBy(realm, a, tx)) &&
-                    (await role.isAccessibleBy(
-                      realm,
-                      a,
-                      tx,
-                      "read.assignments"
-                    ))
-                ),
-                args
-              )
-            : null;
-        } finally {
-          tx.release();
-        }
-      }
-    },
-    clients: {
-      type: GraphQLClientConnection,
-      description: "List all roles to which the user is assigned.",
-      args: connectionArgs,
-      async resolve(user, args, { realm, authorization: a, pool }: Context) {
-        const tx = await pool.connect();
-        try {
-          return a
-            ? connectionFromArray(
-                await filter(await user.clients(tx), client =>
-                  client.isAccessibleBy(realm, a, tx)
+                    (await role.isAccessibleBy(realm, a, tx, "r....r"))
                 ),
                 args
               )

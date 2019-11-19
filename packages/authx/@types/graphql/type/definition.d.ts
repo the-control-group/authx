@@ -446,7 +446,7 @@ type GraphQLArgumentConfigType<TArg> = TArg extends (infer TItem)[] // Because c
   : ScalarInput<TArg>;
 
 export type GraphQLArgumentConfig<TArg> = [TArg] extends [NonNullable<TArg>]
-  ? (
+  ?
       | {
           type: GraphQLNonNull<GraphQLArgumentConfigType<TArg>>;
           defaultValue?: null;
@@ -458,7 +458,7 @@ export type GraphQLArgumentConfig<TArg> = [TArg] extends [NonNullable<TArg>]
           defaultValue: TArg;
           description?: Maybe<string>;
           astNode?: Maybe<InputValueDefinitionNode>;
-        })
+        }
   : {
       type: GraphQLArgumentConfigType<NonNullable<TArg>>;
       defaultValue?: null;

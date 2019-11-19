@@ -14,6 +14,7 @@ import { createSchema } from "./graphql";
 import { fromBasic, fromBearer } from "./util/getAuthorization";
 import { StrategyCollection } from "./StrategyCollection";
 import { UnsupportedMediaTypeError } from "./errors";
+import { createAuthXExplanations } from "./explanations";
 
 export * from "./x";
 export * from "./errors";
@@ -23,6 +24,7 @@ export * from "./Strategy";
 export * from "./StrategyCollection";
 export * from "./Config";
 export * from "./Context";
+export * from "./util/validateIdFormat";
 
 export class AuthX<
   StateT extends any = any,
@@ -33,6 +35,8 @@ export class AuthX<
     assertConfig(config);
     super(config);
 
+    const explanations = createAuthXExplanations({ [config.realm]: "AuthX" });
+
     const strategies =
       config.strategies instanceof StrategyCollection
         ? config.strategies
@@ -42,9 +46,10 @@ export class AuthX<
     this.pool = new Pool(config.pg);
 
     // define the context middleware
-    const contextMiddleware: Middleware<
-      ParameterizedContext<any, any>
-    > = async (ctx, next): Promise<void> => {
+    const contextMiddleware: Middleware<ParameterizedContext<
+      any,
+      any
+    >> = async (ctx, next): Promise<void> => {
       const tx = await this.pool.connect();
       try {
         let authorization = null;
@@ -78,7 +83,8 @@ export class AuthX<
           ...config,
           strategies,
           authorization,
-          pool: this.pool
+          pool: this.pool,
+          explanations: explanations
         };
 
         ctx[x] = context;

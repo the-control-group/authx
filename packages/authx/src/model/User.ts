@@ -2,8 +2,7 @@ import { PoolClient } from "pg";
 import { Credential, CredentialData } from "./Credential";
 import { Grant } from "./Grant";
 import { Role } from "./Role";
-import { Client } from "./Client";
-import { simplify, isSuperset, isStrictSuperset } from "@authx/scopes";
+import { simplify, isSuperset } from "@authx/scopes";
 import { Authorization } from "./Authorization";
 import { NotFoundError } from "../errors";
 
@@ -26,7 +25,6 @@ export class User implements UserData {
   private _credentials: null | Promise<Credential<any>[]> = null;
   private _roles: null | Promise<Role[]> = null;
   private _grants: null | Promise<Grant[]> = null;
-  private _clients: null | Promise<Client[]> = null;
 
   public constructor(data: UserData) {
     this.id = data.id;
@@ -39,35 +37,21 @@ export class User implements UserData {
     realm: string,
     a: Authorization,
     tx: PoolClient,
-    action: string = "read.basic"
+    action: string = "r...."
   ): Promise<boolean> {
-    // can access all users
-    if (await a.can(tx, `${realm}:user.*.*:${action}`)) {
-      return true;
-    }
+    /* eslint-disable @typescript-eslint/camelcase */
+    const values: { [name: string]: null | string } = {
+      current_authorization_id: a.id,
+      current_user_id: a.userId,
+      current_grant_id: a.grantId ?? null,
+      current_client_id: (await a.grant(tx))?.clientId ?? null
+    };
+    /* eslint-enable @typescript-eslint/camelcase */
 
-    // can access self
     if (
-      this.id === a.userId &&
-      (await a.can(tx, `${realm}:user.equal.self:${action}`))
+      await a.can(tx, values, `${realm}:v2.user.......${this.id}:${action}`)
     ) {
       return true;
-    }
-
-    // can access the users of users with lesser or equal access
-    if (await a.can(tx, `${realm}:user.equal.*:${action}`)) {
-      return isSuperset(
-        await (await a.user(tx)).access(tx),
-        await this.access(tx)
-      );
-    }
-
-    // can access the users of users with lesser access
-    if (await a.can(tx, `${realm}:user.equal.lesser:${action}`)) {
-      return isStrictSuperset(
-        await (await a.user(tx)).access(tx),
-        await this.access(tx)
-      );
     }
 
     return false;
@@ -84,16 +68,18 @@ export class User implements UserData {
     return (this._authorizations = (async () =>
       Authorization.read(
         tx,
-        (await tx.query(
-          `
+        (
+          await tx.query(
+            `
           SELECT entity_id AS id
           FROM authx.authorization_record
           WHERE
             user_id = $1
             AND replacement_record_id IS NULL
           `,
-          [this.id]
-        )).rows.map(({ id }) => id)
+            [this.id]
+          )
+        ).rows.map(({ id }) => id)
       ))());
   }
 
@@ -111,16 +97,18 @@ export class User implements UserData {
     return (this._credentials = (async () =>
       Credential.read(
         tx,
-        (await tx.query(
-          `
+        (
+          await tx.query(
+            `
           SELECT entity_id AS id
           FROM authx.credential_record
           WHERE
             user_id = $1
             AND replacement_record_id IS NULL
           `,
-          [this.id]
-        )).rows.map(({ id }) => id),
+            [this.id]
+          )
+        ).rows.map(({ id }) => id),
         map
       ))());
   }
@@ -136,16 +124,18 @@ export class User implements UserData {
     return (this._grants = (async () =>
       Grant.read(
         tx,
-        (await tx.query(
-          `
+        (
+          await tx.query(
+            `
           SELECT entity_id AS id
           FROM authx.grant_record
           WHERE
             user_id = $1
             AND replacement_record_id IS NULL
           `,
-          [this.id]
-        )).rows.map(({ id }) => id)
+            [this.id]
+          )
+        ).rows.map(({ id }) => id)
       ))());
   }
 
@@ -186,8 +176,9 @@ export class User implements UserData {
     return (this._roles = (async () =>
       Role.read(
         tx,
-        (await tx.query(
-          `
+        (
+          await tx.query(
+            `
         SELECT entity_id AS id
         FROM authx.role_record
         JOIN authx.role_record_user
@@ -197,46 +188,21 @@ export class User implements UserData {
           AND authx.role_record.enabled = TRUE
           AND authx.role_record.replacement_record_id IS NULL
         `,
-          [this.id]
-        )).rows.map(({ id }) => id)
-      ))());
-  }
-
-  public async clients(
-    tx: PoolClient,
-    refresh: boolean = false
-  ): Promise<Client[]> {
-    if (!refresh && this._clients) {
-      return this._clients;
-    }
-
-    return (this._clients = (async () =>
-      Client.read(
-        tx,
-        (await tx.query(
-          `
-        SELECT entity_id AS id
-        FROM authx.client_record
-        JOIN authx.client_record_user
-          ON authx.client_record_user.client_record_id = authx.client_record.record_id
-        WHERE
-          authx.client_record_user.user_id = $1
-          AND authx.client_record.enabled = TRUE
-          AND authx.client_record.replacement_record_id IS NULL
-        `,
-          [this.id]
-        )).rows.map(({ id }) => id)
+            [this.id]
+          )
+        ).rows.map(({ id }) => id)
       ))());
   }
 
   public async access(
     tx: PoolClient,
+    values: { [name: string]: null | string },
     refresh: boolean = false
   ): Promise<string[]> {
     return this.enabled
       ? simplify(
           (await this.roles(tx, refresh))
-            .map(role => role.scopes)
+            .map(role => role.access(values))
             .reduce((a, b) => a.concat(b), [])
         )
       : [];
@@ -244,10 +210,11 @@ export class User implements UserData {
 
   public async can(
     tx: PoolClient,
+    values: { [name: string]: null | string },
     scope: string[] | string,
     refresh: boolean = false
   ): Promise<boolean> {
-    return isSuperset(await this.access(tx, refresh), scope);
+    return isSuperset(await this.access(tx, values, refresh), scope);
   }
 
   public static read(

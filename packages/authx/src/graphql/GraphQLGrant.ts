@@ -18,7 +18,10 @@ import { Context } from "../Context";
 import { GraphQLClient } from "./GraphQLClient";
 import { GraphQLUser } from "./GraphQLUser";
 import { GraphQLAuthorizationConnection } from "./GraphQLAuthorizationConnection";
+import { GraphQLExplanation } from "./GraphQLExplanation";
+import { GraphQLScope } from "./GraphQLScope";
 import { filter } from "../util/filter";
+import { Explanation, match } from "../util/explanations";
 
 export const GraphQLGrant: GraphQLObjectType<
   Grant,
@@ -74,7 +77,7 @@ export const GraphQLGrant: GraphQLObjectType<
       ): Promise<null | string[]> {
         const tx = await pool.connect();
         try {
-          return a && (await grant.isAccessibleBy(realm, a, tx, "read.secrets"))
+          return a && (await grant.isAccessibleBy(realm, a, tx, "r...r."))
             ? [...grant.secrets]
             : null;
         } finally {
@@ -91,7 +94,7 @@ export const GraphQLGrant: GraphQLObjectType<
       ): Promise<null | string[]> {
         const tx = await pool.connect();
         try {
-          return a && (await grant.isAccessibleBy(realm, a, tx, "read.secrets"))
+          return a && (await grant.isAccessibleBy(realm, a, tx, "r...r."))
             ? [...grant.codes]
             : null;
         } finally {
@@ -100,17 +103,41 @@ export const GraphQLGrant: GraphQLObjectType<
       }
     },
     scopes: {
-      type: new GraphQLList(GraphQLString),
+      type: new GraphQLList(GraphQLScope),
       async resolve(
         grant,
         args,
-        { realm, authorization: q, pool }: Context
+        { realm, authorization: a, pool }: Context
       ): Promise<null | string[]> {
         const tx = await pool.connect();
         try {
-          return q && (await grant.isAccessibleBy(realm, q, tx, "read.scopes"))
+          return a && (await grant.isAccessibleBy(realm, a, tx, "r..r.."))
             ? grant.scopes
             : null;
+        } finally {
+          tx.release();
+        }
+      }
+    },
+    explanations: {
+      type: new GraphQLList(GraphQLExplanation),
+      description: "Fetch explanations of the grant's scopes.",
+      async resolve(
+        grant,
+        args,
+        { realm, authorization: a, pool, explanations }: Context
+      ): Promise<null | Explanation[]> {
+        const tx = await pool.connect();
+        try {
+          if (!a || !(await grant.isAccessibleBy(realm, a, tx, "r..r.."))) {
+            return null;
+          }
+          return match(explanations, grant.scopes, {
+            currentAuthorizationId: null,
+            currentGrantId: grant.id,
+            currentUserId: grant.userId,
+            currentClientId: grant.clientId || null
+          });
         } finally {
           tx.release();
         }

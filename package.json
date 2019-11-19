@@ -19,7 +19,6 @@
   "scripts": {
     "packages": "scripts/run-in-packages.sh",
     "packages:build": "yarn packages yarn build",
-    "packages:build:development": "for p in packages/*/; do echo \"\n\n---------- $p\" && if ! (cd $p && yarn build:development &) then exit 1; fi; done",
     "packages:format": "yarn packages yarn format",
     "packages:lint": "yarn packages yarn lint",
     "packages:test": "yarn packages yarn test",
@@ -39,14 +38,14 @@
   },
   "devDependencies": {
     "@authx/interface": "^2.0.0-beta.6",
-    "@typescript-eslint/eslint-plugin": "^2.3.2",
-    "@typescript-eslint/parser": "^2.3.2",
+    "@typescript-eslint/eslint-plugin": "^2.8.0",
+    "@typescript-eslint/parser": "^2.8.0",
     "ava": "^2.4.0",
-    "eslint": "^6.5.1",
-    "eslint-config-prettier": "^6.3.0",
+    "eslint": "^6.6.0",
+    "eslint-config-prettier": "^6.6.0",
     "eslint-plugin-prettier": "^3.1.1",
-    "nodemon": "^1.19.3",
-    "prettier": "^1.18.2",
-    "typescript": "^3.6.3"
+    "nodemon": "^1.19.4",
+    "prettier": "^1.19.1",
+    "typescript": "^3.7.2"
   }
 }

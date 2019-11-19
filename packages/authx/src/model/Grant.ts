@@ -2,12 +2,7 @@ import { PoolClient } from "pg";
 import { Client } from "./Client";
 import { User } from "./User";
 import { Authorization } from "./Authorization";
-import {
-  simplify,
-  getIntersection,
-  isSuperset,
-  isStrictSuperset
-} from "@authx/scopes";
+import { simplify, getIntersection, isSuperset } from "@authx/scopes";
 import { NotFoundError } from "../errors";
 
 export interface GrantData {
@@ -47,54 +42,21 @@ export class Grant implements GrantData {
     realm: string,
     a: Authorization,
     tx: PoolClient,
-    action: string = "read.basic"
+    action: string = "r...."
   ): Promise<boolean> {
-    // can access all grants
-    if (await a.can(tx, `${realm}:grant.*.*.*:${action}`)) {
-      return true;
-    }
+    /* eslint-disable @typescript-eslint/camelcase */
+    const values: { [name: string]: null | string } = {
+      current_authorization_id: a.id,
+      current_user_id: a.userId,
+      current_grant_id: a.grantId ?? null,
+      current_client_id: (await a.grant(tx))?.clientId ?? null
+    };
+    /* eslint-enable @typescript-eslint/camelcase */
 
-    // can access own grants that are a parent of this authorization
     if (
-      this.userId === a.userId &&
-      this.id === a.grantId &&
-      (await a.can(tx, `${realm}:grant.equal.self.granted:${action}`))
+      await a.can(tx, values, `${realm}:v2.grant.....${this.id}..:${action}`)
     ) {
       return true;
-    }
-
-    // can access own grants
-    if (
-      this.userId === a.userId &&
-      (await a.can(tx, `${realm}:grant.equal.self.*:${action}`))
-    ) {
-      return true;
-    }
-
-    // can access grants for assigned clients
-    if (
-      // "assigned" grant scopes only apply for "read" actions
-      action.split(".")[0] === "read" &&
-      (await this.client(tx)).userIds.has(a.userId) &&
-      (await a.can(tx, `${realm}:grant.assigned:${action}`))
-    ) {
-      return true;
-    }
-
-    // can access the grants of users with lesser or equal access
-    if (await a.can(tx, `${realm}:grant.equal.*.*:${action}`)) {
-      return isSuperset(
-        await (await a.user(tx)).access(tx),
-        await (await this.user(tx)).access(tx)
-      );
-    }
-
-    // can access the grants of users with lesser access
-    if (await a.can(tx, `${realm}:grant.equal.lesser.*:${action}`)) {
-      return isStrictSuperset(
-        await (await a.user(tx)).access(tx),
-        await (await this.user(tx)).access(tx)
-      );
     }
 
     return false;
@@ -126,35 +88,39 @@ export class Grant implements GrantData {
     return (this._authorizations = (async () =>
       Authorization.read(
         tx,
-        (await tx.query(
-          `
+        (
+          await tx.query(
+            `
           SELECT entity_id AS id
           FROM authx.authorization_record
           WHERE
             grant_id = $1
             AND replacement_record_id IS NULL
           `,
-          [this.id]
-        )).rows.map(({ id }) => id)
+            [this.id]
+          )
+        ).rows.map(({ id }) => id)
       ))());
   }
 
   public async access(
     tx: PoolClient,
+    values: { [name: string]: null | string },
     refresh: boolean = false
   ): Promise<string[]> {
     const user = await this.user(tx, refresh);
     return user.enabled
-      ? getIntersection(this.scopes, await user.access(tx, refresh))
+      ? getIntersection(this.scopes, await user.access(tx, values, refresh))
       : [];
   }
 
   public async can(
     tx: PoolClient,
+    values: { [name: string]: null | string },
     scope: string,
     refresh: boolean = false
   ): Promise<boolean> {
-    return isSuperset(await this.access(tx, refresh), scope);
+    return isSuperset(await this.access(tx, values, refresh), scope);
   }
 
   public static read(

@@ -1,11 +1,12 @@
 import v4 from "uuid/v4";
+import { URL } from "url";
 import { randomBytes } from "crypto";
 import { GraphQLFieldConfig, GraphQLList, GraphQLNonNull } from "graphql";
-
 import { Context } from "../../Context";
 import { GraphQLClient } from "../GraphQLClient";
 import { Client } from "../../model";
-import { ForbiddenError } from "../../errors";
+import { validateIdFormat } from "../../util/validateIdFormat";
+import { ForbiddenError, ValidationError } from "../../errors";
 import { GraphQLUpdateClientInput } from "./GraphQLUpdateClientInput";
 
 export const updateClients: GraphQLFieldConfig<
@@ -20,8 +21,6 @@ export const updateClients: GraphQLFieldConfig<
       removeUrls: null | string[];
       generateSecrets: null | number;
       removeSecrets: null | string[];
-      assignUserIds: null | string[];
-      unassignUserIds: null | string[];
     }[];
   },
   Context
@@ -43,6 +42,24 @@ export const updateClients: GraphQLFieldConfig<
     }
 
     return args.clients.map(async input => {
+      // Validate `id`.
+      if (!validateIdFormat(input.id)) {
+        throw new ValidationError("The provided `id` is an invalid ID.");
+      }
+
+      // Validate `addUrls`.
+      if (Array.isArray(input.addUrls)) {
+        for (const url of input.addUrls) {
+          try {
+            new URL(url);
+          } catch (error) {
+            throw new ValidationError(
+              "The provided `addUrls` list contains an invalid URL."
+            );
+          }
+        }
+      }
+
       const tx = await pool.connect();
       try {
         await tx.query("BEGIN DEFERRABLE");
@@ -50,8 +67,8 @@ export const updateClients: GraphQLFieldConfig<
           forUpdate: true
         });
 
-        // write.basic -----------------------------------------------------------
-        if (!(await before.isAccessibleBy(realm, a, tx, "write.basic"))) {
+        // w.... -----------------------------------------------------------
+        if (!(await before.isAccessibleBy(realm, a, tx, "w...."))) {
           throw new ForbiddenError(
             "You do not have permission to update this client."
           );
@@ -59,19 +76,19 @@ export const updateClients: GraphQLFieldConfig<
 
         let urls = [...before.urls];
 
-        // Assign users
+        // Add URLs
         if (input.addUrls) {
           urls = [...urls, ...input.addUrls];
         }
 
-        // Unassign users
+        // Remove URLs
         if (input.removeUrls) {
           const removeUrls = new Set(input.removeUrls);
           urls = urls.filter(id => !removeUrls.has(id));
         }
 
-        // write.secrets ---------------------------------------------------------
-        if (!(await before.isAccessibleBy(realm, a, tx, "write.secrets"))) {
+        // w...w. ---------------------------------------------------------
+        if (!(await before.isAccessibleBy(realm, a, tx, "w...w."))) {
           throw new ForbiddenError(
             "You do not have permission to update this client's secrets."
           );
@@ -92,26 +109,6 @@ export const updateClients: GraphQLFieldConfig<
           secrets = secrets.filter(id => !removeSecrets.has(id));
         }
 
-        // write.assignments -----------------------------------------------------
-        if (!(await before.isAccessibleBy(realm, a, tx, "write.assignments"))) {
-          throw new ForbiddenError(
-            "You do not have permission to update this client's assignments."
-          );
-        }
-
-        let userIds = [...before.userIds];
-
-        // Assign users
-        if (input.assignUserIds) {
-          userIds = [...userIds, ...input.assignUserIds];
-        }
-
-        // Unassign users
-        if (input.unassignUserIds) {
-          const unassignUserIds = new Set(input.unassignUserIds);
-          userIds = userIds.filter(id => !unassignUserIds.has(id));
-        }
-
         const client = await Client.write(
           tx,
           {
@@ -123,8 +120,7 @@ export const updateClients: GraphQLFieldConfig<
             name: input.name || before.name,
             description: input.description || before.description,
             urls,
-            secrets,
-            userIds
+            secrets
           },
           {
             recordId: v4(),

@@ -1,11 +1,18 @@
 import v4 from "uuid/v4";
+import { URL } from "url";
 import { randomBytes } from "crypto";
 import { GraphQLFieldConfig, GraphQLList, GraphQLNonNull } from "graphql";
-
+import { isSuperset, simplify } from "@authx/scopes";
 import { Context } from "../../Context";
 import { GraphQLClient } from "../GraphQLClient";
-import { Client } from "../../model";
-import { ForbiddenError, ConflictError, NotFoundError } from "../../errors";
+import { Client, Role } from "../../model";
+import { validateIdFormat } from "../../util/validateIdFormat";
+import {
+  ForbiddenError,
+  ConflictError,
+  NotFoundError,
+  ValidationError
+} from "../../errors";
 import { GraphQLCreateClientInput } from "./GraphQLCreateClientInput";
 
 export const createClients: GraphQLFieldConfig<
@@ -17,7 +24,10 @@ export const createClients: GraphQLFieldConfig<
       name: string;
       description: string;
       urls: string[];
-      userIds: string[];
+      administration: {
+        roleId: string;
+        scopes: string[];
+      }[];
     }[];
   },
   Context
@@ -39,17 +49,43 @@ export const createClients: GraphQLFieldConfig<
     }
 
     return args.clients.map(async input => {
+      // Validate `id`.
+      if (typeof input.id === "string" && !validateIdFormat(input.id)) {
+        throw new ValidationError("The provided `id` is an invalid ID.");
+      }
+
+      // Validate `urls`.
+      for (const url of input.urls) {
+        try {
+          new URL(url);
+        } catch (error) {
+          throw new ValidationError(
+            "The provided `urls` list contains an invalid URL."
+          );
+        }
+      }
+
+      // Validate `administration`.
+      for (const { roleId } of input.administration) {
+        if (!validateIdFormat(roleId)) {
+          throw new ValidationError(
+            "The provided `administration` list contains a `roleId` that is an invalid ID."
+          );
+        }
+      }
+
       const tx = await pool.connect();
       try {
-        if (
-          // can create any new clients
-          !(await a.can(tx, `${realm}:client.*:write.*`)) &&
-          // can create assigned new clients
-          !(
-            (await a.can(tx, `${realm}:client.assigned:write.*`)) &&
-            input.userIds.includes(a.userId)
-          )
-        ) {
+        /* eslint-disable @typescript-eslint/camelcase */
+        const values: { [name: string]: null | string } = {
+          current_authorization_id: a.id,
+          current_user_id: a.userId,
+          current_grant_id: a.grantId ?? null,
+          current_client_id: (await a.grant(tx))?.clientId ?? null
+        };
+        /* eslint-enable @typescript-eslint/camelcase */
+
+        if (!(await a.can(tx, values, `${realm}:client.......:*...*.`))) {
           throw new ForbiddenError(
             "You do not have permission to create a client."
           );
@@ -70,7 +106,7 @@ export const createClients: GraphQLFieldConfig<
             }
           }
 
-          const id = v4();
+          const id = input.id || v4();
           const client = await Client.write(
             tx,
             {
@@ -79,8 +115,7 @@ export const createClients: GraphQLFieldConfig<
               name: input.name,
               description: input.description,
               secrets: [randomBytes(16).toString("hex")],
-              urls: input.urls,
-              userIds: input.userIds
+              urls: input.urls
             },
             {
               recordId: v4(),
@@ -88,6 +123,62 @@ export const createClients: GraphQLFieldConfig<
               createdAt: new Date()
             }
           );
+
+          const possibleAdministrationScopes = [
+            `${realm}:v2.client...${id}....:r....`,
+            `${realm}:v2.client...${id}....:r...r.`,
+            `${realm}:v2.client...${id}....:r...*.`,
+            `${realm}:v2.client...${id}....:w....`,
+            `${realm}:v2.client...${id}....:w...w.`,
+            `${realm}:v2.client...${id}....:w...*.`,
+            `${realm}:v2.client...${id}....:*...*.`,
+
+            `${realm}:v2.grant...${id}..*..*:r....`,
+            `${realm}:v2.grant...${id}..*..*:r..r..`,
+            `${realm}:v2.grant...${id}..*..*:r...r.`,
+            `${realm}:v2.grant...${id}..*..*:r..*.*.`,
+            `${realm}:v2.grant...${id}..*..*:w....`,
+            `${realm}:v2.grant...${id}..*..*:w...w.`,
+
+            `${realm}:v2.authorization..*.${id}..*..*:r....`,
+            `${realm}:v2.authorization..*.${id}..*..*:r..r..`,
+            `${realm}:v2.authorization..*.${id}..*..*:r...r.`,
+            `${realm}:v2.authorization..*.${id}..*..*:r..*.*.`,
+            `${realm}:v2.authorization..*.${id}..*..*:w....`,
+            `${realm}:v2.authorization..*.${id}..*..*:w..w..`,
+            `${realm}:v2.authorization..*.${id}..*..*:w...w.`,
+            `${realm}:v2.authorization..*.${id}..*..*:w..*.*.`,
+            `${realm}:v2.authorization..*.${id}..*..*:*..*.*.`
+          ];
+
+          // Add administration scopes.
+          for (const { roleId, scopes } of input.administration) {
+            const role = await Role.read(tx, roleId, { forUpdate: true });
+
+            if (!role.isAccessibleBy(realm, a, tx, "w..w..")) {
+              throw new ForbiddenError(
+                `You do not have permission to modify the scopes of role ${roleId}.`
+              );
+            }
+
+            await Role.write(
+              tx,
+              {
+                ...role,
+                scopes: simplify([
+                  ...role.scopes,
+                  ...possibleAdministrationScopes.filter(possible =>
+                    isSuperset(scopes, possible)
+                  )
+                ])
+              },
+              {
+                recordId: v4(),
+                createdByAuthorizationId: a.id,
+                createdAt: new Date()
+              }
+            );
+          }
 
           await tx.query("COMMIT");
           return client;

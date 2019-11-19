@@ -14,8 +14,11 @@ import {
   Authority,
   Authorization,
   ForbiddenError,
-  AuthenticationError
+  AuthenticationError,
+  User
 } from "@authx/authx";
+
+import { isSuperset } from "@authx/scopes";
 import { EmailAuthority } from "../../model";
 import { substitute } from "../../substitute";
 
@@ -164,8 +167,37 @@ export const authenticateEmail: GraphQLFieldConfig<
         );
       }
 
-      // create a new authorization
       const authorizationId = v4();
+
+      /* eslint-disable @typescript-eslint/camelcase */
+      const values: { [name: string]: string } = {
+        current_authorization_id: authorizationId,
+        current_user_id: credential.userId
+      };
+      /* eslint-enable @typescript-eslint/camelcase */
+
+      // Make sure the user can create new authorizations.
+      const user = await User.read(tx, credential.userId);
+      if (
+        !isSuperset(
+          await user.access(tx, values),
+          `${realm}:authorization.:write.create`
+        ) &&
+        !isSuperset(
+          await user.access(tx, values),
+          `${realm}:user.${credential.userId}.authorizations:write.create`
+        ) &&
+        !isSuperset(
+          await user.access(tx, values),
+          `${realm}:authority.${authority.id}.authorizations:write.create`
+        )
+      ) {
+        throw new ForbiddenError(
+          "You do not have permission to create this authorization"
+        );
+      }
+
+      // create a new authorization
       const authorization = await Authorization.write(
         tx,
         {

@@ -1,7 +1,7 @@
 import { PoolClient } from "pg";
 import { User } from "./User";
 import { Authorization } from "./Authorization";
-import { simplify, isSuperset, isStrictSuperset } from "@authx/scopes";
+import { simplify, isSuperset, inject } from "@authx/scopes";
 import { NotFoundError } from "../errors";
 
 export interface RoleData {
@@ -36,32 +36,21 @@ export class Role implements RoleData {
     realm: string,
     a: Authorization,
     tx: PoolClient,
-    action: string = "read.basic"
+    action: string = "r...."
   ): Promise<boolean> {
-    // can access all roles
-    if (await a.can(tx, `${realm}:role.*.*:${action}`)) {
-      return true;
-    }
+    /* eslint-disable @typescript-eslint/camelcase */
+    const values: { [name: string]: null | string } = {
+      current_authorization_id: a.id,
+      current_user_id: a.userId,
+      current_grant_id: a.grantId ?? null,
+      current_client_id: (await a.grant(tx))?.clientId ?? null
+    };
+    /* eslint-enable @typescript-eslint/camelcase */
 
-    // can access assigned roles
     if (
-      this.userIds.has(a.userId) &&
-      (await a.can(tx, `${realm}:role.equal.assigned:${action}`))
+      await a.can(tx, values, `${realm}:v2.role......${this.id}.:${action}`)
     ) {
       return true;
-    }
-
-    // can access roles with lesser or equal access
-    if (await a.can(tx, `${realm}:role.equal.*:${action}`)) {
-      return isSuperset(await (await a.user(tx)).access(tx), this.access());
-    }
-
-    // can access roles with lesser access
-    if (await a.can(tx, `${realm}:role.equal.lesser:${action}`)) {
-      return isStrictSuperset(
-        await (await a.user(tx)).access(tx),
-        this.access()
-      );
     }
 
     return false;
@@ -75,12 +64,15 @@ export class Role implements RoleData {
     return (this._users = User.read(tx, [...this.userIds]));
   }
 
-  public access(): string[] {
-    return this.scopes;
+  public access(values: { [name: string]: null | string }): string[] {
+    return inject(this.scopes, values);
   }
 
-  public async can(tx: PoolClient, scope: string[] | string): Promise<boolean> {
-    return isSuperset(this.access(), scope);
+  public async can(
+    values: { [name: string]: null | string },
+    scope: string[] | string
+  ): Promise<boolean> {
+    return isSuperset(this.access(values), scope);
   }
 
   public static read(

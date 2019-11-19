@@ -5,8 +5,12 @@ import {
   Context,
   ForbiddenError,
   ConflictError,
-  NotFoundError
+  NotFoundError,
+  ValidationError,
+  Role,
+  validateIdFormat
 } from "@authx/authx";
+import { isSuperset, simplify, isValidScopeLiteral } from "@authx/scopes";
 import { EmailAuthority } from "../../model";
 import { GraphQLEmailAuthority } from "../GraphQLEmailAuthority";
 import { GraphQLCreateEmailAuthorityInput } from "./GraphQLCreateEmailAuthorityInput";
@@ -28,6 +32,10 @@ export const createEmailAuthorities: GraphQLFieldConfig<
       verificationEmailSubject: string;
       verificationEmailText: string;
       verificationEmailHtml: string;
+      administration: {
+        roleId: string;
+        scopes: string[];
+      }[];
     }[];
   },
   Context
@@ -51,59 +59,132 @@ export const createEmailAuthorities: GraphQLFieldConfig<
     }
 
     return args.authorities.map(async input => {
-      const tx = await pool.connect();
-      try {
-        await tx.query("BEGIN DEFERRABLE");
+      // Validate `id`.
+      if (typeof input.id === "string" && !validateIdFormat(input.id)) {
+        throw new ValidationError("The provided `id` is an invalid ID.");
+      }
 
-        // Make sure the ID isn't already in use.
-        if (input.id) {
-          try {
-            await EmailAuthority.read(tx, input.id, { forUpdate: true });
-            throw new ConflictError();
-          } catch (error) {
-            if (!(error instanceof NotFoundError)) {
-              throw error;
-            }
-          }
+      // Validate `administration`.
+      for (const { roleId, scopes } of input.administration) {
+        if (!validateIdFormat(roleId)) {
+          throw new ValidationError(
+            "The provided `administration` list contains a `roleId` that is an invalid ID."
+          );
         }
 
-        const id = v4();
-        const data = new EmailAuthority({
-          id,
-          strategy: "email",
-          enabled: input.enabled,
-          name: input.name,
-          description: input.description,
-          details: {
-            privateKey: input.privateKey,
-            publicKeys: input.publicKeys,
-            proofValidityDuration: input.proofValidityDuration,
-            authenticationEmailSubject: input.authenticationEmailSubject,
-            authenticationEmailText: input.authenticationEmailText,
-            authenticationEmailHtml: input.authenticationEmailHtml,
-            verificationEmailSubject: input.verificationEmailSubject,
-            verificationEmailText: input.verificationEmailText,
-            verificationEmailHtml: input.verificationEmailHtml
+        for (const scope of scopes) {
+          if (!isValidScopeLiteral(scope)) {
+            throw new ValidationError(
+              "The provided `administration` list contains a `scopes` list with an invalid scope."
+            );
           }
-        });
+        }
+      }
 
-        if (!(await data.isAccessibleBy(realm, a, tx, "write.*"))) {
+      /* eslint-disable @typescript-eslint/camelcase */
+      const values: { [name: string]: string } = {
+        current_authorization_id: a.id,
+        current_user_id: a.userId,
+        ...(a.grantId ? { current_grant_id: a.grantId } : null)
+      };
+      /* eslint-enable @typescript-eslint/camelcase */
+
+      const tx = await pool.connect();
+      try {
+        if (!(await a.can(tx, values, `${realm}:authority.:write.create`))) {
           throw new ForbiddenError(
             "You do not have permission to create an authority."
           );
         }
 
-        const authority = await EmailAuthority.write(tx, data, {
-          recordId: v4(),
-          createdByAuthorizationId: a.id,
-          createdAt: new Date()
-        });
+        try {
+          await tx.query("BEGIN DEFERRABLE");
 
-        await tx.query("COMMIT");
-        return authority;
-      } catch (error) {
-        await tx.query("ROLLBACK");
-        throw error;
+          // Make sure the ID isn't already in use.
+          if (input.id) {
+            try {
+              await EmailAuthority.read(tx, input.id, { forUpdate: true });
+              throw new ConflictError();
+            } catch (error) {
+              if (!(error instanceof NotFoundError)) {
+                throw error;
+              }
+            }
+          }
+
+          const id = input.id || v4();
+          const authority = await EmailAuthority.write(
+            tx,
+            {
+              id,
+              strategy: "email",
+              enabled: input.enabled,
+              name: input.name,
+              description: input.description,
+              details: {
+                privateKey: input.privateKey,
+                publicKeys: input.publicKeys,
+                proofValidityDuration: input.proofValidityDuration,
+                authenticationEmailSubject: input.authenticationEmailSubject,
+                authenticationEmailText: input.authenticationEmailText,
+                authenticationEmailHtml: input.authenticationEmailHtml,
+                verificationEmailSubject: input.verificationEmailSubject,
+                verificationEmailText: input.verificationEmailText,
+                verificationEmailHtml: input.verificationEmailHtml
+              }
+            },
+            {
+              recordId: v4(),
+              createdByAuthorizationId: a.id,
+              createdAt: new Date()
+            }
+          );
+
+          const possibleAdministrationScopes = [
+            `${realm}:v2.authority.${id}......:r....`,
+            `${realm}:v2.authority.${id}......:r.r...`,
+            `${realm}:v2.authority.${id}......:r.*...`,
+            `${realm}:v2.authority.${id}......:w....`,
+            `${realm}:v2.authority.${id}......:w.w...`,
+            `${realm}:v2.authority.${id}......:w.*...`,
+            `${realm}:v2.authority.${id}......:*.*...`
+          ];
+
+          // Add administration scopes.
+          for (const { roleId, scopes } of input.administration) {
+            const role = await Role.read(tx, roleId, { forUpdate: true });
+
+            if (!role.isAccessibleBy(realm, a, tx, "write.scopes")) {
+              throw new ForbiddenError(
+                `You do not have permission to modify the scopes of role ${roleId}.`
+              );
+            }
+
+            await Role.write(
+              tx,
+              {
+                ...role,
+                scopes: simplify([
+                  ...role.scopes,
+                  ...possibleAdministrationScopes.filter(possible =>
+                    isSuperset(scopes, possible)
+                  )
+                ])
+              },
+              {
+                recordId: v4(),
+                createdByAuthorizationId: a.id,
+                createdAt: new Date()
+              }
+            );
+          }
+
+          await tx.query("COMMIT");
+          return authority;
+        } catch (error) {
+          await tx.query("ROLLBACK");
+          throw error;
+        }
       } finally {
         tx.release();
       }

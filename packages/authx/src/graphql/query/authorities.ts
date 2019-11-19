@@ -49,7 +49,11 @@ export const authorities: GraphQLFieldConfig<
       }
 
       return connectionFromArray(
-        await Authority.read(tx, ids.rows.map(({ id }) => id), authorityMap),
+        await Authority.read(
+          tx,
+          ids.rows.map(({ id }) => id),
+          authorityMap
+        ),
         args
       );
     } finally {

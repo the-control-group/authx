@@ -3,8 +3,11 @@ import {
   GraphQLNonNull,
   GraphQLString,
   GraphQLBoolean,
-  GraphQLInputObjectType
+  GraphQLInputObjectType,
+  GraphQLList
 } from "graphql";
+
+import { GraphQLAdministrationInput } from "@authx/authx";
 
 export const GraphQLCreateOpenIdCredentialInput = new GraphQLInputObjectType({
   name: "CreateOpenIdCredentialInput",
@@ -34,6 +37,12 @@ export const GraphQLCreateOpenIdCredentialInput = new GraphQLInputObjectType({
       type: GraphQLString,
       description:
         "The subject according to ID tokens signed by the OpenID provider."
+    },
+    administration: {
+      type: new GraphQLList(new GraphQLNonNull(GraphQLAdministrationInput)),
+      description:
+        "An optional list of roles to which scopes will be added for the purpose of administering the created credential.",
+      defaultValue: []
     }
   })
 });

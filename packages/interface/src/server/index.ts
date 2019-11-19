@@ -1,13 +1,14 @@
 import { join, basename, extname } from "path";
 import MemoryFileSystem from "memory-fs";
 import HtmlWebpackPlugin from "html-webpack-plugin";
-import webpack, { Plugin } from "webpack";
+import webpack, { Plugin, DefinePlugin } from "webpack";
 
 class BuildError extends Error {
   public errors: ReadonlyArray<string | Error> = [];
 }
 
 export default async function createInterface(
+  realm: string,
   strategies: ReadonlyArray<string>
 ): Promise<(ctx: any, next: () => Promise<any>) => Promise<any>> {
   const fs = new MemoryFileSystem();
@@ -43,6 +44,10 @@ export default async function createInterface(
       ]
     },
     plugins: [
+      new DefinePlugin({
+        __REALM__: JSON.stringify(realm)
+      }),
+
       // TODO: New type definitions between webpack and this plugin are
       // incompatible, even though the underlying code is. This will likely be
       // fixed shortly. If you're reading this, remove the cast through any.

@@ -7,6 +7,8 @@ import {
   GraphQLList
 } from "graphql";
 
+import { GraphQLAdministrationInput } from "@authx/authx";
+
 export const GraphQLCreateOpenIdAuthorityInput = new GraphQLInputObjectType({
   name: "CreateOpenIdAuthorityInput",
   fields: () => ({
@@ -71,6 +73,12 @@ export const GraphQLCreateOpenIdAuthorityInput = new GraphQLInputObjectType({
         new GraphQLList(new GraphQLNonNull(GraphQLID))
       ) as any,
       description: "When a user is created, assign to these roles.",
+      defaultValue: []
+    },
+    administration: {
+      type: new GraphQLList(new GraphQLNonNull(GraphQLAdministrationInput)),
+      description:
+        "An optional list of roles to which scopes will be added for the purpose of administering the created authority.",
       defaultValue: []
     }
   })

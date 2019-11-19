@@ -1,10 +1,10 @@
 import v4 from "uuid/v4";
 import { GraphQLFieldConfig, GraphQLNonNull, GraphQLList } from "graphql";
-
 import { Context } from "../../Context";
 import { GraphQLUser } from "../GraphQLUser";
 import { User } from "../../model";
-import { ForbiddenError } from "../../errors";
+import { validateIdFormat } from "../../util/validateIdFormat";
+import { ForbiddenError, ValidationError } from "../../errors";
 import { GraphQLUpdateUserInput } from "./GraphQLUpdateUserInput";
 
 export const updateUsers: GraphQLFieldConfig<
@@ -38,6 +38,12 @@ export const updateUsers: GraphQLFieldConfig<
 
     return args.users.map(async input => {
       const tx = await pool.connect();
+
+      // Validate `id`.
+      if (!validateIdFormat(input.id)) {
+        throw new ValidationError("The provided `id` is an invalid ID.");
+      }
+
       try {
         await tx.query("BEGIN DEFERRABLE");
 
@@ -45,7 +51,7 @@ export const updateUsers: GraphQLFieldConfig<
           forUpdate: true
         });
 
-        if (!(await before.isAccessibleBy(realm, a, tx, "write.basic"))) {
+        if (!(await before.isAccessibleBy(realm, a, tx, "w...."))) {
           throw new ForbiddenError(
             "You do not have permission to update this user."
           );

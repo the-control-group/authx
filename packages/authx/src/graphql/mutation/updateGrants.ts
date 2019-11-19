@@ -1,11 +1,11 @@
 import v4 from "uuid/v4";
 import { randomBytes } from "crypto";
 import { GraphQLFieldConfig, GraphQLList, GraphQLNonNull } from "graphql";
-
 import { Context } from "../../Context";
 import { GraphQLGrant } from "../GraphQLGrant";
 import { Grant } from "../../model";
-import { ForbiddenError } from "../../errors";
+import { validateIdFormat } from "../../util/validateIdFormat";
+import { ForbiddenError, ValidationError } from "../../errors";
 import { GraphQLUpdateGrantInput } from "./GraphQLUpdateGrantInput";
 
 export const updateGrants: GraphQLFieldConfig<
@@ -40,6 +40,11 @@ export const updateGrants: GraphQLFieldConfig<
     }
 
     return args.grants.map(async input => {
+      // Validate `id`.
+      if (!validateIdFormat(input.id)) {
+        throw new ValidationError("The provided `id` is an invalid ID.");
+      }
+
       const tx = await pool.connect();
       try {
         await tx.query("BEGIN DEFERRABLE");
@@ -47,7 +52,7 @@ export const updateGrants: GraphQLFieldConfig<
           forUpdate: true
         });
 
-        if (!(await before.isAccessibleBy(realm, a, tx, "write.basic"))) {
+        if (!(await before.isAccessibleBy(realm, a, tx, "w...."))) {
           throw new ForbiddenError(
             "You do not have permission to update this grant."
           );
@@ -55,7 +60,7 @@ export const updateGrants: GraphQLFieldConfig<
 
         if (
           input.scopes &&
-          !(await before.isAccessibleBy(realm, a, tx, "write.scopes"))
+          !(await before.isAccessibleBy(realm, a, tx, "w..w.."))
         ) {
           throw new ForbiddenError(
             "You do not have permission to update this grant's scopes."
@@ -67,7 +72,7 @@ export const updateGrants: GraphQLFieldConfig<
             input.removeSecrets ||
             input.generateCodes ||
             input.removeCodes) &&
-          !(await before.isAccessibleBy(realm, a, tx, "write.secrets"))
+          !(await before.isAccessibleBy(realm, a, tx, "w...w."))
         ) {
           throw new ForbiddenError(
             "You do not have permission to update this grant's secrets."

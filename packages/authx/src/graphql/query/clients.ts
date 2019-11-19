@@ -48,7 +48,10 @@ export const clients: GraphQLFieldConfig<
         return [];
       }
 
-      const clients = await Client.read(tx, ids.rows.map(({ id }) => id));
+      const clients = await Client.read(
+        tx,
+        ids.rows.map(({ id }) => id)
+      );
 
       return connectionFromArray(
         await filter(clients, client => client.isAccessibleBy(realm, a, tx)),

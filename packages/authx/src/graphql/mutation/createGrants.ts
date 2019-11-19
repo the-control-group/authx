@@ -1,13 +1,17 @@
 import v4 from "uuid/v4";
 import { randomBytes } from "crypto";
-
-import { isSuperset, isStrictSuperset } from "@authx/scopes";
+import { isSuperset, simplify } from "@authx/scopes";
 import { GraphQLFieldConfig, GraphQLList, GraphQLNonNull } from "graphql";
-
 import { Context } from "../../Context";
 import { GraphQLGrant } from "../GraphQLGrant";
-import { Grant, User } from "../../model";
-import { ForbiddenError, ConflictError, NotFoundError } from "../../errors";
+import { Grant, Role } from "../../model";
+import { validateIdFormat } from "../../util/validateIdFormat";
+import {
+  ForbiddenError,
+  ConflictError,
+  NotFoundError,
+  ValidationError
+} from "../../errors";
 import { GraphQLCreateGrantInput } from "./GraphQLCreateGrantInput";
 
 export const createGrants: GraphQLFieldConfig<
@@ -19,6 +23,10 @@ export const createGrants: GraphQLFieldConfig<
       userId: string;
       clientId: string;
       scopes: string[];
+      administration: {
+        roleId: string;
+        scopes: string[];
+      }[];
     }[];
   },
   Context
@@ -40,35 +48,50 @@ export const createGrants: GraphQLFieldConfig<
     }
 
     return args.grants.map(async input => {
+      // Validate `id`.
+      if (typeof input.id === "string" && !validateIdFormat(input.id)) {
+        throw new ValidationError("The provided `id` is an invalid ID.");
+      }
+
+      // Validate `userId`.
+      if (!validateIdFormat(input.userId)) {
+        throw new ValidationError("The provided `userId` is an invalid ID.");
+      }
+
+      // Validate `clientId`.
+      if (!validateIdFormat(input.clientId)) {
+        throw new ValidationError("The provided `clientId` is an invalid ID.");
+      }
+
+      // Validate `administration`.
+      for (const { roleId } of input.administration) {
+        if (!validateIdFormat(roleId)) {
+          throw new ValidationError(
+            "The provided `administration` list contains a `roleId` that is an invalid ID."
+          );
+        }
+      }
+
       const tx = await pool.connect();
       try {
+        /* eslint-disable @typescript-eslint/camelcase */
+        const values: { [name: string]: null | string } = {
+          current_authorization_id: a.id,
+          current_user_id: a.userId,
+          current_grant_id: a.grantId ?? null,
+          current_client_id: (await a.grant(tx))?.clientId ?? null
+        };
+        /* eslint-enable @typescript-eslint/camelcase */
+
         if (
-          // can create grants for all users
-          !(await a.can(tx, `${realm}:grant.*.*.*:write.*`)) &&
-          // can create grants for users with equal access
-          !(
-            (await a.can(tx, `${realm}:grant.equal.*.*:write.*`)) &&
-            isSuperset(
-              await (await a.user(tx)).access(tx),
-              await (await User.read(tx, input.userId)).access(tx)
-            )
-          ) &&
-          // can create grants for users with lesser access
-          !(
-            (await a.can(tx, `${realm}:grant.equal.lesser.*:write.*`)) &&
-            isStrictSuperset(
-              await (await a.user(tx)).access(tx),
-              await (await User.read(tx, input.userId)).access(tx)
-            )
-          ) &&
-          // can create grants for self
-          !(
-            (await a.can(tx, `${realm}:grant.equal.self.*:write.*`)) &&
-            input.userId === a.userId
-          )
+          !(await a.can(
+            tx,
+            values,
+            `${realm}:grant...${input.clientId}....${input.userId}:*..*.*.`
+          ))
         ) {
           throw new ForbiddenError(
-            "You do not have permission to create a grant."
+            "You do not have permission to create this grant."
           );
         }
 
@@ -87,7 +110,7 @@ export const createGrants: GraphQLFieldConfig<
             }
           }
 
-          const id = v4();
+          const id = input.id || v4();
           const now = Math.floor(Date.now() / 1000);
           const grant = await Grant.write(
             tx,
@@ -114,6 +137,57 @@ export const createGrants: GraphQLFieldConfig<
               createdAt: new Date()
             }
           );
+
+          const possibleAdministrationScopes = [
+            `${realm}:v2.grant...${grant.clientId}..${id}..${grant.userId}:r....`,
+            `${realm}:v2.grant...${grant.clientId}..${id}..${grant.userId}:r...r.`,
+            `${realm}:v2.grant...${grant.clientId}..${id}..${grant.userId}:r..r..`,
+            `${realm}:v2.grant...${grant.clientId}..${id}..${grant.userId}:r..*.*.`,
+            `${realm}:v2.grant...${grant.clientId}..${id}..${grant.userId}:w....`,
+            `${realm}:v2.grant...${grant.clientId}..${id}..${grant.userId}:w...w.`,
+            `${realm}:v2.grant...${grant.clientId}..${id}..${grant.userId}:w..w..`,
+            `${realm}:v2.grant...${grant.clientId}..${id}..${grant.userId}:w..*.*.`,
+            `${realm}:v2.grant...${grant.clientId}..${id}..${grant.userId}:*..*.*.`,
+
+            `${realm}:v2.authorization..*.${grant.clientId}..${id}..${grant.userId}:r....`,
+            `${realm}:v2.authorization..*.${grant.clientId}..${id}..${grant.userId}:r..r..`,
+            `${realm}:v2.authorization..*.${grant.clientId}..${id}..${grant.userId}:r...r.`,
+            `${realm}:v2.authorization..*.${grant.clientId}..${id}..${grant.userId}:r..*.*.`,
+            `${realm}:v2.authorization..*.${grant.clientId}..${id}..${grant.userId}:w....`,
+            `${realm}:v2.authorization..*.${grant.clientId}..${id}..${grant.userId}:w..w..`,
+            `${realm}:v2.authorization..*.${grant.clientId}..${id}..${grant.userId}:w...w.`,
+            `${realm}:v2.authorization..*.${grant.clientId}..${id}..${grant.userId}:w..*.*.`,
+            `${realm}:v2.authorization..*.${grant.clientId}..${id}..${grant.userId}:*..*.*.`
+          ];
+
+          // Add administration scopes.
+          for (const { roleId, scopes } of input.administration) {
+            const role = await Role.read(tx, roleId, { forUpdate: true });
+
+            if (!role.isAccessibleBy(realm, a, tx, "w..w..")) {
+              throw new ForbiddenError(
+                `You do not have permission to modify the scopes of role ${roleId}.`
+              );
+            }
+
+            await Role.write(
+              tx,
+              {
+                ...role,
+                scopes: simplify([
+                  ...role.scopes,
+                  ...possibleAdministrationScopes.filter(possible =>
+                    isSuperset(scopes, possible)
+                  )
+                ])
+              },
+              {
+                recordId: v4(),
+                createdByAuthorizationId: a.id,
+                createdAt: new Date()
+              }
+            );
+          }
 
           await tx.query("COMMIT");
           return grant;

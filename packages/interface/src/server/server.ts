@@ -3,7 +3,7 @@ import createInterfaceMiddleware from ".";
 
 (async () => {
   const app = new Koa();
-  const interfaceMiddleware = await createInterfaceMiddleware([
+  const interfaceMiddleware = await createInterfaceMiddleware("authx", [
     "@authx/strategy-email/client",
     "@authx/strategy-password/client"
   ]);

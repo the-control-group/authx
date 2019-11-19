@@ -15,8 +15,7 @@ export const client = [
           secrets: [
             "5dd7863c58cf508819946f68f0b77774605a834b5698ee3b30f2a73e4f40ea2a"
           ],
-          urls: [],
-          userIds: ["e165cbb0-86b0-4e11-9db7-eb5f742161b8"]
+          urls: []
         },
         {
           recordId: "cbed41a3-e43f-42d4-9800-415ff8fb8d23",
@@ -38,8 +37,7 @@ export const client = [
           secrets: [
             "aae04519edf709ec1652fa3a72ee190412ca1f6ce6d8bb53dfc52f7ea484a0c7"
           ],
-          urls: [],
-          userIds: ["a6a0946d-eeb4-45cd-83c6-c7920f2272eb"]
+          urls: []
         },
         {
           recordId: "7a229ad6-66e6-45a7-a2d1-909c8612cea2",
@@ -64,8 +62,7 @@ export const client = [
           urls: [
             "https://www.dundermifflin.com",
             "https://admin.dundermifflin.com"
-          ],
-          userIds: ["51192909-3664-44d5-be62-c6b45f0b0ee6"]
+          ]
         },
         {
           recordId: "c6104e78-dc43-4f19-adce-bec12e777b49",

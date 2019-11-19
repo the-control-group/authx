@@ -1,110 +1,32 @@
-import { Pattern, AnySingle, AnyMultiple } from "./pattern";
-import * as pattern from "./pattern";
+export {
+  InvalidScopeError,
+  InvalidValueError,
+  MissingValueError,
+  InvalidParameterizedScopeError,
+  inject
+} from "./parse";
 
-export class InvalidScopeError extends Error {}
+import * as PARAMETER from "./parameter";
 
-// Parse a scope string into a Pattern array
-function parse(scope: string): Pattern[] {
-  return scope.split(":").map(pattern =>
-    pattern.split(".").map(segment => {
-      switch (segment) {
-        case "**":
-          return AnyMultiple;
-        case "*":
-          return AnySingle;
-        default:
-          return segment;
-      }
-    })
-  );
-}
+import * as SCOPE from "./scope";
+import {
+  parseScopeLiteral,
+  parseScopeTemplate,
+  parseParameterizedScopeLiteral,
+  parseParameterizedScopeTemplate,
+  InvalidScopeError,
+  InvalidParameterizedScopeError
+} from "./parse";
+import { print } from "./print";
 
-// Stringify a Pattern array
-function stringify(scope: Pattern[]): string {
-  return scope
-    .map(pattern =>
-      pattern
-        .map(segment => {
-          switch (segment) {
-            case AnyMultiple:
-              return "**";
-            case AnySingle:
-              return "*";
-            default:
-              return segment;
-          }
-        })
-        .join(".")
-    )
-    .join(":");
-}
-
-function intersect(
-  left: Pattern[],
-  rightA: Pattern[],
-  rightB: Pattern[]
-): Pattern[][] {
-  // INVARIENT: rightA.length === rightB.length
-  // INVARIENT: rightA.length > 0
-  // INVARIENT: rightB.length > 0
-
-  const [a, ...restA] = rightA;
-  const [b, ...restB] = rightB;
-
-  if (!restA.length) {
-    return pattern.getIntersection(a, b).map(pattern => [...left, pattern]);
-  }
-
-  return pattern
-    .getIntersection(a, b)
-    .map(pattern => intersect([...left, pattern], restA, restB))
-    .reduce((x, y) => x.concat(y), []);
-}
-
-export function validate(scope: string): boolean {
-  const patterns = scope.split(":");
-  return (
-    patterns.length === 3 &&
-    patterns.every(pattern =>
-      /^(([a-zA-Z0-9_-]+|(\*(?!\*\*))+)\.)*([a-zA-Z0-9_-]+|(\*(?!\*\*))+)$/.test(
-        pattern
-      )
-    )
-  );
-}
-
-export function normalize(scope: string): string {
-  if (!validate(scope)) {
-    throw new InvalidScopeError("The scope is invalid.");
-  }
-
-  return scope
-    .split(":")
-    .map(domain =>
-      domain
-        .split(".")
-        .map((part, i, parts) => {
-          if (part !== "**" || (parts[i + 1] !== "**" && parts[i + 1] !== "*"))
-            return part;
-          parts[i + 1] = "**";
-          return "*";
-        })
-        .join(".")
-    )
-    .join(":");
-}
-
-function s(winners: string[], candidate: string): string[] {
-  if (isSuperset(winners, candidate)) return winners;
-  return winners.concat(normalize(candidate));
-}
-
-// returns a de-duplicated array of scope rules
-export function simplify(collection: string[]): string[] {
-  return collection
-    .reduce(s, [])
-    .reduceRight(s, [])
-    .sort();
+export function getDifference(
+  collectionA: string[],
+  collectionB: string[]
+): string[] {
+  return SCOPE.getDifference(
+    collectionA.map(parseScopeTemplate),
+    collectionB.map(parseScopeTemplate)
+  ).map(print);
 }
 
 export function getIntersection(
@@ -121,112 +43,69 @@ export function getIntersection(
       ? [scopeOrCollectionB]
       : scopeOrCollectionB;
 
-  if (!collectionA.every(validate)) {
-    throw new InvalidScopeError(
-      "One or more of the scopes in `collectionA` is invalid."
-    );
-  }
-
-  if (!collectionB.every(validate)) {
-    throw new InvalidScopeError(
-      "One or more of the scopes in `collectionB` is invalid."
-    );
-  }
-
-  const patternsA = collectionA.map(parse).filter(p => p.length > 0);
-  const patternsB = collectionB.map(parse).filter(p => p.length > 0);
-
-  return simplify(
-    patternsA
-      .map(a =>
-        patternsB
-          .map(b => intersect([], a, b))
-          .reduce((x, y) => x.concat(y), [])
-      )
-      .reduce((x, y) => x.concat(y), [])
-      .map(stringify)
-  );
+  return SCOPE.getIntersection(
+    collectionA.map(parseScopeTemplate),
+    collectionB.map(parseScopeTemplate)
+  ).map(print);
 }
 
 export function hasIntersection(
   scopeOrCollectionA: string[] | string,
   scopeOrCollectionB: string[] | string
 ): boolean {
-  return getIntersection(scopeOrCollectionA, scopeOrCollectionB).length > 0;
+  const collectionA =
+    typeof scopeOrCollectionA === "string"
+      ? [scopeOrCollectionA]
+      : scopeOrCollectionA;
+
+  const collectionB =
+    typeof scopeOrCollectionB === "string"
+      ? [scopeOrCollectionB]
+      : scopeOrCollectionB;
+
+  return SCOPE.hasIntersection(
+    collectionA.map(parseScopeTemplate),
+    collectionB.map(parseScopeTemplate)
+  );
 }
 
 export function isEqual(
   scopeOrCollectionA: string[] | string,
   scopeOrCollectionB: string[] | string
 ): boolean {
-  const collectionA = simplify(
+  const collectionA =
     typeof scopeOrCollectionA === "string"
       ? [scopeOrCollectionA]
-      : scopeOrCollectionA
-  );
-  const collectionB = simplify(
+      : scopeOrCollectionA;
+
+  const collectionB =
     typeof scopeOrCollectionB === "string"
       ? [scopeOrCollectionB]
-      : scopeOrCollectionB
-  );
+      : scopeOrCollectionB;
 
-  return (
-    collectionA.length === collectionB.length &&
-    collectionA.every((a, i) => a === collectionB[i])
+  return SCOPE.isEqual(
+    collectionA.map(parseScopeTemplate),
+    collectionB.map(parseScopeTemplate)
   );
 }
 
-export function getDifference(
-  collectionA: string[],
-  collectionB: string[]
-): string[] {
-  const parsedCollectionA = collectionA.map(scope => {
-    if (!validate(scope)) {
-      throw new InvalidScopeError(
-        "A scope in `scopeOrCollectionA` is invalid."
-      );
-    }
-
-    return parse(scope);
-  });
-
-  const parsedCollectionB = collectionB.map(scope => {
-    if (!validate(scope)) {
-      throw new InvalidScopeError(
-        "A scope in `scopeOrCollectionB` is invalid."
-      );
-    }
-
-    return parse(scope);
-  });
-
-  return parsedCollectionA
-    .reduce((remaining, a) => {
-      return remaining.filter(
-        b =>
-          a.length !== b.length ||
-          a.some(
-            (patternA: Pattern, i: number) =>
-              !pattern.isSuperset(patternA, b[i])
-          )
-      );
-    }, parsedCollectionB)
-    .map(stringify);
-}
-
-export function isSuperset(
+export function isStrictSubset(
   scopeOrCollectionA: string[] | string,
   scopeOrCollectionB: string[] | string
 ): boolean {
-  return (
-    getDifference(
-      Array.isArray(scopeOrCollectionA)
-        ? scopeOrCollectionA
-        : [scopeOrCollectionA],
-      Array.isArray(scopeOrCollectionB)
-        ? scopeOrCollectionB
-        : [scopeOrCollectionB]
-    ).length === 0
+  const collectionA =
+    typeof scopeOrCollectionA === "string"
+      ? [scopeOrCollectionA]
+      : scopeOrCollectionA;
+
+  const collectionB =
+    typeof scopeOrCollectionB === "string"
+      ? [scopeOrCollectionB]
+      : scopeOrCollectionB;
+
+  return SCOPE.isStrictSubset(
+    collectionA.map(parseScopeTemplate),
+    collectionB.map(parseScopeTemplate)
   );
 }
 
@@ -234,9 +113,19 @@ export function isStrictSuperset(
   scopeOrCollectionA: string[] | string,
   scopeOrCollectionB: string[] | string
 ): boolean {
-  return (
-    !isEqual(scopeOrCollectionA, scopeOrCollectionB) &&
-    isSuperset(scopeOrCollectionA, scopeOrCollectionB)
+  const collectionA =
+    typeof scopeOrCollectionA === "string"
+      ? [scopeOrCollectionA]
+      : scopeOrCollectionA;
+
+  const collectionB =
+    typeof scopeOrCollectionB === "string"
+      ? [scopeOrCollectionB]
+      : scopeOrCollectionB;
+
+  return SCOPE.isStrictSuperset(
+    collectionA.map(parseScopeTemplate),
+    collectionB.map(parseScopeTemplate)
   );
 }
 
@@ -244,41 +133,130 @@ export function isSubset(
   scopeOrCollectionA: string[] | string,
   scopeOrCollectionB: string[] | string
 ): boolean {
-  return isSubset(scopeOrCollectionB, scopeOrCollectionA);
-}
+  const collectionA =
+    typeof scopeOrCollectionA === "string"
+      ? [scopeOrCollectionA]
+      : scopeOrCollectionA;
 
-export function isStrictSubset(
-  scopeOrCollectionA: string[] | string,
-  scopeOrCollectionB: string[] | string
-): boolean {
-  return (
-    !isEqual(scopeOrCollectionA, scopeOrCollectionB) &&
-    isSubset(scopeOrCollectionA, scopeOrCollectionB)
+  const collectionB =
+    typeof scopeOrCollectionB === "string"
+      ? [scopeOrCollectionB]
+      : scopeOrCollectionB;
+
+  return SCOPE.isSubset(
+    collectionA.map(parseScopeTemplate),
+    collectionB.map(parseScopeTemplate)
   );
 }
 
-/**
- * @deprecated Since version 2.1. Will be deleted in version 3.0. Replace
- * "strict" calls with {@link isSuperset}, and weak mode with
- * {@link hasIntersection}.
- */
-export function test(
-  rule: string | string[],
-  subject: string,
-  strict: boolean = true
+export function isSuperset(
+  scopeOrCollectionA: string[] | string,
+  scopeOrCollectionB: string[] | string
 ): boolean {
-  return strict ? isSuperset(rule, subject) : hasIntersection(rule, subject);
+  const collectionA =
+    typeof scopeOrCollectionA === "string"
+      ? [scopeOrCollectionA]
+      : scopeOrCollectionA;
+
+  const collectionB =
+    typeof scopeOrCollectionB === "string"
+      ? [scopeOrCollectionB]
+      : scopeOrCollectionB;
+
+  return SCOPE.isSuperset(
+    collectionA.map(parseScopeTemplate),
+    collectionB.map(parseScopeTemplate)
+  );
 }
 
-/**
- * @deprecated Since version 2.1. Will be deleted in version 3.0. Replace
- * "strict" calls with {@link isSuperset}, and weak mode with
- * {@link hasIntersection}.
- */
-export const can = test;
+export function isValidScopeLiteral(scope: string): boolean {
+  try {
+    parseScopeLiteral(scope);
+    return true;
+  } catch (error) {
+    if (error instanceof InvalidScopeError) {
+      return false;
+    }
 
-/**
- * @deprecated Since version 2.1. Will be deleted in version 3.0. Renamed to
- * {@link getIntersection}.
- */
-export const limit = getIntersection;
+    throw error;
+  }
+}
+
+export function isValidScopeTemplate(scope: string): boolean {
+  try {
+    parseScopeTemplate(scope);
+    return true;
+  } catch (error) {
+    if (error instanceof InvalidScopeError) {
+      return false;
+    }
+
+    throw error;
+  }
+}
+
+export function isValidParameterizedScopeLiteral(scope: string): boolean {
+  try {
+    parseParameterizedScopeLiteral(scope);
+    return true;
+  } catch (error) {
+    if (error instanceof InvalidParameterizedScopeError) {
+      return false;
+    }
+
+    throw error;
+  }
+}
+
+export function isValidParameterizedScopeTemplate(scope: string): boolean {
+  try {
+    parseParameterizedScopeTemplate(scope);
+    return true;
+  } catch (error) {
+    if (error instanceof InvalidParameterizedScopeError) {
+      return false;
+    }
+
+    throw error;
+  }
+}
+
+export function normalize(scope: string): string;
+export function normalize(collection: string[]): string[];
+export function normalize(
+  scopeOrCollection: string | string[]
+): string | string[] {
+  if (typeof scopeOrCollection !== "string") {
+    return scopeOrCollection.map(normalize as (scope: string) => string);
+  }
+
+  return print(SCOPE.normalize(parseScopeTemplate(scopeOrCollection)));
+}
+
+export function simplify(collection: string[]): string[] {
+  return SCOPE.simplify(collection.map(parseScopeTemplate)).map(print);
+}
+
+export function extract(
+  scope: string,
+  collection: string[]
+): ReadonlyArray<{
+  query: string;
+  result: string;
+  parameters: { [key: string]: string };
+}> {
+  return PARAMETER.extract(
+    parseParameterizedScopeTemplate(scope),
+    collection.map(parseScopeTemplate)
+  ).map(({ query, result, parameters }) => ({
+    query: print(query),
+    result: print(result),
+    parameters: Object.entries(parameters).reduce<{ [key: string]: string }>(
+      (acc, [key, value]) => {
+        acc[key] = value === SCOPE.AnySingle ? "*" : value;
+        return acc;
+      },
+      {}
+    )
+  }));
+}

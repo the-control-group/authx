@@ -4,8 +4,6 @@ import { User } from "./User";
 import { Authorization } from "./Authorization";
 import { NotFoundError } from "../errors";
 
-import { isSuperset, isStrictSuperset } from "@authx/scopes";
-
 export interface CredentialData<C> {
   readonly id: string;
   readonly enabled: boolean;
@@ -38,35 +36,25 @@ export abstract class Credential<C> implements CredentialData<C> {
     realm: string,
     a: Authorization,
     tx: PoolClient,
-    action: string = "read.basic"
+    action: string = "r...."
   ): Promise<boolean> {
-    // can access all credentials
-    if (await a.can(tx, `${realm}:credential.*.*:${action}`)) {
-      return true;
-    }
+    /* eslint-disable @typescript-eslint/camelcase */
+    const values: { [name: string]: null | string } = {
+      current_authorization_id: a.id,
+      current_user_id: a.userId,
+      current_grant_id: a.grantId ?? null,
+      current_client_id: (await a.grant(tx))?.clientId ?? null
+    };
+    /* eslint-enable @typescript-eslint/camelcase */
 
-    // can access own credentials
     if (
-      this.userId === a.userId &&
-      (await a.can(tx, `${realm}:credential.equal.self:${action}`))
+      await a.can(
+        tx,
+        values,
+        `${realm}:v2.credential....${this.id}...:${action}`
+      )
     ) {
       return true;
-    }
-
-    // can access the credentials of users with lesser or equal access
-    if (await a.can(tx, `${realm}:credential.equal.*:${action}`)) {
-      return isSuperset(
-        await (await a.user(tx)).access(tx),
-        await (await this.user(tx)).access(tx)
-      );
-    }
-
-    // can access the credentials of users with lesser access
-    if (await a.can(tx, `${realm}:credential.equal.lesser:${action}`)) {
-      return isStrictSuperset(
-        await (await a.user(tx)).access(tx),
-        await (await this.user(tx)).access(tx)
-      );
     }
 
     return false;

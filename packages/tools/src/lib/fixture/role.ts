@@ -30,7 +30,7 @@ export const role = [
         {
           id: "e833c8b8-acf1-42a1-9809-2bedab7d58c7",
           enabled: true,
-          name: "Default User",
+          name: "Basic User",
           description:
             "This role provides the basic abilities needed for a human user.",
           userIds: [
@@ -45,9 +45,10 @@ export const role = [
             "1691f38d-92c8-4d86-9a89-da99528cfcb5"
           ],
           scopes: [
-            "authx:authorization.equal.self.*:**",
-            "authx:grant.equal.self.*:**",
-            "authx:user.equal.self:**"
+            "authx:v2.client...*....:r....",
+            "authx:v2.user.......{current_user_id}:r....",
+            "authx:v2.grant...{current_client_id}..{current_grant_id}..{current_user_id}:*..*.*.",
+            "authx:v2.authorization..*.{current_client_id}..{current_grant_id}..{current_user_id}:*..*.*."
           ]
         },
         {
@@ -72,7 +73,7 @@ export const role = [
             "0cbd3783-0424-4f35-be51-b42f07a2a987",
             "eaa9fa5e-088a-4ae2-a6ab-f120006b20a9"
           ],
-          scopes: ["website:sales:**"]
+          scopes: ["cms:promotions:**", "inventory:order.*:**"]
         },
         {
           recordId: "c7270f9c-51d7-4a23-8d55-d48779e56181",
@@ -95,7 +96,7 @@ export const role = [
             "51192909-3664-44d5-be62-c6b45f0b0ee6",
             "9ad4b34b-781d-44fe-ac39-9b7ac43dde21"
           ],
-          scopes: ["website:shippments:**"]
+          scopes: ["inventory:fulfilment.*:**"]
         },
         {
           recordId: "f53acc48-e95e-48fa-911e-59fd9f59e972",
@@ -115,7 +116,7 @@ export const role = [
           name: "HR",
           description: "The best; the worst.",
           userIds: ["306eabbb-cc2b-4f88-be19-4bb6ec98e5c3"],
-          scopes: ["authx:user.**:**"]
+          scopes: ["authx:v2.user.......*:r...."]
         },
         {
           recordId: "f94c5316-ce81-46e6-932a-0ac2c8fc886b",

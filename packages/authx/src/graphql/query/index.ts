@@ -23,6 +23,8 @@ import { viewer } from "./viewer";
 
 import { keys } from "./keys";
 
+import { explanations } from "./explanations";
+
 export const queryFields = {
   authority,
   authorities,
@@ -39,7 +41,8 @@ export const queryFields = {
   user,
   users,
   viewer,
-  keys
+  keys,
+  explanations
 };
 
 export const queryTypes = [];

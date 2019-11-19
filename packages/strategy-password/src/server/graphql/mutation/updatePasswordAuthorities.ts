@@ -5,7 +5,9 @@ import {
   Context,
   Authority,
   ForbiddenError,
-  NotFoundError
+  NotFoundError,
+  ValidationError,
+  validateIdFormat
 } from "@authx/authx";
 import { PasswordAuthority } from "../../model";
 import { GraphQLPasswordAuthority } from "../GraphQLPasswordAuthority";
@@ -48,6 +50,11 @@ export const updatePasswordAuthorities: GraphQLFieldConfig<
     }
 
     return args.authorities.map(async input => {
+      // Validate `id`.
+      if (!validateIdFormat(input.id)) {
+        throw new ValidationError("The provided `id` is an invalid ID.");
+      }
+
       const tx = await pool.connect();
       try {
         await tx.query("BEGIN DEFERRABLE");

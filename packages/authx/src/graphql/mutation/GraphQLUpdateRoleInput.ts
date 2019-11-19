@@ -7,6 +7,8 @@ import {
   GraphQLInputObjectType
 } from "graphql";
 
+import { GraphQLScopeTemplate } from "../GraphQLScopeTemplate";
+
 export const GraphQLUpdateRoleInput = new GraphQLInputObjectType({
   name: "UpdateRoleInput",
   fields: () => ({
@@ -24,7 +26,7 @@ export const GraphQLUpdateRoleInput = new GraphQLInputObjectType({
       type: GraphQLString
     },
     scopes: {
-      type: new GraphQLList(new GraphQLNonNull(GraphQLString))
+      type: new GraphQLList(new GraphQLNonNull(GraphQLScopeTemplate))
     },
     assignUserIds: {
       type: new GraphQLList(new GraphQLNonNull(GraphQLString))

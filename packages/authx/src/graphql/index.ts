@@ -6,24 +6,28 @@ import { mutationFields, mutationTypes } from "./mutation";
 import { queryFields } from "./query";
 
 import { GraphQLAuthority } from "./GraphQLAuthority";
+import { GraphQLAuthorization } from "./GraphQLAuthorization";
 import { GraphQLClient } from "./GraphQLClient";
 import { GraphQLCredential } from "./GraphQLCredential";
 import { GraphQLGrant } from "./GraphQLGrant";
 import { GraphQLRole } from "./GraphQLRole";
 import { GraphQLTimestamp } from "./GraphQLTimestamp";
-import { GraphQLAuthorization } from "./GraphQLAuthorization";
 import { GraphQLUser } from "./GraphQLUser";
 import { GraphQLUserType } from "./GraphQLUserType";
 
+export * from "./GraphQLAdministrationInput";
 export * from "./GraphQLAuthority";
-export * from "./GraphQLCredential";
 export * from "./GraphQLAuthority";
+export * from "./GraphQLAuthorization";
 export * from "./GraphQLClient";
+export * from "./GraphQLCredential";
 export * from "./GraphQLCredential";
 export * from "./GraphQLGrant";
 export * from "./GraphQLRole";
+export * from "./GraphQLScope";
+export * from "./GraphQLScopeTemplate";
 export * from "./GraphQLTimestamp";
-export * from "./GraphQLAuthorization";
+export * from "./GraphQLTokenFormat";
 export * from "./GraphQLUser";
 export * from "./GraphQLUserType";
 

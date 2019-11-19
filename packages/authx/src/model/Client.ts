@@ -1,6 +1,5 @@
 import { PoolClient } from "pg";
 import { Grant } from "./Grant";
-import { User } from "./User";
 import { Authorization } from "./Authorization";
 import { NotFoundError } from "../errors";
 
@@ -11,7 +10,6 @@ export interface ClientData {
   readonly description: string;
   readonly secrets: Iterable<string>;
   readonly urls: Iterable<string>;
-  readonly userIds: Iterable<string>;
 }
 
 export class Client implements ClientData {
@@ -21,10 +19,8 @@ export class Client implements ClientData {
   public readonly description: string;
   public readonly secrets: Set<string>;
   public readonly urls: Set<string>;
-  public readonly userIds: Set<string>;
 
   private _grants: null | Promise<Grant[]> = null;
-  private _users: null | Promise<User[]> = null;
 
   public constructor(data: ClientData) {
     this.id = data.id;
@@ -33,25 +29,30 @@ export class Client implements ClientData {
     this.description = data.description;
     this.secrets = new Set(data.secrets);
     this.urls = new Set(data.urls);
-    this.userIds = new Set(data.userIds);
   }
 
   public async isAccessibleBy(
     realm: string,
     a: Authorization,
     tx: PoolClient,
-    action: string = "read.basic"
+    action: string = "r...."
   ): Promise<boolean> {
-    // can access all vlients
-    if (await a.can(tx, `${realm}:client.*:${action}`)) {
+    /* eslint-disable @typescript-eslint/camelcase */
+    const values: { [name: string]: null | string } = {
+      current_authorization_id: a.id,
+      current_user_id: a.userId,
+      current_grant_id: a.grantId ?? null,
+      current_client_id: (await a.grant(tx))?.clientId ?? null
+    };
+    /* eslint-enable @typescript-eslint/camelcase */
+
+    if (
+      await a.can(tx, values, `${realm}:v2.client...${this.id}....:${action}`)
+    ) {
       return true;
     }
 
-    // can access assigned clients
-    return (
-      this.userIds.has(a.userId) &&
-      (await a.can(tx, `${realm}:client.assigned:${action}`))
-    );
+    return false;
   }
 
   public grants(tx: PoolClient, refresh: boolean = true): Promise<Grant[]> {
@@ -62,25 +63,45 @@ export class Client implements ClientData {
     return (this._grants = (async () =>
       Grant.read(
         tx,
-        (await tx.query(
-          `
+        (
+          await tx.query(
+            `
             SELECT entity_id AS id
-            FROM authx.grant_records
+            FROM authx.grant_record
             WHERE
               client_id = $1
               AND replacement_record_id IS NULL
             `,
-          [this.id]
-        )).rows.map(({ id }) => id)
+            [this.id]
+          )
+        ).rows.map(({ id }) => id)
       ))());
   }
 
-  public users(tx: PoolClient, refresh: boolean = false): Promise<User[]> {
-    if (!refresh && this._users) {
-      return this._users;
+  public async grant(tx: PoolClient, userId: string): Promise<null | Grant> {
+    const result = await tx.query(
+      `
+      SELECT entity_id AS id
+      FROM authx.grant_record
+      WHERE
+        user_id = $1
+        AND client_id = $2
+        AND replacement_record_id IS NULL
+      `,
+      [userId, this.id]
+    );
+
+    if (result.rows.length > 1) {
+      throw new Error(
+        "INVARIANT: It must be impossible for the same user and client to have multiple enabled grants.."
+      );
     }
 
-    return (this._users = User.read(tx, [...this.userIds]));
+    if (result.rows.length) {
+      return Grant.read(tx, result.rows[0].id);
+    }
+
+    return null;
   }
 
   public static read(
@@ -110,8 +131,7 @@ export class Client implements ClientData {
         name,
         description,
         secrets,
-        urls,
-        json_agg(authx.client_record_user.user_id) AS user_ids
+        urls
       FROM (
         SELECT *
         FROM authx.client_record
@@ -120,15 +140,6 @@ export class Client implements ClientData {
           AND replacement_record_id IS NULL
         ${options.forUpdate ? "FOR UPDATE" : ""}
       ) AS client_record
-      LEFT JOIN authx.client_record_user
-        ON authx.client_record_user.client_record_id = client_record.record_id
-      GROUP BY
-        client_record.entity_id,
-        client_record.enabled,
-        client_record.name,
-        client_record.description,
-        client_record.secrets,
-        client_record.urls
       `,
       [typeof id === "string" ? [id] : id]
     );
@@ -148,8 +159,7 @@ export class Client implements ClientData {
         new Client({
           ...row,
           secrets: row.secrets,
-          urls: row.urls,
-          userIds: row.user_ids.filter((id: null | string) => id)
+          urls: row.urls
         })
     );
 
@@ -236,30 +246,11 @@ export class Client implements ClientData {
       throw new Error("INVARIANT: Insert must return exactly one row.");
     }
 
-    // insert the new record's users
-    const userIds = [...new Set(data.userIds)];
-    const users = await tx.query(
-      `
-      INSERT INTO authx.client_record_user
-        (client_record_id, user_id)
-      SELECT $1::uuid AS client_record_id, user_id FROM UNNEST($2::uuid[]) AS user_id
-      RETURNING user_id
-      `,
-      [metadata.recordId, userIds]
-    );
-
-    if (users.rows.length !== userIds.length) {
-      throw new Error(
-        "INVARIANT: Insert or user IDs must return the same number of rows as input."
-      );
-    }
-
     const row = next.rows[0];
     return new Client({
       ...row,
       secrets: row.secrets,
-      urls: row.urls,
-      userIds: users.rows.map(({ user_id: userId }) => userId)
+      urls: row.urls
     });
   }
 }

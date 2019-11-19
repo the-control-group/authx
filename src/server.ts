@@ -15,7 +15,7 @@ const __DEV__ = process.env.NODE_ENV !== "production";
     app.proxy = true;
 
     // Build the interface middleware.
-    const interfaceMiddleware = await createAuthXInterface([
+    const interfaceMiddleware = await createAuthXInterface("authx", [
       "@authx/strategy-email/interface",
       "@authx/strategy-password/interface",
       "@authx/strategy-openid/interface"

@@ -1,11 +1,12 @@
 import v4 from "uuid/v4";
 import { isSuperset } from "@authx/scopes";
 import { GraphQLFieldConfig, GraphQLList, GraphQLNonNull } from "graphql";
-
 import { Context } from "../../Context";
 import { GraphQLRole } from "../GraphQLRole";
 import { Role } from "../../model";
-import { ForbiddenError } from "../../errors";
+import { filter } from "../../util/filter";
+import { validateIdFormat } from "../../util/validateIdFormat";
+import { ForbiddenError, ValidationError } from "../../errors";
 import { GraphQLUpdateRoleInput } from "./GraphQLUpdateRoleInput";
 
 export const updateRoles: GraphQLFieldConfig<
@@ -40,6 +41,22 @@ export const updateRoles: GraphQLFieldConfig<
     }
 
     return args.roles.map(async input => {
+      // Validate `id`.
+      if (!validateIdFormat(input.id)) {
+        throw new ValidationError("The provided `id` is an invalid ID.");
+      }
+
+      // Validate `userIds`.
+      if (Array.isArray(input.assignUserIds)) {
+        for (const userId of input.assignUserIds) {
+          if (!validateIdFormat(userId)) {
+            throw new ValidationError(
+              "The provided `assignUserIds` list contains an invalid ID."
+            );
+          }
+        }
+      }
+
       const tx = await pool.connect();
       try {
         await tx.query("BEGIN DEFERRABLE");
@@ -47,37 +64,58 @@ export const updateRoles: GraphQLFieldConfig<
           forUpdate: true
         });
 
-        // write.basic -----------------------------------------------------------
-        if (!(await before.isAccessibleBy(realm, a, tx, "write.basic"))) {
+        // w.... -----------------------------------------------------------
+        if (!(await before.isAccessibleBy(realm, a, tx, "w...."))) {
           throw new ForbiddenError(
             "You do not have permission to update this role."
           );
         }
 
-        // write.scopes ----------------------------------------------------------
+        // w..w.. ----------------------------------------------------------
         if (
           input.scopes &&
-          !(await before.isAccessibleBy(realm, a, tx, "write.scopes"))
+          !(await before.isAccessibleBy(realm, a, tx, "w..w.."))
         ) {
           throw new ForbiddenError(
             "You do not have permission to update this role's scopes."
           );
         }
 
-        if (
-          input.scopes &&
-          !(await a.can(tx, `${realm}:role.*.*:write.scopes`)) &&
-          !isSuperset(await (await a.user(tx)).access(tx), input.scopes)
-        ) {
-          throw new ForbiddenError(
-            "You do not have permission to set scopes greater than your level of access."
-          );
+        if (input.scopes) {
+          // To add a scope to a role, a user must have the ability to assign
+          // users to a role that contains the scope.
+          const roleIDs = (
+            await tx.query(`
+            SELECT entity_id AS id
+            FROM authx.role_record
+            WHERE
+              replacement_record_id IS NULL
+              AND enabled = true
+            FOR UPDATE
+          `)
+          ).rows.map(({ id }) => id) as string[];
+
+          const assignableScopes = roleIDs.length
+            ? (
+                await filter(
+                  await Role.read(tx, roleIDs, { forUpdate: true }),
+                  role => role.isAccessibleBy(realm, a, tx, "w....w")
+                )
+              ).reduce<string[]>((acc, { scopes }) => {
+                return [...acc, ...scopes];
+              }, [])
+            : [];
+
+          if (!isSuperset(assignableScopes, input.scopes))
+            throw new ForbiddenError(
+              "You do not have permission to assign the provided scopes."
+            );
         }
 
-        // write.assignments -----------------------------------------------------
-        if (!(await before.isAccessibleBy(realm, a, tx, "write.assignments"))) {
+        // w....w -----------------------------------------------------
+        if (!(await before.isAccessibleBy(realm, a, tx, "w....w"))) {
           throw new ForbiddenError(
-            "You do not have permission to update this role's assignments."
+            "You do not have permission to update this role's users."
           );
         }
 

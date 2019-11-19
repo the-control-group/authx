@@ -5,7 +5,9 @@ import {
   Context,
   Authority,
   ForbiddenError,
-  NotFoundError
+  NotFoundError,
+  ValidationError,
+  validateIdFormat
 } from "@authx/authx";
 import { OpenIdAuthority } from "../../model";
 import { GraphQLOpenIdAuthority } from "../GraphQLOpenIdAuthority";
@@ -56,6 +58,21 @@ export const updateOpenIdAuthorities: GraphQLFieldConfig<
     }
 
     return args.authorities.map(async input => {
+      // Validate `id`.
+      if (!validateIdFormat(input.id)) {
+        throw new ValidationError("The provided `id` is an invalid ID.");
+      }
+
+      // Validate `emailAuthorityId`.
+      if (
+        typeof input.emailAuthorityId === "string" &&
+        !validateIdFormat(input.emailAuthorityId)
+      ) {
+        throw new ValidationError(
+          "The provided `emailAuthorityId` is an invalid ID."
+        );
+      }
+
       const tx = await pool.connect();
       try {
         await tx.query("BEGIN DEFERRABLE");

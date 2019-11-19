@@ -8,6 +8,8 @@ import {
   GraphQLList
 } from "graphql";
 
+import { GraphQLAdministrationInput } from "@authx/authx";
+
 export const GraphQLCreateEmailAuthorityInput = new GraphQLInputObjectType({
   name: "CreateEmailAuthorityInput",
   fields: () => ({
@@ -80,6 +82,12 @@ export const GraphQLCreateEmailAuthorityInput = new GraphQLInputObjectType({
         "Verification Email HTML Body. Handlebars template used to generate the email HTML body. Provided `authorization`, `credential`, and `url`.",
       defaultValue:
         'Please click <a href="{{url}}">here</a> to verify this email.'
+    },
+    administration: {
+      type: new GraphQLList(new GraphQLNonNull(GraphQLAdministrationInput)),
+      description:
+        "An optional list of roles to which scopes will be added for the purpose of administering the created authority.",
+      defaultValue: []
     }
   })
 });

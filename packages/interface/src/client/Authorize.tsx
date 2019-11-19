@@ -4,7 +4,9 @@ import React, {
   useEffect,
   useContext,
   useCallback,
-  useState
+  useState,
+  ReactChild,
+  useMemo
 } from "react";
 
 import {
@@ -13,7 +15,63 @@ import {
   GraphQLFetchOptionsOverride,
   GraphQLContext
 } from "graphql-react";
-import { validate, isSuperset, getDifference, simplify } from "@authx/scopes";
+
+import { isSuperset, getDifference, simplify, inject } from "@authx/scopes";
+import { match } from "@authx/authx/dist/util/explanations";
+
+import v4 from "uuid/v4";
+
+declare const __REALM__: string;
+
+function Scope({ children }: { children: ReactChild }): ReactElement {
+  return (
+    <div
+      style={{
+        width: "0",
+        minWidth: "100%",
+        boxSizing: "border-box",
+        position: "relative",
+        margin: "0",
+        padding: "0",
+        borderRadius: "7px",
+        overflow: "hidden"
+      }}
+    >
+      <span
+        style={{
+          position: "absolute",
+          top: "0",
+          left: "0",
+          bottom: "0",
+          width: "14px",
+          background:
+            "linear-gradient(-90deg, rgba(22,23,23,0) 0%, rgba(22,23,23,1) 75%)"
+        }}
+      />
+      <pre
+        style={{
+          margin: "0",
+          overflow: "auto",
+          background: "hsl(180, 2%, 9%)",
+          padding: "14px 14px"
+        }}
+      >
+        {children}
+      </pre>
+      <span
+        style={{
+          position: "absolute",
+          top: "0",
+          right: "0",
+          bottom: "0",
+          width: "14px",
+          background:
+            "linear-gradient(90deg, rgba(22,23,23,0) 0%, rgba(22,23,23,1) 75%)"
+        }}
+      />
+    </div>
+  );
+}
 
 function Checkbox({
   value,
@@ -125,11 +183,29 @@ export function Authorize({
   const paramsRedirectUri = url.searchParams.get("redirect_uri") || null;
   const paramsScope = url.searchParams.get("scope") || null;
 
+  // If we end up creating a new grant, this is the ID we'll use.
+  const [speculativeGrantId, setSpeculativeGrantId] = useState(() => v4());
+
   // Parse the scopes
-  const requestedScopes = paramsScope ? paramsScope.split(" ") : null;
-  const requestedScopesAreValid = requestedScopes
-    ? requestedScopes.every(validate)
-    : null;
+  const requestedScopeTemplates = paramsScope ? paramsScope.split(" ") : null;
+  let requestedScopeTemplatesAreValid: boolean | null = null;
+  if (requestedScopeTemplates) {
+    try {
+      // Make sure that the template does not contain variables in addition to
+      // those that can be used here.
+      inject(requestedScopeTemplates, {
+        /* eslint-disable @typescript-eslint/camelcase */
+        current_client_id: "",
+        current_grant_id: "",
+        current_user_id: ""
+        /* eslint-enable @typescript-eslint/camelcase */
+      });
+
+      requestedScopeTemplatesAreValid = true;
+    } catch (error) {
+      requestedScopeTemplatesAreValid = false;
+    }
+  }
 
   // Get the user, grant, and client from the API.
   const { loading, cacheValue } = useGraphQL<
@@ -149,6 +225,10 @@ export function Authorize({
         name: string;
         urls: string[];
       };
+      explanations: null | ReadonlyArray<{
+        scope: string;
+        description: string;
+      }>;
     },
     { clientId: string }
   >({
@@ -173,9 +253,16 @@ export function Authorize({
             name
             urls
           }
+
+          explanations {
+            scope
+            description
+          }
         }
       `,
-      variables: { clientId: paramsClientId || "" }
+      variables: {
+        clientId: paramsClientId || ""
+      }
     }
   });
 
@@ -187,17 +274,69 @@ export function Authorize({
   const client = cacheValue && cacheValue.data && cacheValue.data.client;
   const grant = user && user.grant;
   const urls = client && client.urls;
+  const explanations =
+    cacheValue && cacheValue.data && cacheValue.data.explanations;
 
   // These decisions override the default behavior, which is to
   const [overrides, setOverrides] = useState<{ [scope: string]: boolean }>({});
 
+  const clientId = (client && client.id) || null;
+  const grantId = (grant && grant.id) || speculativeGrantId;
+  const userId = (user && user.id) || null;
+  const requestedScopes = useMemo(
+    () =>
+      requestedScopeTemplates
+        ? inject(
+            [
+              ...requestedScopeTemplates,
+              `${__REALM__}:v2.authorization..*.{current_client_id}..{current_grant_id}..{current_user_id}:*..*.*.`
+            ],
+            {
+              /* eslint-disable @typescript-eslint/camelcase */
+              current_client_id: clientId,
+              current_grant_id: grantId,
+              current_user_id: userId
+              /* eslint-enable @typescript-eslint/camelcase */
+            }
+          )
+        : [],
+    [requestedScopeTemplates, clientId, grantId, userId]
+  );
+
+  const grantedScopes = grant && grant.scopes;
+  const grantedScopesExplanations = useMemo(
+    () =>
+      explanations && grantedScopes
+        ? match(explanations, grantedScopes, {
+            currentAuthorizationId: null,
+            currentGrantId: grantId,
+            currentUserId: userId,
+            currentClientId: clientId
+          })
+        : [],
+    [explanations, grantedScopes, clientId, grantId, userId]
+  );
+
   const newRequestedScopes =
-    grant && grant.scopes && requestedScopes
+    grant && grant.scopes
       ? getDifference(
           grant.scopes.filter(s => overrides[s] !== false),
           requestedScopes
         )
-      : requestedScopes || [];
+      : requestedScopes;
+
+  const newRequestedScopesExplanations = useMemo(
+    () =>
+      explanations
+        ? match(explanations, newRequestedScopes, {
+            currentAuthorizationId: null,
+            currentGrantId: grantId,
+            currentUserId: userId,
+            currentClientId: clientId
+          })
+        : [],
+    [explanations, newRequestedScopes, clientId, grantId, userId]
+  );
 
   // API and errors
   const graphql = useContext<GraphQL>(GraphQLContext);
@@ -210,79 +349,85 @@ export function Authorize({
 
     setOperating(true);
     try {
-      const operation = grant
-        ? graphql.operate<
-            {
-              createGrants?: undefined;
-              updateGrants: null | ReadonlyArray<null | {
-                codes: null | string[];
-                scopes: null | string[];
-              }>;
-            },
-            {
-              id: string;
-              scopes: string[];
-            }
-          >({
-            fetchOptionsOverride,
-            operation: {
-              query: `
-                mutation($id: ID!, $scopes: [String!]!) {
-                  updateGrants(
-                    grants: [{id: $id, scopes: $scopes, generateCodes: 1}]
-                  ) {
-                    codes
-                    scopes
-                  }
+      let operation;
+      if (grant) {
+        operation = graphql.operate<
+          {
+            createGrants?: undefined;
+            updateGrants: null | ReadonlyArray<null | {
+              codes: null | string[];
+              scopes: null | string[];
+            }>;
+          },
+          {
+            id: string;
+            scopes: string[];
+          }
+        >({
+          fetchOptionsOverride,
+          operation: {
+            query: `
+              mutation($id: ID!, $scopes: [Scope!]!) {
+                updateGrants(
+                  grants: [{id: $id, scopes: $scopes, generateCodes: 1}]
+                ) {
+                  codes
+                  scopes
                 }
-              `,
-              variables: {
-                id: grant.id,
-                scopes: simplify(
-                  [...(grant.scopes || []), ...(requestedScopes || [])].filter(
-                    s => overrides[s] !== false
-                  )
+              }
+            `,
+            variables: {
+              id: grant.id,
+              scopes: simplify(
+                [...(grant.scopes || []), ...requestedScopes].filter(
+                  s => overrides[s] !== false
                 )
-              }
+              )
             }
-          })
-        : graphql.operate<
-            {
-              updateGrants?: undefined;
-              createGrants: null | ReadonlyArray<null | {
-                codes: null | string[];
-                scopes: null | string[];
-              }>;
-            },
-            {
-              clientId: string;
-              userId: string;
-              scopes: string[];
-            }
-          >({
-            fetchOptionsOverride,
-            operation: {
-              query: `
-                mutation($clientId: ID!, $userId: ID!, $scopes: [String!]!) {
-                  createGrants(
-                    grants: [{
-                      clientId: $clientId,
-                      userId: $userId,
-                      scopes: $scopes
-                    }]
-                  ) {
-                    codes
-                    scopes
-                  }
+          }
+        });
+      } else {
+        operation = graphql.operate<
+          {
+            updateGrants?: undefined;
+            createGrants: null | ReadonlyArray<null | {
+              codes: null | string[];
+              scopes: null | string[];
+            }>;
+          },
+          {
+            id: string;
+            clientId: string;
+            userId: string;
+            scopes: string[];
+          }
+        >({
+          fetchOptionsOverride,
+          operation: {
+            query: `
+              mutation($id: ID!, $clientId: ID!, $userId: ID!, $scopes: [Scope!]!) {
+                createGrants(
+                  grants: [{
+                    id: $id,
+                    clientId: $clientId,
+                    userId: $userId,
+                    scopes: $scopes
+                  }]
+                ) {
+                  codes
+                  scopes
                 }
-              `,
-              variables: {
-                clientId: client.id,
-                userId: user.id,
-                scopes: [...(requestedScopes || [])]
               }
+            `,
+            variables: {
+              id: speculativeGrantId,
+              clientId: client.id,
+              userId: user.id,
+              scopes: requestedScopes
             }
-          });
+          }
+        });
+      }
 
       const result = await operation.cacheValuePromise;
       if (result.fetchError) {
@@ -319,6 +464,7 @@ export function Authorize({
       if (paramsState) url.searchParams.set("state", paramsState);
       url.searchParams.set("code", code);
       setRedirecting(true);
+      setSpeculativeGrantId(v4());
       window.location.replace(url.href);
     } catch (error) {
       setErrors([error.message]);
@@ -347,7 +493,7 @@ export function Authorize({
         );
       }
 
-      if (requestedScopesAreValid === false) {
+      if (requestedScopeTemplatesAreValid === false) {
         url.searchParams.append("error", "invalid_scope ");
         url.searchParams.append(
           "error_description",
@@ -358,6 +504,7 @@ export function Authorize({
       // We have an error to redirect
       if (url.searchParams.has("error")) {
         setRedirecting(true);
+        setSpeculativeGrantId(v4());
         window.location.replace(url.href);
         return;
       }
@@ -366,8 +513,8 @@ export function Authorize({
       const grantedScopes = grant && grant.scopes;
       if (
         grantedScopes &&
-        requestedScopes &&
-        isSuperset(grantedScopes, requestedScopes)
+        requestedScopeTemplates &&
+        isSuperset(grantedScopes, requestedScopeTemplates)
       ) {
         // TODO: We need to allow the app to force us to show a confirmation
         // screen. IIRC this is part of the OpenID Connect spec, but I have
@@ -385,8 +532,8 @@ export function Authorize({
     urls,
     paramsState,
     paramsResponseType,
-    requestedScopes,
-    requestedScopesAreValid,
+    requestedScopeTemplates,
+    requestedScopeTemplatesAreValid,
     grant
   ]);
 
@@ -396,7 +543,7 @@ export function Authorize({
     !paramsRedirectUri ||
     (urls && !urls.includes(paramsRedirectUri)) ||
     paramsResponseType !== "code" ||
-    requestedScopesAreValid === false
+    requestedScopeTemplatesAreValid === false
   ) {
     return (
       <div>
@@ -426,7 +573,7 @@ export function Authorize({
               to &quot;code&quot;.
             </p>
           ) : null}
-          {requestedScopesAreValid === false ? (
+          {requestedScopeTemplatesAreValid === false ? (
             <p className="error">
               If set, the <span className="code">scope</span> must be contain a
               space-separated list of valid authx scopes.
@@ -495,30 +642,81 @@ export function Authorize({
                   The app <strong>{client.name}</strong> has previously been
                   granted the following scopes:
                 </p>
-                <div className="info" style={{ display: "flex" }}>
-                  <table style={{ flex: 1 }}>
-                    <tbody>
-                      {grant.scopes.map((s, i) => (
-                        <tr key={i}>
-                          <td>
-                            <pre>{s}</pre>
-                          </td>
-                          <td style={{ width: "100px" }}>
-                            <Checkbox
-                              value={overrides[s] === false ? false : true}
-                              onChange={v =>
-                                setOverrides({
-                                  ...overrides,
-                                  [s]: v
-                                })
-                              }
-                            />
-                          </td>
-                        </tr>
-                      )) || null}
-                    </tbody>
-                  </table>
-                </div>
+                <table className="info">
+                  <tbody>
+                    {grant.scopes.map((s, i) => {
+                      const explanations =
+                        (grantedScopesExplanations.filter(e => {
+                          return e && isSuperset(s, e.scope);
+                        }) as ReadonlyArray<{
+                          scope: string;
+                          description: string;
+                        }>) || [];
+                      return (
+                        <Fragment key={i}>
+                          <tr>
+                            <td
+                              colSpan={2}
+                              style={{
+                                paddingBottom: "0px",
+                                borderTop:
+                                  i > 0
+                                    ? "2px solid hsla(0, 0%, 100%, 0.04)"
+                                    : undefined
+                              }}
+                            >
+                              <Scope>{s}</Scope>
+                            </td>
+                          </tr>
+                          <tr>
+                            <td>
+                              {explanations.length ? (
+                                <ul
+                                  style={{
+                                    fontSize: "14px",
+                                    padding: "0 0 0 10px",
+                                    margin: "0"
+                                  }}
+                                >
+                                  {explanations.map(e => (
+                                    <li
+                                      style={{ margin: "10px" }}
+                                      key={e.scope}
+                                    >
+                                      {e.description}
+                                    </li>
+                                  ))}
+                                </ul>
+                              ) : (
+                                <div
+                                  style={{
+                                    opacity: 0.8,
+                                    fontSize: "14px",
+                                    textAlign: "center",
+                                    margin: "10px"
+                                  }}
+                                >
+                                  No explanations found.
+                                </div>
+                              )}
+                            </td>
+                            <td style={{ width: "100px" }}>
+                              <Checkbox
+                                value={overrides[s] === false ? false : true}
+                                onChange={v =>
+                                  setOverrides({
+                                    ...overrides,
+                                    [s]: v
+                                  })
+                                }
+                              />
+                            </td>
+                          </tr>
+                        </Fragment>
+                      );
+                    }) || null}
+                  </tbody>
+                </table>
               </>
             ) : null}
 
@@ -533,30 +731,81 @@ export function Authorize({
                   </p>
                 )}
 
-                <div className="info" style={{ display: "flex" }}>
-                  <table style={{ flex: 1 }}>
-                    <tbody>
-                      {newRequestedScopes.map((s, i) => (
-                        <tr key={i}>
-                          <td>
-                            <pre>{s}</pre>
-                          </td>
-                          <td style={{ width: "100px" }}>
-                            <Checkbox
-                              value={overrides[s] === false ? false : true}
-                              onChange={v =>
-                                setOverrides({
-                                  ...overrides,
-                                  [s]: v
-                                })
-                              }
-                            />
-                          </td>
-                        </tr>
-                      )) || null}
-                    </tbody>
-                  </table>
-                </div>
+                <table className="info">
+                  <tbody>
+                    {newRequestedScopes.map((s, i) => {
+                      const explanations =
+                        (newRequestedScopesExplanations.filter(e => {
+                          return e && isSuperset(s, e.scope);
+                        }) as ReadonlyArray<{
+                          scope: string;
+                          description: string;
+                        }>) || [];
+                      return (
+                        <Fragment key={i}>
+                          <tr>
+                            <td
+                              colSpan={2}
+                              style={{
+                                paddingBottom: "0px",
+                                borderTop:
+                                  i > 0
+                                    ? "2px solid hsla(0, 0%, 100%, 0.04)"
+                                    : undefined
+                              }}
+                            >
+                              <Scope>{s}</Scope>
+                            </td>
+                          </tr>
+                          <tr>
+                            <td>
+                              {explanations.length ? (
+                                <ul
+                                  style={{
+                                    fontSize: "14px",
+                                    padding: "0 0 0 10px",
+                                    margin: "0"
+                                  }}
+                                >
+                                  {explanations.map(e => (
+                                    <li
+                                      style={{ margin: "10px" }}
+                                      key={e.scope}
+                                    >
+                                      {e.description}
+                                    </li>
+                                  ))}
+                                </ul>
+                              ) : (
+                                <div
+                                  style={{
+                                    opacity: 0.8,
+                                    fontSize: "14px",
+                                    textAlign: "center",
+                                    margin: "10px"
+                                  }}
+                                >
+                                  No explanations found.
+                                </div>
+                              )}
+                            </td>
+                            <td style={{ width: "100px" }}>
+                              <Checkbox
+                                value={overrides[s] === false ? false : true}
+                                onChange={v =>
+                                  setOverrides({
+                                    ...overrides,
+                                    [s]: v
+                                  })
+                                }
+                              />
+                            </td>
+                          </tr>
+                        </Fragment>
+                      );
+                    }) || null}
+                  </tbody>
+                </table>
               </>
             ) : null}
           </div>
@@ -579,7 +828,7 @@ export function Authorize({
               }}
               style={{ flex: "1", marginRight: "14px" }}
               type="button"
-              value="Grant Access"
+              value="Save &amp; Continue"
             />
             <input
               onClick={e => {
@@ -588,12 +837,13 @@ export function Authorize({
                 url.searchParams.set("error", "access_denied");
                 if (paramsState) url.searchParams.set("state", paramsState);
                 setRedirecting(true);
+                setSpeculativeGrantId(v4());
                 window.location.replace(url.href);
               }}
               className="danger"
               style={{ flex: "1", marginLeft: "11px" }}
               type="button"
-              value="Deny"
+              value="Cancel"
             />
           </div>
         )}

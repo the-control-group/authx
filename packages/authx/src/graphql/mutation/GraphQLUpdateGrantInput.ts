@@ -8,6 +8,8 @@ import {
   GraphQLInt
 } from "graphql";
 
+import { GraphQLScope } from "../GraphQLScope";
+
 export const GraphQLUpdateGrantInput = new GraphQLInputObjectType({
   name: "UpdateGrantInput",
   fields: () => ({
@@ -18,7 +20,7 @@ export const GraphQLUpdateGrantInput = new GraphQLInputObjectType({
       type: GraphQLBoolean
     },
     scopes: {
-      type: new GraphQLList(new GraphQLNonNull(GraphQLString))
+      type: new GraphQLList(new GraphQLNonNull(GraphQLScope))
     },
     generateSecrets: {
       type: GraphQLInt

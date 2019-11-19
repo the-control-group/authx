@@ -5,7 +5,7 @@ import {
   TokenExpiredError
 } from "jsonwebtoken";
 import fetch from "node-fetch";
-import { validate } from "@authx/scopes";
+import { isValidScopeLiteral } from "@authx/scopes";
 
 const BEARER = /^BEARER\s+/i;
 const BASIC = /^BASIC\s+/i;
@@ -43,7 +43,7 @@ export async function validateAuthorizationHeader(
         if (
           !Array.isArray(payload.scopes) ||
           !payload.scopes.every(
-            scope => typeof scope === "string" && validate(scope)
+            scope => typeof scope === "string" && isValidScopeLiteral(scope)
           )
         ) {
           throw new Error(
@@ -94,14 +94,15 @@ export async function validateAuthorizationHeader(
 
   // BASIC
   if (BASIC.test(authorizationHeader)) {
-    const body = await (await fetch(authxUrl + "/graphql", {
-      method: "POST",
-      headers: {
-        authorization: authorizationHeader,
-        "content-type": "application/json"
-      },
-      body: JSON.stringify({
-        query: `
+    const body = await (
+      await fetch(authxUrl + "/graphql", {
+        method: "POST",
+        headers: {
+          authorization: authorizationHeader,
+          "content-type": "application/json"
+        },
+        body: JSON.stringify({
+          query: `
           query {
             viewer {
               id
@@ -113,8 +114,9 @@ export async function validateAuthorizationHeader(
             }
           }
         `
+        })
       })
-    })).json();
+    ).json();
 
     const viewer:
       | undefined
@@ -153,7 +155,7 @@ export async function validateAuthorizationHeader(
     if (
       !Array.isArray(viewer.scopes) ||
       !viewer.scopes.every(
-        scope => typeof scope === "string" && validate(scope)
+        scope => typeof scope === "string" && isValidScopeLiteral(scope)
       )
     ) {
       throw new Error("The AuthX response contained a malformed scope.");

@@ -8,7 +8,6 @@ import password from "@authx/strategy-password";
 
 let database: string;
 let pool: Pool;
-
 const baseContext = {
   realm: "authx",
   base: "http://localhost/",
@@ -86,6 +85,203 @@ test("Deep query on viewer.", async t => {
   } finally {
     tx.release();
   }
+
+  const result = await execute({
+    schema,
+    contextValue: {
+      ...baseContext,
+      pool,
+      authorization
+    },
+    document: parse(/* GraphQL */ `
+      query {
+        viewer {
+          id
+          enabled
+          grant {
+            id
+            enabled
+            user {
+              id
+            }
+            client {
+              id
+              enabled
+              name
+              description
+              secrets
+              urls
+            }
+            secrets
+            codes
+            scopes
+            authorizations {
+              pageInfo {
+                startCursor
+                endCursor
+                hasNextPage
+                hasPreviousPage
+              }
+              edges {
+                cursor
+                node {
+                  id
+                }
+              }
+            }
+          }
+          user {
+            id
+            enabled
+            type
+            name
+            authorizations {
+              pageInfo {
+                startCursor
+                endCursor
+                hasNextPage
+                hasPreviousPage
+              }
+              edges {
+                cursor
+                node {
+                  id
+                }
+              }
+            }
+            credentials {
+              pageInfo {
+                startCursor
+                endCursor
+                hasNextPage
+                hasPreviousPage
+              }
+              edges {
+                cursor
+                node {
+                  id
+                  enabled
+                  user {
+                    id
+                  }
+                  authority {
+                    id
+                    enabled
+                    name
+                    description
+
+                    ... on EmailAuthority {
+                      privateKey
+                      publicKeys
+                      proofValidityDuration
+                      authenticationEmailSubject
+                      authenticationEmailText
+                      authenticationEmailHtml
+                      verificationEmailSubject
+                      verificationEmailText
+                      verificationEmailHtml
+                    }
+
+                    ... on PasswordAuthority {
+                      rounds
+                    }
+                  }
+
+                  authority {
+                    id
+                    enabled
+                    name
+                    description
+                  }
+
+                  ... on EmailCredential {
+                    email
+                    authority {
+                      privateKey
+                      publicKeys
+                      proofValidityDuration
+                      authenticationEmailSubject
+                      authenticationEmailText
+                      authenticationEmailHtml
+                      verificationEmailSubject
+                      verificationEmailText
+                      verificationEmailHtml
+                    }
+                  }
+
+                  ... on PasswordCredential {
+                    authority {
+                      rounds
+                    }
+                    hash
+                  }
+                }
+              }
+            }
+            grants {
+              pageInfo {
+                startCursor
+                endCursor
+                hasNextPage
+                hasPreviousPage
+              }
+              edges {
+                cursor
+                node {
+                  id
+                }
+              }
+            }
+            grant(clientId: "17436d83-6022-4101-bf9f-997f1550f57c") {
+              id
+            }
+            roles {
+              pageInfo {
+                startCursor
+                endCursor
+                hasNextPage
+                hasPreviousPage
+              }
+              edges {
+                cursor
+                node {
+                  id
+                  enabled
+                  name
+                  description
+                  users {
+                    pageInfo {
+                      startCursor
+                      endCursor
+                      hasNextPage
+                      hasPreviousPage
+                    }
+                    edges {
+                      cursor
+                      node {
+                        id
+                        enabled
+                      }
+                    }
+                  }
+                  scopes
+                }
+              }
+            }
+          }
+          secret
+          scopes
+        }
+      }
+    `)
+  });
+
+  if (result.errors) {
+    for (const error of result.errors) {
+      console.error(error.stack);
+    }
+  }
+
   t.deepEqual(
     {
       data: {
@@ -110,23 +306,7 @@ test("Deep query on viewer.", async t => {
               urls: [
                 "https://www.dundermifflin.com",
                 "https://admin.dundermifflin.com"
-              ],
-              users: {
-                edges: [
-                  {
-                    cursor: "YXJyYXljb25uZWN0aW9uOjA=",
-                    node: {
-                      id: "51192909-3664-44d5-be62-c6b45f0b0ee6"
-                    }
-                  }
-                ],
-                pageInfo: {
-                  endCursor: "YXJyYXljb25uZWN0aW9uOjA=",
-                  hasNextPage: false,
-                  hasPreviousPage: false,
-                  startCursor: "YXJyYXljb25uZWN0aW9uOjA="
-                }
-              }
+              ]
             },
             secrets: [
               "ZTQ2NzA3NjItYmViNy00MzVjLTk0YWYtMDU1Yjk1MWY5N2U2OjE1NTM5MjUzNDA6ZDQ5NDJjZGFhYTY1ZTg4YmQ2MWQ1MDIyZjlmN2E0ZGU="
@@ -259,7 +439,7 @@ test("Deep query on viewer.", async t => {
                   node: {
                     id: "e833c8b8-acf1-42a1-9809-2bedab7d58c7",
                     enabled: true,
-                    name: "Default User",
+                    name: "Basic User",
                     description:
                       "This role provides the basic abilities needed for a human user.",
                     users: {
@@ -336,9 +516,10 @@ test("Deep query on viewer.", async t => {
                       }
                     },
                     scopes: [
-                      "authx:authorization.equal.self.*:**",
-                      "authx:grant.equal.self.*:**",
-                      "authx:user.equal.self:**"
+                      "authx:v2.authorization..*.{current_client_id}..{current_grant_id}..{current_user_id}:*..*.*.",
+                      "authx:v2.client...*....:r....",
+                      "authx:v2.grant...{current_client_id}..{current_grant_id}..{current_user_id}:*..*.*.",
+                      "authx:v2.user.......{current_user_id}:r...."
                     ]
                   }
                 },
@@ -376,22 +557,6 @@ test("Deep query on viewer.", async t => {
                 hasPreviousPage: false,
                 startCursor: "YXJyYXljb25uZWN0aW9uOjA="
               }
-            },
-            clients: {
-              edges: [
-                {
-                  cursor: "YXJyYXljb25uZWN0aW9uOjA=",
-                  node: {
-                    id: "702d2103-a1b3-4873-b36b-dc8823fe95d1"
-                  }
-                }
-              ],
-              pageInfo: {
-                endCursor: "YXJyYXljb25uZWN0aW9uOjA=",
-                hasNextPage: false,
-                hasPreviousPage: false,
-                startCursor: "YXJyYXljb25uZWN0aW9uOjA="
-              }
             }
           },
           secret:
@@ -400,223 +565,7 @@ test("Deep query on viewer.", async t => {
         }
       }
     },
-    await execute({
-      schema,
-      contextValue: {
-        ...baseContext,
-        pool,
-        authorization
-      },
-      document: parse(/* GraphQL */ `
-        query {
-          viewer {
-            id
-            enabled
-            grant {
-              id
-              enabled
-              user {
-                id
-              }
-              client {
-                id
-                enabled
-                name
-                description
-                secrets
-                urls
-                users {
-                  pageInfo {
-                    startCursor
-                    endCursor
-                    hasNextPage
-                    hasPreviousPage
-                  }
-                  edges {
-                    cursor
-                    node {
-                      id
-                    }
-                  }
-                }
-              }
-              secrets
-              codes
-              scopes
-              authorizations {
-                pageInfo {
-                  startCursor
-                  endCursor
-                  hasNextPage
-                  hasPreviousPage
-                }
-                edges {
-                  cursor
-                  node {
-                    id
-                  }
-                }
-              }
-            }
-            user {
-              id
-              enabled
-              type
-              name
-              authorizations {
-                pageInfo {
-                  startCursor
-                  endCursor
-                  hasNextPage
-                  hasPreviousPage
-                }
-                edges {
-                  cursor
-                  node {
-                    id
-                  }
-                }
-              }
-              credentials {
-                pageInfo {
-                  startCursor
-                  endCursor
-                  hasNextPage
-                  hasPreviousPage
-                }
-                edges {
-                  cursor
-                  node {
-                    id
-                    enabled
-                    user {
-                      id
-                    }
-                    authority {
-                      id
-                      enabled
-                      name
-                      description
-
-                      ... on EmailAuthority {
-                        privateKey
-                        publicKeys
-                        proofValidityDuration
-                        authenticationEmailSubject
-                        authenticationEmailText
-                        authenticationEmailHtml
-                        verificationEmailSubject
-                        verificationEmailText
-                        verificationEmailHtml
-                      }
-
-                      ... on PasswordAuthority {
-                        rounds
-                      }
-                    }
-
-                    authority {
-                      id
-                      enabled
-                      name
-                      description
-                    }
-
-                    ... on EmailCredential {
-                      email
-                      authority {
-                        privateKey
-                        publicKeys
-                        proofValidityDuration
-                        authenticationEmailSubject
-                        authenticationEmailText
-                        authenticationEmailHtml
-                        verificationEmailSubject
-                        verificationEmailText
-                        verificationEmailHtml
-                      }
-                    }
-
-                    ... on PasswordCredential {
-                      authority {
-                        rounds
-                      }
-                      hash
-                    }
-                  }
-                }
-              }
-              grants {
-                pageInfo {
-                  startCursor
-                  endCursor
-                  hasNextPage
-                  hasPreviousPage
-                }
-                edges {
-                  cursor
-                  node {
-                    id
-                  }
-                }
-              }
-              grant(clientId: "17436d83-6022-4101-bf9f-997f1550f57c") {
-                id
-              }
-              roles {
-                pageInfo {
-                  startCursor
-                  endCursor
-                  hasNextPage
-                  hasPreviousPage
-                }
-                edges {
-                  cursor
-                  node {
-                    id
-                    enabled
-                    name
-                    description
-                    users {
-                      pageInfo {
-                        startCursor
-                        endCursor
-                        hasNextPage
-                        hasPreviousPage
-                      }
-                      edges {
-                        cursor
-                        node {
-                          id
-                          enabled
-                        }
-                      }
-                    }
-                    scopes
-                  }
-                }
-              }
-              clients {
-                pageInfo {
-                  startCursor
-                  endCursor
-                  hasNextPage
-                  hasPreviousPage
-                }
-                edges {
-                  cursor
-                  node {
-                    id
-                  }
-                }
-              }
-            }
-            secret
-            scopes
-          }
-        }
-      `)
-    })
+    result
   );
 });
 

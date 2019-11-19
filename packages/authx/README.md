@@ -127,90 +127,82 @@ The compiled and bundled code ends up here for distribution. This is ignored by 
 
 ## Scopes
 
-AuthX uses its own authorization system to restrict access to its resources. Below are the scopes used by AuthX internally:
+AuthX uses its own authorization system to restrict access to its resources. A scope is divided into three parts:
+
+1. **realm**: this is configurable to the individual instance (for example, `authx` or `identity` or `authx.dev`)
+2. **context**: this contains the criteria required for an action to be valid
+3. **action**: the action being performed
+
+### Context
+
+For an AuthX resource, the **context** is always in the following format:
 
 ```
-authx:authority:read. {      details}
-authx:authority:write.{basic|details|*}
-
-authx:client.{assigned|*}:read.{basic|secrets|assignments}
-authx:client.{assigned|*}:write.{basic|secrets|assignments|*}
-
-authx:credential.equal.self  :read .{basic|details}
-authx:credential.equal.lesser:read .{basic|details}
-authx:credential.equal.*     :read .{basic|details}
-authx:credential.*    .*     :read .{basic|details}
-authx:credential.equal.self  :write.{basic|details|*}
-authx:credential.equal.lesser:write.{basic|details|*}
-authx:credential.equal.*     :write.{basic|details|*}
-authx:credential.*    .*     :write.{basic|details|*}
-
-authx:role.equal.assigned:read .{basic|scopes|assignments}
-authx:role.equal.lesser  :read .{basic|scopes|assignments}
-authx:role.equal.*       :read .{basic|scopes|assignments}
-authx:role.*    .*       :read .{basic|scopes|assignments}
-authx:role.equal.assigned:write.{basic|scopes|assignments|*}
-authx:role.equal.lesser  :write.{basic|scopes|assignments|*}
-authx:role.equal.*       :write.{basic|scopes|assignments|*}
-authx:role.*    .*       :write.{basic|scopes|assignments|*}
-
-authx:grant.assigned            :read .{basic|scopes|secrets}
-authx:grant.equal.self  .current:read .{basic|scopes|secrets}
-authx:grant.equal.self  .granted:read .{basic|scopes|secrets}
-authx:grant.equal.self  .*      :read .{basic|scopes|secrets}
-authx:grant.equal.lesser.*      :read .{basic|scopes|secrets}
-authx:grant.equal.*     .*      :read .{basic|scopes|secrets}
-authx:grant.*    .*     .*      :read .{basic|scopes|secrets}
-authx:grant.equal.self  .current:write.{basic|scopes|secrets|*}
-authx:grant.equal.self  .granted:write.{basic|scopes|secrets|*}
-authx:grant.equal.self  .*      :write.{basic|scopes|secrets|*}
-authx:grant.equal.lesser.*      :write.{basic|scopes|secrets|*}
-authx:grant.equal.*     .*      :write.{basic|scopes|secrets|*}
-authx:grant.*    .*     .*      :write.{basic|scopes|secrets|*}
-
-authx:authorization.assigned            :read .{basic|scopes|secrets}
-authx:authorization.equal.self  .current:read .{basic|scopes|secrets}
-authx:authorization.equal.self  .granted:read .{basic|scopes|secrets}
-authx:authorization.equal.self  .*      :read .{basic|scopes|secrets}
-authx:authorization.equal.lesser.*      :read .{basic|scopes|secrets}
-authx:authorization.equal.*     .*      :read .{basic|scopes|secrets}
-authx:authorization.*    .*     .*      :read .{basic|scopes|secrets}
-authx:authorization.equal.self  .current:write.{basic|scopes}
-authx:authorization.equal.self  .granted:write.{basic|scopes|*}
-authx:authorization.equal.self  .*      :write.{basic|scopes|*}
-authx:authorization.equal.lesser.*      :write.{basic|scopes|*}
-authx:authorization.equal.*     .*      :write.{basic|scopes|*}
-authx:authorization.*    .*     .*      :write.{basic|scopes|*}
-
-authx:user.equal.self  :read.{basic}
-authx:user.equal.lesser:read.{basic}
-authx:user.equal.*     :read.{basic}
-authx:user.*    .*     :read.{basic}
-authx:user.equal.self  :write.{basic|*}
-authx:user.equal.lesser:write.{basic|*}
-authx:user.equal.*     :write.{basic|*}
-authx:user.*    .*     :write.{basic|*}
+v2.(entity_type).(authority_id).(authorization_id).(client_id).(credential_id).(role_id).(user_id)
 ```
+
+When checking for the ability to perform an action on an entity, the entity's ID and the IDs of related entities are present on the compared scope. When creating a _new_ entity, only the IDs of related entities will be present, and the position of the entity' ID will be empty, even if an ID is specified for the entity in its creation request.
+
+Given an entity type, relevant IDs will be present in the context:
+
+| `entity_type`   | `authority_id` | `authorization_id` | `client_id` | `credential_id` | `grant_id` | `role_id` | `user_id` |
+| --------------- | :------------: | :----------------: | :---------: | :-------------: | :--------: | :-------: | :-------: |
+| `authority`     |       ✪        |                    |             |                 |            |           |           |
+| `authorization` |                |         ✪          |      ●      |                 |     ○      |           |     ●     |
+| `client`        |                |                    |      ✪      |                 |            |           |           |
+| `credential`    |       ●        |                    |             |        ✪        |            |           |     ●     |
+| `grant`         |                |                    |      ●      |                 |     ✪      |           |     ●     |
+| `role`          |                |                    |             |                 |            |     ✪     |           |
+| `user`          |                |                    |             |                 |            |           |     ✪     |
+
+○ An ID may be present.
+● An ID will always be present for an action.
+✪ An ID will be present for existing entities, and will be empty for a _new_ entity.
+
+### Action
+
+For an AuthX resource, the **action** is always in the following format:
+
+```
+(basic).(details).(scopes).(secrets).(users)
+```
+
+In each position, an `r` designates the ability to perform reads, a `w` designates the ability to write, and (per normmal scope semantics) a `*` designates both.
+
+To _create_ a new entity, a value of `*` is required in each relevant position. For example, the following scope represents the ability to create a new client:
+
+```
+authx:v2.client.......:*..*.*.
+```
+
+| `entity_type`   | `basic` | `details` | `scopes` | `secrets` | `users` |
+| --------------- | :-----: | :-------: | :------: | :-------: | :-----: |
+| `authority`     |    ✪    |     ●     |          |           |         |
+| `authorization` |    ✪    |           |    ●     |     ●     |         |
+| `client`        |    ✪    |           |          |     ●     |         |
+| `credential`    |    ✪    |     ●     |          |           |         |
+| `grant`         |    ✪    |           |    ●     |     ●     |         |
+| `role`          |    ✪    |           |    ●     |           |    ●    |
+| `user`          |    ✪    |           |    ●     |           |         |
+
+● An `r` will be checked for reads; a `w` will be checked for writes.
+✪ All other applicable positions will check for a corresponding `r` or `w` in this position.
+
+## OAuth
 
 Users must have the following scopes to use OAuth:
 
 ```
-authx:client.*:read.basic
-authx:user.equal.self:read.basic
-authx:grant.equal.self.*:read.basic
-authx:grant.equal.self.*:read.scopes
-authx:grant.equal.self.*:read.secrets
-authx:grant.equal.self.*:write.*
-authx:authorization.equal.self.*:read.basic
-authx:authorization.equal.self.*:read.scopes
-authx:authorization.equal.self.current:read.secrets
-authx:authorization.equal.self.*:write.*
+authx:v2.client...*....:r....
+authx:v2.user.......{current_user_id}:r....
+authx:v2.grant...{current_client_id}..{current_grant_id}..{current_user_id}:*..*.*.
+authx:v2.authorization..*.{current_client_id}..{current_grant_id}..{current_user_id}:*..*.*.
 ```
 
-The following scopes must be granted for a client to take full advantage of OAuth:
+The following scopes are implicit in an OAuth request:
 
 ```
-authx:grant.equal.self.granted:read.basic
-authx:grant.equal.self.granted:read.scopes
-authx:authorization.equal.self.granted:write.*
+authx:v2.authorization..*.{current_client_id}..{current_grant_id}..{current_user_id}:*..*.*.
 ```
+
+## Human Readable Descriptions

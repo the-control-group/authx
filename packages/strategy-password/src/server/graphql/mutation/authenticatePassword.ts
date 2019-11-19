@@ -15,11 +15,12 @@ import {
   Authority,
   Authorization,
   ForbiddenError,
-  AuthenticationError
+  AuthenticationError,
+  User
 } from "@authx/authx";
 
+import { isSuperset } from "@authx/scopes";
 import { PasswordAuthority } from "../../model";
-
 const __DEV__ = process.env.NODE_ENV !== "production";
 
 export const authenticatePassword: GraphQLFieldConfig<
@@ -64,7 +65,7 @@ export const authenticatePassword: GraphQLFieldConfig<
     try {
       await tx.query("BEGIN DEFERRABLE");
 
-      // fetch the authority
+      // Fetch the authority.
       const authority = await Authority.read(
         tx,
         args.passwordAuthorityId,
@@ -79,7 +80,7 @@ export const authenticatePassword: GraphQLFieldConfig<
         );
       }
 
-      // find the user ID given identityAuthorityId and identityAuthorityUserId
+      // Find the user ID given identityAuthorityId and identityAuthorityUserId.
       let userId: string | null;
       if (args.identityAuthorityId === authority.id) {
         userId = args.identityAuthorityUserId;
@@ -112,7 +113,7 @@ export const authenticatePassword: GraphQLFieldConfig<
         );
       }
 
-      // get the credential
+      // Get the credential.
       const credential = await authority.credential(tx, userId);
 
       if (!credential) {
@@ -121,15 +122,44 @@ export const authenticatePassword: GraphQLFieldConfig<
         );
       }
 
-      // check the password
+      // Check the password.
       if (!(await compare(args.password, credential.details.hash))) {
         throw new AuthenticationError(
           __DEV__ ? "The password is incorrect." : undefined
         );
       }
 
-      // create a new authorization
       const authorizationId = v4();
+
+      /* eslint-disable @typescript-eslint/camelcase */
+      const values: { [name: string]: string } = {
+        current_authorization_id: authorizationId,
+        current_user_id: credential.userId
+      };
+      /* eslint-enable @typescript-eslint/camelcase */
+
+      // Make sure the user can create new authorizations.
+      const user = await User.read(tx, credential.userId);
+      if (
+        !isSuperset(
+          await user.access(tx, values),
+          `${realm}:authorization.:write.create`
+        ) &&
+        !isSuperset(
+          await user.access(tx, values),
+          `${realm}:user.${credential.userId}.authorizations:write.create`
+        ) &&
+        !isSuperset(
+          await user.access(tx, values),
+          `${realm}:authority.${authority.id}.authorizations:write.create`
+        )
+      ) {
+        throw new ForbiddenError(
+          "You do not have permission to create this authorization"
+        );
+      }
+
+      // Create a new authorization.
       const authorization = await Authorization.write(
         tx,
         {

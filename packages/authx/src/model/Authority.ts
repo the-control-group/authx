@@ -33,10 +33,28 @@ export abstract class Authority<A> implements AuthorityData<A> {
     realm: string,
     a: Authorization,
     tx: PoolClient,
-    action: string = "read.basic"
+    action: string = "r...."
   ): Promise<boolean> {
-    // can access all authorities
-    return await a.can(tx, `${realm}:authority:${action}`);
+    /* eslint-disable @typescript-eslint/camelcase */
+    const values: { [name: string]: null | string } = {
+      current_authorization_id: a.id,
+      current_user_id: a.userId,
+      current_grant_id: a.grantId ?? null,
+      current_client_id: (await a.grant(tx))?.clientId ?? null
+    };
+    /* eslint-enable @typescript-eslint/camelcase */
+
+    if (
+      await a.can(
+        tx,
+        values,
+        `${realm}:v2.authority.${this.id}......:${action}`
+      )
+    ) {
+      return true;
+    }
+
+    return false;
   }
 
   public abstract credentials(

@@ -3,10 +3,12 @@ import {
   GraphQLNonNull,
   GraphQLString,
   GraphQLBoolean,
-  GraphQLInputObjectType
+  GraphQLInputObjectType,
+  GraphQLList
 } from "graphql";
 
 import { GraphQLUserType } from "../GraphQLUserType";
+import { GraphQLAdministrationInput } from "../GraphQLAdministrationInput";
 
 export const GraphQLCreateUserInput = new GraphQLInputObjectType({
   name: "CreateUserInput",
@@ -24,6 +26,12 @@ export const GraphQLCreateUserInput = new GraphQLInputObjectType({
     },
     name: {
       type: new GraphQLNonNull(GraphQLString)
+    },
+    administration: {
+      type: new GraphQLList(new GraphQLNonNull(GraphQLAdministrationInput)),
+      description:
+        "An optional list of roles to which scopes will be added for the purpose of administering the created user.",
+      defaultValue: []
     }
   })
 });

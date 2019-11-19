@@ -7,8 +7,12 @@ import {
   Authority,
   ForbiddenError,
   ConflictError,
-  NotFoundError
+  NotFoundError,
+  ValidationError,
+  Role,
+  validateIdFormat
 } from "@authx/authx";
+import { isSuperset, simplify, isValidScopeLiteral } from "@authx/scopes";
 import { EmailCredential, EmailAuthority } from "../../model";
 import { GraphQLEmailCredential } from "../GraphQLEmailCredential";
 import { substitute } from "../../substitute";
@@ -24,6 +28,10 @@ export const createEmailCredentials: GraphQLFieldConfig<
       authorityId: string;
       email: string;
       proof: null | string;
+      administration: {
+        roleId: string;
+        scopes: string[];
+      }[];
     }[];
   },
   Context
@@ -54,6 +62,48 @@ export const createEmailCredentials: GraphQLFieldConfig<
     }
 
     return args.credentials.map(async input => {
+      // Validate `id`.
+      if (typeof input.id === "string" && !validateIdFormat(input.id)) {
+        throw new ValidationError("The provided `id` is an invalid ID.");
+      }
+
+      // Validate `authorityId`.
+      if (!validateIdFormat(input.authorityId)) {
+        throw new ValidationError(
+          "The provided `authorityId` is an invalid ID."
+        );
+      }
+
+      // Validate `userId`.
+      if (!validateIdFormat(input.userId)) {
+        throw new ValidationError("The provided `userId` is an invalid ID.");
+      }
+
+      // Validate `administration`.
+      for (const { roleId, scopes } of input.administration) {
+        if (!validateIdFormat(roleId)) {
+          throw new ValidationError(
+            "The provided `administration` list contains a `roleId` that is an invalid ID."
+          );
+        }
+
+        for (const scope of scopes) {
+          if (!isValidScopeLiteral(scope)) {
+            throw new ValidationError(
+              "The provided `administration` list contains a `scopes` list with an invalid scope."
+            );
+          }
+        }
+      }
+
+      /* eslint-disable @typescript-eslint/camelcase */
+      const values: { [name: string]: string } = {
+        current_authorization_id: a.id,
+        current_user_id: a.userId,
+        ...(a.grantId ? { current_grant_id: a.grantId } : null)
+      };
+      /* eslint-enable @typescript-eslint/camelcase */
+
       const tx = await pool.connect();
       try {
         await tx.query("BEGIN DEFERRABLE");
@@ -70,30 +120,23 @@ export const createEmailCredentials: GraphQLFieldConfig<
           }
         }
 
-        const id = v4();
+        const id = input.id || v4();
         const authority = await Authority.read(
           tx,
           input.authorityId,
-          authorityMap
+          authorityMap,
+          { forUpdate: true }
         );
         if (!(authority instanceof EmailAuthority)) {
           throw new NotFoundError("No email authority exists with this ID.");
         }
 
-        const data = new EmailCredential({
-          id,
-          enabled: input.enabled,
-          authorityId: input.authorityId,
-          userId: input.userId,
-          authorityUserId: input.email,
-          details: {}
-        });
-
         // Check if the email is used in a different credential
         const existingCredentials = await EmailCredential.read(
           tx,
-          (await tx.query(
-            `
+          (
+            await tx.query(
+              `
           SELECT entity_id as id
           FROM authx.credential_record
           WHERE
@@ -101,9 +144,11 @@ export const createEmailCredentials: GraphQLFieldConfig<
             AND enabled = TRUE
             AND authority_id = $1
             AND authority_user_id = $2
+          FOR UPDATE
           `,
-            [authority.id, data.authorityUserId]
-          )).rows.map(({ id }) => id)
+              [authority.id, input.email]
+            )
+          ).rows.map(({ id }) => id)
         );
 
         if (existingCredentials.length > 1) {
@@ -112,13 +157,34 @@ export const createEmailCredentials: GraphQLFieldConfig<
           );
         }
 
-        if (!(await a.can(tx, `${realm}:credential.user.*.*:write.*`))) {
-          if (!(await data.isAccessibleBy(realm, a, tx, "write.*"))) {
+        if (!(await a.can(tx, values, `${realm}:credential.:write.create`))) {
+          if (
+            !(await a.can(
+              tx,
+              values,
+              `${realm}:user.${input.userId}.credentials:write.create`
+            )) &&
+            !(await a.can(
+              tx,
+              values,
+              `${realm}:authority.${input.authorityId}.credentials:write.create`
+            ))
+          ) {
             throw new ForbiddenError(
               "You do not have permission to create this credential."
             );
           }
+        }
 
+        if (
+          !(await a.can(tx, values, `${realm}:credential.*:write.create`)) &&
+          !(await a.can(
+            tx,
+            values,
+            `${realm}:authority.*.credentials:write.create`
+          )) &&
+          !(await a.can(tx, values, `${realm}:user.*.credentials:write.create`))
+        ) {
           // The user doesn't have permission to change the credentials of all
           // users, but has passed a proof that she controls the email address, so
           // we can treat it as hers.
@@ -220,11 +286,61 @@ export const createEmailCredentials: GraphQLFieldConfig<
           );
         }
 
-        const credential = await EmailCredential.write(tx, data, {
-          recordId: v4(),
-          createdByAuthorizationId: a.id,
-          createdAt: new Date()
-        });
+        const credential = await EmailCredential.write(
+          tx,
+          {
+            id,
+            enabled: input.enabled,
+            authorityId: input.authorityId,
+            userId: input.userId,
+            authorityUserId: input.email,
+            details: {}
+          },
+          {
+            recordId: v4(),
+            createdByAuthorizationId: a.id,
+            createdAt: new Date()
+          }
+        );
+
+        const possibleAdministrationScopes = [
+          `${realm}:v2.credential.${credential.authorityId}...${id}...${credential.userId}:r....`,
+          `${realm}:v2.credential.${credential.authorityId}...${id}...${credential.userId}:r.r...`,
+          `${realm}:v2.credential.${credential.authorityId}...${id}...${credential.userId}:r.*...`,
+          `${realm}:v2.credential.${credential.authorityId}...${id}...${credential.userId}:w....`,
+          `${realm}:v2.credential.${credential.authorityId}...${id}...${credential.userId}:w.w...`,
+          `${realm}:v2.credential.${credential.authorityId}...${id}...${credential.userId}:w.*...`,
+          `${realm}:v2.credential.${credential.authorityId}...${id}...${credential.userId}:*.*...`
+        ];
+
+        // Add administration scopes.
+        for (const { roleId, scopes } of input.administration) {
+          const role = await Role.read(tx, roleId, { forUpdate: true });
+
+          if (!role.isAccessibleBy(realm, a, tx, "write.scopes")) {
+            throw new ForbiddenError(
+              `You do not have permission to modify the scopes of role ${roleId}.`
+            );
+          }
+
+          await Role.write(
+            tx,
+            {
+              ...role,
+              scopes: simplify([
+                ...role.scopes,
+                ...possibleAdministrationScopes.filter(possible =>
+                  isSuperset(scopes, possible)
+                )
+              ])
+            },
+            {
+              recordId: v4(),
+              createdByAuthorizationId: a.id,
+              createdAt: new Date()
+            }
+          );
+        }
 
         await tx.query("COMMIT");
         return credential;

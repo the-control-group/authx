@@ -181,5 +181,23 @@ export const user = [
           createdAt: new Date("2019-03-06T21:07:59.814Z")
         }
       )
+  },
+  {
+    id: "98361302-49d2-449e-9f2d-a71ebc958e77",
+    insert: (tx: PoolClient) =>
+      User.write(
+        tx,
+        {
+          id: "98361302-49d2-449e-9f2d-a71ebc958e77",
+          enabled: true,
+          type: "human",
+          name: "Jeff?"
+        },
+        {
+          recordId: "116b440e-ae7f-4e31-ab02-dcd9244ed029",
+          createdByAuthorizationId: "f0e54748-c7bb-4724-ad8b-7dabb66aafa9",
+          createdAt: new Date("2019-03-06T21:07:59.814Z")
+        }
+      )
   }
 ];

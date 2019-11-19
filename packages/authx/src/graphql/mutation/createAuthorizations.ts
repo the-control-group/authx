@@ -1,12 +1,17 @@
 import v4 from "uuid/v4";
 import { randomBytes } from "crypto";
-import { isSuperset, isStrictSuperset } from "@authx/scopes";
+import { isSuperset, simplify, getIntersection } from "@authx/scopes";
 import { GraphQLFieldConfig, GraphQLList, GraphQLNonNull } from "graphql";
-
 import { Context } from "../../Context";
 import { GraphQLAuthorization } from "../GraphQLAuthorization";
-import { Authorization, User } from "../../model";
-import { ForbiddenError, ConflictError, NotFoundError } from "../../errors";
+import { Authorization, Grant, Role } from "../../model";
+import { validateIdFormat } from "../../util/validateIdFormat";
+import {
+  ForbiddenError,
+  ConflictError,
+  NotFoundError,
+  ValidationError
+} from "../../errors";
 import { GraphQLCreateAuthorizationInput } from "./GraphQLCreateAuthorizationInput";
 
 export const createAuthorizations: GraphQLFieldConfig<
@@ -16,8 +21,12 @@ export const createAuthorizations: GraphQLFieldConfig<
       id: null | string;
       enabled: boolean;
       userId: string;
-      grantId: string;
+      grantId: null | string;
       scopes: string[];
+      administration: {
+        roleId: string;
+        scopes: string[];
+      }[];
     }[];
   },
   Context
@@ -41,35 +50,57 @@ export const createAuthorizations: GraphQLFieldConfig<
     }
 
     return args.authorizations.map(async input => {
+      // Validate `id`.
+      if (typeof input.id === "string" && !validateIdFormat(input.id)) {
+        throw new ValidationError("The provided `id` is an invalid ID.");
+      }
+
+      // Validate `userId`.
+      if (!validateIdFormat(input.userId)) {
+        throw new ValidationError("The provided `userId` is an invalid ID.");
+      }
+
+      // Validate `grantId`.
+      if (
+        typeof input.grantId === "string" &&
+        !validateIdFormat(input.grantId)
+      ) {
+        throw new ValidationError("The provided `grantId` is an invalid ID.");
+      }
+
+      // Validate `administration`.
+      for (const { roleId } of input.administration) {
+        if (!validateIdFormat(roleId)) {
+          throw new ValidationError(
+            "The provided `administration` list contains a `roleId` that is an invalid ID."
+          );
+        }
+      }
+
       const tx = await pool.connect();
       try {
+        /* eslint-disable @typescript-eslint/camelcase */
+        const values: { [name: string]: null | string } = {
+          current_authorization_id: a.id,
+          current_user_id: a.userId,
+          current_grant_id: a.grantId ?? null,
+          current_client_id: (await a.grant(tx))?.clientId ?? null
+        };
+        /* eslint-enable @typescript-eslint/camelcase */
+
+        const grant = input.grantId
+          ? await Grant.read(tx, input.grantId)
+          : null;
         if (
-          // can create authorizations for all users
-          !(await a.can(tx, `${realm}:authorization.*.*:write.*`)) &&
-          // can create authorizations for users with equal access
-          !(
-            (await a.can(tx, `${realm}:authorization.equal.*:write.*`)) &&
-            isSuperset(
-              await (await a.user(tx)).access(tx),
-              await (await User.read(tx, input.userId)).access(tx)
-            )
-          ) &&
-          // can create authorizations for users with lesser access
-          !(
-            (await a.can(tx, `${realm}:authorization.equal.lesser:write.*`)) &&
-            isStrictSuperset(
-              await (await a.user(tx)).access(tx),
-              await (await User.read(tx, input.userId)).access(tx)
-            )
-          ) &&
-          // can create authorizations for self
-          !(
-            (await a.can(tx, `${realm}:authorization.equal.self:write.*`)) &&
-            input.userId === a.userId
-          )
+          !(await a.can(
+            tx,
+            values,
+            `${realm}:v2.authorization...${(grant && grant.clientId) ||
+              ""}..${(grant && grant.id) || ""}..${input.userId}:*..*.*.`
+          ))
         ) {
           throw new ForbiddenError(
-            "You must be authenticated to create a authorization."
+            "You do not have permission to create this authorization."
           );
         }
 
@@ -97,7 +128,12 @@ export const createAuthorizations: GraphQLFieldConfig<
               userId: input.userId,
               grantId: input.grantId,
               secret: randomBytes(16).toString("hex"),
-              scopes: input.scopes
+              scopes: getIntersection(
+                input.scopes,
+                grant
+                  ? await grant.access(tx, values)
+                  : await (await a.user(tx)).access(tx, values)
+              )
             },
             {
               recordId: v4(),
@@ -106,6 +142,50 @@ export const createAuthorizations: GraphQLFieldConfig<
               createdAt: new Date()
             }
           );
+
+          const possibleAdministrationScopes = [
+            `${realm}:v2.authorization..${id}.${(grant && grant.clientId) ||
+              ""}..${(grant && grant.id) || ""}..*:r....`,
+            `${realm}:v2.authorization..${id}.${(grant && grant.clientId) ||
+              ""}..${(grant && grant.id) || ""}..*:r...r.`,
+            `${realm}:v2.authorization..${id}.${(grant && grant.clientId) ||
+              ""}..${(grant && grant.id) || ""}..*:r..r..`,
+            `${realm}:v2.authorization..${id}.${(grant && grant.clientId) ||
+              ""}..${(grant && grant.id) || ""}..*:r..*.*.`,
+            `${realm}:v2.authorization..${id}.${(grant && grant.clientId) ||
+              ""}..${(grant && grant.id) || ""}..*:w....`,
+            `${realm}:v2.authorization..${id}.${(grant && grant.clientId) ||
+              ""}..${(grant && grant.id) || ""}..*:*..*.*.`
+          ];
+
+          // Add administration scopes.
+          for (const { roleId, scopes } of input.administration) {
+            const role = await Role.read(tx, roleId, { forUpdate: true });
+
+            if (!role.isAccessibleBy(realm, a, tx, "w..w..")) {
+              throw new ForbiddenError(
+                `You do not have permission to modify the scopes of role ${roleId}.`
+              );
+            }
+
+            await Role.write(
+              tx,
+              {
+                ...role,
+                scopes: simplify([
+                  ...role.scopes,
+                  ...possibleAdministrationScopes.filter(possible =>
+                    isSuperset(scopes, possible)
+                  )
+                ])
+              },
+              {
+                recordId: v4(),
+                createdByAuthorizationId: a.id,
+                createdAt: new Date()
+              }
+            );
+          }
 
           await tx.query("COMMIT");
           return authorization;

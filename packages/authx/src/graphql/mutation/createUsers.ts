@@ -1,10 +1,16 @@
 import v4 from "uuid/v4";
 import { GraphQLFieldConfig, GraphQLNonNull, GraphQLList } from "graphql";
-
+import { isSuperset, simplify } from "@authx/scopes";
 import { Context } from "../../Context";
 import { GraphQLUser } from "../GraphQLUser";
-import { User, UserType } from "../../model";
-import { ForbiddenError, ConflictError, NotFoundError } from "../../errors";
+import { User, UserType, Role } from "../../model";
+import { validateIdFormat } from "../../util/validateIdFormat";
+import {
+  ForbiddenError,
+  ConflictError,
+  NotFoundError,
+  ValidationError
+} from "../../errors";
 import { GraphQLCreateUserInput } from "./GraphQLCreateUserInput";
 
 export const createUsers: GraphQLFieldConfig<
@@ -15,6 +21,10 @@ export const createUsers: GraphQLFieldConfig<
       type: UserType;
       enabled: boolean;
       name: string;
+      administration: {
+        roleId: string;
+        scopes: string[];
+      }[];
     }[];
   },
   Context
@@ -32,18 +42,39 @@ export const createUsers: GraphQLFieldConfig<
     const { pool, authorization: a, realm } = context;
 
     if (!a) {
-      throw new ForbiddenError(
-        "You must be authenticated to create a authorization."
-      );
+      throw new ForbiddenError("You must be authenticated to create a user.");
     }
 
     return args.users.map(async input => {
+      // Validate `id`.
+      if (typeof input.id === "string" && !validateIdFormat(input.id)) {
+        throw new ValidationError("The provided `id` is an invalid ID.");
+      }
+
+      // Validate `administration`.
+      for (const { roleId } of input.administration) {
+        if (!validateIdFormat(roleId)) {
+          throw new ValidationError(
+            "The provided `administration` list contains a `roleId` that is an invalid ID."
+          );
+        }
+      }
+
       const tx = await pool.connect();
       try {
+        /* eslint-disable @typescript-eslint/camelcase */
+        const values: { [name: string]: null | string } = {
+          current_authorization_id: a.id,
+          current_user_id: a.userId,
+          current_grant_id: a.grantId ?? null,
+          current_client_id: (await a.grant(tx))?.clientId ?? null
+        };
+        /* eslint-enable @typescript-eslint/camelcase */
+
         // can create a new user
-        if (!(await a.can(tx, `${realm}:user.*:write.*`))) {
+        if (!(await a.can(tx, values, `${realm}:user.......:*....`))) {
           throw new ForbiddenError(
-            "You must be authenticated to create a authorization."
+            "You must be authenticated to create a user."
           );
         }
 
@@ -62,7 +93,7 @@ export const createUsers: GraphQLFieldConfig<
             }
           }
 
-          const id = v4();
+          const id = input.id || v4();
           const user = await User.write(
             tx,
             {
@@ -77,6 +108,61 @@ export const createUsers: GraphQLFieldConfig<
               createdAt: new Date()
             }
           );
+
+          const possibleAdministrationScopes = [
+            `${realm}:v2.user.......${id}:r....`,
+            `${realm}:v2.user.......${id}:w....`,
+            `${realm}:v2.user.......${id}:*....`,
+
+            `${realm}:v2.grant...*..*..${id}:r....`,
+            `${realm}:v2.grant...*..*..${id}:r...r.`,
+            `${realm}:v2.grant...*..*..${id}:r..r..`,
+            `${realm}:v2.grant...*..*..${id}:r..*.*.`,
+            `${realm}:v2.grant...*..*..${id}:w....`,
+            `${realm}:v2.grant...*..*..${id}:w...w.`,
+            `${realm}:v2.grant...*..*..${id}:w..w..`,
+            `${realm}:v2.grant...*..*..${id}:w..*.*.`,
+            `${realm}:v2.grant...*..*..${id}:*..*.*.`,
+
+            `${realm}:v2.authorization..*.*..*..${id}:r....`,
+            `${realm}:v2.authorization..*.*..*..${id}:r..r..`,
+            `${realm}:v2.authorization..*.*..*..${id}:r...r.`,
+            `${realm}:v2.authorization..*.*..*..${id}:r..*.*.`,
+            `${realm}:v2.authorization..*.*..*..${id}:w....`,
+            `${realm}:v2.authorization..*.*..*..${id}:w..w..`,
+            `${realm}:v2.authorization..*.*..*..${id}:w...w.`,
+            `${realm}:v2.authorization..*.*..*..${id}:w..*.*.`,
+            `${realm}:v2.authorization..*.*..*..${id}:*..*.*.`
+          ];
+
+          // Add administration scopes.
+          for (const { roleId, scopes } of input.administration) {
+            const role = await Role.read(tx, roleId, { forUpdate: true });
+
+            if (!role.isAccessibleBy(realm, a, tx, "w..w..")) {
+              throw new ForbiddenError(
+                `You do not have permission to modify the scopes of role ${roleId}.`
+              );
+            }
+
+            await Role.write(
+              tx,
+              {
+                ...role,
+                scopes: simplify([
+                  ...role.scopes,
+                  ...possibleAdministrationScopes.filter(possible =>
+                    isSuperset(scopes, possible)
+                  )
+                ])
+              },
+              {
+                recordId: v4(),
+                createdByAuthorizationId: a.id,
+                createdAt: new Date()
+              }
+            );
+          }
 
           await tx.query("COMMIT");
           return user;
