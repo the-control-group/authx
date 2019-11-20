@@ -155,9 +155,9 @@ Given an entity type, relevant IDs will be present in the context:
 | `role`          |                |                    |             |                 |            |     ✪     |           |
 | `user`          |                |                    |             |                 |            |           |     ✪     |
 
-○ An ID may be present.
-● An ID will always be present for an action.
-✪ An ID will be present for existing entities, and will be empty for a _new_ entity.
+- ○ An ID may be present.
+- ● An ID will always be present for an action.
+- ✪ An ID will be present for existing entities, and will be empty for a _new_ entity.
 
 ### Action
 
@@ -185,8 +185,8 @@ authx:v2.client.......:*..*.*.
 | `role`          |    ✪    |           |    ●     |           |    ●    |
 | `user`          |    ✪    |           |    ●     |           |         |
 
-● An `r` will be checked for reads; a `w` will be checked for writes.
-✪ All other applicable positions will check for a corresponding `r` or `w` in this position.
+- ● An `r` will be checked for reads; a `w` will be checked for writes.
+- ✪ All other applicable positions will check for a corresponding `r` or `w` in this position.
 
 ## OAuth
 
@@ -205,4 +205,5 @@ The following scopes are implicit in an OAuth request:
 authx:v2.authorization..*.{current_client_id}..{current_grant_id}..{current_user_id}:*..*.*.
 ```
 
-## Human Readable Descriptions
+## Scope Explanations
+
