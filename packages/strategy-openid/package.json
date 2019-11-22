@@ -6,7 +6,7 @@
   "bugs": "https://github.com/the-control-group/authx/issues",
   "dependencies": {
     "@authx/scopes": "^2.4.0-beta.1",
-    "@authx/strategy-email": "^1.0.0-beta.0",
+    "@authx/strategy-email": "^1.0.0-beta.10",
     "@types/pg": "^7.11.2",
     "@types/uuid": "^3.4.6",
     "graphql": "^14.5.8",
@@ -60,5 +60,5 @@
     "test:development": "ava --verbose --watch dist/*.test.js"
   },
   "types": "dist/server/index.d.ts",
-  "version": "1.0.0-beta.11"
+  "version": "1.0.0-beta.12"
 }
