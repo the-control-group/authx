@@ -5,6 +5,7 @@ import { Context } from "../../Context";
 import { GraphQLRole } from "../GraphQLRole";
 import { Role } from "../../model";
 import { validateIdFormat } from "../../util/validateIdFormat";
+import { createV2AuthXScope } from "../../util/scopes";
 import {
   ForbiddenError,
   ConflictError,
@@ -82,7 +83,24 @@ export const createRoles: GraphQLFieldConfig<
         };
         /* eslint-enable @typescript-eslint/camelcase */
 
-        if (!(await a.can(tx, values, `${realm}:role.......:*..*..*`))) {
+        if (
+          !(await a.can(
+            tx,
+            values,
+            createV2AuthXScope(
+              realm,
+              {
+                type: "role",
+                roleId: ""
+              },
+              {
+                basic: "*",
+                scopes: "*",
+                users: "*"
+              }
+            )
+          ))
+        ) {
           throw new ForbiddenError(
             "You do not have permission to create roles."
           );
@@ -105,16 +123,57 @@ export const createRoles: GraphQLFieldConfig<
 
           const id = input.id || v4();
 
+          const roleScopeContext = {
+            type: "role" as "role",
+            roleId: id
+          };
+
           const possibleAdministrationScopes = [
-            `${realm}:v2.role......${id}.:r....`,
-            `${realm}:v2.role......${id}.:r..r..`,
-            `${realm}:v2.role......${id}.:r....r`,
-            `${realm}:v2.role......${id}.:r..*..*`,
-            `${realm}:v2.role......${id}.:w....`,
-            `${realm}:v2.role......${id}.:w..w..`,
-            `${realm}:v2.role......${id}.:w....w`,
-            `${realm}:v2.role......${id}.:w..*..*`,
-            `${realm}:v2.role......${id}.:*..*..*`
+            createV2AuthXScope(realm, roleScopeContext, {
+              basic: "r",
+              scopes: "",
+              users: ""
+            }),
+            createV2AuthXScope(realm, roleScopeContext, {
+              basic: "r",
+              scopes: "r",
+              users: ""
+            }),
+            createV2AuthXScope(realm, roleScopeContext, {
+              basic: "r",
+              scopes: "",
+              users: "r"
+            }),
+            createV2AuthXScope(realm, roleScopeContext, {
+              basic: "r",
+              scopes: "*",
+              users: "*"
+            }),
+            createV2AuthXScope(realm, roleScopeContext, {
+              basic: "w",
+              scopes: "",
+              users: ""
+            }),
+            createV2AuthXScope(realm, roleScopeContext, {
+              basic: "w",
+              scopes: "w",
+              users: ""
+            }),
+            createV2AuthXScope(realm, roleScopeContext, {
+              basic: "w",
+              scopes: "",
+              users: "w"
+            }),
+            createV2AuthXScope(realm, roleScopeContext, {
+              basic: "w",
+              scopes: "*",
+              users: "*"
+            }),
+            createV2AuthXScope(realm, roleScopeContext, {
+              basic: "*",
+              scopes: "*",
+              users: "*"
+            })
           ];
 
           let selfAdministrationScopes: string[] = [];

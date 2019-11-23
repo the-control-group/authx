@@ -3,6 +3,7 @@ import { Authority } from "./Authority";
 import { User } from "./User";
 import { Authorization } from "./Authorization";
 import { NotFoundError } from "../errors";
+import { CredentialAction, createV2AuthXScope } from "../util/scopes";
 
 export interface CredentialData<C> {
   readonly id: string;
@@ -36,7 +37,10 @@ export abstract class Credential<C> implements CredentialData<C> {
     realm: string,
     a: Authorization,
     tx: PoolClient,
-    action: string = "r...."
+    action: CredentialAction = {
+      basic: "r",
+      details: ""
+    }
   ): Promise<boolean> {
     /* eslint-disable @typescript-eslint/camelcase */
     const values: { [name: string]: null | string } = {
@@ -51,7 +55,16 @@ export abstract class Credential<C> implements CredentialData<C> {
       await a.can(
         tx,
         values,
-        `${realm}:v2.credential....${this.id}...:${action}`
+        createV2AuthXScope(
+          realm,
+          {
+            type: "credential",
+            authorityId: this.authorityId,
+            credentialId: this.id,
+            userId: this.userId
+          },
+          action
+        )
       )
     ) {
       return true;

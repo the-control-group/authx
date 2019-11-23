@@ -2,6 +2,7 @@ import { PoolClient } from "pg";
 import { Grant } from "./Grant";
 import { Authorization } from "./Authorization";
 import { NotFoundError } from "../errors";
+import { ClientAction, createV2AuthXScope } from "../util/scopes";
 
 export interface ClientData {
   readonly id: string;
@@ -35,7 +36,10 @@ export class Client implements ClientData {
     realm: string,
     a: Authorization,
     tx: PoolClient,
-    action: string = "r...."
+    action: ClientAction = {
+      basic: "r",
+      secrets: ""
+    }
   ): Promise<boolean> {
     /* eslint-disable @typescript-eslint/camelcase */
     const values: { [name: string]: null | string } = {
@@ -47,7 +51,18 @@ export class Client implements ClientData {
     /* eslint-enable @typescript-eslint/camelcase */
 
     if (
-      await a.can(tx, values, `${realm}:v2.client...${this.id}....:${action}`)
+      await a.can(
+        tx,
+        values,
+        createV2AuthXScope(
+          realm,
+          {
+            type: "client",
+            clientId: this.id
+          },
+          action
+        )
+      )
     ) {
       return true;
     }

@@ -5,6 +5,7 @@ import { Context } from "../../Context";
 import { GraphQLUser } from "../GraphQLUser";
 import { User, UserType, Role } from "../../model";
 import { validateIdFormat } from "../../util/validateIdFormat";
+import { createV2AuthXScope } from "../../util/scopes";
 import {
   ForbiddenError,
   ConflictError,
@@ -72,7 +73,22 @@ export const createUsers: GraphQLFieldConfig<
         /* eslint-enable @typescript-eslint/camelcase */
 
         // can create a new user
-        if (!(await a.can(tx, values, `${realm}:user.......:*....`))) {
+        if (
+          !(await a.can(
+            tx,
+            values,
+            createV2AuthXScope(
+              realm,
+              {
+                type: "user",
+                userId: ""
+              },
+              {
+                basic: "*"
+              }
+            )
+          ))
+        ) {
           throw new ForbiddenError(
             "You must be authenticated to create a user."
           );
@@ -109,30 +125,127 @@ export const createUsers: GraphQLFieldConfig<
             }
           );
 
+          const userScopeContext = {
+            type: "user" as "user",
+            userId: id
+          };
+
+          const grantScopeContext = {
+            type: "grant" as "grant",
+            clientId: "*",
+            grantId: "*",
+            userId: id
+          };
+
+          const authorizationScopeContext = {
+            type: "authorization" as "authorization",
+            authorizationId: "*",
+            clientId: "*",
+            grantId: "*",
+            userId: id
+          };
+
           const possibleAdministrationScopes = [
-            `${realm}:v2.user.......${id}:r....`,
-            `${realm}:v2.user.......${id}:w....`,
-            `${realm}:v2.user.......${id}:*....`,
+            // user ------------------------------------------------------------
+            createV2AuthXScope(realm, userScopeContext, {
+              basic: "r"
+            }),
+            createV2AuthXScope(realm, userScopeContext, {
+              basic: "w"
+            }),
+            createV2AuthXScope(realm, userScopeContext, {
+              basic: "*"
+            }),
 
-            `${realm}:v2.grant...*..*..${id}:r....`,
-            `${realm}:v2.grant...*..*..${id}:r...r.`,
-            `${realm}:v2.grant...*..*..${id}:r..r..`,
-            `${realm}:v2.grant...*..*..${id}:r..*.*.`,
-            `${realm}:v2.grant...*..*..${id}:w....`,
-            `${realm}:v2.grant...*..*..${id}:w...w.`,
-            `${realm}:v2.grant...*..*..${id}:w..w..`,
-            `${realm}:v2.grant...*..*..${id}:w..*.*.`,
-            `${realm}:v2.grant...*..*..${id}:*..*.*.`,
+            createV2AuthXScope(realm, grantScopeContext, {
+              basic: "r",
+              scopes: "",
+              secrets: ""
+            }),
+            createV2AuthXScope(realm, grantScopeContext, {
+              basic: "r",
+              scopes: "",
+              secrets: ""
+            }),
 
-            `${realm}:v2.authorization..*.*..*..${id}:r....`,
-            `${realm}:v2.authorization..*.*..*..${id}:r..r..`,
-            `${realm}:v2.authorization..*.*..*..${id}:r...r.`,
-            `${realm}:v2.authorization..*.*..*..${id}:r..*.*.`,
-            `${realm}:v2.authorization..*.*..*..${id}:w....`,
-            `${realm}:v2.authorization..*.*..*..${id}:w..w..`,
-            `${realm}:v2.authorization..*.*..*..${id}:w...w.`,
-            `${realm}:v2.authorization..*.*..*..${id}:w..*.*.`,
-            `${realm}:v2.authorization..*.*..*..${id}:*..*.*.`
+            // grant -----------------------------------------------------------
+            createV2AuthXScope(realm, grantScopeContext, {
+              basic: "r",
+              scopes: "",
+              secrets: ""
+            }),
+            createV2AuthXScope(realm, grantScopeContext, {
+              basic: "r",
+              scopes: "r",
+              secrets: ""
+            }),
+            createV2AuthXScope(realm, grantScopeContext, {
+              basic: "r",
+              scopes: "",
+              secrets: "r"
+            }),
+            createV2AuthXScope(realm, grantScopeContext, {
+              basic: "r",
+              scopes: "*",
+              secrets: "*"
+            }),
+            createV2AuthXScope(realm, grantScopeContext, {
+              basic: "w",
+              scopes: "",
+              secrets: ""
+            }),
+            createV2AuthXScope(realm, grantScopeContext, {
+              basic: "w",
+              scopes: "w",
+              secrets: ""
+            }),
+            createV2AuthXScope(realm, grantScopeContext, {
+              basic: "w",
+              scopes: "",
+              secrets: "w"
+            }),
+            createV2AuthXScope(realm, grantScopeContext, {
+              basic: "w",
+              scopes: "*",
+              secrets: "*"
+            }),
+            createV2AuthXScope(realm, grantScopeContext, {
+              basic: "*",
+              scopes: "*",
+              secrets: "*"
+            }),
+
+            // authorization ---------------------------------------------------
+            createV2AuthXScope(realm, authorizationScopeContext, {
+              basic: "r",
+              scopes: "",
+              secrets: ""
+            }),
+            createV2AuthXScope(realm, authorizationScopeContext, {
+              basic: "r",
+              scopes: "r",
+              secrets: ""
+            }),
+            createV2AuthXScope(realm, authorizationScopeContext, {
+              basic: "r",
+              scopes: "",
+              secrets: "r"
+            }),
+            createV2AuthXScope(realm, authorizationScopeContext, {
+              basic: "r",
+              scopes: "*",
+              secrets: "*"
+            }),
+            createV2AuthXScope(realm, authorizationScopeContext, {
+              basic: "w",
+              scopes: "",
+              secrets: ""
+            }),
+            createV2AuthXScope(realm, authorizationScopeContext, {
+              basic: "*",
+              scopes: "*",
+              secrets: "*"
+            })
           ];
 
           // Add administration scopes.

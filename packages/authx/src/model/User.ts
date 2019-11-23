@@ -5,6 +5,7 @@ import { Role } from "./Role";
 import { simplify, isSuperset } from "@authx/scopes";
 import { Authorization } from "./Authorization";
 import { NotFoundError } from "../errors";
+import { UserAction, createV2AuthXScope } from "../util/scopes";
 
 export type UserType = "human" | "bot";
 
@@ -37,7 +38,9 @@ export class User implements UserData {
     realm: string,
     a: Authorization,
     tx: PoolClient,
-    action: string = "r...."
+    action: UserAction = {
+      basic: "r"
+    }
   ): Promise<boolean> {
     /* eslint-disable @typescript-eslint/camelcase */
     const values: { [name: string]: null | string } = {
@@ -49,7 +52,18 @@ export class User implements UserData {
     /* eslint-enable @typescript-eslint/camelcase */
 
     if (
-      await a.can(tx, values, `${realm}:v2.user.......${this.id}:${action}`)
+      await a.can(
+        tx,
+        values,
+        createV2AuthXScope(
+          realm,
+          {
+            type: "user",
+            userId: this.id
+          },
+          action
+        )
+      )
     ) {
       return true;
     }

@@ -3,6 +3,7 @@ import { User } from "./User";
 import { Grant } from "./Grant";
 import { simplify, getIntersection, isSuperset } from "@authx/scopes";
 import { NotFoundError } from "../errors";
+import { AuthorizationAction, createV2AuthXScope } from "../util/scopes";
 
 export interface AuthorizationData {
   readonly id: string;
@@ -38,7 +39,11 @@ export class Authorization implements AuthorizationData {
     realm: string,
     a: Authorization,
     tx: PoolClient,
-    action: string = "r...."
+    action: AuthorizationAction = {
+      basic: "r",
+      scopes: "",
+      secrets: ""
+    }
   ): Promise<boolean> {
     /* eslint-disable @typescript-eslint/camelcase */
     const values: { [name: string]: null | string } = {
@@ -53,7 +58,17 @@ export class Authorization implements AuthorizationData {
       await a.can(
         tx,
         values,
-        `${realm}:v2.authorization..${this.id}.....:${action}`
+        createV2AuthXScope(
+          realm,
+          {
+            type: "authorization",
+            authorizationId: this.id,
+            grantId: this.grantId ?? "",
+            clientId: (await this.grant(tx))?.clientId ?? "",
+            userId: this.userId
+          },
+          action
+        )
       )
     ) {
       return true;

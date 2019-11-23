@@ -2,6 +2,7 @@ import { PoolClient } from "pg";
 import { Credential } from "./Credential";
 import { Authorization } from "./Authorization";
 import { NotFoundError } from "../errors";
+import { AuthorityAction, createV2AuthXScope } from "../util/scopes";
 
 export interface AuthorityData<A> {
   readonly id: string;
@@ -33,7 +34,10 @@ export abstract class Authority<A> implements AuthorityData<A> {
     realm: string,
     a: Authorization,
     tx: PoolClient,
-    action: string = "r...."
+    action: AuthorityAction = {
+      basic: "r",
+      details: ""
+    }
   ): Promise<boolean> {
     /* eslint-disable @typescript-eslint/camelcase */
     const values: { [name: string]: null | string } = {
@@ -48,7 +52,14 @@ export abstract class Authority<A> implements AuthorityData<A> {
       await a.can(
         tx,
         values,
-        `${realm}:v2.authority.${this.id}......:${action}`
+        createV2AuthXScope(
+          realm,
+          {
+            type: "authority",
+            authorityId: this.id
+          },
+          action
+        )
       )
     ) {
       return true;

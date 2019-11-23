@@ -138,14 +138,14 @@ AuthX uses its own authorization system to restrict access to its resources. A s
 For an AuthX resource, the **context** is always in the following format:
 
 ```
-v2.(entity_type).(authority_id).(authorization_id).(client_id).(credential_id).(role_id).(user_id)
+v2.(type).(authority_id).(authorization_id).(client_id).(credential_id).(role_id).(user_id)
 ```
 
 When checking for the ability to perform an action on an entity, the entity's ID and the IDs of related entities are present on the compared scope. When creating a _new_ entity, only the IDs of related entities will be present, and the position of the entity' ID will be empty, even if an ID is specified for the entity in its creation request.
 
 Given an entity type, relevant IDs will be present in the context:
 
-| `entity_type`   | `authority_id` | `authorization_id` | `client_id` | `credential_id` | `grant_id` | `role_id` | `user_id` |
+| `type`          | `authority_id` | `authorization_id` | `client_id` | `credential_id` | `grant_id` | `role_id` | `user_id` |
 | --------------- | :------------: | :----------------: | :---------: | :-------------: | :--------: | :-------: | :-------: |
 | `authority`     |       ✪        |                    |             |                 |            |           |           |
 | `authorization` |                |         ✪          |      ●      |                 |     ○      |           |     ●     |
@@ -175,7 +175,7 @@ To _create_ a new entity, a value of `*` is required in each relevant position. 
 authx:v2.client.......:*..*.*.
 ```
 
-| `entity_type`   | `basic` | `details` | `scopes` | `secrets` | `users` |
+| `type`          | `basic` | `details` | `scopes` | `secrets` | `users` |
 | --------------- | :-----: | :-------: | :------: | :-------: | :-----: |
 | `authority`     |    ✪    |     ●     |          |           |         |
 | `authorization` |    ✪    |           |    ●     |     ●     |         |
