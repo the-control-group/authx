@@ -148,7 +148,11 @@ export const GraphQLUser: GraphQLObjectType<
                   await user.roles(tx),
                   async role =>
                     (await role.isAccessibleBy(realm, a, tx)) &&
-                    (await role.isAccessibleBy(realm, a, tx, "r....r"))
+                    (await role.isAccessibleBy(realm, a, tx, {
+                      basic: "r",
+                      scopes: "",
+                      users: "r"
+                    }))
                 ),
                 args
               )

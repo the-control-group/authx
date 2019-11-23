@@ -77,7 +77,12 @@ export const GraphQLGrant: GraphQLObjectType<
       ): Promise<null | string[]> {
         const tx = await pool.connect();
         try {
-          return a && (await grant.isAccessibleBy(realm, a, tx, "r...r."))
+          return a &&
+            (await grant.isAccessibleBy(realm, a, tx, {
+              basic: "r",
+              scopes: "",
+              secrets: "r"
+            }))
             ? [...grant.secrets]
             : null;
         } finally {
@@ -94,7 +99,12 @@ export const GraphQLGrant: GraphQLObjectType<
       ): Promise<null | string[]> {
         const tx = await pool.connect();
         try {
-          return a && (await grant.isAccessibleBy(realm, a, tx, "r...r."))
+          return a &&
+            (await grant.isAccessibleBy(realm, a, tx, {
+              basic: "r",
+              scopes: "",
+              secrets: "r"
+            }))
             ? [...grant.codes]
             : null;
         } finally {
@@ -111,7 +121,12 @@ export const GraphQLGrant: GraphQLObjectType<
       ): Promise<null | string[]> {
         const tx = await pool.connect();
         try {
-          return a && (await grant.isAccessibleBy(realm, a, tx, "r..r.."))
+          return a &&
+            (await grant.isAccessibleBy(realm, a, tx, {
+              basic: "r",
+              scopes: "r",
+              secrets: ""
+            }))
             ? grant.scopes
             : null;
         } finally {
@@ -129,7 +144,14 @@ export const GraphQLGrant: GraphQLObjectType<
       ): Promise<null | Explanation[]> {
         const tx = await pool.connect();
         try {
-          if (!a || !(await grant.isAccessibleBy(realm, a, tx, "r..r.."))) {
+          if (
+            !a ||
+            !(await grant.isAccessibleBy(realm, a, tx, {
+              basic: "r",
+              scopes: "r",
+              secrets: ""
+            }))
+          ) {
             return null;
           }
           return match(explanations, grant.scopes, {

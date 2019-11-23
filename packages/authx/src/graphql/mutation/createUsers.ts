@@ -252,7 +252,13 @@ export const createUsers: GraphQLFieldConfig<
           for (const { roleId, scopes } of input.administration) {
             const role = await Role.read(tx, roleId, { forUpdate: true });
 
-            if (!role.isAccessibleBy(realm, a, tx, "w..w..")) {
+            if (
+              !role.isAccessibleBy(realm, a, tx, {
+                basic: "w",
+                scopes: "w",
+                users: ""
+              })
+            ) {
               throw new ForbiddenError(
                 `You do not have permission to modify the scopes of role ${roleId}.`
               );
