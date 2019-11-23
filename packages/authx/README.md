@@ -206,4 +206,3 @@ authx:v2.authorization..*.{current_client_id}..{current_grant_id}..{current_user
 ```
 
 ## Scope Explanations
-
