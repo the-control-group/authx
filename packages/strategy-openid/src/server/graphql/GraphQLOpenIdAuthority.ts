@@ -60,7 +60,11 @@ export const GraphQLOpenIdAuthority = new GraphQLObjectType<
       ): Promise<null | string> {
         const tx = await pool.connect();
         try {
-          return a && (await authority.isAccessibleBy(realm, a, tx, "read.*"))
+          return a &&
+            (await authority.isAccessibleBy(realm, a, tx, {
+              basic: "r",
+              details: "r"
+            }))
             ? authority.details.tokenUrl
             : null;
         } finally {
@@ -85,7 +89,11 @@ export const GraphQLOpenIdAuthority = new GraphQLObjectType<
       ): Promise<null | string> {
         const tx = await pool.connect();
         try {
-          return a && (await authority.isAccessibleBy(realm, a, tx, "read.*"))
+          return a &&
+            (await authority.isAccessibleBy(realm, a, tx, {
+              basic: "r",
+              details: "r"
+            }))
             ? authority.details.clientSecret
             : null;
         } finally {
@@ -104,7 +112,11 @@ export const GraphQLOpenIdAuthority = new GraphQLObjectType<
       ): Promise<null | string[]> {
         const tx = await pool.connect();
         try {
-          return a && (await authority.isAccessibleBy(realm, a, tx, "read.*"))
+          return a &&
+            (await authority.isAccessibleBy(realm, a, tx, {
+              basic: "r",
+              details: "r"
+            }))
             ? authority.details.restrictsAccountsToHostedDomains
             : null;
         } finally {
@@ -122,7 +134,13 @@ export const GraphQLOpenIdAuthority = new GraphQLObjectType<
       ): Promise<null | EmailAuthority> {
         const tx = await pool.connect();
         try {
-          if (!a || !(await authority.isAccessibleBy(realm, a, tx, "read.*"))) {
+          if (
+            !a ||
+            !(await authority.isAccessibleBy(realm, a, tx, {
+              basic: "r",
+              details: "r"
+            }))
+          ) {
             return null;
           }
 
@@ -146,7 +164,11 @@ export const GraphQLOpenIdAuthority = new GraphQLObjectType<
       ): Promise<null | boolean> {
         const tx = await pool.connect();
         try {
-          return a && (await authority.isAccessibleBy(realm, a, tx, "read.*"))
+          return a &&
+            (await authority.isAccessibleBy(realm, a, tx, {
+              basic: "r",
+              details: "r"
+            }))
             ? authority.details.matchesUsersByEmail
             : null;
         } finally {
@@ -165,7 +187,11 @@ export const GraphQLOpenIdAuthority = new GraphQLObjectType<
       ): Promise<null | boolean> {
         const tx = await pool.connect();
         try {
-          return a && (await authority.isAccessibleBy(realm, a, tx, "read.*"))
+          return a &&
+            (await authority.isAccessibleBy(realm, a, tx, {
+              basic: "r",
+              details: "r"
+            }))
             ? authority.details.createsUnmatchedUsers
             : null;
         } finally {
@@ -185,7 +211,13 @@ export const GraphQLOpenIdAuthority = new GraphQLObjectType<
       ): Promise<null | Role[]> {
         const tx = await pool.connect();
         try {
-          if (!a || !(await authority.isAccessibleBy(realm, a, tx, "read.*"))) {
+          if (
+            !a ||
+            !(await authority.isAccessibleBy(realm, a, tx, {
+              basic: "r",
+              details: "r"
+            }))
+          ) {
             return null;
           }
 

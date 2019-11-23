@@ -16,6 +16,8 @@ import {
   GraphQLContext
 } from "graphql-react";
 
+import { createV2AuthXScope } from "@authx/authx/dist/util/scopes";
+
 import { isSuperset, getDifference, simplify, inject } from "@authx/scopes";
 import { match } from "@authx/authx/dist/util/explanations";
 
@@ -289,7 +291,21 @@ export function Authorize({
         ? inject(
             [
               ...requestedScopeTemplates,
-              `${__REALM__}:v2.authorization..*.{current_client_id}..{current_grant_id}..{current_user_id}:*..*.*.`
+              createV2AuthXScope(
+                __REALM__,
+                {
+                  type: "authorization",
+                  authorizationId: "*",
+                  clientId: "{current_client_id}",
+                  grantId: "{current_grant_id}",
+                  userId: "{current_user_id}"
+                },
+                {
+                  basic: "*",
+                  scopes: "*",
+                  secrets: "*"
+                }
+              )
             ],
             {
               /* eslint-disable @typescript-eslint/camelcase */

@@ -64,7 +64,12 @@ export const updateOpenIdCredentials: GraphQLFieldConfig<
           throw new NotFoundError("No openid credential exists with this ID.");
         }
 
-        if (!(await before.isAccessibleBy(realm, a, tx, "write.basic"))) {
+        if (
+          !(await before.isAccessibleBy(realm, a, tx, {
+            basic: "w",
+            details: ""
+          }))
+        ) {
           throw new ForbiddenError(
             "You do not have permission to update this credential."
           );

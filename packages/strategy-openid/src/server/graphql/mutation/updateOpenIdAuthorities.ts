@@ -85,7 +85,12 @@ export const updateOpenIdAuthorities: GraphQLFieldConfig<
           throw new NotFoundError("No openid authority exists with this ID.");
         }
 
-        if (!(await before.isAccessibleBy(realm, a, tx, "write.basic"))) {
+        if (
+          !(await before.isAccessibleBy(realm, a, tx, {
+            basic: "w",
+            details: ""
+          }))
+        ) {
           throw new ForbiddenError(
             "You do not have permission to update this authority."
           );
@@ -94,7 +99,10 @@ export const updateOpenIdAuthorities: GraphQLFieldConfig<
         if (
           (typeof input.clientId === "string" ||
             typeof input.clientSecret === "string") &&
-          !(await before.isAccessibleBy(realm, a, tx, "write.*"))
+          !(await before.isAccessibleBy(realm, a, tx, {
+            basic: "w",
+            details: "w"
+          }))
         ) {
           throw new ForbiddenError(
             "You do not have permission to update this authority's details."

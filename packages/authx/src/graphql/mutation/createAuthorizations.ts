@@ -6,6 +6,7 @@ import { Context } from "../../Context";
 import { GraphQLAuthorization } from "../GraphQLAuthorization";
 import { Authorization, Grant, Role } from "../../model";
 import { validateIdFormat } from "../../util/validateIdFormat";
+import { createV2AuthXScope } from "../../util/scopes";
 import {
   ForbiddenError,
   ConflictError,
@@ -95,8 +96,21 @@ export const createAuthorizations: GraphQLFieldConfig<
           !(await a.can(
             tx,
             values,
-            `${realm}:v2.authorization...${(grant && grant.clientId) ||
-              ""}..${(grant && grant.id) || ""}..${input.userId}:*..*.*.`
+            createV2AuthXScope(
+              realm,
+              {
+                type: "authorization",
+                authorizationId: "",
+                clientId: grant?.clientId ?? "",
+                grantId: grant?.id ?? "",
+                userId: input.userId
+              },
+              {
+                basic: "*",
+                scopes: "*",
+                secrets: "*"
+              }
+            )
           ))
         ) {
           throw new ForbiddenError(
@@ -143,26 +157,58 @@ export const createAuthorizations: GraphQLFieldConfig<
             }
           );
 
+          const authorizationScopeContext = {
+            type: "authorization" as "authorization",
+            authorizationId: id,
+            clientId: grant?.clientId ?? "",
+            grantId: grant?.id ?? "",
+            userId: input.userId
+          };
+
           const possibleAdministrationScopes = [
-            `${realm}:v2.authorization..${id}.${(grant && grant.clientId) ||
-              ""}..${(grant && grant.id) || ""}..*:r....`,
-            `${realm}:v2.authorization..${id}.${(grant && grant.clientId) ||
-              ""}..${(grant && grant.id) || ""}..*:r...r.`,
-            `${realm}:v2.authorization..${id}.${(grant && grant.clientId) ||
-              ""}..${(grant && grant.id) || ""}..*:r..r..`,
-            `${realm}:v2.authorization..${id}.${(grant && grant.clientId) ||
-              ""}..${(grant && grant.id) || ""}..*:r..*.*.`,
-            `${realm}:v2.authorization..${id}.${(grant && grant.clientId) ||
-              ""}..${(grant && grant.id) || ""}..*:w....`,
-            `${realm}:v2.authorization..${id}.${(grant && grant.clientId) ||
-              ""}..${(grant && grant.id) || ""}..*:*..*.*.`
+            createV2AuthXScope(realm, authorizationScopeContext, {
+              basic: "r",
+              scopes: "",
+              secrets: ""
+            }),
+            createV2AuthXScope(realm, authorizationScopeContext, {
+              basic: "r",
+              scopes: "r",
+              secrets: ""
+            }),
+            createV2AuthXScope(realm, authorizationScopeContext, {
+              basic: "r",
+              scopes: "",
+              secrets: "r"
+            }),
+            createV2AuthXScope(realm, authorizationScopeContext, {
+              basic: "r",
+              scopes: "*",
+              secrets: "*"
+            }),
+            createV2AuthXScope(realm, authorizationScopeContext, {
+              basic: "w",
+              scopes: "",
+              secrets: ""
+            }),
+            createV2AuthXScope(realm, authorizationScopeContext, {
+              basic: "*",
+              scopes: "*",
+              secrets: "*"
+            })
           ];
 
           // Add administration scopes.
           for (const { roleId, scopes } of input.administration) {
             const role = await Role.read(tx, roleId, { forUpdate: true });
 
-            if (!role.isAccessibleBy(realm, a, tx, "w..w..")) {
+            if (
+              !role.isAccessibleBy(realm, a, tx, {
+                basic: "w",
+                scopes: "w",
+                users: ""
+              })
+            ) {
               throw new ForbiddenError(
                 `You do not have permission to modify the scopes of role ${roleId}.`
               );

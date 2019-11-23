@@ -78,7 +78,12 @@ export const updateEmailAuthorities: GraphQLFieldConfig<
           );
         }
 
-        if (!(await before.isAccessibleBy(realm, a, tx, "write.basic"))) {
+        if (
+          !(await before.isAccessibleBy(realm, a, tx, {
+            basic: "w",
+            details: ""
+          }))
+        ) {
           throw new ForbiddenError(
             "You do not have permission to update this authority."
           );
@@ -95,7 +100,10 @@ export const updateEmailAuthorities: GraphQLFieldConfig<
             typeof input.verificationEmailSubject === "string" ||
             typeof input.verificationEmailText === "string" ||
             typeof input.verificationEmailHtml === "string") &&
-          !(await before.isAccessibleBy(realm, a, tx, "write.*"))
+          !(await before.isAccessibleBy(realm, a, tx, {
+            basic: "w",
+            details: "w"
+          }))
         ) {
           throw new ForbiddenError(
             "You do not have permission to update this authority's details."

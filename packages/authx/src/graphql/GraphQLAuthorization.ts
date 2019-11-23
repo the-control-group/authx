@@ -72,7 +72,11 @@ export const GraphQLAuthorization: GraphQLObjectType<
         const tx = await pool.connect();
         try {
           return a &&
-            (await authorization.isAccessibleBy(realm, a, tx, "r...r."))
+            (await authorization.isAccessibleBy(realm, a, tx, {
+              basic: "r",
+              scopes: "",
+              secrets: "r"
+            }))
             ? authorization.secret
             : null;
         } finally {
@@ -90,7 +94,11 @@ export const GraphQLAuthorization: GraphQLObjectType<
         const tx = await pool.connect();
         try {
           return a &&
-            (await authorization.isAccessibleBy(realm, a, tx, "r..r.."))
+            (await authorization.isAccessibleBy(realm, a, tx, {
+              basic: "r",
+              scopes: "r",
+              secrets: ""
+            }))
             ? authorization.scopes
             : null;
         } finally {
@@ -109,7 +117,11 @@ export const GraphQLAuthorization: GraphQLObjectType<
         try {
           if (
             !a ||
-            !(await authorization.isAccessibleBy(realm, a, tx, "r..r.."))
+            !(await authorization.isAccessibleBy(realm, a, tx, {
+              basic: "r",
+              scopes: "r",
+              secrets: ""
+            }))
           ) {
             return null;
           }
@@ -144,7 +156,11 @@ export const GraphQLAuthorization: GraphQLObjectType<
           };
           /* eslint-enable @typescript-eslint/camelcase */
 
-          return (await authorization.isAccessibleBy(realm, a, tx, "r..r.."))
+          return (await authorization.isAccessibleBy(realm, a, tx, {
+            basic: "r",
+            scopes: "r",
+            secrets: ""
+          }))
             ? authorization.access(tx, values)
             : null;
         } finally {
@@ -174,8 +190,16 @@ export const GraphQLAuthorization: GraphQLObjectType<
         if (!a) return null;
         try {
           if (
-            !(await authorization.isAccessibleBy(realm, a, tx, "r..r..")) ||
-            !(await authorization.isAccessibleBy(realm, a, tx, "r...r."))
+            !(await authorization.isAccessibleBy(realm, a, tx, {
+              basic: "r",
+              scopes: "r",
+              secrets: ""
+            })) ||
+            !(await authorization.isAccessibleBy(realm, a, tx, {
+              basic: "r",
+              scopes: "",
+              secrets: "r"
+            }))
           ) {
             return null;
           }

@@ -36,7 +36,11 @@ export const GraphQLPasswordAuthority = new GraphQLObjectType<
       ): Promise<null | number> {
         const tx = await pool.connect();
         try {
-          return a && (await authority.isAccessibleBy(realm, a, tx, "read.*"))
+          return a &&
+            (await authority.isAccessibleBy(realm, a, tx, {
+              basic: "r",
+              details: "r"
+            }))
             ? authority.details.rounds
             : null;
         } finally {

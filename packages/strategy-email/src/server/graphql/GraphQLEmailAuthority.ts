@@ -38,7 +38,11 @@ export const GraphQLEmailAuthority = new GraphQLObjectType<
       ): Promise<null | string> {
         const tx = await pool.connect();
         try {
-          return a && (await authority.isAccessibleBy(realm, a, tx, "read.*"))
+          return a &&
+            (await authority.isAccessibleBy(realm, a, tx, {
+              basic: "r",
+              details: "r"
+            }))
             ? authority.details.privateKey
             : null;
         } finally {
@@ -57,7 +61,11 @@ export const GraphQLEmailAuthority = new GraphQLObjectType<
       ): Promise<null | string[]> {
         const tx = await pool.connect();
         try {
-          return a && (await authority.isAccessibleBy(realm, a, tx, "read.*"))
+          return a &&
+            (await authority.isAccessibleBy(realm, a, tx, {
+              basic: "r",
+              details: "r"
+            }))
             ? authority.details.publicKeys
             : null;
         } finally {
@@ -75,7 +83,11 @@ export const GraphQLEmailAuthority = new GraphQLObjectType<
       ): Promise<null | number> {
         const tx = await pool.connect();
         try {
-          return a && (await authority.isAccessibleBy(realm, a, tx, "read.*"))
+          return a &&
+            (await authority.isAccessibleBy(realm, a, tx, {
+              basic: "r",
+              details: "r"
+            }))
             ? authority.details.proofValidityDuration
             : null;
         } finally {
@@ -94,7 +106,11 @@ export const GraphQLEmailAuthority = new GraphQLObjectType<
       ): Promise<null | string> {
         const tx = await pool.connect();
         try {
-          return a && (await authority.isAccessibleBy(realm, a, tx, "read.*"))
+          return a &&
+            (await authority.isAccessibleBy(realm, a, tx, {
+              basic: "r",
+              details: "r"
+            }))
             ? authority.details.authenticationEmailSubject
             : null;
         } finally {
@@ -113,7 +129,11 @@ export const GraphQLEmailAuthority = new GraphQLObjectType<
       ): Promise<null | string> {
         const tx = await pool.connect();
         try {
-          return a && (await authority.isAccessibleBy(realm, a, tx, "read.*"))
+          return a &&
+            (await authority.isAccessibleBy(realm, a, tx, {
+              basic: "r",
+              details: "r"
+            }))
             ? authority.details.authenticationEmailText
             : null;
         } finally {
@@ -132,7 +152,11 @@ export const GraphQLEmailAuthority = new GraphQLObjectType<
       ): Promise<null | string> {
         const tx = await pool.connect();
         try {
-          return a && (await authority.isAccessibleBy(realm, a, tx, "read.*"))
+          return a &&
+            (await authority.isAccessibleBy(realm, a, tx, {
+              basic: "r",
+              details: "r"
+            }))
             ? authority.details.authenticationEmailHtml
             : null;
         } finally {
@@ -151,7 +175,11 @@ export const GraphQLEmailAuthority = new GraphQLObjectType<
       ): Promise<null | string> {
         const tx = await pool.connect();
         try {
-          return a && (await authority.isAccessibleBy(realm, a, tx, "read.*"))
+          return a &&
+            (await authority.isAccessibleBy(realm, a, tx, {
+              basic: "r",
+              details: "r"
+            }))
             ? authority.details.verificationEmailSubject
             : null;
         } finally {
@@ -170,7 +198,11 @@ export const GraphQLEmailAuthority = new GraphQLObjectType<
       ): Promise<null | string> {
         const tx = await pool.connect();
         try {
-          return a && (await authority.isAccessibleBy(realm, a, tx, "read.*"))
+          return a &&
+            (await authority.isAccessibleBy(realm, a, tx, {
+              basic: "r",
+              details: "r"
+            }))
             ? authority.details.verificationEmailText
             : null;
         } finally {
@@ -189,7 +221,11 @@ export const GraphQLEmailAuthority = new GraphQLObjectType<
       ): Promise<null | string> {
         const tx = await pool.connect();
         try {
-          return a && (await authority.isAccessibleBy(realm, a, tx, "read.*"))
+          return a &&
+            (await authority.isAccessibleBy(realm, a, tx, {
+              basic: "r",
+              details: "r"
+            }))
             ? authority.details.verificationEmailHtml
             : null;
         } finally {

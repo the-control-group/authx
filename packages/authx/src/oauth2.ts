@@ -4,6 +4,7 @@ import { randomBytes } from "crypto";
 import { Context } from "./Context";
 import { Client, Grant, Authorization } from "./model";
 import { NotFoundError } from "./errors";
+import { createV2AuthXScope } from "./util/scopes";
 import { inject, isEqual, isValidScopeTemplate } from "@authx/scopes";
 import { ParameterizedContext } from "koa";
 import { PoolClient } from "pg";
@@ -20,19 +21,55 @@ async function assertPermissions(
     !(await grant.can(
       tx,
       values,
-      `${realm}:v2.user.......${grant.userId}:r....`
+      createV2AuthXScope(
+        realm,
+        {
+          type: "user",
+          userId: grant.userId
+        },
+        {
+          basic: "r"
+        }
+      )
     )) ||
     // Check that we have every relevant grant scope:
     !(await grant.can(
       tx,
       values,
-      `${realm}:v2.grant...${grant.clientId}..${grant.id}..${grant.userId}:*..*.*.`
+      createV2AuthXScope(
+        realm,
+        {
+          type: "grant",
+          clientId: grant.clientId,
+          grantId: grant.id,
+          userId: grant.userId
+        },
+        {
+          basic: "*",
+          scopes: "*",
+          secrets: "*"
+        }
+      )
     )) ||
     // Check that we have every relevant authorization scope:
     !(await grant.can(
       tx,
       values,
-      `${realm}:v2.authorization..*.${grant.clientId}..${grant.id}..${grant.userId}:*..*.*.`
+      createV2AuthXScope(
+        realm,
+        {
+          type: "authorization",
+          authorizationId: "*",
+          clientId: grant.clientId,
+          grantId: grant.id,
+          userId: grant.userId
+        },
+        {
+          basic: "*",
+          scopes: "*",
+          secrets: "*"
+        }
+      )
     ))
   ) {
     throw new OAuthError(

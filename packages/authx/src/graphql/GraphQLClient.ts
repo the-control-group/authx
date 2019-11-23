@@ -35,7 +35,11 @@ export const GraphQLClient = new GraphQLObjectType<Client, Context>({
       ): Promise<null | string[]> {
         const tx = await pool.connect();
         try {
-          return a && (await client.isAccessibleBy(realm, a, tx, "r...r."))
+          return a &&
+            (await client.isAccessibleBy(realm, a, tx, {
+              basic: "r",
+              secrets: "r"
+            }))
             ? [...client.secrets]
             : null;
         } finally {

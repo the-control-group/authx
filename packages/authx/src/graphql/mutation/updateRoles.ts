@@ -65,7 +65,13 @@ export const updateRoles: GraphQLFieldConfig<
         });
 
         // w.... -----------------------------------------------------------
-        if (!(await before.isAccessibleBy(realm, a, tx, "w...."))) {
+        if (
+          !(await before.isAccessibleBy(realm, a, tx, {
+            basic: "w",
+            scopes: "",
+            users: ""
+          }))
+        ) {
           throw new ForbiddenError(
             "You do not have permission to update this role."
           );
@@ -74,7 +80,11 @@ export const updateRoles: GraphQLFieldConfig<
         // w..w.. ----------------------------------------------------------
         if (
           input.scopes &&
-          !(await before.isAccessibleBy(realm, a, tx, "w..w.."))
+          !(await before.isAccessibleBy(realm, a, tx, {
+            basic: "w",
+            scopes: "w",
+            users: ""
+          }))
         ) {
           throw new ForbiddenError(
             "You do not have permission to update this role's scopes."
@@ -99,7 +109,12 @@ export const updateRoles: GraphQLFieldConfig<
             ? (
                 await filter(
                   await Role.read(tx, roleIDs, { forUpdate: true }),
-                  role => role.isAccessibleBy(realm, a, tx, "w....w")
+                  role =>
+                    role.isAccessibleBy(realm, a, tx, {
+                      basic: "w",
+                      scopes: "",
+                      users: "w"
+                    })
                 )
               ).reduce<string[]>((acc, { scopes }) => {
                 return [...acc, ...scopes];
@@ -113,7 +128,13 @@ export const updateRoles: GraphQLFieldConfig<
         }
 
         // w....w -----------------------------------------------------
-        if (!(await before.isAccessibleBy(realm, a, tx, "w....w"))) {
+        if (
+          !(await before.isAccessibleBy(realm, a, tx, {
+            basic: "w",
+            scopes: "",
+            users: "w"
+          }))
+        ) {
           throw new ForbiddenError(
             "You do not have permission to update this role's users."
           );

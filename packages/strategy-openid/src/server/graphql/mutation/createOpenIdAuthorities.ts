@@ -10,6 +10,9 @@ import {
   Role,
   validateIdFormat
 } from "@authx/authx";
+
+import { createV2AuthXScope } from "@authx/authx/dist/util/scopes";
+
 import { isSuperset, simplify, isValidScopeLiteral } from "@authx/scopes";
 import { OpenIdAuthority } from "../../model";
 import { GraphQLOpenIdAuthority } from "../GraphQLOpenIdAuthority";
@@ -91,7 +94,23 @@ export const createOpenIdAuthorities: GraphQLFieldConfig<
 
       const tx = await pool.connect();
       try {
-        if (!(await a.can(tx, values, `${realm}:authority.:write.create`))) {
+        if (
+          !(await a.can(
+            tx,
+            values,
+            createV2AuthXScope(
+              realm,
+              {
+                type: "authority",
+                authorityId: ""
+              },
+              {
+                basic: "*",
+                details: "*"
+              }
+            )
+          ))
+        ) {
           throw new ForbiddenError(
             "You do not have permission to create an authority."
           );
@@ -142,20 +161,96 @@ export const createOpenIdAuthorities: GraphQLFieldConfig<
           );
 
           const possibleAdministrationScopes = [
-            `${realm}:v2.authority.${id}......:r....`,
-            `${realm}:v2.authority.${id}......:r.r...`,
-            `${realm}:v2.authority.${id}......:r.*...`,
-            `${realm}:v2.authority.${id}......:w....`,
-            `${realm}:v2.authority.${id}......:w.w...`,
-            `${realm}:v2.authority.${id}......:w.*...`,
-            `${realm}:v2.authority.${id}......:*.*...`
+            createV2AuthXScope(
+              realm,
+              {
+                type: "authority",
+                authorityId: id
+              },
+              {
+                basic: "r",
+                details: ""
+              }
+            ),
+            createV2AuthXScope(
+              realm,
+              {
+                type: "authority",
+                authorityId: id
+              },
+              {
+                basic: "r",
+                details: "r"
+              }
+            ),
+            createV2AuthXScope(
+              realm,
+              {
+                type: "authority",
+                authorityId: id
+              },
+              {
+                basic: "r",
+                details: "*"
+              }
+            ),
+            createV2AuthXScope(
+              realm,
+              {
+                type: "authority",
+                authorityId: id
+              },
+              {
+                basic: "w",
+                details: ""
+              }
+            ),
+            createV2AuthXScope(
+              realm,
+              {
+                type: "authority",
+                authorityId: id
+              },
+              {
+                basic: "w",
+                details: "w"
+              }
+            ),
+            createV2AuthXScope(
+              realm,
+              {
+                type: "authority",
+                authorityId: id
+              },
+              {
+                basic: "w",
+                details: "*"
+              }
+            ),
+            createV2AuthXScope(
+              realm,
+              {
+                type: "authority",
+                authorityId: id
+              },
+              {
+                basic: "*",
+                details: "*"
+              }
+            )
           ];
 
           // Add administration scopes.
           for (const { roleId, scopes } of input.administration) {
             const role = await Role.read(tx, roleId, { forUpdate: true });
 
-            if (!role.isAccessibleBy(realm, a, tx, "write.scopes")) {
+            if (
+              !role.isAccessibleBy(realm, a, tx, {
+                basic: "w",
+                scopes: "w",
+                users: ""
+              })
+            ) {
               throw new ForbiddenError(
                 `You do not have permission to modify the scopes of role ${roleId}.`
               );

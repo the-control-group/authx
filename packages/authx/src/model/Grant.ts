@@ -4,6 +4,7 @@ import { User } from "./User";
 import { Authorization } from "./Authorization";
 import { simplify, getIntersection, isSuperset } from "@authx/scopes";
 import { NotFoundError } from "../errors";
+import { GrantAction, createV2AuthXScope } from "../util/scopes";
 
 export interface GrantData {
   readonly id: string;
@@ -42,7 +43,11 @@ export class Grant implements GrantData {
     realm: string,
     a: Authorization,
     tx: PoolClient,
-    action: string = "r...."
+    action: GrantAction = {
+      basic: "r",
+      scopes: "",
+      secrets: ""
+    }
   ): Promise<boolean> {
     /* eslint-disable @typescript-eslint/camelcase */
     const values: { [name: string]: null | string } = {
@@ -54,7 +59,20 @@ export class Grant implements GrantData {
     /* eslint-enable @typescript-eslint/camelcase */
 
     if (
-      await a.can(tx, values, `${realm}:v2.grant.....${this.id}..:${action}`)
+      await a.can(
+        tx,
+        values,
+        createV2AuthXScope(
+          realm,
+          {
+            type: "grant",
+            grantId: this.id,
+            userId: this.userId,
+            clientId: this.clientId
+          },
+          action
+        )
+      )
     ) {
       return true;
     }

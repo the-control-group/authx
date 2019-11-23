@@ -19,6 +19,8 @@ import {
   User
 } from "@authx/authx";
 
+import { createV2AuthXScope } from "@authx/authx/dist/util/scopes";
+
 import { isSuperset } from "@authx/scopes";
 import { PasswordAuthority } from "../../model";
 const __DEV__ = process.env.NODE_ENV !== "production";
@@ -143,15 +145,21 @@ export const authenticatePassword: GraphQLFieldConfig<
       if (
         !isSuperset(
           await user.access(tx, values),
-          `${realm}:authorization.:write.create`
-        ) &&
-        !isSuperset(
-          await user.access(tx, values),
-          `${realm}:user.${credential.userId}.authorizations:write.create`
-        ) &&
-        !isSuperset(
-          await user.access(tx, values),
-          `${realm}:authority.${authority.id}.authorizations:write.create`
+          createV2AuthXScope(
+            realm,
+            {
+              type: "authorization",
+              authorizationId: "",
+              grantId: "",
+              clientId: "",
+              userId: user.id
+            },
+            {
+              basic: "*",
+              scopes: "*",
+              secrets: "*"
+            }
+          )
         )
       ) {
         throw new ForbiddenError(
