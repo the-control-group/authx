@@ -67,7 +67,12 @@ export const updatePasswordAuthorities: GraphQLFieldConfig<
           throw new NotFoundError("No password authority exists with this ID.");
         }
 
-        if (!(await before.isAccessibleBy(realm, a, tx, "write.basic"))) {
+        if (
+          !(await before.isAccessibleBy(realm, a, tx, {
+            basic: "w",
+            details: ""
+          }))
+        ) {
           throw new ForbiddenError(
             "You do not have permission to update this authority."
           );
@@ -75,7 +80,10 @@ export const updatePasswordAuthorities: GraphQLFieldConfig<
 
         if (
           typeof input.rounds === "number" &&
-          !(await before.isAccessibleBy(realm, a, tx, "write.*"))
+          !(await before.isAccessibleBy(realm, a, tx, {
+            basic: "w",
+            details: "w"
+          }))
         ) {
           throw new ForbiddenError(
             "You do not have permission to update this authority's details."

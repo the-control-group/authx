@@ -12,6 +12,9 @@ import {
   Role,
   validateIdFormat
 } from "@authx/authx";
+
+import { createV2AuthXScope } from "@authx/authx/dist/util/scopes";
+
 import { isSuperset, simplify, isValidScopeLiteral } from "@authx/scopes";
 import { PasswordCredential, PasswordAuthority } from "../../model";
 import { GraphQLPasswordCredential } from "../GraphQLPasswordCredential";
@@ -104,23 +107,31 @@ export const createPasswordCredentials: GraphQLFieldConfig<
 
       const tx = await pool.connect();
       try {
+        // The user cannot create a credential for this user and authority.
         if (
-          !(await a.can(tx, values, `${realm}:credential.:write.create`)) &&
           !(await a.can(
             tx,
             values,
-            `${realm}:user.${input.userId}.credentials:write.create`
-          )) &&
-          !(await a.can(
-            tx,
-            values,
-            `${realm}:authority.${input.authorityId}.credentials:write.create`
+            createV2AuthXScope(
+              realm,
+              {
+                type: "credential",
+                credentialId: "",
+                authorityId: input.authorityId,
+                userId: input.userId
+              },
+              {
+                basic: "*",
+                details: "*"
+              }
+            )
           ))
         ) {
           throw new ForbiddenError(
             "You do not have permission to create this credential."
           );
         }
+
         try {
           await tx.query("BEGIN DEFERRABLE");
 
@@ -168,20 +179,110 @@ export const createPasswordCredentials: GraphQLFieldConfig<
           );
 
           const possibleAdministrationScopes = [
-            `${realm}:v2.credential.${credential.authorityId}...${id}...${credential.userId}:r....`,
-            `${realm}:v2.credential.${credential.authorityId}...${id}...${credential.userId}:r.r...`,
-            `${realm}:v2.credential.${credential.authorityId}...${id}...${credential.userId}:r.*...`,
-            `${realm}:v2.credential.${credential.authorityId}...${id}...${credential.userId}:w....`,
-            `${realm}:v2.credential.${credential.authorityId}...${id}...${credential.userId}:w.w...`,
-            `${realm}:v2.credential.${credential.authorityId}...${id}...${credential.userId}:w.*...`,
-            `${realm}:v2.credential.${credential.authorityId}...${id}...${credential.userId}:*.*...`
+            createV2AuthXScope(
+              realm,
+              {
+                type: "credential",
+                authorityId: credential.authorityId,
+                credentialId: id,
+                userId: credential.userId
+              },
+              {
+                basic: "r",
+                details: ""
+              }
+            ),
+            createV2AuthXScope(
+              realm,
+              {
+                type: "credential",
+                authorityId: credential.authorityId,
+                credentialId: id,
+                userId: credential.userId
+              },
+              {
+                basic: "r",
+                details: "r"
+              }
+            ),
+            createV2AuthXScope(
+              realm,
+              {
+                type: "credential",
+                authorityId: credential.authorityId,
+                credentialId: id,
+                userId: credential.userId
+              },
+              {
+                basic: "r",
+                details: "*"
+              }
+            ),
+            createV2AuthXScope(
+              realm,
+              {
+                type: "credential",
+                authorityId: credential.authorityId,
+                credentialId: id,
+                userId: credential.userId
+              },
+              {
+                basic: "w",
+                details: ""
+              }
+            ),
+            createV2AuthXScope(
+              realm,
+              {
+                type: "credential",
+                authorityId: credential.authorityId,
+                credentialId: id,
+                userId: credential.userId
+              },
+              {
+                basic: "w",
+                details: "w"
+              }
+            ),
+            createV2AuthXScope(
+              realm,
+              {
+                type: "credential",
+                authorityId: credential.authorityId,
+                credentialId: id,
+                userId: credential.userId
+              },
+              {
+                basic: "w",
+                details: "*"
+              }
+            ),
+            createV2AuthXScope(
+              realm,
+              {
+                type: "credential",
+                authorityId: credential.authorityId,
+                credentialId: id,
+                userId: credential.userId
+              },
+              {
+                basic: "*",
+                details: "*"
+              }
+            )
           ];
 
           // Add administration scopes.
           for (const { roleId, scopes } of input.administration) {
             const role = await Role.read(tx, roleId, { forUpdate: true });
 
-            if (!role.isAccessibleBy(realm, a, tx, "write.scopes")) {
+            if (
+              !role.isAccessibleBy(realm, a, tx, {
+                basic: "w",
+                scopes: "w",
+                users: ""
+              })
+            ) {
               throw new ForbiddenError(
                 `You do not have permission to modify the scopes of role ${roleId}.`
               );

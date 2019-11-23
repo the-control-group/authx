@@ -72,7 +72,11 @@ export const GraphQLPasswordCredential = new GraphQLObjectType<
       ): Promise<null | string> {
         const tx = await pool.connect();
         try {
-          return a && (await credential.isAccessibleBy(realm, a, tx, "read.*"))
+          return a &&
+            (await credential.isAccessibleBy(realm, a, tx, {
+              basic: "r",
+              details: "r"
+            }))
             ? credential.details.hash
             : null;
         } finally {

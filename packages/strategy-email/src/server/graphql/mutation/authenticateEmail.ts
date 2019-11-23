@@ -18,6 +18,8 @@ import {
   User
 } from "@authx/authx";
 
+import { createV2AuthXScope } from "@authx/authx/dist/util/scopes";
+
 import { isSuperset } from "@authx/scopes";
 import { EmailAuthority } from "../../model";
 import { substitute } from "../../substitute";
@@ -181,15 +183,21 @@ export const authenticateEmail: GraphQLFieldConfig<
       if (
         !isSuperset(
           await user.access(tx, values),
-          `${realm}:authorization.:write.create`
-        ) &&
-        !isSuperset(
-          await user.access(tx, values),
-          `${realm}:user.${credential.userId}.authorizations:write.create`
-        ) &&
-        !isSuperset(
-          await user.access(tx, values),
-          `${realm}:authority.${authority.id}.authorizations:write.create`
+          createV2AuthXScope(
+            realm,
+            {
+              type: "authorization",
+              authorizationId: "",
+              grantId: "",
+              clientId: "",
+              userId: user.id
+            },
+            {
+              basic: "*",
+              scopes: "*",
+              secrets: "*"
+            }
+          )
         )
       ) {
         throw new ForbiddenError(
