@@ -288,32 +288,34 @@ export function Authorize({
   const requestedScopes = useMemo(
     () =>
       requestedScopeTemplates
-        ? inject(
-            [
-              ...requestedScopeTemplates,
-              createV2AuthXScope(
-                __REALM__,
-                {
-                  type: "authorization",
-                  authorizationId: "*",
-                  clientId: "{current_client_id}",
-                  grantId: "{current_grant_id}",
-                  userId: "{current_user_id}"
-                },
-                {
-                  basic: "*",
-                  scopes: "*",
-                  secrets: "*"
-                }
-              )
-            ],
-            {
-              /* eslint-disable @typescript-eslint/camelcase */
-              current_client_id: clientId,
-              current_grant_id: grantId,
-              current_user_id: userId
-              /* eslint-enable @typescript-eslint/camelcase */
-            }
+        ? simplify(
+            inject(
+              [
+                ...requestedScopeTemplates,
+                createV2AuthXScope(
+                  __REALM__,
+                  {
+                    type: "authorization",
+                    authorizationId: "*",
+                    clientId: "{current_client_id}",
+                    grantId: "{current_grant_id}",
+                    userId: "{current_user_id}"
+                  },
+                  {
+                    basic: "*",
+                    scopes: "*",
+                    secrets: "*"
+                  }
+                )
+              ],
+              {
+                /* eslint-disable @typescript-eslint/camelcase */
+                current_client_id: clientId,
+                current_grant_id: grantId,
+                current_user_id: userId
+                /* eslint-enable @typescript-eslint/camelcase */
+              }
+            )
           )
         : [],
     [requestedScopeTemplates, clientId, grantId, userId]

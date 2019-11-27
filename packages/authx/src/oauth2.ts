@@ -396,11 +396,14 @@ export default async (
           }
 
           // Decode and validate the authorization code.
-          const [grantId, secret] = Buffer.from(paramsRefreshToken, "base64")
+          const [grantId, issuedAt, nonce] = Buffer.from(
+            paramsRefreshToken,
+            "base64"
+          )
             .toString("utf8")
             .split(":");
 
-          if (!grantId || !secret) {
+          if (!grantId || !issuedAt || !nonce) {
             throw new OAuthError(
               "invalid_grant",
               "Invalid authorization code."
