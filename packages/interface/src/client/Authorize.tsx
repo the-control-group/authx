@@ -296,6 +296,30 @@ export function Authorize({
                 createV2AuthXScope(
                   __REALM__,
                   {
+                    type: "user",
+                    userId: "{current_user_id}"
+                  },
+                  {
+                    basic: "r"
+                  }
+                ),
+                createV2AuthXScope(
+                  __REALM__,
+                  {
+                    type: "grant",
+                    clientId: "{current_client_id}",
+                    grantId: "{current_grant_id}",
+                    userId: "{current_user_id}"
+                  },
+                  {
+                    basic: "*",
+                    scopes: "*",
+                    secrets: "*"
+                  }
+                ),
+                createV2AuthXScope(
+                  __REALM__,
+                  {
                     type: "authorization",
                     authorizationId: "*",
                     clientId: "{current_client_id}",
