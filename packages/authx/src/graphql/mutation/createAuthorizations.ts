@@ -1,6 +1,6 @@
 import v4 from "uuid/v4";
 import { randomBytes } from "crypto";
-import { isSuperset, simplify, getIntersection } from "@authx/scopes";
+import { isSuperset, simplify } from "@authx/scopes";
 import { GraphQLFieldConfig, GraphQLList, GraphQLNonNull } from "graphql";
 import { Context } from "../../Context";
 import { GraphQLAuthorization } from "../GraphQLAuthorization";
@@ -140,12 +140,7 @@ export const createAuthorizations: GraphQLFieldConfig<
               userId: input.userId,
               grantId: input.grantId,
               secret: randomBytes(16).toString("hex"),
-              scopes: getIntersection(
-                input.scopes,
-                grant
-                  ? await grant.access(tx, values)
-                  : await (await a.user(tx)).access(tx, values)
-              )
+              scopes: input.scopes
             },
             {
               recordId: v4(),
