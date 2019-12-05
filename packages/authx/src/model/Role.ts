@@ -85,10 +85,12 @@ export class Role implements RoleData {
     currentClientId: null | string;
   }): string[] {
     return inject(this.scopes, {
-      currentAuthorizationId: values.currentAuthorizationId,
-      currentUserId: values.currentUserId,
-      currentGrantId: values.currentGrantId,
-      currentClientId: values.currentClientId
+      /* eslint-disable @typescript-eslint/camelcase */
+      current_authorization_id: values.currentAuthorizationId,
+      current_user_id: values.currentUserId,
+      current_grant_id: values.currentGrantId,
+      current_client_id: values.currentClientId
+      /* eslint-enable @typescript-eslint/camelcase */
     });
   }
 
