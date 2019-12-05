@@ -49,14 +49,12 @@ export class Grant implements GrantData {
       secrets: ""
     }
   ): Promise<boolean> {
-    /* eslint-disable @typescript-eslint/camelcase */
-    const values: { [name: string]: null | string } = {
-      current_authorization_id: a.id,
-      current_user_id: a.userId,
-      current_grant_id: a.grantId ?? null,
-      current_client_id: (await a.grant(tx))?.clientId ?? null
+    const values = {
+      currentAuthorizationId: a.id,
+      currentUserId: a.userId,
+      currentGrantId: a.grantId ?? null,
+      currentClientId: (await a.grant(tx))?.clientId ?? null
     };
-    /* eslint-enable @typescript-eslint/camelcase */
 
     if (
       await a.can(
@@ -123,7 +121,12 @@ export class Grant implements GrantData {
 
   public async access(
     tx: PoolClient,
-    values: { [name: string]: null | string },
+    values: {
+      currentAuthorizationId: null | string;
+      currentUserId: null | string;
+      currentGrantId: null | string;
+      currentClientId: null | string;
+    },
     refresh: boolean = false
   ): Promise<string[]> {
     const user = await this.user(tx, refresh);
@@ -134,7 +137,12 @@ export class Grant implements GrantData {
 
   public async can(
     tx: PoolClient,
-    values: { [name: string]: null | string },
+    values: {
+      currentAuthorizationId: null | string;
+      currentUserId: null | string;
+      currentGrantId: null | string;
+      currentClientId: null | string;
+    },
     scope: string,
     refresh: boolean = false
   ): Promise<boolean> {

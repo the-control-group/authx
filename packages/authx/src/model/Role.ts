@@ -43,14 +43,12 @@ export class Role implements RoleData {
       users: ""
     }
   ): Promise<boolean> {
-    /* eslint-disable @typescript-eslint/camelcase */
-    const values: { [name: string]: null | string } = {
-      current_authorization_id: a.id,
-      current_user_id: a.userId,
-      current_grant_id: a.grantId ?? null,
-      current_client_id: (await a.grant(tx))?.clientId ?? null
+    const values = {
+      currentAuthorizationId: a.id,
+      currentUserId: a.userId,
+      currentGrantId: a.grantId ?? null,
+      currentClientId: (await a.grant(tx))?.clientId ?? null
     };
-    /* eslint-enable @typescript-eslint/camelcase */
 
     if (
       await a.can(
@@ -80,12 +78,27 @@ export class Role implements RoleData {
     return (this._users = User.read(tx, [...this.userIds]));
   }
 
-  public access(values: { [name: string]: null | string }): string[] {
-    return inject(this.scopes, values);
+  public access(values: {
+    currentAuthorizationId: null | string;
+    currentUserId: null | string;
+    currentGrantId: null | string;
+    currentClientId: null | string;
+  }): string[] {
+    return inject(this.scopes, {
+      currentAuthorizationId: values.currentAuthorizationId,
+      currentUserId: values.currentUserId,
+      currentGrantId: values.currentGrantId,
+      currentClientId: values.currentClientId
+    });
   }
 
   public async can(
-    values: { [name: string]: null | string },
+    values: {
+      currentAuthorizationId: null | string;
+      currentUserId: null | string;
+      currentGrantId: null | string;
+      currentClientId: null | string;
+    },
     scope: string[] | string
   ): Promise<boolean> {
     return isSuperset(this.access(values), scope);

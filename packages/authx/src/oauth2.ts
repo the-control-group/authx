@@ -14,7 +14,12 @@ async function assertPermissions(
   realm: string,
   tx: PoolClient,
   grant: Grant,
-  values: { [key: string]: null | string }
+  values: {
+    currentUserId: string | null;
+    currentGrantId: string | null;
+    currentClientId: string | null;
+    currentAuthorizationId: string | null;
+  }
 ): Promise<void> {
   if (
     // Check that we have every relevant user scope:
@@ -240,12 +245,11 @@ export default async (
 
           const requestedScopes = grant.scopes;
 
-          const values: { [name: string]: null | string } = {
-            /* eslint-disable @typescript-eslint/camelcase */
-            current_user_id: grant.userId,
-            current_grant_id: grant.id,
-            current_authorization_id: null
-            /* eslint-enable @typescript-eslint/camelcase */
+          const values = {
+            currentUserId: grant.userId,
+            currentGrantId: grant.id,
+            currentClientId: grant.clientId,
+            currentAuthorizationId: null
           };
 
           // Make sure we have the necessary access.
@@ -447,11 +451,10 @@ export default async (
 
           // Make sure we have the necessary access.
           await assertPermissions(realm, tx, grant, {
-            /* eslint-disable @typescript-eslint/camelcase */
-            current_user_id: grant.userId,
-            current_grant_id: grant.id,
-            current_authorization_id: null
-            /* eslint-enable @typescript-eslint/camelcase */
+            currentUserId: grant.userId,
+            currentGrantId: grant.id,
+            currentClientId: grant.clientId,
+            currentAuthorizationId: null
           });
 
           // Look for an existing active authorization for this grant with the same scopes
@@ -461,9 +464,10 @@ export default async (
               isEqual(
                 inject(requestedScopeTemplates, {
                   /* eslint-disable @typescript-eslint/camelcase */
-                  current_user_id: grant.userId,
-                  current_grant_id: grant.id,
-                  current_authorization_id: t.id
+                  current_user_id: grant.userId ?? null,
+                  current_grant_id: grant.id ?? null,
+                  current_client_id: grant.clientId ?? null,
+                  current_authorization_id: t.id ?? null
                   /* eslint-enable @typescript-eslint/camelcase */
                 }),
                 t.scopes
@@ -488,9 +492,10 @@ export default async (
                 secret: randomBytes(16).toString("hex"),
                 scopes: inject(requestedScopeTemplates, {
                   /* eslint-disable @typescript-eslint/camelcase */
-                  current_user_id: grant.userId,
-                  current_grant_id: grant.id,
-                  current_authorization_id: authorizationId
+                  current_user_id: grant.userId ?? null,
+                  current_grant_id: grant.id ?? null,
+                  current_client_id: grant.clientId ?? null,
+                  current_authorization_id: authorizationId ?? null
                   /* eslint-enable @typescript-eslint/camelcase */
                 })
               },
@@ -504,11 +509,10 @@ export default async (
           }
 
           const scopes = await authorization.access(tx, {
-            /* eslint-disable @typescript-eslint/camelcase */
-            current_user_id: grant.userId,
-            current_grant_id: grant.id,
-            current_authorization_id: authorization.id
-            /* eslint-enabme @typescript-eslint/camelcase */
+            currentUserId: grant.userId,
+            currentGrantId: grant.id,
+            currentClientId: grant.clientId,
+            currentAuthorizationId: authorization.id
           });
 
           const body = {

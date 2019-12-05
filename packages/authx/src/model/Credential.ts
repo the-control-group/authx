@@ -42,14 +42,12 @@ export abstract class Credential<C> implements CredentialData<C> {
       details: ""
     }
   ): Promise<boolean> {
-    /* eslint-disable @typescript-eslint/camelcase */
-    const values: { [name: string]: null | string } = {
-      current_authorization_id: a.id,
-      current_user_id: a.userId,
-      current_grant_id: a.grantId ?? null,
-      current_client_id: (await a.grant(tx))?.clientId ?? null
+    const values = {
+      currentAuthorizationId: a.id,
+      currentUserId: a.userId,
+      currentGrantId: a.grantId ?? null,
+      currentClientId: (await a.grant(tx))?.clientId ?? null
     };
-    /* eslint-enable @typescript-eslint/camelcase */
 
     if (
       await a.can(

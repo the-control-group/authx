@@ -274,12 +274,12 @@ export const authenticateOpenId: GraphQLFieldConfig<
         throw new AuthenticationError("No such credential exists.");
       }
 
-      /* eslint-disable @typescript-eslint/camelcase */
-      const values: { [name: string]: string } = {
-        current_authorization_id: authorizationId,
-        current_user_id: credential.userId
+      const values = {
+        currentAuthorizationId: authorizationId,
+        currentUserId: credential.userId,
+        currentGrantId: null,
+        currentClientId: null
       };
-      /* eslint-enable @typescript-eslint/camelcase */
 
       // Make sure the user can create new authorizations.
       const user = await User.read(tx, credential.userId);

@@ -147,14 +147,12 @@ export const GraphQLAuthorization: GraphQLObjectType<
         if (!a) return null;
         const tx = await pool.connect();
         try {
-          /* eslint-disable @typescript-eslint/camelcase */
-          const values: { [name: string]: null | string } = {
-            current_authorization_id: a.id,
-            current_user_id: a.userId,
-            current_grant_id: a.grantId ?? null,
-            current_client_id: (await a.grant(tx))?.clientId ?? null
+          const values = {
+            currentAuthorizationId: a.id,
+            currentUserId: a.userId,
+            currentGrantId: a.grantId ?? null,
+            currentClientId: (await a.grant(tx))?.clientId ?? null
           };
-          /* eslint-enable @typescript-eslint/camelcase */
 
           return (await authorization.isAccessibleBy(realm, a, tx, {
             basic: "r",
@@ -213,14 +211,13 @@ export const GraphQLAuthorization: GraphQLObjectType<
 
           if (args.format === "bearer") {
             const grant = await authorization.grant(tx);
-            /* eslint-disable @typescript-eslint/camelcase */
-            const values: { [name: string]: null | string } = {
-              current_authorization_id: a.id,
-              current_user_id: a.userId,
-              current_grant_id: a.grantId ?? null,
-              current_client_id: (await a.grant(tx))?.clientId ?? null
+            const values = {
+              currentAuthorizationId: a.id,
+              currentUserId: a.userId,
+              currentGrantId: a.grantId ?? null,
+              currentClientId: (await a.grant(tx))?.clientId ?? null
             };
-            /* eslint-enable @typescript-eslint/camelcase */
+
             return `Bearer ${jwt.sign(
               {
                 aid: authorization.id,

@@ -199,7 +199,8 @@ export function Authorize({
         /* eslint-disable @typescript-eslint/camelcase */
         current_client_id: "",
         current_grant_id: "",
-        current_user_id: ""
+        current_user_id: "",
+        current_authorization_id: ""
         /* eslint-enable @typescript-eslint/camelcase */
       });
 
@@ -310,6 +311,7 @@ export function Authorize({
               ],
               {
                 /* eslint-disable @typescript-eslint/camelcase */
+                current_authorization_id: null,
                 current_client_id: clientId,
                 current_grant_id: grantId,
                 current_user_id: userId

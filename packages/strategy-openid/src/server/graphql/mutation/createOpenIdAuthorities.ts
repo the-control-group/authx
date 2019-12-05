@@ -84,16 +84,15 @@ export const createOpenIdAuthorities: GraphQLFieldConfig<
         }
       }
 
-      /* eslint-disable @typescript-eslint/camelcase */
-      const values: { [name: string]: string } = {
-        current_authorization_id: a.id,
-        current_user_id: a.userId,
-        ...(a.grantId ? { current_grant_id: a.grantId } : null)
-      };
-      /* eslint-enable @typescript-eslint/camelcase */
-
       const tx = await pool.connect();
       try {
+        const values = {
+          currentAuthorizationId: a.id,
+          currentUserId: a.userId,
+          currentGrantId: a.grantId,
+          currentClientId: (await a.grant(tx))?.clientId ?? null
+        };
+
         if (
           !(await a.can(
             tx,
