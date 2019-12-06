@@ -11,7 +11,7 @@
     "@types/graphql-api-koa": "^2.0.2",
     "@types/graphql-relay": "^0.4.11",
     "@types/jsonwebtoken": "^8.3.5",
-    "@types/koa": "^2.11.0",
+    "@types/koa": "^.0.52",
     "@types/koa-router": "^7.0.42",
     "@types/koa-send": "^4.1.2",
     "@types/pg": "^7.11.2",
