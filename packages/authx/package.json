@@ -11,7 +11,7 @@
     "@types/graphql-api-koa": "^2.0.2",
     "@types/graphql-relay": "^0.4.11",
     "@types/jsonwebtoken": "^8.3.5",
-    "@types/koa": "^2.0.52",
+    "@types/koa": "^2.11.0",
     "@types/koa-router": "^7.0.42",
     "@types/koa-send": "^4.1.2",
     "@types/pg": "^7.11.2",
@@ -32,15 +32,15 @@
   },
   "description": "",
   "devDependencies": {
-    "@typescript-eslint/eslint-plugin": "^2.8.0",
-    "@typescript-eslint/parser": "^2.8.0",
+    "@typescript-eslint/eslint-plugin": "^2.10.0",
+    "@typescript-eslint/parser": "^2.10.0",
     "ava": "^2.4.0",
-    "eslint": "^6.7.0",
+    "eslint": "^6.7.2",
     "eslint-config-prettier": "^6.7.0",
     "eslint-plugin-prettier": "^3.1.1",
     "nodemon": "^2.0.1",
     "prettier": "^1.19.1",
-    "typescript": "^3.7.2"
+    "typescript": "^3.7.3"
   },
   "engines": {
     "node": ">=10"
