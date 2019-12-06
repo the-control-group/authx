@@ -156,7 +156,10 @@ export default async (
         scope?: unknown;
       } = (ctx.request as any).body;
       if (!request || typeof request !== "object") {
-        throw new OAuthError("invalid_request", "The request body must be a JSON object.");
+        throw new OAuthError(
+          "invalid_request",
+          "The request body must be a JSON object."
+        );
       }
 
       const grantType: undefined | string =
