@@ -614,7 +614,7 @@
     "@types/koa-compose" "*"
     "@types/node" "*"
 
-"@types/koa@^.0.52":
+"@types/koa@2.0.52":
   version "2.0.52"
   resolved "https://registry.yarnpkg.com/@types/koa/-/koa-2.0.52.tgz#7dd11de4189ab339ad66c4ccad153716b14e525f"
   integrity sha512-cp/GTOhOYwomlSKqEoG0kaVEVJEzP4ojYmfa7EKaGkmkkRwJ4B/1VBLbQZ49Z+WJNvzXejQB/9GIKqMo9XLgFQ==
