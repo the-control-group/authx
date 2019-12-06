@@ -79,7 +79,10 @@ async function assertPermissions(
   ) {
     throw new OAuthError(
       "invalid_grant",
-      "The grant contains insufficient permission for OAuth."
+      "The grant contains insufficient permission for OAuth.",
+      undefined,
+      undefined,
+      403
     );
   }
 }
@@ -87,11 +90,21 @@ async function assertPermissions(
 class OAuthError extends Error {
   public code: string;
   public uri: null | string;
+  public clientId?: string;
+  public statusCode: number;
 
-  public constructor(code: string, message?: string, uri?: string) {
+  public constructor(
+    code: string,
+    message?: string,
+    uri?: string,
+    clientId?: string,
+    statusCode: number = 400
+  ) {
     super(typeof message === "undefined" ? code : message);
     this.code = code;
     this.uri = uri || null;
+    this.clientId = clientId;
+    this.statusCode = statusCode;
   }
 }
 
@@ -143,7 +156,10 @@ export default async (
         scope?: unknown;
       } = (ctx.request as any).body;
       if (!request || typeof request !== "object") {
-        throw new OAuthError("invalid_request");
+        throw new OAuthError(
+          "invalid_request",
+          "The request body must be a JSON object."
+        );
       }
 
       const grantType: undefined | string =
@@ -169,7 +185,12 @@ export default async (
             typeof request.nonce === "string" ? request.nonce : undefined;
 
           if (!paramsClientId || !paramsClientSecret || !paramsCode) {
-            throw new OAuthError("invalid_request");
+            throw new OAuthError(
+              "invalid_request",
+              "The request body must include fields `client_id`, `client_secret`, and `code`.",
+              undefined,
+              paramsClientId
+            );
           }
 
           // Authenticate the client with its secret.
@@ -178,15 +199,30 @@ export default async (
             client = await Client.read(tx, paramsClientId);
           } catch (error) {
             if (!(error instanceof NotFoundError)) throw error;
-            throw new OAuthError("invalid_client");
+            throw new OAuthError(
+              "invalid_client",
+              undefined,
+              undefined,
+              paramsClientId
+            );
           }
 
           if (!client.secrets.has(paramsClientSecret)) {
-            throw new OAuthError("invalid_client");
+            throw new OAuthError(
+              "invalid_client",
+              undefined,
+              undefined,
+              paramsClientId
+            );
           }
 
           if (!client.enabled) {
-            throw new OAuthError("unauthorized_client");
+            throw new OAuthError(
+              "unauthorized_client",
+              undefined,
+              undefined,
+              paramsClientId
+            );
           }
 
           // Decode and validate the authorization code.
@@ -197,14 +233,18 @@ export default async (
           if (!grantId || !issuedAt || !nonce) {
             throw new OAuthError(
               "invalid_grant",
-              "The authorization code is malformed."
+              "The authorization code is malformed.",
+              undefined,
+              paramsClientId
             );
           }
 
           if (parseInt(issuedAt, 10) + codeValidityDuration < now) {
             throw new OAuthError(
               "invalid_grant",
-              "The authorization code is expired."
+              "The authorization code is expired.",
+              undefined,
+              paramsClientId
             );
           }
 
@@ -216,21 +256,27 @@ export default async (
             if (!(error instanceof NotFoundError)) throw error;
             throw new OAuthError(
               "invalid_grant",
-              "The authorization code is invalid."
+              "The authorization code is invalid.",
+              undefined,
+              paramsClientId
             );
           }
 
           if (!grant.enabled) {
             throw new OAuthError(
               "invalid_grant",
-              "The authorization code is invalid."
+              "The authorization code is invalid.",
+              undefined,
+              paramsClientId
             );
           }
 
           if (!grant.codes.has(paramsCode)) {
             throw new OAuthError(
               "invalid_grant",
-              "The authorization code is invalid."
+              "The authorization code is invalid.",
+              undefined,
+              paramsClientId
             );
           }
 
@@ -239,7 +285,9 @@ export default async (
           if (!user.enabled) {
             throw new OAuthError(
               "invalid_grant",
-              "The authorization code is invalid."
+              "The authorization code is invalid.",
+              undefined,
+              paramsClientId
             );
           }
 
@@ -255,21 +303,28 @@ export default async (
           // Make sure we have the necessary access.
           await assertPermissions(realm, tx, grant, values);
 
-          // Look for an existing active authorization for this grant with the
-          // same scopes
+          // Get all enabled authorizations of this grant.
           const authorizations = (await grant.authorizations(tx)).filter(
-            t => t.enabled && isEqual(requestedScopes, t.scopes)
+            t => t.enabled
           );
 
-          let authorization: Authorization;
+          // Look for an existing active authorization for this grant with all
+          // grant scopes.
+          const possibleRootAuthorizations = authorizations.filter(t =>
+            isEqual("**:**:**", t.scopes)
+          );
 
-          if (authorizations.length) {
+          let rootAuthorization: Authorization;
+          if (possibleRootAuthorizations.length) {
             // Use an existing authorization.
-            authorization = authorizations[0];
+            ctx[x].authorization = rootAuthorization =
+              possibleRootAuthorizations[0];
           } else {
             // Create a new authorization.
             const authorizationId = v4();
-            authorization = await Authorization.write(
+            ctx[
+              x
+            ].authorization = rootAuthorization = await Authorization.write(
               tx,
               {
                 id: authorizationId,
@@ -277,7 +332,7 @@ export default async (
                 userId: user.id,
                 grantId: grant.id,
                 secret: randomBytes(16).toString("hex"),
-                scopes: requestedScopes
+                scopes: ["**:**:**"]
               },
               {
                 recordId: v4(),
@@ -288,8 +343,39 @@ export default async (
             );
           }
 
-          // Remove the authorization code we used, and prune any others that have
-          // expired.
+          // Look for an existing active authorization for this grant with the
+          // requested scopes.
+          const possibleRequestedAuthorizations = authorizations.filter(t =>
+            isEqual(requestedScopes, t.scopes)
+          );
+
+          let requestedAuthorization: Authorization;
+          if (possibleRequestedAuthorizations.length) {
+            // Use an existing authorization.
+            requestedAuthorization = possibleRequestedAuthorizations[0];
+          } else {
+            // Create a new authorization.
+            requestedAuthorization = await Authorization.write(
+              tx,
+              {
+                id: v4(),
+                enabled: true,
+                userId: user.id,
+                grantId: grant.id,
+                secret: randomBytes(16).toString("hex"),
+                scopes: requestedScopes
+              },
+              {
+                recordId: v4(),
+                createdByAuthorizationId: rootAuthorization.id,
+                createdByCredentialId: null,
+                createdAt: new Date()
+              }
+            );
+          }
+
+          // Remove the authorization code we used, and prune any others that
+          // have expired.
           const codes = [...grant.codes].filter(code => {
             const issued = Buffer.from(code, "base64")
               .toString("utf8")
@@ -309,7 +395,7 @@ export default async (
             },
             {
               recordId: v4(),
-              createdByAuthorizationId: authorization.id,
+              createdByAuthorizationId: rootAuthorization.id,
               createdAt: new Date()
             }
           );
@@ -319,8 +405,8 @@ export default async (
             token_type: "bearer",
             access_token: jwt.sign(
               {
-                aid: authorization.id,
-                scopes: await authorization.access(tx, values),
+                aid: requestedAuthorization.id,
+                scopes: await requestedAuthorization.access(tx, values),
                 nonce: paramsNonce
               },
               privateKey,
@@ -334,7 +420,7 @@ export default async (
             ),
             refresh_token: getRefreshToken(grant.secrets),
             expires_in: jwtValidityDuration,
-            scope: (await authorization.access(tx, values)).join(" ")
+            scope: (await requestedAuthorization.access(tx, values)).join(" ")
             /* eslint-enable @typescript-eslint/camelcase */
           };
 
@@ -369,7 +455,12 @@ export default async (
           const paramsNonce: undefined | string =
             typeof request.nonce === "string" ? request.nonce : undefined;
           if (!paramsClientId || !paramsClientSecret || !paramsRefreshToken) {
-            throw new OAuthError("invalid_request");
+            throw new OAuthError(
+              "invalid_request",
+              "The request body must include fields `client_id`, `client_secret`, and `refresh_token`.",
+              undefined,
+              paramsClientId
+            );
           }
 
           const requestedScopeTemplates = paramsScope
@@ -379,7 +470,12 @@ export default async (
             paramsScope &&
             !requestedScopeTemplates.every(isValidScopeTemplate)
           ) {
-            throw new OAuthError("invalid_scope");
+            throw new OAuthError(
+              "invalid_scope",
+              undefined,
+              undefined,
+              paramsClientId
+            );
           }
 
           // Authenticate the client with its secret.
@@ -388,15 +484,30 @@ export default async (
             client = await Client.read(tx, paramsClientId);
           } catch (error) {
             if (!(error instanceof NotFoundError)) throw error;
-            throw new OAuthError("invalid_client");
+            throw new OAuthError(
+              "invalid_client",
+              undefined,
+              undefined,
+              paramsClientId
+            );
           }
 
           if (!client.secrets.has(paramsClientSecret)) {
-            throw new OAuthError("invalid_client");
+            throw new OAuthError(
+              "invalid_client",
+              undefined,
+              undefined,
+              paramsClientId
+            );
           }
 
           if (!client.enabled) {
-            throw new OAuthError("unauthorized_client");
+            throw new OAuthError(
+              "unauthorized_client",
+              undefined,
+              undefined,
+              paramsClientId
+            );
           }
 
           // Decode and validate the authorization code.
@@ -410,7 +521,9 @@ export default async (
           if (!grantId || !issuedAt || !nonce) {
             throw new OAuthError(
               "invalid_grant",
-              "Invalid authorization code."
+              "Invalid authorization code.",
+              undefined,
+              paramsClientId
             );
           }
 
@@ -422,21 +535,27 @@ export default async (
             if (!(error instanceof NotFoundError)) throw error;
             throw new OAuthError(
               "invalid_grant",
-              "Invalid authorization code."
+              "Invalid authorization code.",
+              undefined,
+              paramsClientId
             );
           }
 
           if (!grant.enabled) {
             throw new OAuthError(
               "invalid_grant",
-              "Invalid authorization code."
+              "Invalid authorization code.",
+              undefined,
+              paramsClientId
             );
           }
 
           if (!grant.secrets.has(paramsRefreshToken)) {
             throw new OAuthError(
               "invalid_grant",
-              "Invalid authorization code."
+              "Invalid authorization code.",
+              undefined,
+              paramsClientId
             );
           }
 
@@ -445,7 +564,9 @@ export default async (
           if (!user.enabled) {
             throw new OAuthError(
               "invalid_grant",
-              "Invalid authorization code."
+              "Invalid authorization code.",
+              undefined,
+              paramsClientId
             );
           }
 
@@ -457,32 +578,71 @@ export default async (
             currentAuthorizationId: null
           });
 
-          // Look for an existing active authorization for this grant with the same scopes
+          // Get all enabled authorizations of this grant.
           const authorizations = (await grant.authorizations(tx)).filter(
-            t =>
-              t.enabled &&
-              isEqual(
-                inject(requestedScopeTemplates, {
-                  /* eslint-disable @typescript-eslint/camelcase */
-                  current_user_id: grant.userId ?? null,
-                  current_grant_id: grant.id ?? null,
-                  current_client_id: grant.clientId ?? null,
-                  current_authorization_id: t.id ?? null
-                  /* eslint-enable @typescript-eslint/camelcase */
-                }),
-                t.scopes
-              )
+            t => t.enabled
           );
 
-          let authorization: Authorization;
+          // Look for an existing active authorization for this grant with all
+          // grant scopes.
+          const possibleRootAuthorizations = authorizations.filter(t =>
+            isEqual("**:**:**", t.scopes)
+          );
 
-          if (authorizations.length) {
+          let rootAuthorization: Authorization;
+          if (possibleRootAuthorizations.length) {
             // Use an existing authorization.
-            authorization = authorizations[0];
+            ctx[x].authorization = rootAuthorization =
+              possibleRootAuthorizations[0];
           } else {
             // Create a new authorization.
             const authorizationId = v4();
-            authorization = await Authorization.write(
+            ctx[
+              x
+            ].authorization = rootAuthorization = await Authorization.write(
+              tx,
+              {
+                id: authorizationId,
+                enabled: true,
+                userId: user.id,
+                grantId: grant.id,
+                secret: randomBytes(16).toString("hex"),
+                scopes: ["**:**:**"]
+              },
+              {
+                recordId: v4(),
+                createdByAuthorizationId: authorizationId,
+                createdByCredentialId: null,
+                createdAt: new Date()
+              }
+            );
+          }
+
+          // Look for an existing active authorization for this grant with the
+          // requested scopes.
+          const possibleRequestedAuthorizations = authorizations.filter(t =>
+            isEqual(
+              inject(requestedScopeTemplates, {
+                /* eslint-disable @typescript-eslint/camelcase */
+                current_user_id: grant.userId ?? null,
+                current_grant_id: grant.id ?? null,
+                current_client_id: grant.clientId ?? null,
+                current_authorization_id: t.id ?? null
+                /* eslint-enable @typescript-eslint/camelcase */
+              }),
+              t.scopes
+            )
+          );
+
+          let requestedAuthorization: Authorization;
+
+          if (possibleRequestedAuthorizations.length) {
+            // Use an existing authorization.
+            requestedAuthorization = possibleRequestedAuthorizations[0];
+          } else {
+            // Create a new authorization.
+            const authorizationId = v4();
+            requestedAuthorization = await Authorization.write(
               tx,
               {
                 id: authorizationId,
@@ -501,18 +661,18 @@ export default async (
               },
               {
                 recordId: v4(),
-                createdByAuthorizationId: authorizationId,
+                createdByAuthorizationId: rootAuthorization.id,
                 createdByCredentialId: null,
                 createdAt: new Date()
               }
             );
           }
 
-          const scopes = await authorization.access(tx, {
+          const scopes = await requestedAuthorization.access(tx, {
             currentUserId: grant.userId,
             currentGrantId: grant.id,
             currentClientId: grant.clientId,
-            currentAuthorizationId: authorization.id
+            currentAuthorizationId: requestedAuthorization.id
           });
 
           const body = {
@@ -520,7 +680,7 @@ export default async (
             token_type: "bearer",
             access_token: jwt.sign(
               {
-                aid: authorization.id,
+                aid: requestedAuthorization.id,
                 scopes,
                 nonce: paramsNonce
               },
@@ -571,7 +731,8 @@ export default async (
       body.error_uri = error.uri;
     }
 
+    ctx.response.status = error.statusCode;
     ctx.response.body = body;
-    ctx.app.emit("error", error);
+    ctx.app.emit("error", error, ctx);
   }
 };
