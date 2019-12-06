@@ -731,8 +731,6 @@ export default async (
       body.error_uri = error.uri;
     }
 
-    console.log(ctx[x].authorization);
-
     ctx.response.status = error.statusCode;
     ctx.response.body = body;
     ctx.app.emit("error", error, ctx);
