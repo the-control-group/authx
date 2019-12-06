@@ -81,7 +81,7 @@ async function assertPermissions(
       "invalid_grant",
       "The grant contains insufficient permission for OAuth.",
       undefined,
-      undefined,
+      grant.clientId,
       403
     );
   }
