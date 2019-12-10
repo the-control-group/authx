@@ -194,7 +194,7 @@ export type Context =
 
 export function createV2AuthXScopeContext(context: Context): string {
   return `v2.${context.type}.${context.authorityId ??
-    ""}${context.authorizationId ?? ""}.${context.clientId ??
+    ""}.${context.authorizationId ?? ""}.${context.clientId ??
     ""}.${context.credentialId ?? ""}.${context.grantId ??
     ""}.${context.roleId ?? ""}.${context.userId ?? ""}`;
 }

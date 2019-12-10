@@ -696,6 +696,11 @@ export function Authorize({
                           scope: string;
                           description: string;
                         }>) || [];
+
+                      const explanationScopes = new Set(
+                        simplify(explanations.map(({ scope }) => scope))
+                      );
+
                       return (
                         <Fragment key={i}>
                           <tr>
@@ -722,21 +727,22 @@ export function Authorize({
                                     margin: "0"
                                   }}
                                 >
-                                  {explanations.map(e => (
-                                    <li
-                                      style={{ margin: "10px" }}
-                                      key={e.scope}
-                                    >
-                                      {e.description}
-                                    </li>
-                                  ))}
+                                  {explanations
+                                    .filter(e => explanationScopes.has(e.scope))
+                                    .map(e => (
+                                      <li
+                                        style={{ margin: "10px" }}
+                                        key={e.scope}
+                                      >
+                                        {e.description}
+                                      </li>
+                                    ))}
                                 </ul>
                               ) : (
                                 <div
                                   style={{
                                     opacity: 0.8,
                                     fontSize: "14px",
-                                    textAlign: "center",
                                     margin: "10px"
                                   }}
                                 >
@@ -825,7 +831,6 @@ export function Authorize({
                                   style={{
                                     opacity: 0.8,
                                     fontSize: "14px",
-                                    textAlign: "center",
                                     margin: "10px"
                                   }}
                                 >
