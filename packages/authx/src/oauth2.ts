@@ -50,9 +50,63 @@ async function assertPermissions(
           userId: grant.userId
         },
         {
-          basic: "*",
-          scopes: "*",
-          secrets: "*"
+          basic: "r",
+          scopes: "",
+          secrets: ""
+        }
+      )
+    )) ||
+    !(await grant.can(
+      tx,
+      values,
+      createV2AuthXScope(
+        realm,
+        {
+          type: "grant",
+          clientId: grant.clientId,
+          grantId: grant.id,
+          userId: grant.userId
+        },
+        {
+          basic: "r",
+          scopes: "",
+          secrets: "r"
+        }
+      )
+    )) ||
+    !(await grant.can(
+      tx,
+      values,
+      createV2AuthXScope(
+        realm,
+        {
+          type: "grant",
+          clientId: grant.clientId,
+          grantId: grant.id,
+          userId: grant.userId
+        },
+        {
+          basic: "r",
+          scopes: "r",
+          secrets: ""
+        }
+      )
+    )) ||
+    !(await grant.can(
+      tx,
+      values,
+      createV2AuthXScope(
+        realm,
+        {
+          type: "grant",
+          clientId: grant.clientId,
+          grantId: grant.id,
+          userId: grant.userId
+        },
+        {
+          basic: "w",
+          scopes: "",
+          secrets: "w"
         }
       )
     )) ||
@@ -70,9 +124,104 @@ async function assertPermissions(
           userId: grant.userId
         },
         {
-          basic: "*",
-          scopes: "*",
-          secrets: "*"
+          basic: "r",
+          scopes: "",
+          secrets: ""
+        }
+      )
+    )) ||
+    !(await grant.can(
+      tx,
+      values,
+      createV2AuthXScope(
+        realm,
+        {
+          type: "authorization",
+          authorizationId: "*",
+          clientId: grant.clientId,
+          grantId: grant.id,
+          userId: grant.userId
+        },
+        {
+          basic: "r",
+          scopes: "r",
+          secrets: ""
+        }
+      )
+    )) ||
+    !(await grant.can(
+      tx,
+      values,
+      createV2AuthXScope(
+        realm,
+        {
+          type: "authorization",
+          authorizationId: "*",
+          clientId: grant.clientId,
+          grantId: grant.id,
+          userId: grant.userId
+        },
+        {
+          basic: "r",
+          scopes: "",
+          secrets: "r"
+        }
+      )
+    )) ||
+    !(await grant.can(
+      tx,
+      values,
+      createV2AuthXScope(
+        realm,
+        {
+          type: "authorization",
+          authorizationId: "*",
+          clientId: grant.clientId,
+          grantId: grant.id,
+          userId: grant.userId
+        },
+        {
+          basic: "w",
+          scopes: "",
+          secrets: ""
+        }
+      )
+    )) ||
+    !(await grant.can(
+      tx,
+      values,
+      createV2AuthXScope(
+        realm,
+        {
+          type: "authorization",
+          authorizationId: "*",
+          clientId: grant.clientId,
+          grantId: grant.id,
+          userId: grant.userId
+        },
+        {
+          basic: "w",
+          scopes: "w",
+          secrets: ""
+        }
+      )
+    )) ||
+    !(await grant.can(
+      tx,
+      values,
+      createV2AuthXScope(
+        realm,
+        {
+          type: "authorization",
+          authorizationId: "*",
+          clientId: grant.clientId,
+          grantId: grant.id,
+          userId: grant.userId
+        },
+        {
+          basic: "w",
+          scopes: "",
+          secrets: "w"
         }
       )
     ))
