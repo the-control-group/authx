@@ -98,10 +98,7 @@ export function match(
       // Apply dynamic substitutions to the description.
       let description = template.description;
       for (const [variableKey, variableValue] of Object.entries(parameters)) {
-        const domain = new RegExp(
-          `(?<!\\\\)(\\(${escapeRegExp(variableKey)}\\))`,
-          "g"
-        );
+        const domain = new RegExp(`(\\(${escapeRegExp(variableKey)}\\))`, "g");
         description = description.replace(domain, variableValue);
       }
 
