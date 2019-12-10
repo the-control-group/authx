@@ -127,18 +127,19 @@
         margin-top: 14px;
       }
 
-      .panel label {
+      .panel label:not(.span), .panel .label {
         display: block;
         padding: 14px;
       }
 
-      .panel label > span {
+      .panel label:not(.span) > span, .panel .label > span,
+      .panel label:not(.span) > .span, .panel .label > .span {
         padding: 0 7px 7px;
         display: block;
         font-size: 14px;
       }
 
-      .panel label > input {
+      .panel label:not(.span) > input, .panel .label > input {
         width: 100%;
       }
 
@@ -216,7 +217,7 @@
         border: 2px solid hsla(0, 0%, 100%, 0.04);
       }
 
-      .info > label:first-child {
+      .info > label:not(.span):first-child, .info > .label:first-child {
         padding-top: 7px;
       }
 

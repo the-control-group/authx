@@ -34,7 +34,11 @@ export function PasswordAuthority({
   });
 
   // Identity
-  const [identityAuthorityId, setIdentityAuthorityId] = useState<string>("");
+  const identityAuthorityState = useState<string>("");
+  const setIdentityAuthorityId = identityAuthorityState[1];
+  const identityAuthorityId =
+    authorities.length === 1 ? authorities[0].id : identityAuthorityState[0];
+
   const [identityAuthorityUserId, setIdentityAuthorityUserId] = useState<
     string
   >("");
@@ -151,25 +155,30 @@ export function PasswordAuthority({
       onSubmit={onSubmit}
       className={errors.length ? "panel validate" : "panel"}
     >
-      <label>
-        <span>Identity</span>
+      <div className="label">
+        <label className="span" htmlFor="password-authority-identity">
+          Identity
+        </label>
         <div style={{ display: "flex" }}>
-          <select
-            disabled={operating}
-            value={identityAuthorityId}
-            onChange={e => setIdentityAuthorityId(e.target.value)}
-            style={{ marginRight: "14px" }}
-          >
-            <option value={authority.id}>User ID</option>
-            {authorities
-              .filter(a => a.__typename === "EmailAuthority")
-              .map(a => (
-                <option key={a.id} value={a.id}>
-                  {a.name}
-                </option>
-              ))}
-          </select>
+          {authorities.length > 1 ? (
+            <select
+              disabled={operating}
+              value={identityAuthorityId}
+              onChange={e => setIdentityAuthorityId(e.target.value)}
+              style={{ marginRight: "14px" }}
+            >
+              <option value={authority.id}>User ID</option>
+              {authorities
+                .filter(a => a.__typename === "EmailAuthority")
+                .map(a => (
+                  <option key={a.id} value={a.id}>
+                    {a.name}
+                  </option>
+                ))}
+            </select>
+          ) : null}
           <input
+            id="password-authority-identity"
             disabled={operating}
             ref={focusElement}
             name={
@@ -194,7 +203,7 @@ export function PasswordAuthority({
             required
           />
         </div>
-      </label>
+      </div>
       <label>
         <span>Password</span>
         <input
