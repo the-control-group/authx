@@ -203,7 +203,8 @@ The following scopes are implicit in an OAuth request:
 
 ```
 authx:v2.user.......{current_user_id}:r....
-authx:v2.grant...{current_client_id}..{current_grant_id}..{current_user_id}:*..*.*.
+authx:v2.grant...{current_client_id}..{current_grant_id}..{current_user_id}:r..*.*.
+authx:v2.grant...{current_client_id}..{current_grant_id}..{current_user_id}:w...*.
 authx:v2.authorization..*.{current_client_id}..{current_grant_id}..{current_user_id}:*..*.*.
 ```
 
