@@ -2,7 +2,7 @@ import body from "koa-body";
 import createPlaygroundMiddleware from "graphql-playground-middleware-koa";
 import Router, { IRouterOptions } from "koa-router";
 import { errorHandler, execute } from "graphql-api-koa";
-import { Middleware, ParameterizedContext } from "koa";
+import { Context as KoaContext, Next as KoaNext } from "koa";
 import { parse } from "auth-header";
 import { Pool } from "pg";
 
@@ -26,10 +26,12 @@ export * from "./Config";
 export * from "./Context";
 export * from "./util/validateIdFormat";
 
-export class AuthX<
-  StateT extends any = any,
-  CustomT extends { [x]: Context } = { [x]: Context }
-> extends Router<StateT, CustomT> {
+// FIXME: The newest types from @types/koa fail to match perfectly valid
+// overloads for chained middleware. I haven't had a chance to really dive into
+// what's going on, so for now we are going to cast through any.
+type AuthXMiddleware = any; // Middleware<any, KoaContext & { [x]: Context }>
+
+export class AuthX extends Router<any, { [x]: Context }> {
   public readonly pool: Pool;
   public constructor(config: Config & IRouterOptions) {
     assertConfig(config);
@@ -46,10 +48,10 @@ export class AuthX<
     this.pool = new Pool(config.pg);
 
     // define the context middleware
-    const contextMiddleware: Middleware<ParameterizedContext<
-      any,
-      any
-    >> = async (ctx, next): Promise<void> => {
+    const contextMiddleware = async (
+      ctx: KoaContext & { [x]: Context },
+      next: KoaNext
+    ): Promise<void> => {
       const tx = await this.pool.connect();
       try {
         let authorization = null;
@@ -104,7 +106,7 @@ export class AuthX<
 
       errorHandler(),
 
-      contextMiddleware,
+      contextMiddleware as AuthXMiddleware,
 
       // The GraphQL endpoint only accepts JSON. This helps protect against CSRF
       // attacks that send urlenceded data via HTML forms.
@@ -152,9 +154,9 @@ export class AuthX<
 
     this.post(
       "/",
-      contextMiddleware,
+      contextMiddleware as AuthXMiddleware,
       body({ multipart: false, urlencoded: true, text: false, json: true }),
-      oauth2
+      oauth2 as AuthXMiddleware
     );
   }
 }

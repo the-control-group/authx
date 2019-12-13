@@ -6,7 +6,7 @@ import { Client, Grant, Authorization } from "./model";
 import { NotFoundError } from "./errors";
 import { createV2AuthXScope } from "./util/scopes";
 import { inject, isEqual, isValidScopeTemplate } from "@authx/scopes";
-import { ParameterizedContext } from "koa";
+import { Context as KoaContext } from "koa";
 import { PoolClient } from "pg";
 import x from "./x";
 
@@ -277,9 +277,9 @@ function getRefreshToken(secrets: Iterable<string>): null | string {
   return refreshToken;
 }
 
-export default async (
-  ctx: ParameterizedContext<any, { [x]: Context }>
-): Promise<void> => {
+async function oAuth2Middleware(
+  ctx: KoaContext & { [x]: Context }
+): Promise<void> {
   ctx.response.set("Cache-Control", "no-store");
   ctx.response.set("Pragma", "no-cache");
 
@@ -889,4 +889,6 @@ export default async (
     ctx.response.body = body;
     ctx.app.emit("error", error, ctx);
   }
-};
+}
+
+export default oAuth2Middleware;
