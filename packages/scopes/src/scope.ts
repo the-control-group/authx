@@ -98,9 +98,20 @@ export function isEqual(collectionA: Scope[], collectionB: Scope[]): boolean {
   }
 
   for (const [iScope, scopeA] of simplifiedCollectionA.entries()) {
+    const scopeB = simplifiedCollectionB[iScope];
+    if (scopeA.length !== scopeB.length) {
+      return false;
+    }
+
     for (const [iDomain, domainA] of scopeA.entries()) {
+      const domainB = scopeB[iDomain];
+      if (domainA.length !== domainB.length) {
+        return false;
+      }
+
       for (const [iSegment, segmentA] of domainA.entries()) {
-        if (segmentA !== simplifiedCollectionB[iScope][iDomain][iSegment]) {
+        const segmentB = domainB[iSegment];
+        if (segmentA !== segmentB) {
           return false;
         }
       }

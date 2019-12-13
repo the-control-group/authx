@@ -4,11 +4,12 @@ import {
   getDifference,
   getIntersection,
   hasIntersection,
+  InvalidScopeError,
+  isEqual,
   isSuperset,
-  normalize,
-  simplify,
   isValidScopeLiteral,
-  InvalidScopeError
+  normalize,
+  simplify
 } from "./index";
 
 t("getDifference (valid)", t => {
@@ -20,7 +21,7 @@ t("getDifference (valid)", t => {
     ["realm.*:resource:action"]
   );
 });
-t.only("getDifference (template)", t => {
+t("getDifference (template)", t => {
   t.deepEqual(
     getDifference(
       ["realm.b:{resource}:action", "realm.a:{resource}:action"],
@@ -121,7 +122,16 @@ t("hasIntersection (invalid b)", t => {
   );
 });
 
-// TODO: isEqual
+t("isSuperset (valid string, valid string) false", t => {
+  t.deepEqual(isEqual("realm:**:**", "realm.dev:**:**"), false);
+});
+
+t("isSuperset (valid string, valid string) true", t => {
+  t.deepEqual(
+    isEqual("realm.**:resource:action", "realm.**:resource:action"),
+    true
+  );
+});
 
 // TODO: isStrictSubset
 

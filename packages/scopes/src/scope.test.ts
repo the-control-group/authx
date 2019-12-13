@@ -5,12 +5,29 @@ import {
   getIntersection,
   hasIntersection,
   isSuperset,
+  isEqual,
   normalize,
   simplify
 } from "./scope";
 
 import { print } from "./print";
 import { parseScopeLiteral } from "./parse";
+
+[
+  { a: ["a:b:c"], b: ["a:b:c"], result: true },
+  { a: ["a.x:b:c"], b: ["a:b:c"], result: false },
+  { a: ["a:b:c"], b: ["a.x:b:c"], result: false },
+  { a: ["*:b:c"], b: ["a:b:c"], result: false },
+  { a: ["a:b:c"], b: ["*:b:c"], result: false },
+  { a: ["**.**:b:c"], b: ["*.**:b:c"], result: true }
+].forEach(({ a, b, result }) => {
+  t(`isEqual ${a} ${b} => ${result}`, t =>
+    t.deepEqual(
+      isEqual(a.map(parseScopeLiteral), b.map(parseScopeLiteral)),
+      result
+    )
+  );
+});
 
 [
   { scope: "client:resource:action", result: "client:resource:action" },
