@@ -549,13 +549,18 @@ export default async (
             }
           );
 
+          const scopes = await requestedAuthorization.access(tx, {
+            ...values,
+            currentAuthorizationId: requestedAuthorization.id
+          });
+
           const body = {
             /* eslint-disable @typescript-eslint/camelcase */
             token_type: "bearer",
             access_token: jwt.sign(
               {
                 aid: requestedAuthorization.id,
-                scopes: await requestedAuthorization.access(tx, values),
+                scopes,
                 nonce: paramsNonce
               },
               privateKey,
@@ -569,7 +574,7 @@ export default async (
             ),
             refresh_token: getRefreshToken(grant.secrets),
             expires_in: jwtValidityDuration,
-            scope: (await requestedAuthorization.access(tx, values)).join(" ")
+            scope: scopes.join(" ")
             /* eslint-enable @typescript-eslint/camelcase */
           };
 
