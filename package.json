@@ -47,5 +47,8 @@
     "nodemon": "^2.0.1",
     "prettier": "^1.19.1",
     "typescript": "^3.7.3"
+  },
+  "resolutions": {
+    "**/graphql": "v15.0.0-alpha.2"
   }
 }
