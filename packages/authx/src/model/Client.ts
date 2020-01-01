@@ -15,6 +15,7 @@ export interface ClientData {
 
 export class Client implements ClientData {
   public readonly id: string;
+  public readonly recordId: string;
   public readonly enabled: boolean;
   public readonly name: string;
   public readonly description: string;
@@ -23,8 +24,9 @@ export class Client implements ClientData {
 
   private _grants: null | Promise<Grant[]> = null;
 
-  public constructor(data: ClientData) {
+  public constructor(data: ClientData & { readonly recordId: string }) {
     this.id = data.id;
+    this.recordId = data.recordId;
     this.enabled = data.enabled;
     this.name = data.name;
     this.description = data.description;
@@ -140,6 +142,7 @@ export class Client implements ClientData {
       `
       SELECT
         entity_id AS id,
+        record_id,
         enabled,
         name,
         description,
@@ -171,6 +174,7 @@ export class Client implements ClientData {
       row =>
         new Client({
           ...row,
+          recordId: row.record_id,
           secrets: row.secrets,
           urls: row.urls
         })
@@ -236,6 +240,7 @@ export class Client implements ClientData {
         ($1, $2, $3, $4, $5, $6, $7, $8, $9)
       RETURNING
         entity_id AS id,
+        record_id,
         enabled,
         name,
         description,
@@ -262,6 +267,7 @@ export class Client implements ClientData {
     const row = next.rows[0];
     return new Client({
       ...row,
+      recordId: row.record_id,
       secrets: row.secrets,
       urls: row.urls
     });

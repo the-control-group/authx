@@ -16,6 +16,7 @@ export interface RoleData {
 
 export class Role implements RoleData {
   public readonly id: string;
+  public readonly recordId: string;
   public readonly enabled: boolean;
   public readonly name: string;
   public readonly description: string;
@@ -24,8 +25,9 @@ export class Role implements RoleData {
 
   private _users: null | Promise<User[]> = null;
 
-  public constructor(data: RoleData) {
+  public constructor(data: RoleData & { readonly recordId: string }) {
     this.id = data.id;
+    this.recordId = data.recordId;
     this.enabled = data.enabled;
     this.name = data.name;
     this.description = data.description;
@@ -168,6 +170,7 @@ export class Role implements RoleData {
       row =>
         new Role({
           ...row,
+          recordId: row.record_id,
           userIds: row.user_ids.filter((id: null | string) => id)
         })
     );
@@ -252,6 +255,8 @@ export class Role implements RoleData {
       throw new Error("INVARIANT: Insert must return exactly one row.");
     }
 
+    const row = next.rows[0];
+
     // insert the new record's users
     const userIds = [...new Set(data.userIds)];
     const users = await tx.query(
@@ -271,7 +276,8 @@ export class Role implements RoleData {
     }
 
     return new Role({
-      ...next.rows[0],
+      ...row,
+      recordId: row.record_id,
       userIds: users.rows.map(({ user_id: userId }) => userId)
     });
   }

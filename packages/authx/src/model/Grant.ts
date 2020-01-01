@@ -18,6 +18,7 @@ export interface GrantData {
 
 export class Grant implements GrantData {
   public readonly id: string;
+  public readonly recordId: string;
   public readonly enabled: boolean;
   public readonly clientId: string;
   public readonly userId: string;
@@ -29,8 +30,9 @@ export class Grant implements GrantData {
   private _user: null | Promise<User> = null;
   private _authorizations: null | Promise<Authorization[]> = null;
 
-  public constructor(data: GrantData) {
+  public constructor(data: GrantData & { readonly recordId: string }) {
     this.id = data.id;
+    this.recordId = data.recordId;
     this.enabled = data.enabled;
     this.clientId = data.clientId;
     this.userId = data.userId;
@@ -172,6 +174,7 @@ export class Grant implements GrantData {
       `
       SELECT
         entity_id AS id,
+        record_id,
         enabled,
         client_id,
         user_id,
@@ -201,6 +204,7 @@ export class Grant implements GrantData {
       row =>
         new Grant({
           ...row,
+          recordId: row.record_id,
           clientId: row.client_id,
           userId: row.user_id
         })
@@ -269,6 +273,7 @@ export class Grant implements GrantData {
         ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10)
       RETURNING
         entity_id AS id,
+        record_id,
         enabled,
         client_id,
         user_id,
@@ -297,6 +302,7 @@ export class Grant implements GrantData {
     const row = next.rows[0];
     return new Grant({
       ...row,
+      recordId: row.record_id,
       clientId: row.client_id,
       userId: row.user_id
     });

@@ -15,14 +15,16 @@ export interface AuthorityData<A> {
 
 export abstract class Authority<A> implements AuthorityData<A> {
   public readonly id: string;
+  public readonly recordId: string;
   public readonly enabled: boolean;
   public readonly name: string;
   public readonly description: string;
   public readonly strategy: string;
   public readonly details: A;
 
-  public constructor(data: AuthorityData<A>) {
+  public constructor(data: AuthorityData<A> & { readonly recordId: string }) {
     this.id = data.id;
+    this.recordId = data.recordId;
     this.enabled = data.enabled;
     this.name = data.name;
     this.description = data.description;
@@ -137,6 +139,7 @@ export abstract class Authority<A> implements AuthorityData<A> {
       `
       SELECT
         entity_id AS id,
+        record_id,
         enabled,
         name,
         description,
@@ -164,6 +167,7 @@ export abstract class Authority<A> implements AuthorityData<A> {
     const data = result.rows.map(row => {
       return {
         ...row,
+        recordId: row.record_id,
         baseUrls: row.base_urls
       };
     });
@@ -252,6 +256,7 @@ export abstract class Authority<A> implements AuthorityData<A> {
         ($1, $2, $3, $4, $5, $6, $7, $8, $9)
       RETURNING
         entity_id AS id,
+        record_id,
         enabled,
         name,
         description,
@@ -278,6 +283,7 @@ export abstract class Authority<A> implements AuthorityData<A> {
     const row = next.rows[0];
     return new this({
       ...row,
+      recordId: row.record_id,
       baseUrls: row.base_urls
     });
   }

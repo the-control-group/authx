@@ -16,6 +16,7 @@ export interface AuthorizationData {
 
 export class Authorization implements AuthorizationData {
   public readonly id: string;
+  public readonly recordId: string;
   public readonly enabled: boolean;
   public readonly userId: string;
   public readonly grantId: null | string;
@@ -26,8 +27,9 @@ export class Authorization implements AuthorizationData {
   private _grant: null | Promise<Grant> = null;
   private _authorization: null | Promise<Grant> = null;
 
-  public constructor(data: AuthorizationData) {
+  public constructor(data: AuthorizationData & { readonly recordId: string }) {
     this.id = data.id;
+    this.recordId = data.recordId;
     this.enabled = data.enabled;
     this.userId = data.userId;
     this.grantId = data.grantId;
@@ -196,6 +198,7 @@ export class Authorization implements AuthorizationData {
       row =>
         new Authorization({
           ...row,
+          recordId: row.record_id,
           userId: row.user_id,
           grantId: row.grant_id
         })
@@ -332,6 +335,7 @@ export class Authorization implements AuthorizationData {
     const row = next.rows[0];
     return new Authorization({
       ...row,
+      recordId: row.record_id,
       userId: row.user_id,
       grantId: row.grant_id
     });

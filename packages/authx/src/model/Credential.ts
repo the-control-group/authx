@@ -16,6 +16,7 @@ export interface CredentialData<C> {
 
 export abstract class Credential<C> implements CredentialData<C> {
   public readonly id: string;
+  public readonly recordId: string;
   public readonly enabled: boolean;
   public readonly authorityId: string;
   public readonly authorityUserId: string;
@@ -24,8 +25,9 @@ export abstract class Credential<C> implements CredentialData<C> {
 
   private _user: null | Promise<User> = null;
 
-  public constructor(data: CredentialData<C>) {
+  public constructor(data: CredentialData<C> & { readonly recordId: string }) {
     this.id = data.id;
+    this.recordId = data.recordId;
     this.enabled = data.enabled;
     this.authorityId = data.authorityId;
     this.authorityUserId = data.authorityUserId;
@@ -154,6 +156,7 @@ export abstract class Credential<C> implements CredentialData<C> {
       `
       SELECT
         authx.credential_record.entity_id AS id,
+        authx.credential_record.record_id,
         authx.credential_record.enabled,
         authx.credential_record.authority_id,
         authx.credential_record.authority_user_id,
@@ -273,6 +276,7 @@ export abstract class Credential<C> implements CredentialData<C> {
         ($1, $2, $3, $4, $5, $6, $7, $8, $9)
       RETURNING
         entity_id AS id,
+        record_id,
         enabled,
         authority_id,
         authority_user_id,
@@ -299,6 +303,7 @@ export abstract class Credential<C> implements CredentialData<C> {
     const row = next.rows[0];
     return new this({
       ...row,
+      recordId: row.record_id,
       authorityId: row.authority_id,
       authorityUserId: row.authority_user_id,
       userId: row.user_id

@@ -18,6 +18,7 @@ export interface UserData {
 
 export class User implements UserData {
   public readonly id: string;
+  public readonly recordId: string;
   public readonly enabled: boolean;
   public readonly type: UserType;
   public readonly name: string;
@@ -27,8 +28,9 @@ export class User implements UserData {
   private _roles: null | Promise<Role[]> = null;
   private _grants: null | Promise<Grant[]> = null;
 
-  public constructor(data: UserData) {
+  public constructor(data: UserData & { readonly recordId: string }) {
     this.id = data.id;
+    this.recordId = data.recordId;
     this.enabled = data.enabled;
     this.type = data.type;
     this.name = data.name;
@@ -287,7 +289,8 @@ export class User implements UserData {
     const users = result.rows.map(
       row =>
         new User({
-          ...row
+          ...row,
+          recordId: row.record_id
         })
     );
 
@@ -370,8 +373,10 @@ export class User implements UserData {
       throw new Error("INVARIANT: Insert must return exactly one row.");
     }
 
+    const row = next.rows[0];
     return new User({
-      ...next.rows[0]
+      ...row,
+      recordId: row.record_id
     });
   }
 }
