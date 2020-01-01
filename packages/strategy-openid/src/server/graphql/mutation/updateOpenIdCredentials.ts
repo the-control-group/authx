@@ -15,13 +15,13 @@ import { GraphQLUpdateOpenIdCredentialInput } from "./GraphQLUpdateOpenIdCredent
 
 export const updateOpenIdCredentials: GraphQLFieldConfig<
   any,
+  Context,
   {
     credentials: {
       id: string;
       enabled: null | boolean;
     }[];
-  },
-  Context
+  }
 > = {
   type: new GraphQLList(GraphQLOpenIdCredential),
   description: "Update a new credential.",

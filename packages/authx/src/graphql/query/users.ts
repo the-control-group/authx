@@ -13,10 +13,10 @@ import { filter } from "../../util/filter";
 
 export const users: GraphQLFieldConfig<
   any,
+  Context,
   ConnectionArguments & {
     includeDisabled: boolean;
-  },
-  Context
+  }
 > = {
   type: GraphQLUserConnection,
   description: "List all users.",

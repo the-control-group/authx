@@ -17,6 +17,7 @@ import { GraphQLCreateGrantInput } from "./GraphQLCreateGrantInput";
 
 export const createGrants: GraphQLFieldConfig<
   any,
+  Context,
   {
     grants: {
       id: null | string;
@@ -29,8 +30,7 @@ export const createGrants: GraphQLFieldConfig<
         scopes: string[];
       }[];
     }[];
-  },
-  Context
+  }
 > = {
   type: new GraphQLList(GraphQLGrant),
   description: "Create a new grant.",

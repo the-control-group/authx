@@ -16,13 +16,14 @@ import { GraphQLUser } from "./GraphQLUser";
 import { GraphQLTokenFormat } from "./GraphQLTokenFormat";
 import { GraphQLScope } from "./GraphQLScope";
 import { Explanation, match } from "../util/explanations";
+import { GraphQLNode } from "./GraphQLNode";
 
 export const GraphQLAuthorization: GraphQLObjectType<
   Authorization,
   Context
 > = new GraphQLObjectType<Authorization, Context>({
   name: "Authorization",
-  interfaces: () => [],
+  interfaces: () => [GraphQLNode],
   fields: () => ({
     id: { type: new GraphQLNonNull(GraphQLID) },
     enabled: {

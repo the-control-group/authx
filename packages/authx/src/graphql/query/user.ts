@@ -5,10 +5,10 @@ import { User } from "../../model";
 
 export const user: GraphQLFieldConfig<
   any,
+  Context,
   {
     id: string;
-  },
-  Context
+  }
 > = {
   type: GraphQLUser,
   description: "Fetch a user by ID.",

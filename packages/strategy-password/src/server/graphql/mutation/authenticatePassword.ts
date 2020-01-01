@@ -27,13 +27,13 @@ const __DEV__ = process.env.NODE_ENV !== "production";
 
 export const authenticatePassword: GraphQLFieldConfig<
   any,
+  Context,
   {
     identityAuthorityId: string;
     identityAuthorityUserId: string;
     passwordAuthorityId: string;
     password: string;
-  },
-  Context
+  }
 > = {
   type: GraphQLAuthorization,
   description: "Create a new authorization.",

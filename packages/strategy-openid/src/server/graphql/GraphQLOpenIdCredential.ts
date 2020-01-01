@@ -6,7 +6,13 @@ import {
   GraphQLObjectType
 } from "graphql";
 
-import { User, GraphQLCredential, GraphQLUser, Context } from "@authx/authx";
+import {
+  User,
+  GraphQLCredential,
+  GraphQLUser,
+  GraphQLNode,
+  Context
+} from "@authx/authx";
 import { OpenIdCredential, OpenIdAuthority } from "../model";
 import { GraphQLOpenIdAuthority } from "./GraphQLOpenIdAuthority";
 
@@ -18,7 +24,7 @@ export const GraphQLOpenIdCredential = new GraphQLObjectType<
   Context
 >({
   name: "OpenIdCredential",
-  interfaces: () => [GraphQLCredential],
+  interfaces: () => [GraphQLNode, GraphQLCredential],
   isTypeOf: (value: any): boolean => value instanceof OpenIdCredential,
   fields: () => ({
     id: { type: new GraphQLNonNull(GraphQLID) },

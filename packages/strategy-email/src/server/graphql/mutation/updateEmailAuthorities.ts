@@ -15,6 +15,7 @@ import { GraphQLUpdateEmailAuthorityInput } from "./GraphQLUpdateEmailAuthorityI
 
 export const updateEmailAuthorities: GraphQLFieldConfig<
   any,
+  Context,
   {
     authorities: {
       id: string;
@@ -32,8 +33,7 @@ export const updateEmailAuthorities: GraphQLFieldConfig<
       verificationEmailText: null | string;
       verificationEmailHtml: null | string;
     }[];
-  },
-  Context
+  }
 > = {
   type: new GraphQLList(GraphQLEmailAuthority),
   description: "Update a new authority.",

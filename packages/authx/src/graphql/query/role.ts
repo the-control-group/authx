@@ -5,10 +5,10 @@ import { Role } from "../../model";
 
 export const role: GraphQLFieldConfig<
   any,
+  Context,
   {
     id: string;
-  },
-  Context
+  }
 > = {
   type: GraphQLRole,
   description: "Fetch a role by ID.",

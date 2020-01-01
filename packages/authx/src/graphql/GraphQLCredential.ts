@@ -7,9 +7,11 @@ import {
 
 import { GraphQLAuthority } from "./GraphQLAuthority";
 import { GraphQLUser } from "./GraphQLUser";
+import { GraphQLNode } from "./GraphQLNode";
 
 export const GraphQLCredential = new GraphQLInterfaceType({
   name: "Credential",
+  interfaces: () => [GraphQLNode],
   fields: () => ({
     id: { type: new GraphQLNonNull(GraphQLID) },
     enabled: {

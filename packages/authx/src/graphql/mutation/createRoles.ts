@@ -16,6 +16,7 @@ import { GraphQLCreateRoleInput } from "./GraphQLCreateRoleInput";
 
 export const createRoles: GraphQLFieldConfig<
   any,
+  Context,
   {
     roles: {
       id: null | string;
@@ -29,8 +30,7 @@ export const createRoles: GraphQLFieldConfig<
         scopes: string[];
       }[];
     }[];
-  },
-  Context
+  }
 > = {
   type: new GraphQLList(GraphQLRole),
   description: "Create a new role.",

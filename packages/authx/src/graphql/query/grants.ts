@@ -13,10 +13,10 @@ import { filter } from "../../util/filter";
 
 export const grants: GraphQLFieldConfig<
   any,
+  Context,
   ConnectionArguments & {
     includeDisabled: boolean;
-  },
-  Context
+  }
 > = {
   type: GraphQLGrantConnection,
   description: "List all grants.",

@@ -7,7 +7,13 @@ import {
   GraphQLString
 } from "graphql";
 
-import { GraphQLAuthority, GraphQLRole, Context, Role } from "@authx/authx";
+import {
+  GraphQLAuthority,
+  GraphQLRole,
+  GraphQLNode,
+  Context,
+  Role
+} from "@authx/authx";
 import { GraphQLEmailAuthority, EmailAuthority } from "@authx/strategy-email";
 import { OpenIdAuthority } from "../model";
 
@@ -33,7 +39,7 @@ export const GraphQLOpenIdAuthority = new GraphQLObjectType<
   Context
 >({
   name: "OpenIdAuthority",
-  interfaces: () => [GraphQLAuthority],
+  interfaces: () => [GraphQLNode, GraphQLAuthority],
   isTypeOf: (value: any): boolean => value instanceof OpenIdAuthority,
   fields: () => ({
     id: { type: new GraphQLNonNull(GraphQLID) },

@@ -28,12 +28,12 @@ const __DEV__ = process.env.NODE_ENV !== "production";
 
 export const authenticateEmail: GraphQLFieldConfig<
   any,
+  Context,
   {
     authorityId: string;
     email: string;
     proof: null | string;
-  },
-  Context
+  }
 > = {
   type: GraphQLAuthorization,
   description: "Create a new authorization.",

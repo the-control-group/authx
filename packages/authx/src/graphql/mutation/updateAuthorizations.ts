@@ -8,13 +8,13 @@ import { GraphQLUpdateAuthorizationInput } from "./GraphQLUpdateAuthorizationInp
 
 export const updateAuthorizations: GraphQLFieldConfig<
   any,
+  Context,
   {
     authorizations: {
       id: string;
       enabled: null | boolean;
     }[];
-  },
-  Context
+  }
 > = {
   type: new GraphQLList(GraphQLAuthorization),
   description: "Update a new authorization.",

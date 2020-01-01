@@ -29,11 +29,11 @@ import { OpenIdAuthority, OpenIdCredential } from "../../model";
 
 export const authenticateOpenId: GraphQLFieldConfig<
   any,
+  Context,
   {
     authorityId: string;
     code: string;
-  },
-  Context
+  }
 > = {
   type: GraphQLAuthorization,
   description: "Create a new authorization.",

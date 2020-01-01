@@ -1,10 +1,12 @@
-import { GraphQLObjectType, GraphQLString } from "graphql";
+import { GraphQLObjectType, GraphQLString, GraphQLNonNull } from "graphql";
 import { GraphQLClient } from "./GraphQLClient";
+import { GraphQLEdge } from "./GraphQLEdge";
 
 export const GraphQLClientEdge = new GraphQLObjectType({
-  name: "ClientEdge",
-  fields: () => ({
-    cursor: { type: GraphQLString },
-    node: { type: GraphQLClient }
-  })
+	name: "ClientEdge",
+	interfaces: () => [GraphQLEdge],
+	fields: () => ({
+		cursor: { type: new GraphQLNonNull(GraphQLString) },
+		node: { type: GraphQLClient }
+	})
 });

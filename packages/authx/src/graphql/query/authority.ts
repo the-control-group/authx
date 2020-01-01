@@ -5,10 +5,10 @@ import { Authority } from "../../model";
 
 export const authority: GraphQLFieldConfig<
   any,
+  Context,
   {
     id: string;
-  },
-  Context
+  }
 > = {
   type: GraphQLAuthority,
   description: "Fetch an authority by ID.",

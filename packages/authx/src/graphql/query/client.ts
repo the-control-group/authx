@@ -5,10 +5,10 @@ import { Client } from "../../model";
 
 export const client: GraphQLFieldConfig<
   any,
+  Context,
   {
     id: string;
-  },
-  Context
+  }
 > = {
   type: GraphQLClient,
   description: "Fetch a client by ID.",

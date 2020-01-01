@@ -25,6 +25,7 @@ import { GraphQLCreateOpenIdCredentialInput } from "./GraphQLCreateOpenIdCredent
 
 export const createOpenIdCredentials: GraphQLFieldConfig<
   any,
+  Context,
   {
     credentials: {
       id: null | string;
@@ -38,8 +39,7 @@ export const createOpenIdCredentials: GraphQLFieldConfig<
         scopes: string[];
       }[];
     }[];
-  },
-  Context
+  }
 > = {
   type: new GraphQLList(GraphQLOpenIdCredential),
   description: "Create a new credential.",

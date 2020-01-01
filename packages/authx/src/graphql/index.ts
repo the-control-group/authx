@@ -17,22 +17,39 @@ import { GraphQLUserType } from "./GraphQLUserType";
 
 export * from "./GraphQLAdministrationInput";
 export * from "./GraphQLAuthority";
-export * from "./GraphQLAuthority";
+export * from "./GraphQLAuthorityConnection";
+export * from "./GraphQLAuthorityEdge";
 export * from "./GraphQLAuthorization";
+export * from "./GraphQLAuthorizationConnection";
+export * from "./GraphQLAuthorizationEdge";
 export * from "./GraphQLClient";
+export * from "./GraphQLClientConnection";
+export * from "./GraphQLClientEdge";
+export * from "./GraphQLConnection";
 export * from "./GraphQLCredential";
-export * from "./GraphQLCredential";
+export * from "./GraphQLCredentialConnection";
+export * from "./GraphQLCredentialEdge";
+export * from "./GraphQLEdge";
+export * from "./GraphQLExplanation";
 export * from "./GraphQLGrant";
+export * from "./GraphQLGrantConnection";
+export * from "./GraphQLGrantEdge";
+export * from "./GraphQLNode";
+export * from "./GraphQLPageInfo";
 export * from "./GraphQLRole";
+export * from "./GraphQLRoleConnection";
+export * from "./GraphQLRoleEdge";
 export * from "./GraphQLScope";
 export * from "./GraphQLScopeTemplate";
 export * from "./GraphQLTimestamp";
 export * from "./GraphQLTokenFormat";
 export * from "./GraphQLUser";
+export * from "./GraphQLUserConnection";
+export * from "./GraphQLUserEdge";
 export * from "./GraphQLUserType";
 
 export function createSchema(strategies: StrategyCollection): GraphQLSchema {
-  const query = new GraphQLObjectType<any, Context>({
+  const query = new GraphQLObjectType<any, Context, any>({
     name: "Query",
     description: "The query root of AuthX's GraphQL interface.",
     fields: () => ({
@@ -41,7 +58,7 @@ export function createSchema(strategies: StrategyCollection): GraphQLSchema {
     })
   });
 
-  const mutation = new GraphQLObjectType<any, Context>({
+  const mutation = new GraphQLObjectType<any, Context, any>({
     name: "Mutation",
     description: "The mutation root of AuthX's GraphQL interface.",
     fields: () => ({

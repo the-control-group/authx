@@ -20,6 +20,7 @@ import { GraphQLCreatePasswordAuthorityInput } from "./GraphQLCreatePasswordAuth
 
 export const createPasswordAuthorities: GraphQLFieldConfig<
   any,
+  Context,
   {
     authorities: {
       id: null | string;
@@ -32,8 +33,7 @@ export const createPasswordAuthorities: GraphQLFieldConfig<
         scopes: string[];
       }[];
     }[];
-  },
-  Context
+  }
 > = {
   type: new GraphQLList(GraphQLPasswordAuthority),
   description: "Create a new password authority.",

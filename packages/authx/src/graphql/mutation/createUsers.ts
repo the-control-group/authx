@@ -16,6 +16,7 @@ import { GraphQLCreateUserInput } from "./GraphQLCreateUserInput";
 
 export const createUsers: GraphQLFieldConfig<
   any,
+  Context,
   {
     users: {
       id: null | string;
@@ -27,8 +28,7 @@ export const createUsers: GraphQLFieldConfig<
         scopes: string[];
       }[];
     }[];
-  },
-  Context
+  }
 > = {
   type: new GraphQLList(GraphQLUser),
   description: "Create a new user.",

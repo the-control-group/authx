@@ -22,6 +22,7 @@ import { GraphQLCreatePasswordCredentialInput } from "./GraphQLCreatePasswordCre
 
 export const createPasswordCredentials: GraphQLFieldConfig<
   any,
+  Context,
   {
     credentials: {
       id: null | string;
@@ -34,8 +35,7 @@ export const createPasswordCredentials: GraphQLFieldConfig<
         scopes: string[];
       }[];
     }[];
-  },
-  Context
+  }
 > = {
   type: new GraphQLList(GraphQLPasswordCredential),
   description: "Create a new credential.",

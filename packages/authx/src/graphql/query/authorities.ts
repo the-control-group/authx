@@ -11,10 +11,10 @@ import {
 
 export const authorities: GraphQLFieldConfig<
   any,
+  Context,
   ConnectionArguments & {
     includeDisabled: boolean;
-  },
-  Context
+  }
 > = {
   type: GraphQLAuthorityConnection,
   description: "List all authorities.",

@@ -20,14 +20,16 @@ import { GraphQLGrant } from "./GraphQLGrant";
 import { GraphQLGrantConnection } from "./GraphQLGrantConnection";
 import { GraphQLAuthorizationConnection } from "./GraphQLAuthorizationConnection";
 import { GraphQLCredentialConnection } from "./GraphQLCredentialConnection";
+import { GraphQLNode } from "./GraphQLNode";
 import { filter } from "../util/filter";
 
 export const GraphQLUser: GraphQLObjectType<
   User,
-  Context
+  Context,
+  any
 > = new GraphQLObjectType({
   name: "User",
-  interfaces: () => [],
+  interfaces: () => [GraphQLNode],
   fields: () => ({
     id: { type: new GraphQLNonNull(GraphQLID) },
     enabled: {
@@ -120,9 +122,9 @@ export const GraphQLUser: GraphQLObjectType<
         }
       },
       description: "Look for a grant between this user and a client.",
-      async resolve(
-        user,
-        args,
+      resolve: async function resolve(
+        user: User,
+        args: { clientId: string },
         { realm, authorization: a, pool }: Context
       ): Promise<null | Grant> {
         if (!a) return null;
@@ -133,7 +135,10 @@ export const GraphQLUser: GraphQLObjectType<
         } finally {
           tx.release();
         }
-      }
+
+        // This is necessary because of a flaw in the type definitions:
+        // https://github.com/graphql/graphql-js/issues/2152
+      } as any
     },
     roles: {
       type: GraphQLRoleConnection,

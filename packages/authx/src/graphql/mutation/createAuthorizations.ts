@@ -17,6 +17,7 @@ import { GraphQLCreateAuthorizationInput } from "./GraphQLCreateAuthorizationInp
 
 export const createAuthorizations: GraphQLFieldConfig<
   any,
+  Context,
   {
     authorizations: {
       id: null | string;
@@ -29,8 +30,7 @@ export const createAuthorizations: GraphQLFieldConfig<
         scopes: string[];
       }[];
     }[];
-  },
-  Context
+  }
 > = {
   type: new GraphQLList(GraphQLAuthorization),
   description: "Create a new authorization.",

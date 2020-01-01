@@ -8,7 +8,7 @@ import {
 } from "graphql";
 
 import { PasswordAuthority } from "../model";
-import { GraphQLAuthority, Context } from "@authx/authx";
+import { GraphQLAuthority, GraphQLNode, Context } from "@authx/authx";
 
 // Authority
 // ---------
@@ -18,7 +18,7 @@ export const GraphQLPasswordAuthority = new GraphQLObjectType<
   Context
 >({
   name: "PasswordAuthority",
-  interfaces: () => [GraphQLAuthority],
+  interfaces: () => [GraphQLNode, GraphQLAuthority],
   isTypeOf: (value: any): boolean => value instanceof PasswordAuthority,
   fields: () => ({
     id: { type: new GraphQLNonNull(GraphQLID) },

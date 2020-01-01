@@ -1,10 +1,12 @@
-import { GraphQLObjectType, GraphQLString } from "graphql";
+import { GraphQLObjectType, GraphQLString, GraphQLNonNull } from "graphql";
 import { GraphQLRole } from "./GraphQLRole";
+import { GraphQLEdge } from "./GraphQLEdge";
 
 export const GraphQLRoleEdge = new GraphQLObjectType({
-  name: "RoleEdge",
-  fields: () => ({
-    cursor: { type: GraphQLString },
-    node: { type: GraphQLRole }
-  })
+	name: "RoleEdge",
+	interfaces: () => [GraphQLEdge],
+	fields: () => ({
+		cursor: { type: new GraphQLNonNull(GraphQLString) },
+		node: { type: GraphQLRole }
+	})
 });

@@ -15,6 +15,7 @@ import { GraphQLUpdateOpenIdAuthorityInput } from "./GraphQLUpdateOpenIdAuthorit
 
 export const updateOpenIdAuthorities: GraphQLFieldConfig<
   any,
+  Context,
   {
     authorities: {
       id: string;
@@ -31,8 +32,7 @@ export const updateOpenIdAuthorities: GraphQLFieldConfig<
       createsUnmatchedUsers: null | boolean;
       assignsCreatedUsersToRoleIds: null | string[];
     }[];
-  },
-  Context
+  }
 > = {
   type: new GraphQLList(GraphQLOpenIdAuthority),
   description: "Update a new authority.",

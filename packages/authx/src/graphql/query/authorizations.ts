@@ -13,10 +13,10 @@ import { filter } from "../../util/filter";
 
 export const authorizations: GraphQLFieldConfig<
   any,
+  Context,
   ConnectionArguments & {
     includeDisabled: boolean;
-  },
-  Context
+  }
 > = {
   type: GraphQLAuthorizationConnection,
   description: "List all authorizations.",

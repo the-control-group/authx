@@ -4,10 +4,10 @@ import { GraphQLExplanation } from "../GraphQLExplanation";
 
 export const explanations: GraphQLFieldConfig<
   any,
+  Context,
   {
     scopes: string[];
-  },
-  Context
+  }
 > = {
   type: new GraphQLList(new GraphQLNonNull(GraphQLExplanation)),
   description: "Fetch explanations of scopes.",

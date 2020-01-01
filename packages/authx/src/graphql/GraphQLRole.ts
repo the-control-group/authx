@@ -17,11 +17,12 @@ import { Role } from "../model";
 import { Context } from "../Context";
 import { GraphQLUserConnection } from "./GraphQLUserConnection";
 import { GraphQLScopeTemplate } from "./GraphQLScopeTemplate";
+import { GraphQLNode } from "./GraphQLNode";
 import { filter } from "../util/filter";
 
 export const GraphQLRole = new GraphQLObjectType<Role, Context>({
   name: "Role",
-  interfaces: () => [],
+  interfaces: () => [GraphQLNode],
   fields: () => ({
     id: { type: new GraphQLNonNull(GraphQLID) },
     enabled: {

@@ -11,6 +11,7 @@ import { GraphQLUpdateClientInput } from "./GraphQLUpdateClientInput";
 
 export const updateClients: GraphQLFieldConfig<
   any,
+  Context,
   {
     clients: {
       id: string;
@@ -22,8 +23,7 @@ export const updateClients: GraphQLFieldConfig<
       generateSecrets: null | number;
       removeSecrets: null | string[];
     }[];
-  },
-  Context
+  }
 > = {
   type: new GraphQLList(GraphQLClient),
   description: "Update a new client.",

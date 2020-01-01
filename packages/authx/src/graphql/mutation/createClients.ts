@@ -18,6 +18,7 @@ import { GraphQLCreateClientInput } from "./GraphQLCreateClientInput";
 
 export const createClients: GraphQLFieldConfig<
   any,
+  Context,
   {
     clients: {
       id: null | string;
@@ -30,8 +31,7 @@ export const createClients: GraphQLFieldConfig<
         scopes: string[];
       }[];
     }[];
-  },
-  Context
+  }
 > = {
   type: new GraphQLList(GraphQLClient),
   description: "Create a new client.",

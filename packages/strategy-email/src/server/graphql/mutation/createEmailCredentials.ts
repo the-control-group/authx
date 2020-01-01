@@ -23,6 +23,7 @@ import { GraphQLCreateEmailCredentialInput } from "./GraphQLCreateEmailCredentia
 
 export const createEmailCredentials: GraphQLFieldConfig<
   any,
+  Context,
   {
     credentials: {
       id: null | string;
@@ -36,8 +37,7 @@ export const createEmailCredentials: GraphQLFieldConfig<
         scopes: string[];
       }[];
     }[];
-  },
-  Context
+  }
 > = {
   type: new GraphQLList(GraphQLEmailCredential),
   description: "Create a new credential.",

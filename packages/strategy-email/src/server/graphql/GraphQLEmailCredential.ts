@@ -6,7 +6,13 @@ import {
   GraphQLObjectType
 } from "graphql";
 
-import { User, GraphQLCredential, GraphQLUser, Context } from "@authx/authx";
+import {
+  User,
+  GraphQLCredential,
+  GraphQLUser,
+  GraphQLNode,
+  Context
+} from "@authx/authx";
 import { EmailCredential, EmailAuthority } from "../model";
 import { GraphQLEmailAuthority } from "./GraphQLEmailAuthority";
 
@@ -18,7 +24,7 @@ export const GraphQLEmailCredential = new GraphQLObjectType<
   Context
 >({
   name: "EmailCredential",
-  interfaces: () => [GraphQLCredential],
+  interfaces: () => [GraphQLNode, GraphQLCredential],
   isTypeOf: (value: any): boolean => value instanceof EmailCredential,
   fields: () => ({
     id: { type: new GraphQLNonNull(GraphQLID) },

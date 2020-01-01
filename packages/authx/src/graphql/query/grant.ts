@@ -5,10 +5,10 @@ import { Grant } from "../../model";
 
 export const grant: GraphQLFieldConfig<
   any,
+  Context,
   {
     id: string;
-  },
-  Context
+  }
 > = {
   type: GraphQLGrant,
   description: "Fetch a grant by ID.",

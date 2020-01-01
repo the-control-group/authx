@@ -5,10 +5,10 @@ import { Credential } from "../../model";
 
 export const credential: GraphQLFieldConfig<
   any,
+  Context,
   {
     id: string;
-  },
-  Context
+  }
 > = {
   type: GraphQLCredential,
   description: "Fetch a credential by ID.",

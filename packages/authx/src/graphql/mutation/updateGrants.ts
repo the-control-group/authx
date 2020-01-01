@@ -10,6 +10,7 @@ import { GraphQLUpdateGrantInput } from "./GraphQLUpdateGrantInput";
 
 export const updateGrants: GraphQLFieldConfig<
   any,
+  Context,
   {
     grants: {
       id: string;
@@ -20,8 +21,7 @@ export const updateGrants: GraphQLFieldConfig<
       generateCodes: null | number;
       removeCodes: null | string[];
     }[];
-  },
-  Context
+  }
 > = {
   type: new GraphQLList(GraphQLGrant),
   description: "Update a new grant.",

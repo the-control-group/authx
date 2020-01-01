@@ -20,6 +20,7 @@ import { GraphQLCreateEmailAuthorityInput } from "./GraphQLCreateEmailAuthorityI
 
 export const createEmailAuthorities: GraphQLFieldConfig<
   any,
+  Context,
   {
     authorities: {
       id: null | string;
@@ -40,8 +41,7 @@ export const createEmailAuthorities: GraphQLFieldConfig<
         scopes: string[];
       }[];
     }[];
-  },
-  Context
+  }
 > = {
   type: new GraphQLList(GraphQLEmailAuthority),
   description: "Create a new email authority.",

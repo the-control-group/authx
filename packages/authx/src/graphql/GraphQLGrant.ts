@@ -20,6 +20,7 @@ import { GraphQLUser } from "./GraphQLUser";
 import { GraphQLAuthorizationConnection } from "./GraphQLAuthorizationConnection";
 import { GraphQLExplanation } from "./GraphQLExplanation";
 import { GraphQLScope } from "./GraphQLScope";
+import { GraphQLNode } from "./GraphQLNode";
 import { filter } from "../util/filter";
 import { Explanation, match } from "../util/explanations";
 
@@ -28,7 +29,7 @@ export const GraphQLGrant: GraphQLObjectType<
   Context
 > = new GraphQLObjectType<Grant, Context>({
   name: "Grant",
-  interfaces: () => [],
+  interfaces: () => [GraphQLNode],
   fields: () => ({
     id: { type: new GraphQLNonNull(GraphQLID) },
     enabled: {

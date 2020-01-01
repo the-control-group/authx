@@ -20,6 +20,7 @@ import { GraphQLCreateOpenIdAuthorityInput } from "./GraphQLCreateOpenIdAuthorit
 
 export const createOpenIdAuthorities: GraphQLFieldConfig<
   any,
+  Context,
   {
     authorities: {
       id: null | string;
@@ -40,8 +41,7 @@ export const createOpenIdAuthorities: GraphQLFieldConfig<
         scopes: string[];
       }[];
     }[];
-  },
-  Context
+  }
 > = {
   type: new GraphQLList(GraphQLOpenIdAuthority),
   description: "Create a new openid authority.",

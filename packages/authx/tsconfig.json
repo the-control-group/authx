@@ -11,11 +11,7 @@
     "esModuleInterop": true,
     "skipLibCheck": true,
     "sourceMap": true,
-    "baseUrl": "",
-    "paths": {
-      "graphql": ["@types/graphql"],
-      "graphql/*": ["@types/graphql/*"]
-    }
+    "baseUrl": ""
   },
   "include": ["./src/**/*"]
 }

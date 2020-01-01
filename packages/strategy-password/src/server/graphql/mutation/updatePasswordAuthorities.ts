@@ -15,6 +15,7 @@ import { GraphQLUpdatePasswordAuthorityInput } from "./GraphQLUpdatePasswordAuth
 
 export const updatePasswordAuthorities: GraphQLFieldConfig<
   any,
+  Context,
   {
     authorities: {
       id: string;
@@ -23,8 +24,7 @@ export const updatePasswordAuthorities: GraphQLFieldConfig<
       description: null | string;
       rounds: null | number;
     }[];
-  },
-  Context
+  }
 > = {
   type: new GraphQLList(GraphQLPasswordAuthority),
   description: "Update a new authority.",

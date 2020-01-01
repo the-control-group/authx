@@ -5,10 +5,10 @@ import { Authorization } from "../../model";
 
 export const authorization: GraphQLFieldConfig<
   any,
+  Context,
   {
     id: string;
-  },
-  Context
+  }
 > = {
   type: GraphQLAuthorization,
   description: "Fetch a authorization by ID.",

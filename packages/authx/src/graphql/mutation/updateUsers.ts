@@ -9,14 +9,14 @@ import { GraphQLUpdateUserInput } from "./GraphQLUpdateUserInput";
 
 export const updateUsers: GraphQLFieldConfig<
   any,
+  Context,
   {
     users: {
       id: string;
       enabled: null | boolean;
       name: null | string;
     }[];
-  },
-  Context
+  }
 > = {
   type: new GraphQLList(GraphQLUser),
   description: "Update a new user.",

@@ -1,10 +1,12 @@
-import { GraphQLObjectType, GraphQLString } from "graphql";
+import { GraphQLObjectType, GraphQLString, GraphQLNonNull } from "graphql";
 import { GraphQLCredential } from "./GraphQLCredential";
+import { GraphQLEdge } from "./GraphQLEdge";
 
 export const GraphQLCredentialEdge = new GraphQLObjectType({
-  name: "CredentialEdge",
-  fields: () => ({
-    cursor: { type: GraphQLString },
-    node: { type: GraphQLCredential }
-  })
+	name: "CredentialEdge",
+	interfaces: () => [GraphQLEdge],
+	fields: () => ({
+		cursor: { type: new GraphQLNonNull(GraphQLString) },
+		node: { type: GraphQLCredential }
+	})
 });

@@ -12,11 +12,7 @@
     "skipLibCheck": true,
     "sourceMap": true,
     "jsx": "react",
-    "baseUrl": "",
-    "paths": {
-      "graphql": ["../authx/@types/graphql"],
-      "graphql/*": ["../authx/@types/graphql/*"]
-    }
+    "baseUrl": ""
   },
   "include": ["./src/**/*"]
 }

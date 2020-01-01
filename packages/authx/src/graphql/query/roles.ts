@@ -13,10 +13,10 @@ import { filter } from "../../util/filter";
 
 export const roles: GraphQLFieldConfig<
   any,
+  Context,
   ConnectionArguments & {
     includeDisabled: boolean;
-  },
-  Context
+  }
 > = {
   type: GraphQLRoleConnection,
   description: "List all roles.",

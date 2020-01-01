@@ -11,6 +11,7 @@ import { GraphQLUpdateRoleInput } from "./GraphQLUpdateRoleInput";
 
 export const updateRoles: GraphQLFieldConfig<
   any,
+  Context,
   {
     roles: {
       id: string;
@@ -21,8 +22,7 @@ export const updateRoles: GraphQLFieldConfig<
       assignUserIds: null | string[];
       unassignUserIds: null | string[];
     }[];
-  },
-  Context
+  }
 > = {
   type: new GraphQLList(GraphQLRole),
   description: "Update a new role.",

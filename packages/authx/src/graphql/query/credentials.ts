@@ -13,10 +13,10 @@ import { filter } from "../../util/filter";
 
 export const credentials: GraphQLFieldConfig<
   any,
+  Context,
   ConnectionArguments & {
     includeDisabled: boolean;
-  },
-  Context
+  }
 > = {
   type: GraphQLCredentialConnection,
   description: "List all credentials.",
