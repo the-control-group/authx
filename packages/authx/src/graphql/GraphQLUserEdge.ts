@@ -3,10 +3,10 @@ import { GraphQLUser } from "./GraphQLUser";
 import { GraphQLEdge } from "./GraphQLEdge";
 
 export const GraphQLUserEdge = new GraphQLObjectType({
-	name: "UserEdge",
-	interfaces: () => [GraphQLEdge],
-	fields: () => ({
-		cursor: { type: new GraphQLNonNull(GraphQLString) },
-		node: { type: GraphQLUser }
-	})
+  name: "UserEdge",
+  interfaces: () => [GraphQLEdge],
+  fields: () => ({
+    cursor: { type: new GraphQLNonNull(GraphQLString) },
+    node: { type: GraphQLUser }
+  })
 });

@@ -1,8 +1,4 @@
-import {
-  GraphQLID,
-  GraphQLNonNull,
-  GraphQLInterfaceType
-} from "graphql";
+import { GraphQLID, GraphQLNonNull, GraphQLInterfaceType } from "graphql";
 
 export const GraphQLNode = new GraphQLInterfaceType({
   name: "Node",
