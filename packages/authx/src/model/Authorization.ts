@@ -5,6 +5,33 @@ import { simplify, getIntersection, isSuperset } from "@authx/scopes";
 import { NotFoundError } from "../errors";
 import { AuthorizationAction, createV2AuthXScope } from "../util/scopes";
 
+export interface AuthorizationRecordData {
+  readonly id: string;
+  readonly replacementRecordId: null | string;
+  readonly entityId: string;
+  readonly createdAt: Date;
+  readonly createdByAuthorizationId: string;
+  readonly createdByCredentialId: null | string;
+}
+
+export class AuthorizationRecord implements AuthorizationRecordData {
+  public readonly id: string;
+  public readonly replacementRecordId: null | string;
+  public readonly entityId: string;
+  public readonly createdAt: Date;
+  public readonly createdByAuthorizationId: string;
+  public readonly createdByCredentialId: null | string;
+
+  constructor(data: AuthorizationRecordData) {
+    this.id = data.id;
+    this.replacementRecordId = data.replacementRecordId;
+    this.entityId = data.entityId;
+    this.createdAt = data.createdAt;
+    this.createdByAuthorizationId = data.createdByAuthorizationId;
+    this.createdByCredentialId = data.createdByCredentialId;
+  }
+}
+
 export interface AuthorizationData {
   readonly id: string;
   readonly enabled: boolean;
@@ -135,6 +162,36 @@ export class Authorization implements AuthorizationData {
     refresh: boolean = false
   ): Promise<boolean> {
     return isSuperset(await this.access(tx, values, refresh), scope);
+  }
+
+  public async records(tx: PoolClient): Promise<AuthorizationRecord[]> {
+    const result = await tx.query(
+      `
+      SELECT
+        record_id as id,
+        replacement_record_id,
+        entity_id,
+        created_by_authorization_id,
+        created_by_credential_id,
+        created_at,
+      FROM authx.authorization_record
+      WHERE entity_id = $1
+      ORDER BY created_at DESC
+      `,
+      [this.id]
+    );
+
+    return result.rows.map(
+      row =>
+        new AuthorizationRecord({
+          ...row,
+          replacementRecordId: row.replacement_record_id,
+          createdByAuthorizationId: row.created_by_authorization_id,
+          createdByCredentialId: row.created_by_credential_id,
+          createdAt: row.created_at,
+          entityId: row.entity_id
+        })
+    );
   }
 
   public static read(

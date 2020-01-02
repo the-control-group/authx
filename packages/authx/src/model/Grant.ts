@@ -6,6 +6,30 @@ import { simplify, getIntersection, isSuperset } from "@authx/scopes";
 import { NotFoundError } from "../errors";
 import { GrantAction, createV2AuthXScope } from "../util/scopes";
 
+export interface GrantRecordData {
+  readonly id: string;
+  readonly replacementRecordId: null | string;
+  readonly entityId: string;
+  readonly createdAt: Date;
+  readonly createdByAuthorizationId: string;
+}
+
+export class GrantRecord implements GrantRecordData {
+  public readonly id: string;
+  public readonly replacementRecordId: null | string;
+  public readonly entityId: string;
+  public readonly createdAt: Date;
+  public readonly createdByAuthorizationId: string;
+
+  constructor(data: GrantRecordData) {
+    this.id = data.id;
+    this.replacementRecordId = data.replacementRecordId;
+    this.entityId = data.entityId;
+    this.createdAt = data.createdAt;
+    this.createdByAuthorizationId = data.createdByAuthorizationId;
+  }
+}
+
 export interface GrantData {
   readonly id: string;
   readonly enabled: boolean;
@@ -149,6 +173,35 @@ export class Grant implements GrantData {
     refresh: boolean = false
   ): Promise<boolean> {
     return isSuperset(await this.access(tx, values, refresh), scope);
+  }
+
+  public async records(tx: PoolClient): Promise<GrantRecord[]> {
+    const result = await tx.query(
+      `
+      SELECT
+        record_id as id,
+        replacement_record_id,
+        entity_id,
+        created_by_authorization_id,
+        created_by_credential_id,
+        created_at,
+      FROM authx.authorization_record
+      WHERE entity_id = $1
+      ORDER BY created_at DESC
+      `,
+      [this.id]
+    );
+
+    return result.rows.map(
+      row =>
+        new GrantRecord({
+          ...row,
+          replacementRecordId: row.replacement_record_id,
+          createdByAuthorizationId: row.created_by_authorization_id,
+          createdAt: row.created_at,
+          entityId: row.entity_id
+        })
+    );
   }
 
   public static read(

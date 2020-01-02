@@ -5,6 +5,30 @@ import { simplify, isSuperset, inject } from "@authx/scopes";
 import { NotFoundError } from "../errors";
 import { RoleAction, createV2AuthXScope } from "../util/scopes";
 
+export interface RoleRecordData {
+  readonly id: string;
+  readonly replacementRecordId: null | string;
+  readonly entityId: string;
+  readonly createdAt: Date;
+  readonly createdByAuthorizationId: string;
+}
+
+export class RoleRecord implements RoleRecordData {
+  public readonly id: string;
+  public readonly replacementRecordId: null | string;
+  public readonly entityId: string;
+  public readonly createdAt: Date;
+  public readonly createdByAuthorizationId: string;
+
+  constructor(data: RoleRecordData) {
+    this.id = data.id;
+    this.replacementRecordId = data.replacementRecordId;
+    this.entityId = data.entityId;
+    this.createdAt = data.createdAt;
+    this.createdByAuthorizationId = data.createdByAuthorizationId;
+  }
+}
+
 export interface RoleData {
   readonly id: string;
   readonly enabled: boolean;
@@ -106,6 +130,35 @@ export class Role implements RoleData {
     scope: string[] | string
   ): Promise<boolean> {
     return isSuperset(this.access(values), scope);
+  }
+
+  public async records(tx: PoolClient): Promise<RoleRecord[]> {
+    const result = await tx.query(
+      `
+      SELECT
+        record_id as id,
+        replacement_record_id,
+        entity_id,
+        created_by_authorization_id,
+        created_by_credential_id,
+        created_at,
+      FROM authx.authorization_record
+      WHERE entity_id = $1
+      ORDER BY created_at DESC
+      `,
+      [this.id]
+    );
+
+    return result.rows.map(
+      row =>
+        new RoleRecord({
+          ...row,
+          replacementRecordId: row.replacement_record_id,
+          createdByAuthorizationId: row.created_by_authorization_id,
+          createdAt: row.created_at,
+          entityId: row.entity_id
+        })
+    );
   }
 
   public static read(

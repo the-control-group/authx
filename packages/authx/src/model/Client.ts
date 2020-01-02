@@ -4,6 +4,30 @@ import { Authorization } from "./Authorization";
 import { NotFoundError } from "../errors";
 import { ClientAction, createV2AuthXScope } from "../util/scopes";
 
+export interface ClientRecordData {
+  readonly id: string;
+  readonly replacementRecordId: null | string;
+  readonly entityId: string;
+  readonly createdAt: Date;
+  readonly createdByAuthorizationId: string;
+}
+
+export class ClientRecord implements ClientRecordData {
+  public readonly id: string;
+  public readonly replacementRecordId: null | string;
+  public readonly entityId: string;
+  public readonly createdAt: Date;
+  public readonly createdByAuthorizationId: string;
+
+  constructor(data: ClientRecordData) {
+    this.id = data.id;
+    this.replacementRecordId = data.replacementRecordId;
+    this.entityId = data.entityId;
+    this.createdAt = data.createdAt;
+    this.createdByAuthorizationId = data.createdByAuthorizationId;
+  }
+}
+
 export interface ClientData {
   readonly id: string;
   readonly enabled: boolean;
@@ -117,6 +141,35 @@ export class Client implements ClientData {
     }
 
     return null;
+  }
+
+  public async records(tx: PoolClient): Promise<ClientRecord[]> {
+    const result = await tx.query(
+      `
+      SELECT
+        record_id as id,
+        replacement_record_id,
+        entity_id,
+        created_by_authorization_id,
+        created_by_credential_id,
+        created_at,
+      FROM authx.authorization_record
+      WHERE entity_id = $1
+      ORDER BY created_at DESC
+      `,
+      [this.id]
+    );
+
+    return result.rows.map(
+      row =>
+        new ClientRecord({
+          ...row,
+          replacementRecordId: row.replacement_record_id,
+          createdByAuthorizationId: row.created_by_authorization_id,
+          createdAt: row.created_at,
+          entityId: row.entity_id
+        })
+    );
   }
 
   public static read(

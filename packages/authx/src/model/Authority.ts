@@ -4,6 +4,30 @@ import { Authorization } from "./Authorization";
 import { NotFoundError } from "../errors";
 import { AuthorityAction, createV2AuthXScope } from "../util/scopes";
 
+export interface AuthorityRecordData {
+  readonly id: string;
+  readonly replacementRecordId: null | string;
+  readonly entityId: string;
+  readonly createdAt: Date;
+  readonly createdByAuthorizationId: string;
+}
+
+export class AuthorityRecord implements AuthorityRecordData {
+  public readonly id: string;
+  public readonly replacementRecordId: null | string;
+  public readonly entityId: string;
+  public readonly createdAt: Date;
+  public readonly createdByAuthorizationId: string;
+
+  constructor(data: AuthorityRecordData) {
+    this.id = data.id;
+    this.replacementRecordId = data.replacementRecordId;
+    this.entityId = data.entityId;
+    this.createdAt = data.createdAt;
+    this.createdByAuthorizationId = data.createdByAuthorizationId;
+  }
+}
+
 export interface AuthorityData<A> {
   readonly id: string;
   readonly enabled: boolean;
@@ -77,6 +101,35 @@ export abstract class Authority<A> implements AuthorityData<A> {
     tx: PoolClient,
     authorityUserId: string
   ): Promise<Credential<any> | null>;
+
+  public async records(tx: PoolClient): Promise<AuthorityRecord[]> {
+    const result = await tx.query(
+      `
+      SELECT
+        record_id as id,
+        replacement_record_id,
+        entity_id,
+        created_by_authorization_id,
+        created_by_credential_id,
+        created_at,
+      FROM authx.authorization_record
+      WHERE entity_id = $1
+      ORDER BY created_at DESC
+      `,
+      [this.id]
+    );
+
+    return result.rows.map(
+      row =>
+        new AuthorityRecord({
+          ...row,
+          replacementRecordId: row.replacement_record_id,
+          createdByAuthorizationId: row.created_by_authorization_id,
+          createdAt: row.created_at,
+          entityId: row.entity_id
+        })
+    );
+  }
 
   public static read<T extends Authority<any>>(
     this: new (data: AuthorityData<any>) => T,

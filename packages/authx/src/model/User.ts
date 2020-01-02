@@ -7,6 +7,30 @@ import { Authorization } from "./Authorization";
 import { NotFoundError } from "../errors";
 import { UserAction, createV2AuthXScope } from "../util/scopes";
 
+export interface UserRecordData {
+  readonly id: string;
+  readonly replacementRecordId: null | string;
+  readonly entityId: string;
+  readonly createdAt: Date;
+  readonly createdByAuthorizationId: string;
+}
+
+export class UserRecord implements UserRecordData {
+  public readonly id: string;
+  public readonly replacementRecordId: null | string;
+  public readonly entityId: string;
+  public readonly createdAt: Date;
+  public readonly createdByAuthorizationId: string;
+
+  constructor(data: UserRecordData) {
+    this.id = data.id;
+    this.replacementRecordId = data.replacementRecordId;
+    this.entityId = data.entityId;
+    this.createdAt = data.createdAt;
+    this.createdByAuthorizationId = data.createdByAuthorizationId;
+  }
+}
+
 export type UserType = "human" | "bot";
 
 export interface UserData {
@@ -239,6 +263,35 @@ export class User implements UserData {
     refresh: boolean = false
   ): Promise<boolean> {
     return isSuperset(await this.access(tx, values, refresh), scope);
+  }
+
+  public async records(tx: PoolClient): Promise<UserRecord[]> {
+    const result = await tx.query(
+      `
+      SELECT
+        record_id as id,
+        replacement_record_id,
+        entity_id,
+        created_by_authorization_id,
+        created_by_credential_id,
+        created_at,
+      FROM authx.authorization_record
+      WHERE entity_id = $1
+      ORDER BY created_at DESC
+      `,
+      [this.id]
+    );
+
+    return result.rows.map(
+      row =>
+        new UserRecord({
+          ...row,
+          replacementRecordId: row.replacement_record_id,
+          createdByAuthorizationId: row.created_by_authorization_id,
+          createdAt: row.created_at,
+          entityId: row.entity_id
+        })
+    );
   }
 
   public static read(
