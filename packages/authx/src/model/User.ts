@@ -7,6 +7,30 @@ import { Authorization } from "./Authorization";
 import { NotFoundError } from "../errors";
 import { UserAction, createV2AuthXScope } from "../util/scopes";
 
+export interface UserInvocationData {
+  readonly id: string;
+  readonly entityId: string;
+  readonly recordId: null | string;
+  readonly success: boolean;
+  readonly createdAt: Date;
+}
+
+export class UserInvocation implements UserInvocationData {
+  public readonly id: string;
+  public readonly entityId: string;
+  public readonly recordId: null | string;
+  public readonly success: boolean;
+  public readonly createdAt: Date;
+
+  constructor(data: UserInvocationData) {
+    this.id = data.id;
+    this.entityId = data.entityId;
+    this.recordId = data.recordId;
+    this.success = data.success;
+    this.createdAt = data.createdAt;
+  }
+}
+
 export interface UserRecordData {
   readonly id: string;
   readonly replacementRecordId: null | string;
@@ -290,6 +314,79 @@ export class User implements UserData {
           createdByAuthorizationId: row.created_by_authorization_id,
           createdAt: row.created_at,
           entityId: row.entity_id
+        })
+    );
+  }
+
+  public async invoke(
+    tx: PoolClient,
+    data: {
+      id: string;
+      success: boolean;
+      createdAt: Date;
+    }
+  ): Promise<UserInvocation> {
+    // insert the new invocation
+    const result = await tx.query(
+      `
+      INSERT INTO authx.authorization_invocation
+      (
+        invocation_id,
+        entity_id,
+        record_id,
+        created_at,
+        success
+      )
+      VALUES
+        ($1, $2, $3, $4, $5, $6)
+      RETURNING
+        invocation_id AS id,
+        entity_id,
+        record_id,
+        created_at,
+        success
+      `,
+      [data.id, this.id, this.recordId, data.createdAt, data.success]
+    );
+
+    if (result.rows.length !== 1) {
+      throw new Error("INVARIANT: Insert must return exactly one row.");
+    }
+
+    const row = result.rows[0];
+
+    return new UserInvocation({
+      id: row.id,
+      entityId: row.entity_id,
+      recordId: row.record_id,
+      success: row.success,
+      createdAt: row.created_at
+    });
+  }
+
+  public async invocations(tx: PoolClient): Promise<UserInvocation[]> {
+    const result = await tx.query(
+      `
+      SELECT
+        invocation_id as id,
+        record_id,
+        entity_id,
+        success,
+        created_at,
+      FROM authx.authorization_invocation
+      WHERE entity_id = $1
+      ORDER BY created_at DESC
+      `,
+      [this.id]
+    );
+
+    return result.rows.map(
+      row =>
+        new UserInvocation({
+          ...row,
+          recordId: row.record_id,
+          entityId: row.entity_id,
+          createdAt: row.created_at
         })
     );
   }

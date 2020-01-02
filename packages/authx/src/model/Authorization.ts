@@ -5,6 +5,33 @@ import { simplify, getIntersection, isSuperset } from "@authx/scopes";
 import { NotFoundError } from "../errors";
 import { AuthorizationAction, createV2AuthXScope } from "../util/scopes";
 
+export interface AuthorizationInvocationData {
+  readonly id: string;
+  readonly entityId: string;
+  readonly recordId: null | string;
+  readonly success: boolean;
+  readonly format: string;
+  readonly createdAt: Date;
+}
+
+export class AuthorizationInvocation implements AuthorizationInvocationData {
+  public readonly id: string;
+  public readonly entityId: string;
+  public readonly recordId: null | string;
+  public readonly success: boolean;
+  public readonly format: string;
+  public readonly createdAt: Date;
+
+  constructor(data: AuthorizationInvocationData) {
+    this.id = data.id;
+    this.entityId = data.entityId;
+    this.recordId = data.recordId;
+    this.success = data.success;
+    this.format = data.format;
+    this.createdAt = data.createdAt;
+  }
+}
+
 export interface AuthorizationRecordData {
   readonly id: string;
   readonly replacementRecordId: null | string;
@@ -190,6 +217,91 @@ export class Authorization implements AuthorizationData {
           createdByCredentialId: row.created_by_credential_id,
           createdAt: row.created_at,
           entityId: row.entity_id
+        })
+    );
+  }
+
+  public async invoke(
+    tx: PoolClient,
+    data: {
+      id: string;
+      success: boolean;
+      format: string;
+      createdAt: Date;
+    }
+  ): Promise<AuthorizationInvocation> {
+    // insert the new invocation
+    const result = await tx.query(
+      `
+      INSERT INTO authx.authorization_invocation
+      (
+        invocation_id,
+        entity_id,
+        record_id,
+        created_at,
+        success,
+        format
+      )
+      VALUES
+        ($1, $2, $3, $4, $5, $6)
+      RETURNING
+        invocation_id AS id,
+        entity_id,
+        record_id,
+        created_at,
+        success,
+        format
+      `,
+      [
+        data.id,
+        this.id,
+        this.recordId,
+        data.createdAt,
+        data.success,
+        data.format
+      ]
+    );
+
+    if (result.rows.length !== 1) {
+      throw new Error("INVARIANT: Insert must return exactly one row.");
+    }
+
+    const row = result.rows[0];
+
+    return new AuthorizationInvocation({
+      id: row.id,
+      entityId: row.entity_id,
+      recordId: row.record_id,
+      success: row.success,
+      format: row.format,
+      createdAt: row.created_at
+    });
+  }
+
+  public async invocations(tx: PoolClient): Promise<AuthorizationInvocation[]> {
+    const result = await tx.query(
+      `
+      SELECT
+        invocation_id as id,
+        record_id,
+        entity_id,
+        success,
+        format,
+        created_at,
+      FROM authx.authorization_invocation
+      WHERE entity_id = $1
+      ORDER BY created_at DESC
+      `,
+      [this.id]
+    );
+
+    return result.rows.map(
+      row =>
+        new AuthorizationInvocation({
+          ...row,
+          recordId: row.record_id,
+          entityId: row.entity_id,
+          createdAt: row.created_at
         })
     );
   }
