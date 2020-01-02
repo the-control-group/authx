@@ -9,9 +9,9 @@
     "@types/graphql-react": "^8.1.1",
     "@types/html-webpack-plugin": "^3.2.1",
     "@types/memory-fs": "^0.3.2",
-    "@types/react": "^16.9.16",
+    "@types/react": "^16.9.17",
     "@types/react-dom": "^16.9.4",
-    "@types/webpack": "^4.41.0",
+    "@types/webpack": "^4.41.1",
     "graphql-react": "^9.1.0",
     "html-webpack-plugin": "^3.2.0",
     "memory-fs": "^0.5.0",
@@ -19,7 +19,7 @@
     "react-dom": "^16.12.0",
     "source-map-loader": "^0.2.4",
     "uuid": "^3.3.3",
-    "webpack": "^4.41.2"
+    "webpack": "^4.41.5"
   },
   "description": "",
   "devDependencies": {
@@ -32,7 +32,7 @@
     "eslint-plugin-react": "^7.17.0",
     "koa": "^2.11.0",
     "prettier": "^1.19.1",
-    "typescript": "^3.7.3"
+    "typescript": "^3.7.4"
   },
   "engines": {
     "node": ">=10"

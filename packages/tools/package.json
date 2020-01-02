@@ -10,9 +10,9 @@
   "dependencies": {
     "@authx/authx": "^2.0.0",
     "@authx/strategy-password": "^1.0.0",
-    "@types/pg": "^7.11.2",
+    "@types/pg": "^7.14.0",
     "@types/uuid": "^3.4.6",
-    "pg": "^7.14.0",
+    "pg": "^7.17.0",
     "uuid": "^3.3.3"
   },
   "description": "",
@@ -25,7 +25,7 @@
     "eslint-plugin-prettier": "^3.1.1",
     "nodemon": "^2.0.2",
     "prettier": "^1.19.1",
-    "typescript": "^3.7.3"
+    "typescript": "^3.7.4"
   },
   "engines": {
     "node": ">=10"
