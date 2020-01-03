@@ -78,5 +78,5 @@
     "test:development": "ava --verbose --watch dist/**/*.test.js"
   },
   "types": "dist/index.d.ts",
-  "version": "2.0.6"
+  "version": "2.0.7"
 }
