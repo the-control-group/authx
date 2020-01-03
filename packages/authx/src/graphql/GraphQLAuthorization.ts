@@ -227,9 +227,12 @@ export const GraphQLAuthorization: GraphQLObjectType<
               {
                 algorithm: "RS512",
                 expiresIn: jwtValidityDuration,
-                audience: (grant && grant.clientId) || undefined,
                 subject: authorization.userId,
-                issuer: realm
+                issuer: realm,
+
+                // The jwt library uses the presence of keys in its validation,
+                // so we cannot just set `audience` to undefined.
+                ...(grant ? { audience: grant.clientId } : {})
               }
             )}`;
           }
