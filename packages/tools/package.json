@@ -10,7 +10,7 @@
   "dependencies": {
     "@authx/authx": "^2.0.0",
     "@authx/strategy-password": "^1.0.0",
-    "@types/pg": "^7.14.0",
+    "@types/pg": "^7.14.1",
     "@types/uuid": "^3.4.6",
     "pg": "^7.17.0",
     "uuid": "^3.3.3"
