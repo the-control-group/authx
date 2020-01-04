@@ -3250,10 +3250,10 @@ graceful-fs@^4.1.11, graceful-fs@^4.1.15, graceful-fs@^4.1.2:
   resolved "https://registry.yarnpkg.com/graceful-fs/-/graceful-fs-4.2.3.tgz#4a12ff1b60376ef09862c2093edd908328be8423"
   integrity sha512-a30VEBm4PEdx1dRB7MFK7BejejvCvBronbLjht+sHuGYj8PHs7M/5Z+rt5lw551vZ7yfTCj4Vuyy3mSJytDWRQ==
 
-graphql-api-koa@^2.2.0:
-  version "2.2.0"
-  resolved "https://registry.yarnpkg.com/graphql-api-koa/-/graphql-api-koa-2.2.0.tgz#6f5b42d7311196e63ae539448933e7e8b4061cd9"
-  integrity sha512-J9tZVlKHnxiFHecfpfW1roVIlZirLH+srfFF8vv9DVSFbfcusGOkmI5/Giaop4WkeCo2CeoKmOO1GkTsxXiKHQ==
+graphql-api-koa@^4.0.0:
+  version "4.0.0"
+  resolved "https://registry.yarnpkg.com/graphql-api-koa/-/graphql-api-koa-4.0.0.tgz#720f23897a26661804f0c95ff5407bbe4dd13bd7"
+  integrity sha512-all4L2/NJdh7ijDmr0Uy4e9rNTDg1otL0xqaJv7Y8tBTKXTnDaOmLu2Q1hyju+UncwLcTiu43sFKlpG2TdowLA==
   dependencies:
     http-errors "^1.7.3"
 
