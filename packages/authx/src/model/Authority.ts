@@ -132,14 +132,14 @@ export abstract class Authority<A> implements AuthorityData<A> {
   }
 
   public static read<T extends Authority<any>>(
-    this: new (data: AuthorityData<any>) => T,
+    this: new (data: AuthorityData<any> & { readonly recordId: string }) => T,
     tx: PoolClient,
     id: string,
     options?: { forUpdate: boolean }
   ): Promise<T>;
 
   public static read<T extends Authority<any>>(
-    this: new (data: AuthorityData<any>) => T,
+    this: new (data: AuthorityData<any> & { readonly recordId: string }) => T,
     tx: PoolClient,
     id: string[],
     options?: { forUpdate: boolean }
@@ -147,7 +147,11 @@ export abstract class Authority<A> implements AuthorityData<A> {
 
   public static read<
     M extends {
-      [key: string]: { new (data: AuthorityData<any>): Authority<any> };
+      [key: string]: {
+        new (
+          data: AuthorityData<any> & { readonly recordId: string }
+        ): Authority<any>;
+      };
     },
     K extends keyof M
   >(
@@ -159,7 +163,11 @@ export abstract class Authority<A> implements AuthorityData<A> {
 
   public static read<
     M extends {
-      [key: string]: { new (data: AuthorityData<any>): Authority<any> };
+      [key: string]: {
+        new (
+          data: AuthorityData<any> & { readonly recordId: string }
+        ): Authority<any>;
+      };
     },
     K extends keyof M
   >(
@@ -177,7 +185,7 @@ export abstract class Authority<A> implements AuthorityData<A> {
     K extends keyof M
   >(
     this: {
-      new (data: AuthorityData<any>): T;
+      new (data: AuthorityData<any> & { readonly recordId: string }): T;
     },
     tx: PoolClient,
     id: string[] | string,
@@ -247,7 +255,7 @@ export abstract class Authority<A> implements AuthorityData<A> {
 
   public static async write<T extends Authority<any>>(
     this: {
-      new (data: AuthorityData<any>): T;
+      new (data: AuthorityData<any> & { readonly recordId: string }): T;
     },
     tx: PoolClient,
     data: AuthorityData<any>,

@@ -6,17 +6,17 @@
   "bugs": "https://github.com/the-control-group/authx/issues",
   "dependencies": {
     "@authx/scopes": "^3.0.0",
-    "@types/pg": "^7.14.0",
+    "@types/pg": "^7.14.1",
     "@types/uuid": "^3.4.6",
-    "graphql": "15.0.0-alpha.2",
+    "graphql": "15.0.0-rc.1",
     "pg": "^7.17.0",
     "uuid": "^3.3.3"
   },
   "description": "",
   "devDependencies": {
     "@authx/authx": "^2.0.0",
-    "@typescript-eslint/eslint-plugin": "^2.11.0",
-    "@typescript-eslint/parser": "^2.11.0",
+    "@typescript-eslint/eslint-plugin": "^2.15.0",
+    "@typescript-eslint/parser": "^2.15.0",
     "ava": "^2.4.0",
     "eslint": "^6.7.2",
     "eslint-config-prettier": "^6.7.0",
@@ -61,6 +61,6 @@
   "types": "dist/server/index.d.ts",
   "version": "1.0.0",
   "resolutions": {
-    "**/graphql": "15.0.0-alpha.2"
+    "**/graphql": "15.0.0-rc.1"
   }
 }

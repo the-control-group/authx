@@ -15,6 +15,7 @@ export default async (): Promise<void> => {
 
   const user = new User({
     id: v4(),
+    recordId: v4(),
     enabled: true,
     type: "human",
     name: "AuthX Root User"
@@ -22,6 +23,7 @@ export default async (): Promise<void> => {
 
   const authority = new PasswordAuthority({
     id: v4(),
+    recordId: v4(),
     enabled: true,
     strategy: "password",
     name: "Password",
@@ -34,6 +36,7 @@ export default async (): Promise<void> => {
   const password = randomBytes(16).toString("hex");
   const credential = new PasswordCredential({
     id: v4(),
+    recordId: v4(),
     enabled: true,
     authorityId: authority.id,
     authorityUserId: user.id,
@@ -45,6 +48,7 @@ export default async (): Promise<void> => {
 
   const role = new Role({
     id: v4(),
+    recordId: v4(),
     enabled: true,
     name: "Super Administrator",
     description: "A super administrator has full access to all resources.",
@@ -54,6 +58,7 @@ export default async (): Promise<void> => {
 
   const authorization = new Authorization({
     id: v4(),
+    recordId: v4(),
     enabled: true,
     scopes: ["**:**:**"],
     userId: user.id,
@@ -70,7 +75,7 @@ export default async (): Promise<void> => {
       user: {
         data: user,
         metadata: {
-          recordId: v4(),
+          recordId: user.recordId,
           createdByAuthorizationId: authorization.id,
           createdAt: new Date()
         }
@@ -78,7 +83,7 @@ export default async (): Promise<void> => {
       authority: {
         data: authority,
         metadata: {
-          recordId: v4(),
+          recordId: authority.recordId,
           createdByAuthorizationId: authorization.id,
           createdAt: new Date()
         }
@@ -86,7 +91,7 @@ export default async (): Promise<void> => {
       credential: {
         data: credential,
         metadata: {
-          recordId: v4(),
+          recordId: credential.recordId,
           createdByAuthorizationId: authorization.id,
           createdAt: new Date()
         }
@@ -94,7 +99,7 @@ export default async (): Promise<void> => {
       role: {
         data: role,
         metadata: {
-          recordId: v4(),
+          recordId: role.recordId,
           createdByAuthorizationId: authorization.id,
           createdAt: new Date()
         }
@@ -102,7 +107,7 @@ export default async (): Promise<void> => {
       authorization: {
         data: authorization,
         metadata: {
-          recordId: v4(),
+          recordId: authorization.recordId,
           createdByAuthorizationId: authorization.id,
           createdAt: new Date(),
           createdByCredentialId: null

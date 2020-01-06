@@ -229,14 +229,14 @@ export abstract class Credential<C> implements CredentialData<C> {
   }
 
   public static read<T extends Credential<any>>(
-    this: new (data: CredentialData<any>) => T,
+    this: new (data: CredentialData<any> & { readonly recordId: string }) => T,
     tx: PoolClient,
     id: string,
     options?: { forUpdate: boolean }
   ): Promise<T>;
 
   public static read<T extends Credential<any>>(
-    this: new (data: CredentialData<any>) => T,
+    this: new (data: CredentialData<any> & { readonly recordId: string }) => T,
     tx: PoolClient,
     id: string[],
     options?: { forUpdate: boolean }
@@ -244,7 +244,11 @@ export abstract class Credential<C> implements CredentialData<C> {
 
   public static read<
     M extends {
-      [key: string]: { new (data: CredentialData<any>): Credential<any> };
+      [key: string]: {
+        new (
+          data: CredentialData<any> & { readonly recordId: string }
+        ): Credential<any>;
+      };
     },
     K extends keyof M
   >(
@@ -256,7 +260,11 @@ export abstract class Credential<C> implements CredentialData<C> {
 
   public static read<
     M extends {
-      [key: string]: { new (data: CredentialData<any>): Credential<any> };
+      [key: string]: {
+        new (
+          data: CredentialData<any> & { readonly recordId: string }
+        ): Credential<any>;
+      };
     },
     K extends keyof M
   >(
@@ -274,7 +282,7 @@ export abstract class Credential<C> implements CredentialData<C> {
     K extends keyof M
   >(
     this: {
-      new (data: CredentialData<any>): T;
+      new (data: CredentialData<any> & { readonly recordId: string }): T;
     },
     tx: PoolClient,
     id: string[] | string,
@@ -358,7 +366,7 @@ export abstract class Credential<C> implements CredentialData<C> {
 
   public static async write<T extends Credential<any>>(
     this: {
-      new (data: CredentialData<any>): T;
+      new (data: CredentialData<any> & { readonly recordId: string }): T;
     },
     tx: PoolClient,
     data: CredentialData<any>,

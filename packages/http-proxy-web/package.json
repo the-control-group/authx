@@ -18,8 +18,8 @@
   },
   "description": "",
   "devDependencies": {
-    "@typescript-eslint/eslint-plugin": "^2.11.0",
-    "@typescript-eslint/parser": "^2.11.0",
+    "@typescript-eslint/eslint-plugin": "^2.15.0",
+    "@typescript-eslint/parser": "^2.15.0",
     "ava": "^2.4.0",
     "eslint": "^6.7.2",
     "eslint-config-prettier": "^6.7.0",

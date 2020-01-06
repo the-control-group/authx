@@ -165,12 +165,6 @@ export const authenticateOpenId: GraphQLFieldConfig<
         );
       }
 
-      // Invoke the credential.
-      await credential.invoke(tx, {
-        id: v4(),
-        createdAt: new Date()
-      });
-
       const authorizationId = v4();
 
       // Get the credential
@@ -279,6 +273,12 @@ export const authenticateOpenId: GraphQLFieldConfig<
       if (!credential) {
         throw new AuthenticationError("No such credential exists.");
       }
+
+      // Invoke the credential.
+      await credential.invoke(tx, {
+        id: v4(),
+        createdAt: new Date()
+      });
 
       const values = {
         currentAuthorizationId: authorizationId,
