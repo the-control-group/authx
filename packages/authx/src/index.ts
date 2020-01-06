@@ -1,4 +1,5 @@
 import body from "koa-body";
+import v4 from "uuid/v4";
 import createPlaygroundMiddleware from "graphql-playground-middleware-koa";
 import Router, { IRouterOptions } from "koa-router";
 import { errorHandler, execute } from "graphql-api-koa";
@@ -68,6 +69,15 @@ export class AuthX extends Router<any, { [x]: Context }> {
 
         if (basic) {
           authorization = await fromBasic(tx, basic);
+
+          // Invoke the authorization. Because the resource validates basic
+          // tokens by making a GraphQL request here, each request can be
+          // considered an invocation.
+          await authorization.invoke(tx, {
+            id: v4(),
+            format: "basic",
+            createdAt: new Date()
+          });
         }
 
         // Bearer Token Authorization
@@ -78,6 +88,9 @@ export class AuthX extends Router<any, { [x]: Context }> {
 
         if (bearer) {
           authorization = await fromBearer(tx, config.publicKeys, bearer);
+
+          // There is no need to invoke this authorization here, since it was
+          // invoked when the bearer token was generated.
         }
 
         const context: Context = {

@@ -374,6 +374,12 @@ async function oAuth2Middleware(
             );
           }
 
+          // Invoke the client.
+          await client.invoke(tx, {
+            id: v4(),
+            createdAt: new Date()
+          });
+
           // Decode and validate the authorization code.
           const [grantId, issuedAt, nonce] = Buffer.from(paramsCode, "base64")
             .toString("utf8")
@@ -428,6 +434,12 @@ async function oAuth2Middleware(
               paramsClientId
             );
           }
+
+          // Invoke the grant.
+          await grant.invoke(tx, {
+            id: v4(),
+            createdAt: new Date()
+          });
 
           // Fetch the user.
           const user = await grant.user(tx);
@@ -554,6 +566,13 @@ async function oAuth2Middleware(
             currentAuthorizationId: requestedAuthorization.id
           });
 
+          const tokenId = v4();
+          await requestedAuthorization.invoke(tx, {
+            id: tokenId,
+            format: "bearer",
+            createdAt: new Date()
+          });
+
           const body = {
             /* eslint-disable @typescript-eslint/camelcase */
             token_type: "bearer",
@@ -565,6 +584,7 @@ async function oAuth2Middleware(
               },
               privateKey,
               {
+                jwtid: tokenId,
                 algorithm: "RS512",
                 expiresIn: jwtValidityDuration,
                 audience: client.id,
@@ -664,6 +684,12 @@ async function oAuth2Middleware(
             );
           }
 
+          // Invoke the client.
+          await client.invoke(tx, {
+            id: v4(),
+            createdAt: new Date()
+          });
+
           // Decode and validate the authorization code.
           const [grantId, issuedAt, nonce] = Buffer.from(
             paramsRefreshToken,
@@ -712,6 +738,12 @@ async function oAuth2Middleware(
               paramsClientId
             );
           }
+
+          // Invoke the grant.
+          await grant.invoke(tx, {
+            id: v4(),
+            createdAt: new Date()
+          });
 
           // Fetch the user.
           const user = await grant.user(tx);
@@ -829,6 +861,13 @@ async function oAuth2Middleware(
             currentAuthorizationId: requestedAuthorization.id
           });
 
+          const tokenId = v4();
+          await requestedAuthorization.invoke(tx, {
+            id: tokenId,
+            format: "bearer",
+            createdAt: new Date()
+          });
+
           const body = {
             /* eslint-disable @typescript-eslint/camelcase */
             token_type: "bearer",
@@ -840,6 +879,7 @@ async function oAuth2Middleware(
               },
               privateKey,
               {
+                jwtid: tokenId,
                 algorithm: "RS512",
                 expiresIn: jwtValidityDuration,
                 audience: client.id,

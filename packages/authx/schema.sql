@@ -183,7 +183,6 @@ CREATE TABLE authx.invocation (
   invocation_id UUID PRIMARY KEY,
   entity_id UUID NOT NULL REFERENCES authx.entity,
   record_id UUID NOT NULL REFERENCES authx.record,
-  success BOOLEAN NOT NULL,
   created_at TIMESTAMP WITHOUT TIME ZONE NOT NULL DEFAULT CURRENT_TIMESTAMP,
 
   CHECK (false) NO INHERIT

@@ -8,6 +8,7 @@ import {
 } from "graphql";
 
 import jwt from "jsonwebtoken";
+import v4 from "uuid/v4";
 import { Grant, Authorization, User } from "../model";
 import { Context } from "../Context";
 import { GraphQLExplanation } from "./GraphQLExplanation";
@@ -219,6 +220,13 @@ export const GraphQLAuthorization: GraphQLObjectType<
               currentClientId: (await a.grant(tx))?.clientId ?? null
             };
 
+            const tokenId = v4();
+            await authorization.invoke(tx, {
+              id: tokenId,
+              format: "bearer",
+              createdAt: new Date()
+            });
+
             return `Bearer ${jwt.sign(
               {
                 aid: authorization.id,
@@ -226,6 +234,7 @@ export const GraphQLAuthorization: GraphQLObjectType<
               },
               privateKey,
               {
+                jwtid: tokenId,
                 algorithm: "RS512",
                 expiresIn: jwtValidityDuration,
                 subject: authorization.userId,

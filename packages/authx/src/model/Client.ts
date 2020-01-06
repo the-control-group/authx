@@ -8,7 +8,6 @@ export interface ClientInvocationData {
   readonly id: string;
   readonly entityId: string;
   readonly recordId: null | string;
-  readonly success: boolean;
   readonly createdAt: Date;
 }
 
@@ -16,14 +15,12 @@ export class ClientInvocation implements ClientInvocationData {
   public readonly id: string;
   public readonly entityId: string;
   public readonly recordId: null | string;
-  public readonly success: boolean;
   public readonly createdAt: Date;
 
   constructor(data: ClientInvocationData) {
     this.id = data.id;
     this.entityId = data.entityId;
     this.recordId = data.recordId;
-    this.success = data.success;
     this.createdAt = data.createdAt;
   }
 }
@@ -200,7 +197,6 @@ export class Client implements ClientData {
     tx: PoolClient,
     data: {
       id: string;
-      success: boolean;
       createdAt: Date;
     }
   ): Promise<ClientInvocation> {
@@ -212,19 +208,17 @@ export class Client implements ClientData {
         invocation_id,
         entity_id,
         record_id,
-        created_at,
-        success
+        created_at
       )
       VALUES
-        ($1, $2, $3, $4, $5, $6)
+        ($1, $2, $3, $4)
       RETURNING
         invocation_id AS id,
         entity_id,
         record_id,
-        created_at,
-        success
+        created_at
       `,
-      [data.id, this.id, this.recordId, data.createdAt, data.success]
+      [data.id, this.id, this.recordId, data.createdAt]
     );
 
     if (result.rows.length !== 1) {
@@ -237,7 +231,6 @@ export class Client implements ClientData {
       id: row.id,
       entityId: row.entity_id,
       recordId: row.record_id,
-      success: row.success,
       createdAt: row.created_at
     });
   }
@@ -249,8 +242,7 @@ export class Client implements ClientData {
         invocation_id as id,
         record_id,
         entity_id,
-        success,
-        created_at,
+        created_at
       FROM authx.authorization_invocation
       WHERE entity_id = $1
       ORDER BY created_at DESC

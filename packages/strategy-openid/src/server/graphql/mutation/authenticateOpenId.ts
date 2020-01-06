@@ -165,6 +165,12 @@ export const authenticateOpenId: GraphQLFieldConfig<
         );
       }
 
+      // Invoke the credential.
+      await credential.invoke(tx, {
+        id: v4(),
+        createdAt: new Date()
+      });
+
       const authorizationId = v4();
 
       // Get the credential
@@ -326,6 +332,14 @@ export const authenticateOpenId: GraphQLFieldConfig<
           createdAt: new Date()
         }
       );
+
+      // Invoke the new authorization, since it will be used for the remainder
+      // of the request.
+      await authorization.invoke(tx, {
+        id: v4(),
+        format: "basic",
+        createdAt: new Date()
+      });
 
       await tx.query("COMMIT");
 

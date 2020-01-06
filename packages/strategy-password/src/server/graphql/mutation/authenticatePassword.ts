@@ -131,6 +131,12 @@ export const authenticatePassword: GraphQLFieldConfig<
         );
       }
 
+      // Invoke the credential.
+      await credential.invoke(tx, {
+        id: v4(),
+        createdAt: new Date()
+      });
+
       const authorizationId = v4();
 
       const values = {
@@ -186,9 +192,17 @@ export const authenticatePassword: GraphQLFieldConfig<
         }
       );
 
+      // Invoke the new authorization, since it will be used for the remainder
+      // of the request.
+      await authorization.invoke(tx, {
+        id: v4(),
+        format: "basic",
+        createdAt: new Date()
+      });
+
       await tx.query("COMMIT");
 
-      // use this authorization for the rest of the request
+      // Use this authorization for the remainder of the request.
       context.authorization = authorization;
 
       return authorization;

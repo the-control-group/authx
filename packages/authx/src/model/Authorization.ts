@@ -9,8 +9,7 @@ export interface AuthorizationInvocationData {
   readonly id: string;
   readonly entityId: string;
   readonly recordId: null | string;
-  readonly success: boolean;
-  readonly format: string;
+  readonly format: "bearer" | "basic";
   readonly createdAt: Date;
 }
 
@@ -18,15 +17,13 @@ export class AuthorizationInvocation implements AuthorizationInvocationData {
   public readonly id: string;
   public readonly entityId: string;
   public readonly recordId: null | string;
-  public readonly success: boolean;
-  public readonly format: string;
+  public readonly format: "bearer" | "basic";
   public readonly createdAt: Date;
 
   constructor(data: AuthorizationInvocationData) {
     this.id = data.id;
     this.entityId = data.entityId;
     this.recordId = data.recordId;
-    this.success = data.success;
     this.format = data.format;
     this.createdAt = data.createdAt;
   }
@@ -200,7 +197,7 @@ export class Authorization implements AuthorizationData {
         entity_id,
         created_by_authorization_id,
         created_by_credential_id,
-        created_at,
+        created_at
       FROM authx.authorization_record
       WHERE entity_id = $1
       ORDER BY created_at DESC
@@ -225,7 +222,6 @@ export class Authorization implements AuthorizationData {
     tx: PoolClient,
     data: {
       id: string;
-      success: boolean;
       format: string;
       createdAt: Date;
     }
@@ -239,27 +235,18 @@ export class Authorization implements AuthorizationData {
         entity_id,
         record_id,
         created_at,
-        success,
         format
       )
       VALUES
-        ($1, $2, $3, $4, $5, $6)
+        ($1, $2, $3, $4, $5)
       RETURNING
         invocation_id AS id,
         entity_id,
         record_id,
         created_at,
-        success,
         format
       `,
-      [
-        data.id,
-        this.id,
-        this.recordId,
-        data.createdAt,
-        data.success,
-        data.format
-      ]
+      [data.id, this.id, this.recordId, data.createdAt, data.format]
     );
 
     if (result.rows.length !== 1) {
@@ -272,7 +259,6 @@ export class Authorization implements AuthorizationData {
       id: row.id,
       entityId: row.entity_id,
       recordId: row.record_id,
-      success: row.success,
       format: row.format,
       createdAt: row.created_at
     });
@@ -285,9 +271,8 @@ export class Authorization implements AuthorizationData {
         invocation_id as id,
         record_id,
         entity_id,
-        success,
         format,
-        created_at,
+        created_at
       FROM authx.authorization_invocation
       WHERE entity_id = $1
       ORDER BY created_at DESC
