@@ -19,7 +19,7 @@
     "auth-header": "^1.0.0",
     "form-data": "^3.0.0",
     "graphql": "15.0.0-rc.1",
-    "graphql-api-koa": "^2.2.0",
+    "graphql-api-koa": "^4.1.0",
     "graphql-playground-middleware-koa": "^1.6.12",
     "graphql-relay": "^0.6.0",
     "jsonwebtoken": "^8.5.0",
