@@ -4,6 +4,30 @@ import { Authorization } from "./Authorization";
 import { NotFoundError } from "../errors";
 import { AuthorityAction, createV2AuthXScope } from "../util/scopes";
 
+export interface AuthorityRecordData {
+  readonly id: string;
+  readonly replacementRecordId: null | string;
+  readonly entityId: string;
+  readonly createdAt: Date;
+  readonly createdByAuthorizationId: string;
+}
+
+export class AuthorityRecord implements AuthorityRecordData {
+  public readonly id: string;
+  public readonly replacementRecordId: null | string;
+  public readonly entityId: string;
+  public readonly createdAt: Date;
+  public readonly createdByAuthorizationId: string;
+
+  constructor(data: AuthorityRecordData) {
+    this.id = data.id;
+    this.replacementRecordId = data.replacementRecordId;
+    this.entityId = data.entityId;
+    this.createdAt = data.createdAt;
+    this.createdByAuthorizationId = data.createdByAuthorizationId;
+  }
+}
+
 export interface AuthorityData<A> {
   readonly id: string;
   readonly enabled: boolean;
@@ -15,14 +39,16 @@ export interface AuthorityData<A> {
 
 export abstract class Authority<A> implements AuthorityData<A> {
   public readonly id: string;
+  public readonly recordId: string;
   public readonly enabled: boolean;
   public readonly name: string;
   public readonly description: string;
   public readonly strategy: string;
   public readonly details: A;
 
-  public constructor(data: AuthorityData<A>) {
+  public constructor(data: AuthorityData<A> & { readonly recordId: string }) {
     this.id = data.id;
+    this.recordId = data.recordId;
     this.enabled = data.enabled;
     this.name = data.name;
     this.description = data.description;
@@ -76,15 +102,44 @@ export abstract class Authority<A> implements AuthorityData<A> {
     authorityUserId: string
   ): Promise<Credential<any> | null>;
 
+  public async records(tx: PoolClient): Promise<AuthorityRecord[]> {
+    const result = await tx.query(
+      `
+      SELECT
+        record_id as id,
+        replacement_record_id,
+        entity_id,
+        created_by_authorization_id,
+        created_by_credential_id,
+        created_at
+      FROM authx.authorization_record
+      WHERE entity_id = $1
+      ORDER BY created_at DESC
+      `,
+      [this.id]
+    );
+
+    return result.rows.map(
+      row =>
+        new AuthorityRecord({
+          ...row,
+          replacementRecordId: row.replacement_record_id,
+          createdByAuthorizationId: row.created_by_authorization_id,
+          createdAt: row.created_at,
+          entityId: row.entity_id
+        })
+    );
+  }
+
   public static read<T extends Authority<any>>(
-    this: new (data: AuthorityData<any>) => T,
+    this: new (data: AuthorityData<any> & { readonly recordId: string }) => T,
     tx: PoolClient,
     id: string,
     options?: { forUpdate: boolean }
   ): Promise<T>;
 
   public static read<T extends Authority<any>>(
-    this: new (data: AuthorityData<any>) => T,
+    this: new (data: AuthorityData<any> & { readonly recordId: string }) => T,
     tx: PoolClient,
     id: string[],
     options?: { forUpdate: boolean }
@@ -92,7 +147,11 @@ export abstract class Authority<A> implements AuthorityData<A> {
 
   public static read<
     M extends {
-      [key: string]: { new (data: AuthorityData<any>): Authority<any> };
+      [key: string]: {
+        new (
+          data: AuthorityData<any> & { readonly recordId: string }
+        ): Authority<any>;
+      };
     },
     K extends keyof M
   >(
@@ -104,7 +163,11 @@ export abstract class Authority<A> implements AuthorityData<A> {
 
   public static read<
     M extends {
-      [key: string]: { new (data: AuthorityData<any>): Authority<any> };
+      [key: string]: {
+        new (
+          data: AuthorityData<any> & { readonly recordId: string }
+        ): Authority<any>;
+      };
     },
     K extends keyof M
   >(
@@ -122,7 +185,7 @@ export abstract class Authority<A> implements AuthorityData<A> {
     K extends keyof M
   >(
     this: {
-      new (data: AuthorityData<any>): T;
+      new (data: AuthorityData<any> & { readonly recordId: string }): T;
     },
     tx: PoolClient,
     id: string[] | string,
@@ -137,6 +200,7 @@ export abstract class Authority<A> implements AuthorityData<A> {
       `
       SELECT
         entity_id AS id,
+        record_id,
         enabled,
         name,
         description,
@@ -164,6 +228,7 @@ export abstract class Authority<A> implements AuthorityData<A> {
     const data = result.rows.map(row => {
       return {
         ...row,
+        recordId: row.record_id,
         baseUrls: row.base_urls
       };
     });
@@ -190,7 +255,7 @@ export abstract class Authority<A> implements AuthorityData<A> {
 
   public static async write<T extends Authority<any>>(
     this: {
-      new (data: AuthorityData<any>): T;
+      new (data: AuthorityData<any> & { readonly recordId: string }): T;
     },
     tx: PoolClient,
     data: AuthorityData<any>,
@@ -252,6 +317,7 @@ export abstract class Authority<A> implements AuthorityData<A> {
         ($1, $2, $3, $4, $5, $6, $7, $8, $9)
       RETURNING
         entity_id AS id,
+        record_id,
         enabled,
         name,
         description,
@@ -278,6 +344,7 @@ export abstract class Authority<A> implements AuthorityData<A> {
     const row = next.rows[0];
     return new this({
       ...row,
+      recordId: row.record_id,
       baseUrls: row.base_urls
     });
   }

@@ -49,6 +49,6 @@
     "typescript": "^3.7.4"
   },
   "resolutions": {
-    "**/graphql": "15.0.0-alpha.2"
+    "**/graphql": "15.0.0-rc.1"
   }
 }

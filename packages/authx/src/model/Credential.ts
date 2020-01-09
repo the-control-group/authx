@@ -5,6 +5,51 @@ import { Authorization } from "./Authorization";
 import { NotFoundError } from "../errors";
 import { CredentialAction, createV2AuthXScope } from "../util/scopes";
 
+export interface CredentialInvocationData {
+  readonly id: string;
+  readonly entityId: string;
+  readonly recordId: null | string;
+  readonly createdAt: Date;
+}
+
+export class CredentialInvocation implements CredentialInvocationData {
+  public readonly id: string;
+  public readonly entityId: string;
+  public readonly recordId: null | string;
+  public readonly createdAt: Date;
+
+  constructor(data: CredentialInvocationData) {
+    this.id = data.id;
+    this.entityId = data.entityId;
+    this.recordId = data.recordId;
+    this.createdAt = data.createdAt;
+  }
+}
+
+export interface CredentialRecordData {
+  readonly id: string;
+  readonly replacementRecordId: null | string;
+  readonly entityId: string;
+  readonly createdAt: Date;
+  readonly createdByAuthorizationId: string;
+}
+
+export class CredentialRecord implements CredentialRecordData {
+  public readonly id: string;
+  public readonly replacementRecordId: null | string;
+  public readonly entityId: string;
+  public readonly createdAt: Date;
+  public readonly createdByAuthorizationId: string;
+
+  constructor(data: CredentialRecordData) {
+    this.id = data.id;
+    this.replacementRecordId = data.replacementRecordId;
+    this.entityId = data.entityId;
+    this.createdAt = data.createdAt;
+    this.createdByAuthorizationId = data.createdByAuthorizationId;
+  }
+}
+
 export interface CredentialData<C> {
   readonly id: string;
   readonly enabled: boolean;
@@ -16,6 +61,7 @@ export interface CredentialData<C> {
 
 export abstract class Credential<C> implements CredentialData<C> {
   public readonly id: string;
+  public readonly recordId: string;
   public readonly enabled: boolean;
   public readonly authorityId: string;
   public readonly authorityUserId: string;
@@ -24,8 +70,9 @@ export abstract class Credential<C> implements CredentialData<C> {
 
   private _user: null | Promise<User> = null;
 
-  public constructor(data: CredentialData<C>) {
+  public constructor(data: CredentialData<C> & { readonly recordId: string }) {
     this.id = data.id;
+    this.recordId = data.recordId;
     this.enabled = data.enabled;
     this.authorityId = data.authorityId;
     this.authorityUserId = data.authorityUserId;
@@ -84,15 +131,112 @@ export abstract class Credential<C> implements CredentialData<C> {
     return (this._user = User.read(tx, this.userId));
   }
 
+  public async records(tx: PoolClient): Promise<CredentialRecord[]> {
+    const result = await tx.query(
+      `
+      SELECT
+        record_id as id,
+        replacement_record_id,
+        entity_id,
+        created_by_authorization_id,
+        created_by_credential_id,
+        created_at,
+      FROM authx.authorization_record
+      WHERE entity_id = $1
+      ORDER BY created_at DESC
+      `,
+      [this.id]
+    );
+
+    return result.rows.map(
+      row =>
+        new CredentialRecord({
+          ...row,
+          replacementRecordId: row.replacement_record_id,
+          createdByAuthorizationId: row.created_by_authorization_id,
+          createdAt: row.created_at,
+          entityId: row.entity_id
+        })
+    );
+  }
+
+  public async invoke(
+    tx: PoolClient,
+    data: {
+      id: string;
+      createdAt: Date;
+    }
+  ): Promise<CredentialInvocation> {
+    // insert the new invocation
+    const result = await tx.query(
+      `
+      INSERT INTO authx.authorization_invocation
+      (
+        invocation_id,
+        entity_id,
+        record_id,
+        created_at
+      )
+      VALUES
+        ($1, $2, $3, $4)
+      RETURNING
+        invocation_id AS id,
+        entity_id,
+        record_id,
+        created_at
+      `,
+      [data.id, this.id, this.recordId, data.createdAt]
+    );
+
+    if (result.rows.length !== 1) {
+      throw new Error("INVARIANT: Insert must return exactly one row.");
+    }
+
+    const row = result.rows[0];
+
+    return new CredentialInvocation({
+      id: row.id,
+      entityId: row.entity_id,
+      recordId: row.record_id,
+      createdAt: row.created_at
+    });
+  }
+
+  public async invocations(tx: PoolClient): Promise<CredentialInvocation[]> {
+    const result = await tx.query(
+      `
+      SELECT
+        invocation_id as id,
+        record_id,
+        entity_id,
+        created_at
+      FROM authx.authorization_invocation
+      WHERE entity_id = $1
+      ORDER BY created_at DESC
+      `,
+      [this.id]
+    );
+
+    return result.rows.map(
+      row =>
+        new CredentialInvocation({
+          ...row,
+          recordId: row.record_id,
+          entityId: row.entity_id,
+          createdAt: row.created_at
+        })
+    );
+  }
+
   public static read<T extends Credential<any>>(
-    this: new (data: CredentialData<any>) => T,
+    this: new (data: CredentialData<any> & { readonly recordId: string }) => T,
     tx: PoolClient,
     id: string,
     options?: { forUpdate: boolean }
   ): Promise<T>;
 
   public static read<T extends Credential<any>>(
-    this: new (data: CredentialData<any>) => T,
+    this: new (data: CredentialData<any> & { readonly recordId: string }) => T,
     tx: PoolClient,
     id: string[],
     options?: { forUpdate: boolean }
@@ -100,7 +244,11 @@ export abstract class Credential<C> implements CredentialData<C> {
 
   public static read<
     M extends {
-      [key: string]: { new (data: CredentialData<any>): Credential<any> };
+      [key: string]: {
+        new (
+          data: CredentialData<any> & { readonly recordId: string }
+        ): Credential<any>;
+      };
     },
     K extends keyof M
   >(
@@ -112,7 +260,11 @@ export abstract class Credential<C> implements CredentialData<C> {
 
   public static read<
     M extends {
-      [key: string]: { new (data: CredentialData<any>): Credential<any> };
+      [key: string]: {
+        new (
+          data: CredentialData<any> & { readonly recordId: string }
+        ): Credential<any>;
+      };
     },
     K extends keyof M
   >(
@@ -130,7 +282,7 @@ export abstract class Credential<C> implements CredentialData<C> {
     K extends keyof M
   >(
     this: {
-      new (data: CredentialData<any>): T;
+      new (data: CredentialData<any> & { readonly recordId: string }): T;
     },
     tx: PoolClient,
     id: string[] | string,
@@ -154,6 +306,7 @@ export abstract class Credential<C> implements CredentialData<C> {
       `
       SELECT
         authx.credential_record.entity_id AS id,
+        authx.credential_record.record_id,
         authx.credential_record.enabled,
         authx.credential_record.authority_id,
         authx.credential_record.authority_user_id,
@@ -213,7 +366,7 @@ export abstract class Credential<C> implements CredentialData<C> {
 
   public static async write<T extends Credential<any>>(
     this: {
-      new (data: CredentialData<any>): T;
+      new (data: CredentialData<any> & { readonly recordId: string }): T;
     },
     tx: PoolClient,
     data: CredentialData<any>,
@@ -273,6 +426,7 @@ export abstract class Credential<C> implements CredentialData<C> {
         ($1, $2, $3, $4, $5, $6, $7, $8, $9)
       RETURNING
         entity_id AS id,
+        record_id,
         enabled,
         authority_id,
         authority_user_id,
@@ -299,6 +453,7 @@ export abstract class Credential<C> implements CredentialData<C> {
     const row = next.rows[0];
     return new this({
       ...row,
+      recordId: row.record_id,
       authorityId: row.authority_id,
       authorityUserId: row.authority_user_id,
       userId: row.user_id

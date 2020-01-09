@@ -7,6 +7,30 @@ import { Authorization } from "./Authorization";
 import { NotFoundError } from "../errors";
 import { UserAction, createV2AuthXScope } from "../util/scopes";
 
+export interface UserRecordData {
+  readonly id: string;
+  readonly replacementRecordId: null | string;
+  readonly entityId: string;
+  readonly createdAt: Date;
+  readonly createdByAuthorizationId: string;
+}
+
+export class UserRecord implements UserRecordData {
+  public readonly id: string;
+  public readonly replacementRecordId: null | string;
+  public readonly entityId: string;
+  public readonly createdAt: Date;
+  public readonly createdByAuthorizationId: string;
+
+  constructor(data: UserRecordData) {
+    this.id = data.id;
+    this.replacementRecordId = data.replacementRecordId;
+    this.entityId = data.entityId;
+    this.createdAt = data.createdAt;
+    this.createdByAuthorizationId = data.createdByAuthorizationId;
+  }
+}
+
 export type UserType = "human" | "bot";
 
 export interface UserData {
@@ -18,6 +42,7 @@ export interface UserData {
 
 export class User implements UserData {
   public readonly id: string;
+  public readonly recordId: string;
   public readonly enabled: boolean;
   public readonly type: UserType;
   public readonly name: string;
@@ -27,8 +52,9 @@ export class User implements UserData {
   private _roles: null | Promise<Role[]> = null;
   private _grants: null | Promise<Grant[]> = null;
 
-  public constructor(data: UserData) {
+  public constructor(data: UserData & { readonly recordId: string }) {
     this.id = data.id;
+    this.recordId = data.recordId;
     this.enabled = data.enabled;
     this.type = data.type;
     this.name = data.name;
@@ -239,6 +265,35 @@ export class User implements UserData {
     return isSuperset(await this.access(tx, values, refresh), scope);
   }
 
+  public async records(tx: PoolClient): Promise<UserRecord[]> {
+    const result = await tx.query(
+      `
+      SELECT
+        record_id as id,
+        replacement_record_id,
+        entity_id,
+        created_by_authorization_id,
+        created_by_credential_id,
+        created_at,
+      FROM authx.authorization_record
+      WHERE entity_id = $1
+      ORDER BY created_at DESC
+      `,
+      [this.id]
+    );
+
+    return result.rows.map(
+      row =>
+        new UserRecord({
+          ...row,
+          replacementRecordId: row.replacement_record_id,
+          createdByAuthorizationId: row.created_by_authorization_id,
+          createdAt: row.created_at,
+          entityId: row.entity_id
+        })
+    );
+  }
+
   public static read(
     tx: PoolClient,
     id: string,
@@ -287,7 +342,8 @@ export class User implements UserData {
     const users = result.rows.map(
       row =>
         new User({
-          ...row
+          ...row,
+          recordId: row.record_id
         })
     );
 
@@ -370,8 +426,10 @@ export class User implements UserData {
       throw new Error("INVARIANT: Insert must return exactly one row.");
     }
 
+    const row = next.rows[0];
     return new User({
-      ...next.rows[0]
+      ...row,
+      recordId: row.record_id
     });
   }
 }

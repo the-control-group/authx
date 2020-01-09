@@ -274,6 +274,12 @@ export const authenticateOpenId: GraphQLFieldConfig<
         throw new AuthenticationError("No such credential exists.");
       }
 
+      // Invoke the credential.
+      await credential.invoke(tx, {
+        id: v4(),
+        createdAt: new Date()
+      });
+
       const values = {
         currentAuthorizationId: authorizationId,
         currentUserId: credential.userId,
@@ -326,6 +332,14 @@ export const authenticateOpenId: GraphQLFieldConfig<
           createdAt: new Date()
         }
       );
+
+      // Invoke the new authorization, since it will be used for the remainder
+      // of the request.
+      await authorization.invoke(tx, {
+        id: v4(),
+        format: "basic",
+        createdAt: new Date()
+      });
 
       await tx.query("COMMIT");
 

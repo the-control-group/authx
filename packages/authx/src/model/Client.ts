@@ -4,6 +4,51 @@ import { Authorization } from "./Authorization";
 import { NotFoundError } from "../errors";
 import { ClientAction, createV2AuthXScope } from "../util/scopes";
 
+export interface ClientInvocationData {
+  readonly id: string;
+  readonly entityId: string;
+  readonly recordId: null | string;
+  readonly createdAt: Date;
+}
+
+export class ClientInvocation implements ClientInvocationData {
+  public readonly id: string;
+  public readonly entityId: string;
+  public readonly recordId: null | string;
+  public readonly createdAt: Date;
+
+  constructor(data: ClientInvocationData) {
+    this.id = data.id;
+    this.entityId = data.entityId;
+    this.recordId = data.recordId;
+    this.createdAt = data.createdAt;
+  }
+}
+
+export interface ClientRecordData {
+  readonly id: string;
+  readonly replacementRecordId: null | string;
+  readonly entityId: string;
+  readonly createdAt: Date;
+  readonly createdByAuthorizationId: string;
+}
+
+export class ClientRecord implements ClientRecordData {
+  public readonly id: string;
+  public readonly replacementRecordId: null | string;
+  public readonly entityId: string;
+  public readonly createdAt: Date;
+  public readonly createdByAuthorizationId: string;
+
+  constructor(data: ClientRecordData) {
+    this.id = data.id;
+    this.replacementRecordId = data.replacementRecordId;
+    this.entityId = data.entityId;
+    this.createdAt = data.createdAt;
+    this.createdByAuthorizationId = data.createdByAuthorizationId;
+  }
+}
+
 export interface ClientData {
   readonly id: string;
   readonly enabled: boolean;
@@ -15,6 +60,7 @@ export interface ClientData {
 
 export class Client implements ClientData {
   public readonly id: string;
+  public readonly recordId: string;
   public readonly enabled: boolean;
   public readonly name: string;
   public readonly description: string;
@@ -23,8 +69,9 @@ export class Client implements ClientData {
 
   private _grants: null | Promise<Grant[]> = null;
 
-  public constructor(data: ClientData) {
+  public constructor(data: ClientData & { readonly recordId: string }) {
     this.id = data.id;
+    this.recordId = data.recordId;
     this.enabled = data.enabled;
     this.name = data.name;
     this.description = data.description;
@@ -117,6 +164,103 @@ export class Client implements ClientData {
     return null;
   }
 
+  public async records(tx: PoolClient): Promise<ClientRecord[]> {
+    const result = await tx.query(
+      `
+      SELECT
+        record_id as id,
+        replacement_record_id,
+        entity_id,
+        created_by_authorization_id,
+        created_by_credential_id,
+        created_at,
+      FROM authx.authorization_record
+      WHERE entity_id = $1
+      ORDER BY created_at DESC
+      `,
+      [this.id]
+    );
+
+    return result.rows.map(
+      row =>
+        new ClientRecord({
+          ...row,
+          replacementRecordId: row.replacement_record_id,
+          createdByAuthorizationId: row.created_by_authorization_id,
+          createdAt: row.created_at,
+          entityId: row.entity_id
+        })
+    );
+  }
+
+  public async invoke(
+    tx: PoolClient,
+    data: {
+      id: string;
+      createdAt: Date;
+    }
+  ): Promise<ClientInvocation> {
+    // insert the new invocation
+    const result = await tx.query(
+      `
+      INSERT INTO authx.authorization_invocation
+      (
+        invocation_id,
+        entity_id,
+        record_id,
+        created_at
+      )
+      VALUES
+        ($1, $2, $3, $4)
+      RETURNING
+        invocation_id AS id,
+        entity_id,
+        record_id,
+        created_at
+      `,
+      [data.id, this.id, this.recordId, data.createdAt]
+    );
+
+    if (result.rows.length !== 1) {
+      throw new Error("INVARIANT: Insert must return exactly one row.");
+    }
+
+    const row = result.rows[0];
+
+    return new ClientInvocation({
+      id: row.id,
+      entityId: row.entity_id,
+      recordId: row.record_id,
+      createdAt: row.created_at
+    });
+  }
+
+  public async invocations(tx: PoolClient): Promise<ClientInvocation[]> {
+    const result = await tx.query(
+      `
+      SELECT
+        invocation_id as id,
+        record_id,
+        entity_id,
+        created_at
+      FROM authx.authorization_invocation
+      WHERE entity_id = $1
+      ORDER BY created_at DESC
+      `,
+      [this.id]
+    );
+
+    return result.rows.map(
+      row =>
+        new ClientInvocation({
+          ...row,
+          recordId: row.record_id,
+          entityId: row.entity_id,
+          createdAt: row.created_at
+        })
+    );
+  }
+
   public static read(
     tx: PoolClient,
     id: string,
@@ -140,6 +284,7 @@ export class Client implements ClientData {
       `
       SELECT
         entity_id AS id,
+        record_id,
         enabled,
         name,
         description,
@@ -171,6 +316,7 @@ export class Client implements ClientData {
       row =>
         new Client({
           ...row,
+          recordId: row.record_id,
           secrets: row.secrets,
           urls: row.urls
         })
@@ -236,6 +382,7 @@ export class Client implements ClientData {
         ($1, $2, $3, $4, $5, $6, $7, $8, $9)
       RETURNING
         entity_id AS id,
+        record_id,
         enabled,
         name,
         description,
@@ -262,6 +409,7 @@ export class Client implements ClientData {
     const row = next.rows[0];
     return new Client({
       ...row,
+      recordId: row.record_id,
       secrets: row.secrets,
       urls: row.urls
     });

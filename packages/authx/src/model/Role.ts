@@ -5,6 +5,30 @@ import { simplify, isSuperset, inject } from "@authx/scopes";
 import { NotFoundError } from "../errors";
 import { RoleAction, createV2AuthXScope } from "../util/scopes";
 
+export interface RoleRecordData {
+  readonly id: string;
+  readonly replacementRecordId: null | string;
+  readonly entityId: string;
+  readonly createdAt: Date;
+  readonly createdByAuthorizationId: string;
+}
+
+export class RoleRecord implements RoleRecordData {
+  public readonly id: string;
+  public readonly replacementRecordId: null | string;
+  public readonly entityId: string;
+  public readonly createdAt: Date;
+  public readonly createdByAuthorizationId: string;
+
+  constructor(data: RoleRecordData) {
+    this.id = data.id;
+    this.replacementRecordId = data.replacementRecordId;
+    this.entityId = data.entityId;
+    this.createdAt = data.createdAt;
+    this.createdByAuthorizationId = data.createdByAuthorizationId;
+  }
+}
+
 export interface RoleData {
   readonly id: string;
   readonly enabled: boolean;
@@ -16,6 +40,7 @@ export interface RoleData {
 
 export class Role implements RoleData {
   public readonly id: string;
+  public readonly recordId: string;
   public readonly enabled: boolean;
   public readonly name: string;
   public readonly description: string;
@@ -24,8 +49,9 @@ export class Role implements RoleData {
 
   private _users: null | Promise<User[]> = null;
 
-  public constructor(data: RoleData) {
+  public constructor(data: RoleData & { readonly recordId: string }) {
     this.id = data.id;
+    this.recordId = data.recordId;
     this.enabled = data.enabled;
     this.name = data.name;
     this.description = data.description;
@@ -106,6 +132,35 @@ export class Role implements RoleData {
     return isSuperset(this.access(values), scope);
   }
 
+  public async records(tx: PoolClient): Promise<RoleRecord[]> {
+    const result = await tx.query(
+      `
+      SELECT
+        record_id as id,
+        replacement_record_id,
+        entity_id,
+        created_by_authorization_id,
+        created_by_credential_id,
+        created_at,
+      FROM authx.authorization_record
+      WHERE entity_id = $1
+      ORDER BY created_at DESC
+      `,
+      [this.id]
+    );
+
+    return result.rows.map(
+      row =>
+        new RoleRecord({
+          ...row,
+          replacementRecordId: row.replacement_record_id,
+          createdByAuthorizationId: row.created_by_authorization_id,
+          createdAt: row.created_at,
+          entityId: row.entity_id
+        })
+    );
+  }
+
   public static read(
     tx: PoolClient,
     id: string,
@@ -168,6 +223,7 @@ export class Role implements RoleData {
       row =>
         new Role({
           ...row,
+          recordId: row.record_id,
           userIds: row.user_ids.filter((id: null | string) => id)
         })
     );
@@ -252,6 +308,8 @@ export class Role implements RoleData {
       throw new Error("INVARIANT: Insert must return exactly one row.");
     }
 
+    const row = next.rows[0];
+
     // insert the new record's users
     const userIds = [...new Set(data.userIds)];
     const users = await tx.query(
@@ -271,7 +329,8 @@ export class Role implements RoleData {
     }
 
     return new Role({
-      ...next.rows[0],
+      ...row,
+      recordId: row.record_id,
       userIds: users.rows.map(({ user_id: userId }) => userId)
     });
   }
