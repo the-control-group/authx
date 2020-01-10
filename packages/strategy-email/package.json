@@ -14,7 +14,7 @@
   },
   "description": "",
   "devDependencies": {
-    "@authx/authx": "^2.0.0",
+    "@authx/authx": "^3.0.0-alpha.1",
     "@typescript-eslint/eslint-plugin": "^2.15.0",
     "@typescript-eslint/parser": "^2.15.0",
     "ava": "^2.4.0",
@@ -45,7 +45,7 @@
   "main": "dist/server",
   "name": "@authx/strategy-email",
   "peerDependencies": {
-    "@authx/authx": "^2.0.0"
+    "@authx/authx": "^3.0.0-alpha.1"
   },
   "repository": "https://github.com/the-control-group/authx",
   "scripts": {
@@ -59,7 +59,7 @@
     "test:development": "ava --verbose --watch dist/*.test.js"
   },
   "types": "dist/server/index.d.ts",
-  "version": "1.0.0",
+  "version": "2.0.0-alpha.1",
   "resolutions": {
     "**/graphql": "15.0.0-rc.1"
   }
