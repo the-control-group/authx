@@ -12,7 +12,7 @@
     "@types/graphql-relay": "^0.4.11",
     "@types/jsonwebtoken": "^8.3.5",
     "@types/koa": "2.11.0",
-    "@types/koa-router": "^7.0.42",
+    "@types/koa-router": "^7.4.0",
     "@types/koa-send": "^4.1.2",
     "@types/pg": "^7.14.1",
     "@types/uuid": "^3.4.6",
