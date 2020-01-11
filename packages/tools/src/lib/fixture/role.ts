@@ -1,5 +1,6 @@
 import { PoolClient } from "pg";
 import { Role } from "@authx/authx";
+import { createV2AuthXScope } from "@authx/authx/scopes";
 
 export const role = [
   {
@@ -45,10 +46,101 @@ export const role = [
             "1691f38d-92c8-4d86-9a89-da99528cfcb5"
           ],
           scopes: [
-            "authx:v2.client...*....:r....",
-            "authx:v2.user.......{current_user_id}:r....",
-            "authx:v2.grant...{current_client_id}..{current_grant_id}..{current_user_id}:*..*.*.",
-            "authx:v2.authorization..*.{current_client_id}..{current_grant_id}..{current_user_id}:*..*.*."
+            // A user can read basic fields of all clients.
+            createV2AuthXScope(
+              "authx",
+              {
+                type: "client",
+                clientId: "*"
+              },
+              {
+                basic: "r",
+                secrets: ""
+              }
+            ),
+
+            // A user can read basic fields of her own user account.
+            createV2AuthXScope(
+              "authx",
+              {
+                type: "user",
+                userId: "{current_user_id}"
+              },
+              {
+                basic: "r"
+              }
+            ),
+
+            // A user can create, read and write all fields of new and existing
+            // grants belonging to her.
+            createV2AuthXScope(
+              "authx",
+              {
+                type: "grant",
+                clientId: "*",
+                grantId: "*",
+                userId: "{current_user_id}"
+              },
+              {
+                basic: "*",
+                scopes: "*",
+                secrets: "*"
+              }
+            ),
+
+            // A user can read the scopes and basic fields of all authorizations
+            // beloning to her, and can also disable them.
+            createV2AuthXScope(
+              "authx",
+              {
+                type: "authorization",
+                authorizationId: "*",
+                clientId: "*",
+                grantId: "*",
+                userId: "{current_user_id}"
+              },
+              {
+                basic: "*",
+                scopes: "*",
+                secrets: ""
+              }
+            ),
+
+            // A user can read all fields of the current authorization, and can
+            // also disable it.
+            createV2AuthXScope(
+              "authx",
+              {
+                type: "authorization",
+                authorizationId: "{current_authorization_id}",
+                clientId: "*",
+                grantId: "*",
+                userId: "{current_user_id}"
+              },
+              {
+                basic: "*",
+                scopes: "*",
+                secrets: "*"
+              }
+            ),
+
+            // A user can create, read and write all fields of new and existing
+            // authorizations that are not associated with a grant.
+            createV2AuthXScope(
+              "authx",
+              {
+                type: "authorization",
+                authorizationId: "{current_authorization_id}",
+                clientId: "",
+                grantId: "",
+                userId: "{current_user_id}"
+              },
+              {
+                basic: "*",
+                scopes: "*",
+                secrets: "*"
+              }
+            )
           ]
         },
         {
