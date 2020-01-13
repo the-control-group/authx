@@ -184,6 +184,7 @@ export class Role implements RoleData {
       `
       SELECT
         entity_id AS id,
+        record_id,
         enabled,
         name,
         description,
@@ -201,6 +202,7 @@ export class Role implements RoleData {
         ON authx.role_record_user.role_record_id = role_record.record_id
       GROUP BY
         role_record.entity_id,
+        role_record.record_id,
         role_record.enabled,
         role_record.name,
         role_record.description,
@@ -287,6 +289,7 @@ export class Role implements RoleData {
         ($1, $2, $3, $4, $5, $6, $7, $8)
       RETURNING
         entity_id AS id,
+        record_id,
         enabled,
         name,
         description,

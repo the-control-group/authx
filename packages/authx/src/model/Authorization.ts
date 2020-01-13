@@ -226,6 +226,8 @@ export class Authorization implements AuthorizationData {
       createdAt: Date;
     }
   ): Promise<AuthorizationInvocation> {
+    console.log(this);
+
     // insert the new invocation
     const result = await tx.query(
       `
@@ -314,6 +316,7 @@ export class Authorization implements AuthorizationData {
       `
       SELECT
         entity_id AS id,
+        record_id,
         enabled,
         user_id,
         grant_id,
@@ -462,6 +465,7 @@ export class Authorization implements AuthorizationData {
         ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10)
       RETURNING
         entity_id AS id,
+        record_id,
         enabled,
         user_id,
         grant_id,

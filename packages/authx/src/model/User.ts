@@ -317,6 +317,7 @@ export class User implements UserData {
       `
       SELECT
         entity_id AS id,
+        record_id,
         enabled,
         type,
         name
@@ -407,6 +408,7 @@ export class User implements UserData {
         ($1, $2, $3, $4, $5, $6, $7)
       RETURNING
         entity_id AS id,
+        record_id,
         enabled,
         type,
         name
