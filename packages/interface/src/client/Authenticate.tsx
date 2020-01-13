@@ -59,6 +59,7 @@ export function Authenticate({
   // Get all active authorities from the API.
   const { loading, cacheValue } = useGraphQL<any, {}>({
     fetchOptionsOverride,
+    loadOnMount: true,
     operation: {
       variables: {},
       query
