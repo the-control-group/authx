@@ -170,7 +170,7 @@ export abstract class Credential<C> implements CredentialData<C> {
     // insert the new invocation
     const result = await tx.query(
       `
-      INSERT INTO authx.authorization_invocation
+      INSERT INTO authx.credential_invocation
       (
         invocation_id,
         entity_id,
@@ -210,7 +210,7 @@ export abstract class Credential<C> implements CredentialData<C> {
         record_id,
         entity_id,
         created_at
-      FROM authx.authorization_invocation
+      FROM authx.credential_invocation
       WHERE entity_id = $1
       ORDER BY created_at DESC
       `,
@@ -338,6 +338,7 @@ export abstract class Credential<C> implements CredentialData<C> {
     const data = result.rows.map(row => {
       return {
         ...row,
+        recordId: row.record_id,
         authorityId: row.authority_id,
         authorityUserId: row.authority_user_id,
         userId: row.user_id

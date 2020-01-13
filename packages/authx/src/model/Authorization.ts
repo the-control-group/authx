@@ -226,8 +226,6 @@ export class Authorization implements AuthorizationData {
       createdAt: Date;
     }
   ): Promise<AuthorizationInvocation> {
-    console.log(this);
-
     // insert the new invocation
     const result = await tx.query(
       `

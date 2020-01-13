@@ -4,7 +4,8 @@ import {
   GraphQLNonNull,
   GraphQLString,
   GraphQLBoolean,
-  GraphQLObjectType
+  GraphQLObjectType,
+  GraphQLFieldConfigMap
 } from "graphql";
 
 import {
@@ -23,7 +24,7 @@ import { filter } from "../util/filter";
 export const GraphQLRole = new GraphQLObjectType<Role, Context>({
   name: "Role",
   interfaces: () => [GraphQLNode],
-  fields: () => ({
+  fields: (): GraphQLFieldConfigMap<Role, Context, any> => ({
     id: { type: new GraphQLNonNull(GraphQLID) },
     enabled: {
       type: new GraphQLNonNull(GraphQLBoolean)
@@ -32,7 +33,10 @@ export const GraphQLRole = new GraphQLObjectType<Role, Context>({
     description: { type: GraphQLString },
     users: {
       type: GraphQLUserConnection,
-      args: connectionArgs,
+
+      // TODO: The type definitions in graphql-js are garbage, and will be
+      // refactored shortly.
+      args: connectionArgs as any,
       async resolve(
         role,
         args: ConnectionArguments,

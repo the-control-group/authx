@@ -203,7 +203,7 @@ export class Client implements ClientData {
     // insert the new invocation
     const result = await tx.query(
       `
-      INSERT INTO authx.authorization_invocation
+      INSERT INTO authx.client_invocation
       (
         invocation_id,
         entity_id,
@@ -243,7 +243,7 @@ export class Client implements ClientData {
         record_id,
         entity_id,
         created_at
-      FROM authx.authorization_invocation
+      FROM authx.client_invocation
       WHERE entity_id = $1
       ORDER BY created_at DESC
       `,

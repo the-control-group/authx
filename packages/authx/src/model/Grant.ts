@@ -235,7 +235,7 @@ export class Grant implements GrantData {
     // insert the new invocation
     const result = await tx.query(
       `
-      INSERT INTO authx.authorization_invocation
+      INSERT INTO authx.grant_invocation
       (
         invocation_id,
         entity_id,
@@ -275,7 +275,7 @@ export class Grant implements GrantData {
         record_id,
         entity_id,
         created_at
-      FROM authx.authorization_invocation
+      FROM authx.grant_invocation
       WHERE entity_id = $1
       ORDER BY created_at DESC
       `,
