@@ -4,6 +4,7 @@ import createAuthXInterface from "@authx/interface";
 
 import email from "@authx/strategy-email";
 import password from "@authx/strategy-password";
+import openid from "@authx/strategy-openid";
 
 import * as tools from "@authx/tools";
 import { Client } from "pg";
@@ -116,7 +117,7 @@ Bac/x5qiUn5fh2xM+wIDAQAB
       console.log("--- SENDING EMAIL MESSAGE -------------------------");
       console.log(options);
     },
-    strategies: new StrategyCollection([email, password]),
+    strategies: new StrategyCollection([email, password, openid]),
     pg: {
       database,
       host: process.env.PGHOST ?? undefined,

@@ -39,6 +39,38 @@ test("Root query fields.", async t => {
                 enabled
                 name
                 description
+
+                ... on EmailAuthority {
+                  privateKey
+                  publicKeys
+                  proofValidityDuration
+                  authenticationEmailSubject
+                  authenticationEmailText
+                  authenticationEmailHtml
+                  verificationEmailSubject
+                  verificationEmailText
+                  verificationEmailHtml
+                }
+
+                ... on PasswordAuthority {
+                  rounds
+                }
+
+                ... on OpenIdAuthority {
+                  authUrl
+                  tokenUrl
+                  clientId
+                  clientSecret
+                  restrictsAccountsToHostedDomains
+                  emailAuthority {
+                    id
+                  }
+                  matchesUsersByEmail
+                  createsUnmatchedUsers
+                  assignsCreatedUsersToRoles {
+                    id
+                  }
+                }
               }
             }
           }
@@ -137,7 +169,16 @@ test("Root query fields.", async t => {
                 id: "0d765613-e813-40e5-9aa7-89f96531364e",
                 enabled: true,
                 name: "Email",
-                description: "The email authority."
+                description: "The email authority.",
+                authenticationEmailHtml: null,
+                authenticationEmailSubject: null,
+                authenticationEmailText: null,
+                privateKey: null,
+                proofValidityDuration: null,
+                publicKeys: null,
+                verificationEmailHtml: null,
+                verificationEmailSubject: null,
+                verificationEmailText: null
               }
             },
             {
@@ -145,7 +186,8 @@ test("Root query fields.", async t => {
                 id: "725f9c3b-4a72-4021-9066-c89e534df5be",
                 enabled: true,
                 name: "Password",
-                description: "The password authority."
+                description: "The password authority.",
+                rounds: null
               }
             }
           ]
