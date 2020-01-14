@@ -1,4 +1,4 @@
-import { PoolClient } from "pg";
+import { ClientBase } from "pg";
 import { Credential } from "@authx/authx";
 import { PasswordAuthority } from "./PasswordAuthority";
 
@@ -13,7 +13,7 @@ export class PasswordCredential extends Credential<PasswordCredentialDetails> {
   private _authority: null | Promise<PasswordAuthority> = null;
 
   public authority(
-    tx: PoolClient,
+    tx: ClientBase,
     refresh: boolean = false
   ): Promise<PasswordAuthority> {
     if (!refresh && this._authority) {

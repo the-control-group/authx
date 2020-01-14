@@ -1,4 +1,4 @@
-import { PoolClient } from "pg";
+import { ClientBase } from "pg";
 import { User } from "./User";
 import { Authorization } from "./Authorization";
 import { simplify, isSuperset, inject } from "@authx/scopes";
@@ -62,7 +62,7 @@ export class Role implements RoleData {
   public async isAccessibleBy(
     realm: string,
     a: Authorization,
-    tx: PoolClient,
+    tx: ClientBase,
     action: RoleAction = {
       basic: "r",
       scopes: "",
@@ -96,7 +96,7 @@ export class Role implements RoleData {
     return false;
   }
 
-  public users(tx: PoolClient, refresh: boolean = false): Promise<User[]> {
+  public users(tx: ClientBase, refresh: boolean = false): Promise<User[]> {
     if (!refresh && this._users) {
       return this._users;
     }
@@ -132,7 +132,7 @@ export class Role implements RoleData {
     return isSuperset(this.access(values), scope);
   }
 
-  public async records(tx: PoolClient): Promise<RoleRecord[]> {
+  public async records(tx: ClientBase): Promise<RoleRecord[]> {
     const result = await tx.query(
       `
       SELECT
@@ -162,17 +162,17 @@ export class Role implements RoleData {
   }
 
   public static read(
-    tx: PoolClient,
+    tx: ClientBase,
     id: string,
     options?: { forUpdate: boolean }
   ): Promise<Role>;
   public static read(
-    tx: PoolClient,
+    tx: ClientBase,
     id: string[],
     options?: { forUpdate: boolean }
   ): Promise<Role[]>;
   public static async read(
-    tx: PoolClient,
+    tx: ClientBase,
     id: string[] | string,
     options: { forUpdate: boolean } = { forUpdate: false }
   ): Promise<Role[] | Role> {
@@ -234,7 +234,7 @@ export class Role implements RoleData {
   }
 
   public static async write(
-    tx: PoolClient,
+    tx: ClientBase,
     data: RoleData,
     metadata: {
       recordId: string;

@@ -1,4 +1,4 @@
-import { PoolClient } from "pg";
+import { ClientBase } from "pg";
 import { Credential } from "./Credential";
 import { Authorization } from "./Authorization";
 import { NotFoundError } from "../errors";
@@ -59,7 +59,7 @@ export abstract class Authority<A> implements AuthorityData<A> {
   public async isAccessibleBy(
     realm: string,
     a: Authorization,
-    tx: PoolClient,
+    tx: ClientBase,
     action: AuthorityAction = {
       basic: "r",
       details: ""
@@ -93,16 +93,16 @@ export abstract class Authority<A> implements AuthorityData<A> {
   }
 
   public abstract credentials(
-    tx: PoolClient,
+    tx: ClientBase,
     refresh?: boolean
   ): Promise<Credential<any>[]>;
 
   public abstract credential(
-    tx: PoolClient,
+    tx: ClientBase,
     authorityUserId: string
   ): Promise<Credential<any> | null>;
 
-  public async records(tx: PoolClient): Promise<AuthorityRecord[]> {
+  public async records(tx: ClientBase): Promise<AuthorityRecord[]> {
     const result = await tx.query(
       `
       SELECT
@@ -133,14 +133,14 @@ export abstract class Authority<A> implements AuthorityData<A> {
 
   public static read<T extends Authority<any>>(
     this: new (data: AuthorityData<any> & { readonly recordId: string }) => T,
-    tx: PoolClient,
+    tx: ClientBase,
     id: string,
     options?: { forUpdate: boolean }
   ): Promise<T>;
 
   public static read<T extends Authority<any>>(
     this: new (data: AuthorityData<any> & { readonly recordId: string }) => T,
-    tx: PoolClient,
+    tx: ClientBase,
     id: string[],
     options?: { forUpdate: boolean }
   ): Promise<T[]>;
@@ -155,7 +155,7 @@ export abstract class Authority<A> implements AuthorityData<A> {
     },
     K extends keyof M
   >(
-    tx: PoolClient,
+    tx: ClientBase,
     id: string,
     map: M,
     options?: { forUpdate: boolean }
@@ -171,7 +171,7 @@ export abstract class Authority<A> implements AuthorityData<A> {
     },
     K extends keyof M
   >(
-    tx: PoolClient,
+    tx: ClientBase,
     id: string[],
     map: M,
     options?: { forUpdate: boolean }
@@ -187,7 +187,7 @@ export abstract class Authority<A> implements AuthorityData<A> {
     this: {
       new (data: AuthorityData<any> & { readonly recordId: string }): T;
     },
-    tx: PoolClient,
+    tx: ClientBase,
     id: string[] | string,
     map?: M,
     options: { forUpdate: boolean } = { forUpdate: false }
@@ -257,7 +257,7 @@ export abstract class Authority<A> implements AuthorityData<A> {
     this: {
       new (data: AuthorityData<any> & { readonly recordId: string }): T;
     },
-    tx: PoolClient,
+    tx: ClientBase,
     data: AuthorityData<any>,
     metadata: {
       recordId: string;

@@ -1,4 +1,4 @@
-import { PoolClient } from "pg";
+import { ClientBase } from "pg";
 import { Authority } from "@authx/authx";
 import { EmailCredential } from "./EmailCredential";
 
@@ -21,7 +21,7 @@ export class EmailAuthority extends Authority<EmailAuthorityDetails> {
   private _credentials: null | Promise<EmailCredential[]> = null;
 
   public credentials(
-    tx: PoolClient,
+    tx: ClientBase,
     refresh: boolean = false
   ): Promise<EmailCredential[]> {
     if (!refresh && this._credentials) {
@@ -47,7 +47,7 @@ export class EmailAuthority extends Authority<EmailAuthorityDetails> {
   }
 
   public async credential(
-    tx: PoolClient,
+    tx: ClientBase,
     authorityUserId: string
   ): Promise<null | EmailCredential> {
     const results = await tx.query(

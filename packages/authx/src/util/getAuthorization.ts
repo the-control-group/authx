@@ -1,4 +1,4 @@
-import { PoolClient } from "pg";
+import { ClientBase } from "pg";
 import { verify, TokenExpiredError } from "jsonwebtoken";
 import { Authorization } from "../model";
 import { NotFoundError, AuthenticationError } from "../errors";
@@ -6,7 +6,7 @@ import { NotFoundError, AuthenticationError } from "../errors";
 const __DEV__ = process.env.NODE_ENV !== "production";
 
 export async function fromBasic(
-  tx: PoolClient,
+  tx: ClientBase,
   basic: string
 ): Promise<Authorization> {
   const [id, secret] = new Buffer(basic, "base64").toString().split(":", 2);
@@ -56,7 +56,7 @@ export async function fromBasic(
 }
 
 export async function fromBearer(
-  tx: PoolClient,
+  tx: ClientBase,
   keys: string[],
   bearer: string
 ): Promise<Authorization> {

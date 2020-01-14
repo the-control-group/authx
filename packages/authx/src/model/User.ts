@@ -1,4 +1,4 @@
-import { PoolClient } from "pg";
+import { ClientBase } from "pg";
 import { Credential, CredentialData } from "./Credential";
 import { Grant } from "./Grant";
 import { Role } from "./Role";
@@ -63,7 +63,7 @@ export class User implements UserData {
   public async isAccessibleBy(
     realm: string,
     a: Authorization,
-    tx: PoolClient,
+    tx: ClientBase,
     action: UserAction = {
       basic: "r"
     }
@@ -96,7 +96,7 @@ export class User implements UserData {
   }
 
   public async authorizations(
-    tx: PoolClient,
+    tx: ClientBase,
     refresh: boolean = false
   ): Promise<Authorization[]> {
     if (!refresh && this._authorizations) {
@@ -122,7 +122,7 @@ export class User implements UserData {
   }
 
   public async credentials(
-    tx: PoolClient,
+    tx: ClientBase,
     map: {
       [key: string]: { new (data: CredentialData<any>): Credential<any> };
     },
@@ -152,7 +152,7 @@ export class User implements UserData {
   }
 
   public async grants(
-    tx: PoolClient,
+    tx: ClientBase,
     refresh: boolean = false
   ): Promise<Grant[]> {
     if (!refresh && this._grants) {
@@ -177,7 +177,7 @@ export class User implements UserData {
       ))());
   }
 
-  public async grant(tx: PoolClient, clientId: string): Promise<null | Grant> {
+  public async grant(tx: ClientBase, clientId: string): Promise<null | Grant> {
     const result = await tx.query(
       `
       SELECT entity_id AS id
@@ -204,7 +204,7 @@ export class User implements UserData {
   }
 
   public async roles(
-    tx: PoolClient,
+    tx: ClientBase,
     refresh: boolean = false
   ): Promise<Role[]> {
     if (!refresh && this._roles) {
@@ -233,7 +233,7 @@ export class User implements UserData {
   }
 
   public async access(
-    tx: PoolClient,
+    tx: ClientBase,
     values: {
       currentAuthorizationId: null | string;
       currentUserId: null | string;
@@ -252,7 +252,7 @@ export class User implements UserData {
   }
 
   public async can(
-    tx: PoolClient,
+    tx: ClientBase,
     values: {
       currentAuthorizationId: null | string;
       currentUserId: null | string;
@@ -265,7 +265,7 @@ export class User implements UserData {
     return isSuperset(await this.access(tx, values, refresh), scope);
   }
 
-  public async records(tx: PoolClient): Promise<UserRecord[]> {
+  public async records(tx: ClientBase): Promise<UserRecord[]> {
     const result = await tx.query(
       `
       SELECT
@@ -295,17 +295,17 @@ export class User implements UserData {
   }
 
   public static read(
-    tx: PoolClient,
+    tx: ClientBase,
     id: string,
     options?: { forUpdate: boolean }
   ): Promise<User>;
   public static read(
-    tx: PoolClient,
+    tx: ClientBase,
     id: string[],
     options?: { forUpdate: boolean }
   ): Promise<User[]>;
   public static async read(
-    tx: PoolClient,
+    tx: ClientBase,
     id: string[] | string,
     options: { forUpdate: boolean } = { forUpdate: false }
   ): Promise<User[] | User> {
@@ -352,7 +352,7 @@ export class User implements UserData {
   }
 
   public static async write(
-    tx: PoolClient,
+    tx: ClientBase,
     data: UserData,
     metadata: {
       recordId: string;

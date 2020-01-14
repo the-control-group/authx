@@ -1,4 +1,4 @@
-import { PoolClient } from "pg";
+import { ClientBase } from "pg";
 import { EmailAuthority } from "@authx/strategy-email";
 import { PasswordAuthority } from "@authx/strategy-password";
 
@@ -9,18 +9,18 @@ export const authorityIds = [
 
 export const authority: {
   id: string;
-  insert: (tx: PoolClient) => Promise<EmailAuthority | PasswordAuthority>;
+  insert: (tx: ClientBase) => Promise<EmailAuthority | PasswordAuthority>;
 }[] = [
   {
     id: "0d765613-e813-40e5-9aa7-89f96531364e",
-    insert: (tx: PoolClient) =>
+    insert: (tx: ClientBase) =>
       EmailAuthority.write(
         tx,
         {
           id: "0d765613-e813-40e5-9aa7-89f96531364e",
           enabled: true,
           name: "Email",
-          description: "The email authority",
+          description: "The email authority.",
           strategy: "email",
           details: {
             privateKey: `-----BEGIN RSA PRIVATE KEY-----
@@ -68,7 +68,7 @@ Bac/x5qiUn5fh2xM+wIDAQAB
   },
   {
     id: "725f9c3b-4a72-4021-9066-c89e534df5be",
-    insert: (tx: PoolClient) =>
+    insert: (tx: ClientBase) =>
       PasswordAuthority.write(
         tx,
         {

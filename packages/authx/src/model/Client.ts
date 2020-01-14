@@ -1,4 +1,4 @@
-import { PoolClient } from "pg";
+import { ClientBase } from "pg";
 import { Grant } from "./Grant";
 import { Authorization } from "./Authorization";
 import { NotFoundError } from "../errors";
@@ -82,7 +82,7 @@ export class Client implements ClientData {
   public async isAccessibleBy(
     realm: string,
     a: Authorization,
-    tx: PoolClient,
+    tx: ClientBase,
     action: ClientAction = {
       basic: "r",
       secrets: ""
@@ -115,7 +115,7 @@ export class Client implements ClientData {
     return false;
   }
 
-  public grants(tx: PoolClient, refresh: boolean = true): Promise<Grant[]> {
+  public grants(tx: ClientBase, refresh: boolean = true): Promise<Grant[]> {
     if (!refresh && this._grants) {
       return this._grants;
     }
@@ -138,7 +138,7 @@ export class Client implements ClientData {
       ))());
   }
 
-  public async grant(tx: PoolClient, userId: string): Promise<null | Grant> {
+  public async grant(tx: ClientBase, userId: string): Promise<null | Grant> {
     const result = await tx.query(
       `
       SELECT entity_id AS id
@@ -164,7 +164,7 @@ export class Client implements ClientData {
     return null;
   }
 
-  public async records(tx: PoolClient): Promise<ClientRecord[]> {
+  public async records(tx: ClientBase): Promise<ClientRecord[]> {
     const result = await tx.query(
       `
       SELECT
@@ -194,7 +194,7 @@ export class Client implements ClientData {
   }
 
   public async invoke(
-    tx: PoolClient,
+    tx: ClientBase,
     data: {
       id: string;
       createdAt: Date;
@@ -235,7 +235,7 @@ export class Client implements ClientData {
     });
   }
 
-  public async invocations(tx: PoolClient): Promise<ClientInvocation[]> {
+  public async invocations(tx: ClientBase): Promise<ClientInvocation[]> {
     const result = await tx.query(
       `
       SELECT
@@ -262,17 +262,17 @@ export class Client implements ClientData {
   }
 
   public static read(
-    tx: PoolClient,
+    tx: ClientBase,
     id: string,
     options?: { forUpdate: boolean }
   ): Promise<Client>;
   public static read(
-    tx: PoolClient,
+    tx: ClientBase,
     id: string[],
     options?: { forUpdate: boolean }
   ): Promise<Client[]>;
   public static async read(
-    tx: PoolClient,
+    tx: ClientBase,
     id: string[] | string,
     options: { forUpdate: boolean } = { forUpdate: false }
   ): Promise<Client[] | Client> {
@@ -326,7 +326,7 @@ export class Client implements ClientData {
   }
 
   public static async write(
-    tx: PoolClient,
+    tx: ClientBase,
     data: ClientData,
     metadata: {
       recordId: string;
