@@ -9,7 +9,7 @@
   "bugs": "https://github.com/the-control-group/authx/issues",
   "dependencies": {
     "@authx/authx": "^3.0.0-alpha.1",
-    "@authx/strategy-password": "^1.0.0",
+    "@authx/strategy-password": "^2.0.0-alpha.1",
     "@types/pg": "^7.14.1",
     "@types/uuid": "^3.4.6",
     "pg": "^7.17.0",
