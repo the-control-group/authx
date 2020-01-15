@@ -1,4 +1,4 @@
-import { PoolClient } from "pg";
+import { ClientBase, Client } from "pg";
 
 import {
   authority,
@@ -16,7 +16,7 @@ interface Metadata {
   createdAt: Date;
 }
 
-export async function fixture(tx: PoolClient): Promise<void> {
+export async function fixture(tx: ClientBase | Client): Promise<void> {
   // add entities to satisfy foreign key constraints
   await Promise.all([
     tx.query(

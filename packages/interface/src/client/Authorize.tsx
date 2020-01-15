@@ -16,7 +16,7 @@ import {
   GraphQLContext
 } from "graphql-react";
 
-import { createV2AuthXScope } from "@authx/authx/dist/util/scopes";
+import { createV2AuthXScope } from "@authx/authx/scopes";
 
 import { isSuperset, getDifference, simplify, inject } from "@authx/scopes";
 import { match } from "@authx/authx/dist/util/explanations";

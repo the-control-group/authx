@@ -1,4 +1,4 @@
-import { PoolClient } from "pg";
+import { ClientBase } from "pg";
 import { Authority } from "@authx/authx";
 import { PasswordCredential } from "./PasswordCredential";
 
@@ -13,7 +13,7 @@ export class PasswordAuthority extends Authority<PasswordAuthorityDetails> {
   private _credentials: null | Promise<PasswordCredential[]> = null;
 
   public credentials(
-    tx: PoolClient,
+    tx: ClientBase,
     refresh: boolean = false
   ): Promise<PasswordCredential[]> {
     if (!refresh && this._credentials) {
@@ -39,7 +39,7 @@ export class PasswordAuthority extends Authority<PasswordAuthorityDetails> {
   }
 
   public async credential(
-    tx: PoolClient,
+    tx: ClientBase,
     authorityUserId: string
   ): Promise<null | PasswordCredential> {
     const results = await tx.query(

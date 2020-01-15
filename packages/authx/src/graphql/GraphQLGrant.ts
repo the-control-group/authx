@@ -4,7 +4,8 @@ import {
   GraphQLNonNull,
   GraphQLString,
   GraphQLBoolean,
-  GraphQLObjectType
+  GraphQLObjectType,
+  GraphQLFieldConfigMap
 } from "graphql";
 
 import {
@@ -30,7 +31,7 @@ export const GraphQLGrant: GraphQLObjectType<
 > = new GraphQLObjectType<Grant, Context>({
   name: "Grant",
   interfaces: () => [GraphQLNode],
-  fields: () => ({
+  fields: (): GraphQLFieldConfigMap<Grant, Context, any> => ({
     id: { type: new GraphQLNonNull(GraphQLID) },
     enabled: {
       type: new GraphQLNonNull(GraphQLBoolean)
@@ -168,7 +169,10 @@ export const GraphQLGrant: GraphQLObjectType<
     },
     authorizations: {
       type: GraphQLAuthorizationConnection,
-      args: connectionArgs,
+
+      // TODO: The type definitions in graphql-js are garbage, and will be
+      // refactored shortly.
+      args: connectionArgs as any,
       async resolve(
         grant,
         args: ConnectionArguments,

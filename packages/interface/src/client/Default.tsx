@@ -46,6 +46,7 @@ export function Default({
     {}
   >({
     fetchOptionsOverride,
+    loadOnMount: true,
     operation: {
       variables: {},
       query: `

@@ -1,4 +1,4 @@
-import { PoolClient } from "pg";
+import { ClientBase } from "pg";
 import { Authority, Role } from "@authx/authx";
 import { EmailAuthority } from "@authx/strategy-email";
 import { OpenIdCredential } from "./OpenIdCredential";
@@ -27,7 +27,7 @@ export class OpenIdAuthority extends Authority<OpenIdAuthorityDetails> {
   private _assignsCreatedUsersToRoles: null | Promise<Role[]> = null;
 
   public credentials(
-    tx: PoolClient,
+    tx: ClientBase,
     refresh: boolean = false
   ): Promise<OpenIdCredential[]> {
     if (!refresh && this._credentials) {
@@ -53,7 +53,7 @@ export class OpenIdAuthority extends Authority<OpenIdAuthorityDetails> {
   }
 
   public async credential(
-    tx: PoolClient,
+    tx: ClientBase,
     authorityUserId: string
   ): Promise<null | OpenIdCredential> {
     const results = await tx.query(
@@ -81,7 +81,7 @@ export class OpenIdAuthority extends Authority<OpenIdAuthorityDetails> {
   }
 
   public async emailAuthority(
-    tx: PoolClient,
+    tx: ClientBase,
     refresh?: boolean
   ): Promise<null | EmailAuthority> {
     if (!refresh && this._emailAuthority) {
@@ -99,7 +99,7 @@ export class OpenIdAuthority extends Authority<OpenIdAuthorityDetails> {
   }
 
   public async assignsCreatedUsersToRoles(
-    tx: PoolClient,
+    tx: ClientBase,
     refresh?: boolean
   ): Promise<Role[]> {
     if (!refresh && this._assignsCreatedUsersToRoles) {

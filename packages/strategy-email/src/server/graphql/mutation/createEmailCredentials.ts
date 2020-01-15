@@ -13,7 +13,7 @@ import {
   validateIdFormat
 } from "@authx/authx";
 
-import { createV2AuthXScope } from "@authx/authx/dist/util/scopes";
+import { createV2AuthXScope } from "@authx/authx/scopes";
 
 import { isSuperset, simplify, isValidScopeLiteral } from "@authx/scopes";
 import { EmailCredential, EmailAuthority } from "../../model";

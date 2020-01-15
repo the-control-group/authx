@@ -1,4 +1,4 @@
-import { PoolClient } from "pg";
+import { ClientBase } from "pg";
 import { Authority } from "./Authority";
 import { User } from "./User";
 import { Authorization } from "./Authorization";
@@ -83,7 +83,7 @@ export abstract class Credential<C> implements CredentialData<C> {
   public async isAccessibleBy(
     realm: string,
     a: Authorization,
-    tx: PoolClient,
+    tx: ClientBase,
     action: CredentialAction = {
       basic: "r",
       details: ""
@@ -119,11 +119,11 @@ export abstract class Credential<C> implements CredentialData<C> {
   }
 
   public abstract authority(
-    tx: PoolClient,
+    tx: ClientBase,
     refresh?: boolean
   ): Promise<Authority<any>>;
 
-  public user(tx: PoolClient, refresh: boolean = false): Promise<User> {
+  public user(tx: ClientBase, refresh: boolean = false): Promise<User> {
     if (!refresh && this._user) {
       return this._user;
     }
@@ -131,7 +131,7 @@ export abstract class Credential<C> implements CredentialData<C> {
     return (this._user = User.read(tx, this.userId));
   }
 
-  public async records(tx: PoolClient): Promise<CredentialRecord[]> {
+  public async records(tx: ClientBase): Promise<CredentialRecord[]> {
     const result = await tx.query(
       `
       SELECT
@@ -161,7 +161,7 @@ export abstract class Credential<C> implements CredentialData<C> {
   }
 
   public async invoke(
-    tx: PoolClient,
+    tx: ClientBase,
     data: {
       id: string;
       createdAt: Date;
@@ -170,7 +170,7 @@ export abstract class Credential<C> implements CredentialData<C> {
     // insert the new invocation
     const result = await tx.query(
       `
-      INSERT INTO authx.authorization_invocation
+      INSERT INTO authx.credential_invocation
       (
         invocation_id,
         entity_id,
@@ -202,7 +202,7 @@ export abstract class Credential<C> implements CredentialData<C> {
     });
   }
 
-  public async invocations(tx: PoolClient): Promise<CredentialInvocation[]> {
+  public async invocations(tx: ClientBase): Promise<CredentialInvocation[]> {
     const result = await tx.query(
       `
       SELECT
@@ -210,7 +210,7 @@ export abstract class Credential<C> implements CredentialData<C> {
         record_id,
         entity_id,
         created_at
-      FROM authx.authorization_invocation
+      FROM authx.credential_invocation
       WHERE entity_id = $1
       ORDER BY created_at DESC
       `,
@@ -230,14 +230,14 @@ export abstract class Credential<C> implements CredentialData<C> {
 
   public static read<T extends Credential<any>>(
     this: new (data: CredentialData<any> & { readonly recordId: string }) => T,
-    tx: PoolClient,
+    tx: ClientBase,
     id: string,
     options?: { forUpdate: boolean }
   ): Promise<T>;
 
   public static read<T extends Credential<any>>(
     this: new (data: CredentialData<any> & { readonly recordId: string }) => T,
-    tx: PoolClient,
+    tx: ClientBase,
     id: string[],
     options?: { forUpdate: boolean }
   ): Promise<T[]>;
@@ -252,7 +252,7 @@ export abstract class Credential<C> implements CredentialData<C> {
     },
     K extends keyof M
   >(
-    tx: PoolClient,
+    tx: ClientBase,
     id: string,
     map: M,
     options?: { forUpdate: boolean }
@@ -268,7 +268,7 @@ export abstract class Credential<C> implements CredentialData<C> {
     },
     K extends keyof M
   >(
-    tx: PoolClient,
+    tx: ClientBase,
     id: string[],
     map: M,
     options?: { forUpdate: boolean }
@@ -284,7 +284,7 @@ export abstract class Credential<C> implements CredentialData<C> {
     this: {
       new (data: CredentialData<any> & { readonly recordId: string }): T;
     },
-    tx: PoolClient,
+    tx: ClientBase,
     id: string[] | string,
     mapOrOptions?: M | { forUpdate: boolean },
     optionsOrUndefined?: { forUpdate: boolean }
@@ -338,6 +338,7 @@ export abstract class Credential<C> implements CredentialData<C> {
     const data = result.rows.map(row => {
       return {
         ...row,
+        recordId: row.record_id,
         authorityId: row.authority_id,
         authorityUserId: row.authority_user_id,
         userId: row.user_id
@@ -368,7 +369,7 @@ export abstract class Credential<C> implements CredentialData<C> {
     this: {
       new (data: CredentialData<any> & { readonly recordId: string }): T;
     },
-    tx: PoolClient,
+    tx: ClientBase,
     data: CredentialData<any>,
     metadata: {
       recordId: string;

@@ -1,4 +1,4 @@
-import { PoolClient } from "pg";
+import { ClientBase } from "pg";
 import { Credential } from "@authx/authx";
 import { EmailAuthority } from "./EmailAuthority";
 
@@ -12,7 +12,7 @@ export class EmailCredential extends Credential<{}> {
   private _authority: null | Promise<EmailAuthority> = null;
 
   public authority(
-    tx: PoolClient,
+    tx: ClientBase,
     refresh: boolean = false
   ): Promise<EmailAuthority> {
     if (!refresh && this._authority) {

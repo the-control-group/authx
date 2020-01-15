@@ -1,10 +1,10 @@
-import { PoolClient } from "pg";
+import { ClientBase } from "pg";
 import { Grant } from "@authx/authx";
 
 export const grant = [
   {
     id: "d8dcaf12-b744-4d2d-b223-09e7e5eaa922",
-    insert: (tx: PoolClient) =>
+    insert: (tx: ClientBase) =>
       Grant.write(
         tx,
         {
@@ -27,7 +27,7 @@ export const grant = [
   },
   {
     id: "e4670762-beb7-435c-94af-055b951f97e6",
-    insert: (tx: PoolClient) =>
+    insert: (tx: ClientBase) =>
       Grant.write(
         tx,
         {
@@ -50,7 +50,7 @@ export const grant = [
   },
   {
     id: "4e76cb13-ab24-4dc1-ad96-abcbb89f5529",
-    insert: (tx: PoolClient) =>
+    insert: (tx: ClientBase) =>
       Grant.write(
         tx,
         {

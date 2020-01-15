@@ -7,12 +7,12 @@ import { NotFoundError } from "./errors";
 import { createV2AuthXScope } from "./util/scopes";
 import { inject, isEqual, isValidScopeTemplate } from "@authx/scopes";
 import { Context as KoaContext } from "koa";
-import { PoolClient } from "pg";
+import { ClientBase } from "pg";
 import x from "./x";
 
 async function assertPermissions(
   realm: string,
-  tx: PoolClient,
+  tx: ClientBase,
   grant: Grant,
   values: {
     currentUserId: string | null;

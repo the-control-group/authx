@@ -3,7 +3,8 @@ import {
   GraphQLNonNull,
   GraphQLObjectType,
   GraphQLBoolean,
-  GraphQLString
+  GraphQLString,
+  GraphQLFieldConfigMap
 } from "graphql";
 
 import {
@@ -30,7 +31,7 @@ export const GraphQLUser: GraphQLObjectType<
 > = new GraphQLObjectType({
   name: "User",
   interfaces: () => [GraphQLNode],
-  fields: () => ({
+  fields: (): GraphQLFieldConfigMap<User, Context, any> => ({
     id: { type: new GraphQLNonNull(GraphQLID) },
     enabled: {
       type: new GraphQLNonNull(GraphQLBoolean)
@@ -42,7 +43,10 @@ export const GraphQLUser: GraphQLObjectType<
     authorizations: {
       type: GraphQLAuthorizationConnection,
       description: "List all of the user's authorizations.",
-      args: connectionArgs,
+
+      // TODO: The type definitions in graphql-js are garbage, and will be
+      // refactored shortly.
+      args: connectionArgs as any,
       async resolve(
         user,
         args: ConnectionArguments,
@@ -66,7 +70,10 @@ export const GraphQLUser: GraphQLObjectType<
     credentials: {
       type: GraphQLCredentialConnection,
       description: "List all of the user's credentials.",
-      args: connectionArgs,
+
+      // TODO: The type definitions in graphql-js are garbage, and will be
+      // refactored shortly.
+      args: connectionArgs as any,
       async resolve(
         user,
         args: ConnectionArguments,
@@ -96,7 +103,10 @@ export const GraphQLUser: GraphQLObjectType<
     grants: {
       type: GraphQLGrantConnection,
       description: "List all of the user's grants.",
-      args: connectionArgs,
+
+      // TODO: The type definitions in graphql-js are garbage, and will be
+      // refactored shortly.
+      args: connectionArgs as any,
       async resolve(user, args, { realm, authorization: a, pool }: Context) {
         const tx = await pool.connect();
         try {
@@ -143,7 +153,10 @@ export const GraphQLUser: GraphQLObjectType<
     roles: {
       type: GraphQLRoleConnection,
       description: "List all roles to which the user is assigned.",
-      args: connectionArgs,
+
+      // TODO: The type definitions in graphql-js are garbage, and will be
+      // refactored shortly.
+      args: connectionArgs as any,
       async resolve(user, args, { realm, authorization: a, pool }: Context) {
         const tx = await pool.connect();
         try {

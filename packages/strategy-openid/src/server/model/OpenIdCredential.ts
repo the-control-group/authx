@@ -1,4 +1,4 @@
-import { PoolClient } from "pg";
+import { ClientBase } from "pg";
 import { Credential } from "@authx/authx";
 import { OpenIdAuthority } from "./OpenIdAuthority";
 
@@ -12,7 +12,7 @@ export class OpenIdCredential extends Credential<{}> {
   private _authority: null | Promise<OpenIdAuthority> = null;
 
   public authority(
-    tx: PoolClient,
+    tx: ClientBase,
     refresh: boolean = false
   ): Promise<OpenIdAuthority> {
     if (!refresh && this._authority) {

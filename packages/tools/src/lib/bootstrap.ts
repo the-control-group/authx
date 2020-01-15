@@ -1,4 +1,4 @@
-import { PoolClient } from "pg";
+import { ClientBase } from "pg";
 
 import { User, Role, Authorization } from "@authx/authx";
 import {
@@ -13,7 +13,7 @@ interface Metadata {
 }
 
 export async function bootstrap(
-  tx: PoolClient,
+  tx: ClientBase,
   {
     user,
     authority,

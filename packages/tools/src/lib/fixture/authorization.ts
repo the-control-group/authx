@@ -1,10 +1,10 @@
-import { PoolClient } from "pg";
+import { ClientBase } from "pg";
 import { Authorization } from "@authx/authx";
 
 export const authorization = [
   {
     id: "5387ece5-37a1-4573-a189-14333ebf8d88",
-    insert: (tx: PoolClient) =>
+    insert: (tx: ClientBase) =>
       Authorization.write(
         tx,
         {
@@ -26,7 +26,7 @@ export const authorization = [
   },
   {
     id: "c70da498-27ed-4c3b-a318-38bb220cef48",
-    insert: (tx: PoolClient) =>
+    insert: (tx: ClientBase) =>
       Authorization.write(
         tx,
         {
@@ -48,7 +48,7 @@ export const authorization = [
   },
   {
     id: "f0e54748-c7bb-4724-ad8b-7dabb66aafa9",
-    insert: (tx: PoolClient) =>
+    insert: (tx: ClientBase) =>
       Authorization.write(
         tx,
         {

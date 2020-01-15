@@ -4,7 +4,8 @@ import {
   GraphQLNonNull,
   GraphQLString,
   GraphQLBoolean,
-  GraphQLObjectType
+  GraphQLObjectType,
+  GraphQLFieldConfigMap
 } from "graphql";
 
 import { connectionFromArray, connectionArgs } from "graphql-relay";
@@ -20,7 +21,7 @@ import { filter } from "../util/filter";
 export const GraphQLClient = new GraphQLObjectType<Client, Context>({
   name: "Client",
   interfaces: () => [GraphQLNode],
-  fields: () => ({
+  fields: (): GraphQLFieldConfigMap<Client, Context, any> => ({
     id: { type: new GraphQLNonNull(GraphQLID) },
     enabled: {
       type: new GraphQLNonNull(GraphQLBoolean)
@@ -52,7 +53,10 @@ export const GraphQLClient = new GraphQLObjectType<Client, Context>({
     grants: {
       type: GraphQLGrantConnection,
       description: "List all of the client's grants.",
-      args: connectionArgs,
+
+      // TODO: The type definitions in graphql-js are garbage, and will be
+      // refactored shortly.
+      args: connectionArgs as any,
       async resolve(client, args, { realm, authorization: a, pool }: Context) {
         const tx = await pool.connect();
         try {

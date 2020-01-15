@@ -1,286 +1,216 @@
 import test from "ava";
-import { parse, execute } from "graphql";
-import { Pool, Client } from "pg";
-import * as tools from "@authx/tools";
-import { createSchema, StrategyCollection, Authorization } from "@authx/authx";
-import email from "@authx/strategy-email";
-import password from "@authx/strategy-password";
+import fetch from "node-fetch";
+import { URL } from "url";
+import { setup } from "./setup";
+import { basename } from "path";
 
-let database: string;
-let pool: Pool;
-const baseContext = {
-  realm: "authx",
-  base: "http://localhost/",
-  codeValidityDuration: 60,
-  jwtValidityDuration: 5 * 60,
-  privateKey:
-    process.env.KEYPRIVATE ||
-    `-----BEGIN RSA PRIVATE KEY-----
-  MIICXAIBAAKBgQCfb+nyTPFCntEXbrFPU5DeE0gC4jXRcSFWDfCRgeqeQWqIW9De
-  MmCj13k0z6fQCiG3FATYosS64wAs+OiyGtu9q/JyUEVIBMF0upDJMA53AFFx+0Fb
-  /i76JFPTY7SxzvioIFeKRwY8evIRWQWYO95Os6gKBac/x5qiUn5fh2xM+wIDAQAB
-  AoGAeOPGo24r0LPTHs1TrC5Uvc4o3+bdn70D5dgT/IBhgTVgrZvQt2nDVPfgc2aw
-  e1HzVnnbYteoC3xrea4R4lnzGpgcvLYyJ+LEAeRNT66u12EHnCjl8OM5Ods79RO2
-  pSaGBiAlntq9E86DBJ9ma9lL9NXiokCx4h1ph9rqr6T+DMECQQD7zM56evJj8JyV
-  kyu7m3PGpepqgMtO4LjHlkU9ZP2HRfrq+bl4yWps1TyCTPzaRujXW+hHJBPsTYar
-  TmsLcDepAkEAohi3FmYiAMhppgPMFqIr15tY04dKDw4kPgbaQLXT59v9e16alj+2
-  hsBvMWA/juLuk/2JRuNutY0WBmtkkS42AwJBAKEjS++txniWfl5qNE53CPxTKVTG
-  31S3EwkG7YCApI5xBkZhUYQuwWCshXCNfDLjthY7xsXgHK/YXRo7sN09DyECQD2W
-  0HIFSmQrweCfTrtG0Qux7dUpcV05DVI3/lNaAvL05mIqtufhu3OFyHnlTSD4XpgC
-  XFd/8L+wpK65vVNgUIsCQFO6/fma+fjXx9kG+/zy4C/VwJWFUcpo5Z3R2TF7FheW
-  5N6OERXoA+Qu+ew7xS6WrAp33dHncIyr9ekkvGc01FU=
-  -----END RSA PRIVATE KEY-----`,
-  publicKeys: [
-    process.env.KEYPUBLIC ||
-      `-----BEGIN PUBLIC KEY-----
-  MIGfMA0GCSqGSIb3DQEBAQUAA4GNADCBiQKBgQCfb+nyTPFCntEXbrFPU5DeE0gC
-  4jXRcSFWDfCRgeqeQWqIW9DeMmCj13k0z6fQCiG3FATYosS64wAs+OiyGtu9q/Jy
-  UEVIBMF0upDJMA53AFFx+0Fb/i76JFPTY7SxzvioIFeKRwY8evIRWQWYO95Os6gK
-  Bac/x5qiUn5fh2xM+wIDAQAB
-  -----END PUBLIC KEY-----`,
-    ...(process.env.KEYPUBLIC2 ? [process.env.KEYPUBLIC2] : [])
-  ],
-  async sendMail(options: {
-    to: string;
-    subject: string;
-    text: string;
-    html: string;
-    from?: string;
-  }): Promise<void> {
-    console.log("--- SENDING EMAIL MESSAGE -------------------------");
-    console.log(options);
-  },
-  strategies: new StrategyCollection([email, password])
-};
+let url: URL;
+let teardown: () => Promise<void>;
 
-const schema = createSchema(baseContext.strategies);
-
+// Setup.
 test.before(async () => {
-  // Create the test database.
-  database = `authx-test-${Buffer.from(__dirname).toString("hex")}`;
-  const client = new Client();
-  await client.connect();
-  await client.query(`CREATE DATABASE "${database}";`);
-  await client.end();
-  pool = new Pool({ database });
-
-  // Add fixtures to the database.
-  const tx = await pool.connect();
-  try {
-    await tools.schema(tx);
-    await tools.fixture(tx);
-  } finally {
-    tx.release();
-  }
+  const s = await setup(basename(__filename, ".js"));
+  url = s.url;
+  teardown = s.teardown;
 });
 
-test("Deep query on viewer.", async t => {
-  const tx = await pool.connect();
-  let authorization;
-  try {
-    authorization = await Authorization.read(
-      tx,
-      "c70da498-27ed-4c3b-a318-38bb220cef48"
-    );
-  } finally {
-    tx.release();
-  }
+test("Root query fields.", async t => {
+  const graphqlUrl = new URL(url.href);
+  graphqlUrl.pathname = "/graphql";
 
-  const result = await execute({
-    schema,
-    contextValue: {
-      ...baseContext,
-      pool,
-      authorization
+  const result = await fetch(graphqlUrl.href, {
+    method: "POST",
+    headers: {
+      "content-type": "application/json",
+      authorization:
+        "Basic YzcwZGE0OTgtMjdlZC00YzNiLWEzMTgtMzhiYjIyMGNlZjQ4OjhmNTczOTVlY2Q5ZDZmY2I4ODQxNDVmOGY2ZmVmZjM1N2ZlYWQyZmJkODM2MDdlODdkNzFhN2MzNzJjZjM3YWQ="
     },
-    document: parse(/* GraphQL */ `
-      query {
-        viewer {
-          id
-          enabled
-          grant {
+    body: JSON.stringify({
+      query: /* GraphQL */ `
+        query {
+          viewer {
             id
             enabled
-            user {
-              id
-            }
-            client {
+            grant {
               id
               enabled
-              name
-              description
+              user {
+                id
+              }
+              client {
+                id
+                enabled
+                name
+                description
+                secrets
+                urls
+              }
               secrets
-              urls
-            }
-            secrets
-            codes
-            scopes
-            authorizations {
-              pageInfo {
-                startCursor
-                endCursor
-                hasNextPage
-                hasPreviousPage
-              }
-              edges {
-                cursor
-                node {
-                  id
+              codes
+              scopes
+              authorizations {
+                pageInfo {
+                  startCursor
+                  endCursor
+                  hasNextPage
+                  hasPreviousPage
                 }
-              }
-            }
-          }
-          user {
-            id
-            enabled
-            type
-            name
-            authorizations {
-              pageInfo {
-                startCursor
-                endCursor
-                hasNextPage
-                hasPreviousPage
-              }
-              edges {
-                cursor
-                node {
-                  id
-                }
-              }
-            }
-            credentials {
-              pageInfo {
-                startCursor
-                endCursor
-                hasNextPage
-                hasPreviousPage
-              }
-              edges {
-                cursor
-                node {
-                  id
-                  enabled
-                  user {
+                edges {
+                  cursor
+                  node {
                     id
                   }
-                  authority {
-                    id
-                    enabled
-                    name
-                    description
-
-                    ... on EmailAuthority {
-                      privateKey
-                      publicKeys
-                      proofValidityDuration
-                      authenticationEmailSubject
-                      authenticationEmailText
-                      authenticationEmailHtml
-                      verificationEmailSubject
-                      verificationEmailText
-                      verificationEmailHtml
-                    }
-
-                    ... on PasswordAuthority {
-                      rounds
-                    }
-                  }
-
-                  authority {
-                    id
-                    enabled
-                    name
-                    description
-                  }
-
-                  ... on EmailCredential {
-                    email
-                    authority {
-                      privateKey
-                      publicKeys
-                      proofValidityDuration
-                      authenticationEmailSubject
-                      authenticationEmailText
-                      authenticationEmailHtml
-                      verificationEmailSubject
-                      verificationEmailText
-                      verificationEmailHtml
-                    }
-                  }
-
-                  ... on PasswordCredential {
-                    authority {
-                      rounds
-                    }
-                    hash
-                  }
                 }
               }
             }
-            grants {
-              pageInfo {
-                startCursor
-                endCursor
-                hasNextPage
-                hasPreviousPage
-              }
-              edges {
-                cursor
-                node {
-                  id
-                }
-              }
-            }
-            grant(clientId: "17436d83-6022-4101-bf9f-997f1550f57c") {
+            user {
               id
-            }
-            roles {
-              pageInfo {
-                startCursor
-                endCursor
-                hasNextPage
-                hasPreviousPage
+              enabled
+              type
+              name
+              authorizations {
+                pageInfo {
+                  startCursor
+                  endCursor
+                  hasNextPage
+                  hasPreviousPage
+                }
+                edges {
+                  cursor
+                  node {
+                    id
+                  }
+                }
               }
-              edges {
-                cursor
-                node {
-                  id
-                  enabled
-                  name
-                  description
-                  users {
-                    pageInfo {
-                      startCursor
-                      endCursor
-                      hasNextPage
-                      hasPreviousPage
+              credentials {
+                pageInfo {
+                  startCursor
+                  endCursor
+                  hasNextPage
+                  hasPreviousPage
+                }
+                edges {
+                  cursor
+                  node {
+                    id
+                    enabled
+                    user {
+                      id
                     }
-                    edges {
-                      cursor
-                      node {
-                        id
-                        enabled
+                    authority {
+                      id
+                      enabled
+                      name
+                      description
+
+                      ... on EmailAuthority {
+                        privateKey
+                        publicKeys
+                        proofValidityDuration
+                        authenticationEmailSubject
+                        authenticationEmailText
+                        authenticationEmailHtml
+                        verificationEmailSubject
+                        verificationEmailText
+                        verificationEmailHtml
+                      }
+
+                      ... on PasswordAuthority {
+                        rounds
                       }
                     }
+
+                    authority {
+                      id
+                      enabled
+                      name
+                      description
+                    }
+
+                    ... on EmailCredential {
+                      email
+                      authority {
+                        privateKey
+                        publicKeys
+                        proofValidityDuration
+                        authenticationEmailSubject
+                        authenticationEmailText
+                        authenticationEmailHtml
+                        verificationEmailSubject
+                        verificationEmailText
+                        verificationEmailHtml
+                      }
+                    }
+
+                    ... on PasswordCredential {
+                      authority {
+                        rounds
+                      }
+                      hash
+                    }
                   }
-                  scopes
+                }
+              }
+              grants {
+                pageInfo {
+                  startCursor
+                  endCursor
+                  hasNextPage
+                  hasPreviousPage
+                }
+                edges {
+                  cursor
+                  node {
+                    id
+                  }
+                }
+              }
+              grant(clientId: "17436d83-6022-4101-bf9f-997f1550f57c") {
+                id
+              }
+              roles {
+                pageInfo {
+                  startCursor
+                  endCursor
+                  hasNextPage
+                  hasPreviousPage
+                }
+                edges {
+                  cursor
+                  node {
+                    id
+                    enabled
+                    name
+                    description
+                    users {
+                      pageInfo {
+                        startCursor
+                        endCursor
+                        hasNextPage
+                        hasPreviousPage
+                      }
+                      edges {
+                        cursor
+                        node {
+                          id
+                          enabled
+                        }
+                      }
+                    }
+                    scopes
+                  }
                 }
               }
             }
+            secret
+            scopes
           }
-          secret
-          scopes
         }
-      }
-    `)
+      `
+    })
   });
 
-  if (result.errors) {
-    for (const error of result.errors) {
-      console.error(error.stack);
-    }
-  }
+  const json = await result.json();
 
   t.deepEqual(
     {
@@ -365,7 +295,7 @@ test("Deep query on viewer.", async t => {
                       id: "0d765613-e813-40e5-9aa7-89f96531364e",
                       enabled: true,
                       name: "Email",
-                      description: "The email authority",
+                      description: "The email authority.",
                       privateKey:
                         "-----BEGIN RSA PRIVATE KEY-----\nMIICXAIBAAKBgQCfb+nyTPFCntEXbrFPU5DeE0gC4jXRcSFWDfCRgeqeQWqIW9De\nMmCj13k0z6fQCiG3FATYosS64wAs+OiyGtu9q/JyUEVIBMF0upDJMA53AFFx+0Fb\n/i76JFPTY7SxzvioIFeKRwY8evIRWQWYO95Os6gKBac/x5qiUn5fh2xM+wIDAQAB\nAoGAeOPGo24r0LPTHs1TrC5Uvc4o3+bdn70D5dgT/IBhgTVgrZvQt2nDVPfgc2aw\ne1HzVnnbYteoC3xrea4R4lnzGpgcvLYyJ+LEAeRNT66u12EHnCjl8OM5Ods79RO2\npSaGBiAlntq9E86DBJ9ma9lL9NXiokCx4h1ph9rqr6T+DMECQQD7zM56evJj8JyV\nkyu7m3PGpepqgMtO4LjHlkU9ZP2HRfrq+bl4yWps1TyCTPzaRujXW+hHJBPsTYar\nTmsLcDepAkEAohi3FmYiAMhppgPMFqIr15tY04dKDw4kPgbaQLXT59v9e16alj+2\nhsBvMWA/juLuk/2JRuNutY0WBmtkkS42AwJBAKEjS++txniWfl5qNE53CPxTKVTG\n31S3EwkG7YCApI5xBkZhUYQuwWCshXCNfDLjthY7xsXgHK/YXRo7sN09DyECQD2W\n0HIFSmQrweCfTrtG0Qux7dUpcV05DVI3/lNaAvL05mIqtufhu3OFyHnlTSD4XpgC\nXFd/8L+wpK65vVNgUIsCQFO6/fma+fjXx9kG+/zy4C/VwJWFUcpo5Z3R2TF7FheW\n5N6OERXoA+Qu+ew7xS6WrAp33dHncIyr9ekkvGc01FU=\n-----END RSA PRIVATE KEY-----",
                       publicKeys: [
@@ -441,7 +371,7 @@ test("Deep query on viewer.", async t => {
                     enabled: true,
                     name: "Basic User",
                     description:
-                      "This role provides the basic abilities needed for a human user.",
+                      "All human users should be assigned to this role.",
                     users: {
                       edges: [
                         {
@@ -516,9 +446,11 @@ test("Deep query on viewer.", async t => {
                       }
                     },
                     scopes: [
-                      "authx:v2.authorization..*.{current_client_id}..{current_grant_id}..{current_user_id}:*..*.*.",
+                      "authx:v2.authorization..*.*..*..{current_user_id}:*..*..",
+                      "authx:v2.authorization..*.....{current_user_id}:*..*.*.",
+                      "authx:v2.authorization..{current_authorization_id}.*..*..{current_user_id}:*..*.*.",
                       "authx:v2.client...*....:r....",
-                      "authx:v2.grant...{current_client_id}..{current_grant_id}..{current_user_id}:*..*.*.",
+                      "authx:v2.grant...*..*..{current_user_id}:*..*.*.",
                       "authx:v2.user.......{current_user_id}:r...."
                     ]
                   }
@@ -528,8 +460,9 @@ test("Deep query on viewer.", async t => {
                   node: {
                     id: "ee37605c-5834-40c9-bd80-bac16d9e62a4",
                     enabled: true,
-                    name: "AuthX Administrator",
-                    description: "This role provides full access to authx.",
+                    name: "Super Administrator",
+                    description:
+                      "A super administrator has full access to all resources.",
                     users: {
                       edges: [
                         {
@@ -547,7 +480,7 @@ test("Deep query on viewer.", async t => {
                         startCursor: "YXJyYXljb25uZWN0aW9uOjA="
                       }
                     },
-                    scopes: ["authx:**:**"]
+                    scopes: ["**:**:**"]
                   }
                 }
               ],
@@ -565,18 +498,13 @@ test("Deep query on viewer.", async t => {
         }
       }
     },
-    result
+    json
   );
 });
 
-// Drop the test database.
+// Teardown.
 test.after.always(async () => {
-  if (database && pool) {
-    await pool.end();
-
-    const client = new Client();
-    await client.connect();
-    await client.query(`DROP DATABASE "${database}";`);
-    await client.end();
+  if (teardown) {
+    await teardown();
   }
 });

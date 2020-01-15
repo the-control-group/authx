@@ -1,4 +1,4 @@
-import { PoolClient } from "pg";
+import { ClientBase } from "pg";
 import { Client } from "./Client";
 import { User } from "./User";
 import { Authorization } from "./Authorization";
@@ -89,7 +89,7 @@ export class Grant implements GrantData {
   public async isAccessibleBy(
     realm: string,
     a: Authorization,
-    tx: PoolClient,
+    tx: ClientBase,
     action: GrantAction = {
       basic: "r",
       scopes: "",
@@ -125,7 +125,7 @@ export class Grant implements GrantData {
     return false;
   }
 
-  public client(tx: PoolClient, refresh: boolean = false): Promise<Client> {
+  public client(tx: ClientBase, refresh: boolean = false): Promise<Client> {
     if (!refresh && this._client) {
       return this._client;
     }
@@ -133,7 +133,7 @@ export class Grant implements GrantData {
     return (this._client = Client.read(tx, this.clientId));
   }
 
-  public user(tx: PoolClient, refresh: boolean = false): Promise<User> {
+  public user(tx: ClientBase, refresh: boolean = false): Promise<User> {
     if (!refresh && this._user) {
       return this._user;
     }
@@ -141,7 +141,7 @@ export class Grant implements GrantData {
   }
 
   public async authorizations(
-    tx: PoolClient,
+    tx: ClientBase,
     refresh: boolean = false
   ): Promise<Authorization[]> {
     if (!refresh && this._authorizations) {
@@ -167,7 +167,7 @@ export class Grant implements GrantData {
   }
 
   public async access(
-    tx: PoolClient,
+    tx: ClientBase,
     values: {
       currentAuthorizationId: null | string;
       currentUserId: null | string;
@@ -183,7 +183,7 @@ export class Grant implements GrantData {
   }
 
   public async can(
-    tx: PoolClient,
+    tx: ClientBase,
     values: {
       currentAuthorizationId: null | string;
       currentUserId: null | string;
@@ -196,7 +196,7 @@ export class Grant implements GrantData {
     return isSuperset(await this.access(tx, values, refresh), scope);
   }
 
-  public async records(tx: PoolClient): Promise<GrantRecord[]> {
+  public async records(tx: ClientBase): Promise<GrantRecord[]> {
     const result = await tx.query(
       `
       SELECT
@@ -226,7 +226,7 @@ export class Grant implements GrantData {
   }
 
   public async invoke(
-    tx: PoolClient,
+    tx: ClientBase,
     data: {
       id: string;
       createdAt: Date;
@@ -235,7 +235,7 @@ export class Grant implements GrantData {
     // insert the new invocation
     const result = await tx.query(
       `
-      INSERT INTO authx.authorization_invocation
+      INSERT INTO authx.grant_invocation
       (
         invocation_id,
         entity_id,
@@ -267,7 +267,7 @@ export class Grant implements GrantData {
     });
   }
 
-  public async invocations(tx: PoolClient): Promise<GrantInvocation[]> {
+  public async invocations(tx: ClientBase): Promise<GrantInvocation[]> {
     const result = await tx.query(
       `
       SELECT
@@ -275,7 +275,7 @@ export class Grant implements GrantData {
         record_id,
         entity_id,
         created_at
-      FROM authx.authorization_invocation
+      FROM authx.grant_invocation
       WHERE entity_id = $1
       ORDER BY created_at DESC
       `,
@@ -294,17 +294,17 @@ export class Grant implements GrantData {
   }
 
   public static read(
-    tx: PoolClient,
+    tx: ClientBase,
     id: string,
     options?: { forUpdate: boolean }
   ): Promise<Grant>;
   public static read(
-    tx: PoolClient,
+    tx: ClientBase,
     id: string[],
     options?: { forUpdate: boolean }
   ): Promise<Grant[]>;
   public static async read(
-    tx: PoolClient,
+    tx: ClientBase,
     id: string[] | string,
     options: { forUpdate: boolean } = { forUpdate: false }
   ): Promise<Grant[] | Grant> {
@@ -356,7 +356,7 @@ export class Grant implements GrantData {
   }
 
   public static async write(
-    tx: PoolClient,
+    tx: ClientBase,
     data: GrantData,
     metadata: {
       recordId: string;

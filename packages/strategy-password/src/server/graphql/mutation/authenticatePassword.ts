@@ -19,7 +19,7 @@ import {
   User
 } from "@authx/authx";
 
-import { createV2AuthXScope } from "@authx/authx/dist/util/scopes";
+import { createV2AuthXScope } from "@authx/authx/scopes";
 
 import { isSuperset } from "@authx/scopes";
 import { PasswordAuthority } from "../../model";

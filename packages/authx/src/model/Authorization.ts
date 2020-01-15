@@ -1,4 +1,4 @@
-import { PoolClient } from "pg";
+import { ClientBase } from "pg";
 import { User } from "./User";
 import { Grant } from "./Grant";
 import { simplify, getIntersection, isSuperset } from "@authx/scopes";
@@ -91,7 +91,7 @@ export class Authorization implements AuthorizationData {
   public async isAccessibleBy(
     realm: string,
     a: Authorization,
-    tx: PoolClient,
+    tx: ClientBase,
     action: AuthorizationAction = {
       basic: "r",
       scopes: "",
@@ -128,7 +128,7 @@ export class Authorization implements AuthorizationData {
     return false;
   }
 
-  public user(tx: PoolClient, refresh: boolean = false): Promise<User> {
+  public user(tx: ClientBase, refresh: boolean = false): Promise<User> {
     if (!refresh && this._user) {
       return this._user;
     }
@@ -137,7 +137,7 @@ export class Authorization implements AuthorizationData {
   }
 
   public async grant(
-    tx: PoolClient,
+    tx: ClientBase,
     refresh: boolean = false
   ): Promise<null | Grant> {
     if (!this.grantId) {
@@ -152,7 +152,7 @@ export class Authorization implements AuthorizationData {
   }
 
   public async access(
-    tx: PoolClient,
+    tx: ClientBase,
     values: {
       currentAuthorizationId: null | string;
       currentUserId: null | string;
@@ -175,7 +175,7 @@ export class Authorization implements AuthorizationData {
   }
 
   public async can(
-    tx: PoolClient,
+    tx: ClientBase,
     values: {
       currentAuthorizationId: null | string;
       currentUserId: null | string;
@@ -188,7 +188,7 @@ export class Authorization implements AuthorizationData {
     return isSuperset(await this.access(tx, values, refresh), scope);
   }
 
-  public async records(tx: PoolClient): Promise<AuthorizationRecord[]> {
+  public async records(tx: ClientBase): Promise<AuthorizationRecord[]> {
     const result = await tx.query(
       `
       SELECT
@@ -219,7 +219,7 @@ export class Authorization implements AuthorizationData {
   }
 
   public async invoke(
-    tx: PoolClient,
+    tx: ClientBase,
     data: {
       id: string;
       format: string;
@@ -264,7 +264,7 @@ export class Authorization implements AuthorizationData {
     });
   }
 
-  public async invocations(tx: PoolClient): Promise<AuthorizationInvocation[]> {
+  public async invocations(tx: ClientBase): Promise<AuthorizationInvocation[]> {
     const result = await tx.query(
       `
       SELECT
@@ -292,17 +292,17 @@ export class Authorization implements AuthorizationData {
   }
 
   public static read(
-    tx: PoolClient,
+    tx: ClientBase,
     id: string,
     options?: { forUpdate: boolean }
   ): Promise<Authorization>;
   public static read(
-    tx: PoolClient,
+    tx: ClientBase,
     id: string[],
     options?: { forUpdate: boolean }
   ): Promise<Authorization[]>;
   public static async read(
-    tx: PoolClient,
+    tx: ClientBase,
     id: string[] | string,
     options: { forUpdate: boolean } = { forUpdate: false }
   ): Promise<Authorization[] | Authorization> {
@@ -314,6 +314,7 @@ export class Authorization implements AuthorizationData {
       `
       SELECT
         entity_id AS id,
+        record_id,
         enabled,
         user_id,
         grant_id,
@@ -362,7 +363,7 @@ export class Authorization implements AuthorizationData {
   }
 
   public static async write(
-    tx: PoolClient,
+    tx: ClientBase,
     data: AuthorizationData,
     metadata: {
       recordId: string;
@@ -462,6 +463,7 @@ export class Authorization implements AuthorizationData {
         ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10)
       RETURNING
         entity_id AS id,
+        record_id,
         enabled,
         user_id,
         grant_id,
