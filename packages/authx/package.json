@@ -78,7 +78,7 @@
     "test:development": "ava --verbose --watch dist/**/*.test.js"
   },
   "types": "dist/index.d.ts",
-  "version": "3.0.0-alpha.1",
+  "version": "3.0.0-alpha.2",
   "resolutions": {
     "**/graphql": "15.0.0-rc.1"
   }
