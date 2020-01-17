@@ -54,7 +54,7 @@
   "main": "dist/server/index.js",
   "name": "@authx/interface",
   "peerDependencies": {
-    "@authx/authx": "^2.0.0",
+    "@authx/authx": "3.0.0-alpha.2",
     "koa": "^2.7.0"
   },
   "repository": "https://github.com/the-control-group/authx",
