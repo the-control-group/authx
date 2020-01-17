@@ -13,7 +13,6 @@ ADD packages/authx/package.json /workspace/packages/authx/package.json
 ADD packages/http-proxy-web/package.json /workspace/packages/http-proxy-web/package.json
 ADD packages/http-proxy-resource/package.json /workspace/packages/http-proxy-resource/package.json
 ADD packages/interface/package.json /workspace/packages/interface/package.json
-ADD packages/manager/package.json /workspace/packages/manager/package.json
 ADD packages/scopes/package.json /workspace/packages/scopes/package.json
 ADD packages/strategy-email/package.json /workspace/packages/strategy-email/package.json
 ADD packages/strategy-openid/package.json /workspace/packages/strategy-openid/package.json
