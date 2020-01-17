@@ -730,6 +730,15 @@ async function oAuth2Middleware(
             );
           }
 
+          if (grant.clientId !== client.id) {
+            throw new OAuthError(
+              "invalid_grant",
+              "Invalid authorization code.",
+              undefined,
+              paramsClientId
+            );
+          }
+
           if (!grant.secrets.has(paramsRefreshToken)) {
             throw new OAuthError(
               "invalid_grant",
