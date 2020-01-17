@@ -22,10 +22,6 @@
       "folder_exclude_patterns": ["**/node_modules", "**/dist"]
     },
     {
-      "path": "packages/manager",
-      "folder_exclude_patterns": ["**/node_modules", "**/dist"]
-    },
-    {
       "path": "packages/scopes",
       "folder_exclude_patterns": ["**/node_modules", "**/dist"]
     },

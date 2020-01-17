@@ -40,12 +40,6 @@ The small, react-powered app features a pluggable architecture that can be used 
 
 [Read More](packages/interface#README.md)
 
-## Manager
-
-**WORK IN PROGRESS** The Authx Manager is an administration user interface for AuthX.
-
-[Read More](packages/manager#README.md)
-
 ## Scopes
 
 This package contains a small collection of utility functions for AuthX scopes. These scopes are human-readable, fully OAuth2-compatible, and support both pattern matching and set algebra.

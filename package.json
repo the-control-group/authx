@@ -6,7 +6,6 @@
     "packages/http-proxy-web",
     "packages/http-proxy-resource",
     "packages/interface",
-    "packages/manager",
     "packages/scopes",
     "packages/strategy-email",
     "packages/strategy-openid",
