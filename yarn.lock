@@ -2,6 +2,32 @@
 # yarn lockfile v1
 
 
+"@authx/interface@^2.0.0":
+  version "2.0.3"
+  resolved "https://registry.yarnpkg.com/@authx/interface/-/interface-2.0.3.tgz#8fb1f019cdb7b34ef75cd5f8a7f2d69b58ef4bf9"
+  integrity sha512-/hsx6smMHU+9G4WeOISWI9l+pqjZQIFx29S7wHjGTp6i9M4jHTnXrEIwqHXsjX1q+OAzQwUOWng93Y1777R81Q==
+  dependencies:
+    "@authx/scopes" "^3.0.0"
+    "@types/graphql-react" "^8.1.1"
+    "@types/html-webpack-plugin" "^3.2.1"
+    "@types/memory-fs" "^0.3.2"
+    "@types/react" "^16.9.15"
+    "@types/react-dom" "^16.9.4"
+    "@types/webpack" "^4.41.0"
+    graphql-react "^8.3.0"
+    html-webpack-plugin "^3.2.0"
+    memory-fs "^0.5.0"
+    react "^16.12.0"
+    react-dom "^16.12.0"
+    source-map-loader "^0.2.4"
+    uuid "^3.3.3"
+    webpack "^4.41.2"
+
+"@authx/scopes@^3.0.0":
+  version "3.0.2"
+  resolved "https://registry.yarnpkg.com/@authx/scopes/-/scopes-3.0.2.tgz#8a0ab0370557b861354f2cc1baf43e05e0702d89"
+  integrity sha512-haf62mgmTM0FfeCOcKeu/1yteXPcqMPw1qdJHnIbwL9PiyIDjz8T99jbtS2/j5X+IDpagTauJe1JKoK9e/y9ZA==
+
 "@ava/babel-plugin-throws-helper@^4.0.0":
   version "4.0.0"
   resolved "https://registry.yarnpkg.com/@ava/babel-plugin-throws-helper/-/babel-plugin-throws-helper-4.0.0.tgz#8f5b45b7a0a79c6f4032de2101e0c221847efb62"
@@ -247,6 +273,13 @@
     "@babel/helper-plugin-utils" "^7.0.0"
     "@babel/helper-simple-access" "^7.7.4"
     babel-plugin-dynamic-import-node "^2.3.0"
+
+"@babel/runtime@^7.5.4":
+  version "7.8.3"
+  resolved "https://registry.yarnpkg.com/@babel/runtime/-/runtime-7.8.3.tgz#0811944f73a6c926bb2ad35e918dcc1bfab279f1"
+  integrity sha512-fVHx1rzEmwB130VTkLnxR+HmxcTjGzH12LYQcFFoBwakMd3aOMD4OsRN7tGG/UOYE2ektgFrS8uACAoRk1CY0w==
+  dependencies:
+    regenerator-runtime "^0.13.2"
 
 "@babel/runtime@^7.5.5":
   version "7.7.7"
@@ -610,7 +643,7 @@
   dependencies:
     "@types/react" "*"
 
-"@types/react@*", "@types/react@^16.9.17":
+"@types/react@*", "@types/react@^16.9.15", "@types/react@^16.9.17":
   version "16.9.17"
   resolved "https://registry.yarnpkg.com/@types/react/-/react-16.9.17.tgz#58f0cc0e9ec2425d1441dd7b623421a867aa253e"
   integrity sha512-UP27In4fp4sWF5JgyV6pwVPAQM83Fj76JOcg02X5BZcpSu5Wx+fP9RMqc2v0ssBoQIFvD5JdKY41gjJJKmw6Bg==
@@ -676,7 +709,7 @@
     "@types/webpack-sources" "*"
     source-map "^0.6.0"
 
-"@types/webpack@^4.41.1":
+"@types/webpack@^4.41.0", "@types/webpack@^4.41.1":
   version "4.41.2"
   resolved "https://registry.yarnpkg.com/@types/webpack/-/webpack-4.41.2.tgz#c6faf0111de27afdffe1158dac559e447c273516"
   integrity sha512-DNMQOfEvwzWRRyp6Wy9QVCgJ3gkelZsuBE2KUD318dg95s9DKGiT5CszmmV58hq8jk89I9NClre48AEy1MWAJA==
@@ -3288,6 +3321,18 @@ graphql-playground-middleware-koa@^1.6.12:
   integrity sha512-ofacd4B+FFSkKLPHsC/vUVg5XI3T+RPFNClOru1e0mgFNnoX5PM32AxYEe4Q3Yt3R8ayFQmoztBJrKXJCCZ1Kg==
   dependencies:
     graphql-playground-html "1.6.13"
+
+graphql-react@^8.3.0:
+  version "8.3.0"
+  resolved "https://registry.yarnpkg.com/graphql-react/-/graphql-react-8.3.0.tgz#4aae4fb964691c1956e72a4c6581e314d1cb19dd"
+  integrity sha512-UfqIyFFHPJQ6cA0FzRvZVUgRXfROtWbIG4Pu30E6jS2h75xIF4MeVOU5TJHdgdn7ydOpTH9iNjfw/n4NqjBNZw==
+  dependencies:
+    "@babel/runtime" "^7.5.4"
+    extract-files "^5.0.1"
+    fnv1a "^1.0.1"
+    mitt "^1.1.3"
+    object-assign "^4.1.1"
+    prop-types "^15.7.2"
 
 graphql-react@^9.1.0:
   version "9.1.0"
@@ -7054,7 +7099,7 @@ webpack-sources@^1.4.0, webpack-sources@^1.4.1:
     source-list-map "^2.0.0"
     source-map "~0.6.1"
 
-webpack@^4.41.5:
+webpack@^4.41.2, webpack@^4.41.5:
   version "4.41.5"
   resolved "https://registry.yarnpkg.com/webpack/-/webpack-4.41.5.tgz#3210f1886bce5310e62bb97204d18c263341b77c"
   integrity sha512-wp0Co4vpyumnp3KlkmpM5LWuzvZYayDwM2n17EHFr4qxBBbRokC7DJawPJC7TfSFZ9HZ6GsdH40EBj4UV0nmpw==
