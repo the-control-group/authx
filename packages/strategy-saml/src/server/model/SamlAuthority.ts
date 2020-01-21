@@ -34,16 +34,18 @@ export class SamlAuthority extends Authority<SamlAuthorityDetails> {
     return (this._credentials = (async () =>
       SamlCredential.read(
         tx,
-        (await tx.query(
-          `
+        (
+          await tx.query(
+            `
               SELECT entity_id AS id
               FROM authx.credential_records
               WHERE
                 authority_id = $1
                 AND replacement_record_id IS NULL
               `,
-          [this.id]
-        )).rows.map(({ id }) => id)
+            [this.id]
+          )
+        ).rows.map(({ id }) => id)
       ))());
   }
 

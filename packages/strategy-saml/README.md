@@ -1,1 +1,1 @@
-# AuthX Strategy – OpenID
+# AuthX Strategy – SAML

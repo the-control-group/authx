@@ -5,8 +5,8 @@
   },
   "bugs": "https://github.com/the-control-group/authx/issues",
   "dependencies": {
-    "@authx/scopes": "^2.2.1",
-    "@authx/strategy-email": "^1.0.0-beta.0",
+    "@authx/scopes": "^3.1.0-alpha.3",
+    "@authx/strategy-email": "^3.1.0-alpha.3",
     "@types/pg": "^7.11.1",
     "@types/saml2-js": "^1.6.8",
     "@types/uuid": "^3.4.5",
@@ -17,14 +17,14 @@
   },
   "description": "",
   "devDependencies": {
-    "@authx/authx": "^2.0.0-beta.0",
+    "@authx/authx": "^3.1.0-alpha.3",
     "@typescript-eslint/eslint-plugin": "^2.2.0",
     "@typescript-eslint/parser": "^2.2.0",
-    "ava": "^2.3.0",
+    "ava": "^3.0.0",
     "eslint": "^6.3.0",
     "eslint-config-prettier": "^6.2.0",
     "eslint-plugin-prettier": "^3.0.0",
-    "nodemon": "^1.19.2",
+    "nodemon": "^2.0.2",
     "prettier": "^1.18.2",
     "typescript": "^3.6.2"
   },

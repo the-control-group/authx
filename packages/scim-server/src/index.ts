@@ -25,27 +25,29 @@ export class ScimServer<
     this._cache = new AuthXKeyCache(config);
 
     // Add middleware to check authorization header.
-    this.use((async (ctx, next): Promise<void> => {
-      const keys = this._cache.keys;
-      if (!keys) {
-        ctx.response.status = 503;
-        ctx.response.body = {
-          schema: "urn:ietf:params:scim:api:messages:2.0:Error",
-          status: 503,
-          scimType: undefined,
-          detail: "Service not yet available; loading AuthX keys."
-        };
+    this.use(
+      (async (ctx, next): Promise<void> => {
+        const keys = this._cache.keys;
+        if (!keys) {
+          ctx.response.status = 503;
+          ctx.response.body = {
+            schema: "urn:ietf:params:scim:api:messages:2.0:Error",
+            status: 503,
+            scimType: undefined,
+            detail: "Service not yet available; loading AuthX keys."
+          };
 
-        return;
-      }
+          return;
+        }
 
-      ctx[x] = {
-        ...config,
-        keys
-      } as Context;
+        ctx[x] = {
+          ...config,
+          keys
+        } as Context;
 
-      await next();
-    }) as Middleware<ParameterizedContext<any, any>>);
+        await next();
+      }) as Middleware<ParameterizedContext<any, any>>
+    );
 
     // Groups
     // ------
@@ -55,12 +57,13 @@ export class ScimServer<
     this.get(
       "/Users",
       async (ctx, next): Promise<void> => {
-        const body = (await (await fetch(ctx[x].authxUrl, {
-          method: "POST",
-          headers: {
-            authorization: ctx.request.header("authorization")
-          },
-          body: `
+        const body = (await (
+          await fetch(ctx[x].authxUrl, {
+            method: "POST",
+            headers: {
+              authorization: ctx.request.header("authorization")
+            },
+            body: `
             query {
               users {
                 edges {
@@ -86,7 +89,8 @@ export class ScimServer<
               }
             }
           `
-        })).json()) as {
+          })
+        ).json()) as {
           readonly data?: {
             readonly users?: {
               readonly edges: ReadonlyArray<{

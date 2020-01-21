@@ -212,8 +212,9 @@ export const createSamlCredentials: GraphQLFieldConfig<
         // Check if the openid is used in a different credential
         const existingCredentials = await SamlCredential.read(
           tx,
-          (await tx.query(
-            `
+          (
+            await tx.query(
+              `
           SELECT entity_id as id
           FROM authx.credential_record
           WHERE
@@ -222,8 +223,9 @@ export const createSamlCredentials: GraphQLFieldConfig<
             AND authority_id = $1
             AND authority_user_id = $2
           `,
-            [authority.id, data.authorityUserId]
-          )).rows.map(({ id }) => id)
+              [authority.id, data.authorityUserId]
+            )
+          ).rows.map(({ id }) => id)
         );
 
         if (existingCredentials.length > 1) {
