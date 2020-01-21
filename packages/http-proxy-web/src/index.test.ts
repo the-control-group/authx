@@ -59,7 +59,7 @@ test.before(async () => {
         resolve({ server, port: address.port });
       });
 
-      server.listen();
+      server.listen(undefined, "localhost");
     }),
 
     // Mock a target server.
@@ -89,7 +89,7 @@ test.before(async () => {
         resolve({ server, port: address.port });
       });
 
-      server.listen();
+      server.listen(undefined, "localhost");
     })
   ]);
 

@@ -11,7 +11,7 @@ import { Client } from "pg";
 import { createServer, Server } from "http";
 import { URL } from "url";
 
-//
+// This is prefixed to postgres database names.
 const prefix = "authx-test-";
 
 async function setupDatabase(

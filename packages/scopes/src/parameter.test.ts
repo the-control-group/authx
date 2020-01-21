@@ -175,6 +175,6 @@ test("extract(template, scopes) - multiple segments with surrounding any multipl
         parseParameterizedScopeLiteral("foo:**.(a).**:baz"),
         ["foo:*.*.*:baz"].map(parseScopeLiteral)
       ),
-    InvalidParameterizedScopeError
+    { instanceOf: InvalidParameterizedScopeError }
   );
 });
