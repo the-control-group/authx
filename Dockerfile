@@ -1,7 +1,7 @@
 # base
 # ----
 
-FROM node:12.2 AS base
+FROM node:12 AS base
 
 RUN mkdir -p /workspace
 WORKDIR /workspace
