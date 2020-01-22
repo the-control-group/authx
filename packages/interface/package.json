@@ -11,7 +11,7 @@
     "@types/memory-fs": "^0.3.2",
     "@types/react": "^16.9.17",
     "@types/react-dom": "^16.9.5",
-    "@types/webpack": "^4.41.1",
+    "@types/webpack": "^4.41.3",
     "graphql-react": "^9.1.0",
     "html-webpack-plugin": "^3.2.0",
     "memory-fs": "^0.5.0",
