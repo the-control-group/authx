@@ -147,14 +147,6 @@ export function SamlAuthority({
     new URL(window.location.href).searchParams.forEach(
       (v, k) => k !== "authorityId" && redirect.searchParams.delete(k)
     );
-
-    const url = new URL(authority.authUrl);
-    url.searchParams.set("response_type", "code");
-    url.searchParams.set("client_id", authority.clientId);
-    url.searchParams.set("redirect_uri", redirect.href);
-    url.searchParams.set("scope", "openid profile email");
-    url.searchParams.set("state", state);
-    window.location.href = url.href;
   }
 
   return (
@@ -197,7 +189,6 @@ export const SamlAuthorityFragment = `
     __typename
     id
     name
-    authUrl
-    clientId
+    loginRequestUrl
   }
 `;

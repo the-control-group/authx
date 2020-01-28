@@ -28,11 +28,11 @@ import { SamlAuthority, SamlCredential } from "../../model";
 
 export const authenticateSaml: GraphQLFieldConfig<
   any,
+  Context,
   {
     authorityId: string;
     code: string;
-  },
-  Context
+  }
 > = {
   type: GraphQLAuthorization,
   description: "Create a new authorization.",
@@ -122,11 +122,16 @@ export const authenticateSaml: GraphQLFieldConfig<
           {
             /* eslint-disable @typescript-eslint/camelcase */
             request_body: {},
+
+            // TODO: make this configurable
+            ignore_signature: true,
+
+            // TODO: make this configurable
             allow_unencrypted_assertion: true
             /* eslint-enable */
           },
-          function(err, response) {
-            if (err) return reject(err);
+          function(error, response) {
+            if (error) return reject(error);
             resolve(response);
           }
         );
@@ -142,84 +147,17 @@ export const authenticateSaml: GraphQLFieldConfig<
           (response as { user: { name_id: string } }).user.name_id) ||
         undefined;
 
-      const responseBody = (await response.json()) as {
-        access_token: string;
-        id_token: string;
-        expires_in: number;
-        token_type: string;
-        refresh_token?: string;
-        error?: string;
-      };
-
-      if (!responseBody || !responseBody.id_token) {
-        throw new Error(
-          (responseBody && responseBody.error) ||
-            "Invalid response returned by authority."
-        );
-      }
-
-      // Decode the ID token.
-      const token = jwt.decode(responseBody.id_token) as {
-        sub: string;
-        iss: string;
-        azp?: string;
-        aud: string;
-        iat: number;
-        exp: number;
-        name?: string;
-        given_name?: string;
-        family_name?: string;
-        middle_name?: string;
-        nickname?: string;
-        preferred_username?: string;
-        profile?: string;
-        picture?: string;
-        website?: string;
-        email?: string;
-        email_verified?: boolean;
-        gender?: string;
-        birthdate?: string;
-        zoneinfo?: string;
-        locale?: string;
-        phone_number?: string;
-        phone_number_verified?: boolean;
-        address?: {
-          formatted?: string;
-          street_address?: string;
-          locality?: string;
-          region?: string;
-          postal_code?: string;
-          country?: string;
-        };
-        updated_at?: number;
-
-        // This is a google-specific claim for "hosted domain".
-        hd?: string;
-      };
-
-      if (!token || typeof token.sub !== "string" || !token.sub) {
-        throw new Error("Invalid token returned by authority.");
-      }
-
-      // Restrict user based to hosted domain.
-      if (
-        authority.details.restrictsAccountsToHostedDomains.length &&
-        (!token.hd ||
-          !authority.details.restrictsAccountsToHostedDomains.includes(
-            token.hd
-          ))
-      ) {
-        throw new AuthenticationError(
-          `The hosted domain "${token.hd || ""}" is not allowed.`
-        );
+      if (!samlUserId) {
+        throw new Error("Invalid response returned by authority.");
       }
 
       const authorizationId = v4();
 
       // Get the credential
-      let credential = await authority.credential(tx, token.sub);
+      let credential = await authority.credential(tx, samlUserId);
 
       // Try to associate an existing user by email.
+      /*
       if (
         !credential &&
         authority.details.emailAuthorityId &&
@@ -318,6 +256,7 @@ export const authenticateSaml: GraphQLFieldConfig<
           );
         }
       }
+      */
 
       if (!credential) {
         throw new AuthenticationError("No such credential exists.");

@@ -19,6 +19,7 @@ import { GraphQLCreateSamlCredentialInput } from "./GraphQLCreateSamlCredentialI
 
 export const createSamlCredentials: GraphQLFieldConfig<
   any,
+  Context,
   {
     credentials: {
       id: null | string;
@@ -28,8 +29,7 @@ export const createSamlCredentials: GraphQLFieldConfig<
       code: null | string;
       subject: null | string;
     }[];
-  },
-  Context
+  }
 > = {
   type: new GraphQLList(GraphQLSamlCredential),
   description: "Create a new credential.",

@@ -13,6 +13,7 @@ import { GraphQLUpdateSamlAuthorityInput } from "./GraphQLUpdateSamlAuthorityInp
 
 export const updateSamlAuthorities: GraphQLFieldConfig<
   any,
+  Context,
   {
     authorities: {
       id: string;
@@ -29,8 +30,7 @@ export const updateSamlAuthorities: GraphQLFieldConfig<
       createsUnmatchedUsers: null | boolean;
       assignsCreatedUsersToRoleIds: null | string[];
     }[];
-  },
-  Context
+  }
 > = {
   type: new GraphQLList(GraphQLSamlAuthority),
   description: "Update a new authority.",

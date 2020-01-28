@@ -13,13 +13,13 @@ import { GraphQLUpdateSamlCredentialInput } from "./GraphQLUpdateSamlCredentialI
 
 export const updateSamlCredentials: GraphQLFieldConfig<
   any,
+  Context,
   {
     credentials: {
       id: string;
       enabled: null | boolean;
     }[];
-  },
-  Context
+  }
 > = {
   type: new GraphQLList(GraphQLSamlCredential),
   description: "Update a new credential.",

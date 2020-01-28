@@ -1,7 +1,7 @@
 import body from "koa-body";
 import v4 from "uuid/v4";
 import createPlaygroundMiddleware from "graphql-playground-middleware-koa";
-import Router, { IRouterOptions } from "koa-router";
+import Router, { RouterOptions } from "@koa/router";
 import { errorHandler, execute } from "graphql-api-koa";
 import { Context as KoaContext, Next as KoaNext } from "koa";
 import { parse } from "auth-header";
@@ -34,7 +34,7 @@ type AuthXMiddleware = any; // Middleware<any, KoaContext & { [x]: Context }>
 
 export class AuthX extends Router<any, { [x]: Context }> {
   public readonly pool: Pool;
-  public constructor(config: Config & IRouterOptions) {
+  public constructor(config: Config & RouterOptions) {
     assertConfig(config);
     super(config);
 
@@ -170,6 +170,23 @@ export class AuthX extends Router<any, { [x]: Context }> {
       contextMiddleware as AuthXMiddleware,
       body({ multipart: false, urlencoded: true, text: false, json: true }),
       oauth2 as AuthXMiddleware
+    );
+
+    // Strategy-specific endpoints
+    this.all(
+      "/authority/:authorityId",
+      contextMiddleware as AuthXMiddleware,
+      async (ctx: KoaContext & { [x]: Context }) => {
+        const { pool } = ctx[x];
+        const tx = await pool.connect();
+        try {
+          // Get the authority.
+          // Get the strategy.
+          // If the strategy has a router, call it!
+        } finally {
+          tx.release();
+        }
+      }
     );
   }
 }

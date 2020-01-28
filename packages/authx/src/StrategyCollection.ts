@@ -2,9 +2,16 @@ import { Context } from "./Context";
 import { Strategy } from "./Strategy";
 import { GraphQLFieldConfig, GraphQLNamedType } from "graphql";
 import { Authority, AuthorityData, Credential, CredentialData } from "./model";
+import { Context as KoaContext, Next as KoaNext } from "koa";
+
+type Middleware = (ctx: KoaContext, next: KoaNext) => Promise<void> | void;
 
 export class StrategyCollection {
   public map: { [name: string]: Strategy } = {};
+
+  public middlewareMap: {
+    readonly [name: string]: null | Middleware;
+  } = {};
 
   public authorityMap: {
     readonly [name: string]: { new (data: AuthorityData<any>): Authority<any> };
@@ -62,6 +69,7 @@ export class StrategyCollection {
     }
 
     this.map = { ...this.map, [s.name]: s };
+    this.middlewareMap = { ...this.middlewareMap, [s.name]: s.middleware };
     this.authorityMap = { ...this.authorityMap, [s.name]: s.authorityModel };
     this.credentialMap = { ...this.credentialMap, [s.name]: s.credentialModel };
     this.queryFields = queryFields;
@@ -76,6 +84,9 @@ export class StrategyCollection {
 
     const map = { ...this.map };
     delete map[s.name];
+
+    const middlewareMap = { ...this.middlewareMap };
+    delete middlewareMap[s.name];
 
     const authorityMap = { ...this.authorityMap };
     delete authorityMap[s.name];
@@ -94,6 +105,7 @@ export class StrategyCollection {
     }
 
     this.map = map;
+    this.middlewareMap = middlewareMap;
     this.authorityMap = authorityMap;
     this.credentialMap = credentialMap;
     this.queryFields = queryFields;

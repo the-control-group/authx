@@ -13,6 +13,7 @@ import { GraphQLCreateSamlAuthorityInput } from "./GraphQLCreateSamlAuthorityInp
 
 export const createSamlAuthorities: GraphQLFieldConfig<
   any,
+  Context,
   {
     authorities: {
       id: null | string;
@@ -29,8 +30,7 @@ export const createSamlAuthorities: GraphQLFieldConfig<
       createsUnmatchedUsers: boolean;
       assignsCreatedUsersToRoleIds: string[];
     }[];
-  },
-  Context
+  }
 > = {
   type: new GraphQLList(GraphQLSamlAuthority),
   description: "Create a new openid authority.",

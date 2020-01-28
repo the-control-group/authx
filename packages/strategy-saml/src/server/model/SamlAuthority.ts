@@ -1,22 +1,21 @@
 import { PoolClient } from "pg";
-import { Authority, Role } from "@authx/authx";
+import { Authority, AuthorityData, Role } from "@authx/authx";
 import { SamlCredential } from "./SamlCredential";
+import { IdentityProvider, ServiceProvider } from "saml2-js";
 
 // Authority
 // ---------
 
 export interface SamlAuthorityDetails {
-  privateKeys: string[];
-  publicKeys: string[];
-  forcesReauthentication: boolean;
-  defaultRedirect: string;
+  identityProviderMetadata: string;
+  serviceProviderMetadata: string;
 
-  idpLoginUrl: string;
-  idpLogoutUrl: string;
-  idpCertificates: string[];
+  // privateKeys: string[];
+  // certificates: string[];
 
-  createsUnmatchedUsers: boolean;
-  assignsCreatedUsersToRoleIds: string[];
+  // idpLoginUrl: string;
+  // idpLogoutUrl: string;
+  // idpCertificates: string[];
 }
 
 export class SamlAuthority extends Authority<SamlAuthorityDetails> {
@@ -77,21 +76,75 @@ export class SamlAuthority extends Authority<SamlAuthorityDetails> {
     return SamlCredential.read(tx, results.rows[0].id);
   }
 
-  public async assignsCreatedUsersToRoles(
-    tx: PoolClient,
-    refresh?: boolean
-  ): Promise<Role[]> {
-    if (!refresh && this._assignsCreatedUsersToRoles) {
-      return this._assignsCreatedUsersToRoles;
+  public async loginRequestUrl(base: string): Promise<string> {
+    const [privateKey, ...altPrivateKeys] = this.details.privateKeys;
+    if (!privateKey) {
+      throw new Error("No private key is configured for the SAML authority.");
     }
 
-    if (!this.details.assignsCreatedUsersToRoleIds) {
-      return [];
+    const [certificate, ...altCertificates] = this.details.certificates;
+    if (!privateKey) {
+      throw new Error("No certificate is configured for the SAML authority.");
     }
 
-    return (this._assignsCreatedUsersToRoles = Role.read(
-      tx,
-      this.details.assignsCreatedUsersToRoleIds
-    ));
+    const sp = new ServiceProvider({
+      /* eslint-disable @typescript-eslint/camelcase */
+      entity_id: `${base}?authorityId=${this.id}&metadata`,
+      assert_endpoint: `${base}?authorityId=${this.id}`,
+      private_key: privateKey,
+      certificate: certificate,
+      alt_private_keys: altPrivateKeys,
+      alt_certs: altCertificates
+      /* eslint-enable */
+    });
+
+    const idp = new IdentityProvider({
+      /* eslint-disable @typescript-eslint/camelcase */
+      sso_login_url: this.details.idpLoginUrl,
+      sso_logout_url: this.details.idpLogoutUrl,
+      certificates: this.details.idpCertificates
+      /* eslint-enable */
+    });
+
+    return new Promise((resolve, reject) => {
+      sp.create_login_request_url(idp, {}, function(error, loginUrl) {
+        if (error) return reject(error);
+        resolve(loginUrl);
+      });
+    });
+  }
+
+  public async getAssertion(base: string): Promise<{ id: string }> {
+    const sp = new ServiceProvider({
+      /* eslint-disable @typescript-eslint/camelcase */
+      entity_id: `${base}?authorityId=${this.id}&metadata`,
+      assert_endpoint: `${base}?authorityId=${this.id}`,
+      private_key: privateKey,
+      certificate: certificate,
+      alt_private_keys: altPrivateKeys,
+      alt_certs: altCertificates
+      /* eslint-enable */
+    });
+
+    const idp = new IdentityProvider({
+      /* eslint-disable @typescript-eslint/camelcase */
+      sso_login_url: this.details.idpLoginUrl,
+      sso_logout_url: this.details.idpLogoutUrl,
+      certificates: this.details.idpCertificates
+      /* eslint-enable */
+    });
+
+    return new Promise((resolve, reject) => {
+      sp.post_assert(
+        idp,
+        {
+          request_body
+        },
+        function(error, loginUrl) {
+          if (error) return reject(error);
+          resolve(loginUrl);
+        }
+      );
+    });
   }
 }
