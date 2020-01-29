@@ -5,7 +5,7 @@
   },
   "bugs": "https://github.com/the-control-group/authx/issues",
   "dependencies": {
-    "@authx/scopes": "^3.1.0-alpha.3",
+    "@authx/scopes": "^3.1.0-alpha.4",
     "@types/bcrypt": "^3.0.0",
     "@types/pg": "^7.14.1",
     "@types/uuid": "^3.4.6",
@@ -16,7 +16,7 @@
   },
   "description": "",
   "devDependencies": {
-    "@authx/authx": "^3.1.0-alpha.3",
+    "@authx/authx": "^3.1.0-alpha.4",
     "@typescript-eslint/eslint-plugin": "^2.15.0",
     "@typescript-eslint/parser": "^2.15.0",
     "ava": "^3.1.0",
@@ -47,7 +47,7 @@
   "main": "dist/server",
   "name": "@authx/strategy-password",
   "peerDependencies": {
-    "@authx/authx": "^3.1.0-alpha.3"
+    "@authx/authx": "^3.1.0-alpha.4"
   },
   "repository": "https://github.com/the-control-group/authx",
   "scripts": {
@@ -61,7 +61,7 @@
     "test:development": "ava --verbose --watch dist/*.test.js"
   },
   "types": "dist/server/index.d.ts",
-  "version": "3.1.0-alpha.3",
+  "version": "3.1.0-alpha.4",
   "resolutions": {
     "**/graphql": "15.0.0-rc.1"
   }
