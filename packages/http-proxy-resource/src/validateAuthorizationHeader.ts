@@ -107,7 +107,7 @@ export async function validateAuthorizationHeader(
             viewer {
               id
               enabled
-              scopes
+              access
               user {
                 id
               }
@@ -123,7 +123,7 @@ export async function validateAuthorizationHeader(
       | {
           id: string;
           enabled: boolean;
-          scopes?: null | string[];
+          access?: null | string[];
           user?: null | {
             id: string;
           };
@@ -146,15 +146,15 @@ export async function validateAuthorizationHeader(
       throw new Error("The AuthX response was missing a viewer id.");
     }
 
-    if (!viewer.scopes) {
+    if (!viewer.access) {
       throw new NotAuthorizedError(
         "The submitted basic credentials failed to retreive authorization scopes. Make sure the authorization has the scope `authx:authorization.equal.self.current:read.scopes`."
       );
     }
 
     if (
-      !Array.isArray(viewer.scopes) ||
-      !viewer.scopes.every(
+      !Array.isArray(viewer.access) ||
+      !viewer.access.every(
         scope => typeof scope === "string" && isValidScopeLiteral(scope)
       )
     ) {
@@ -176,7 +176,7 @@ export async function validateAuthorizationHeader(
     return {
       authorizationId: viewer.id,
       authorizationSubject: viewer.user.id,
-      authorizationScopes: viewer.scopes
+      authorizationScopes: viewer.access
     };
   }
 

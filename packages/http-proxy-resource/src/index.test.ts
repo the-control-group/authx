@@ -71,14 +71,14 @@ test.before(async () => {
               "Basic ZDQ5MDIxZGUtNDllNS00MjEwLWEyYzctYzM0NzM3MDQyMTQwOkdGRk53dHZQS09QemNJZHl4"
             ) {
               response.end(
-                '{"data": { "viewer": { "id": "d49021de-49e5-4210-a2c7-c34737042140", "enabled": true, "scopes": ["realm:resource.identifier:action", "realm2:**:*"], "user": { "id": "cc7a9f08-2c1b-43bb-888c-d0469914d013" } } }}'
+                '{"data": { "viewer": { "id": "d49021de-49e5-4210-a2c7-c34737042140", "enabled": true, "access": ["realm:resource.identifier:action", "realm2:**:*"], "user": { "id": "cc7a9f08-2c1b-43bb-888c-d0469914d013" } } }}'
               );
             } else if (
               request.headers.authorization ===
               "Basic OWY1YmU1OTktNGU2My00NzgzLTkxNWUtNTA3OTM4ZTc0ZjFhOkdGRk53dHZQS09QemNJZHl4"
             ) {
               response.end(
-                '{"data": { "viewer": { "id": "d49021de-49e5-4210-a2c7-c34737042140", "enabled": true, "scopes": [], "user": { "id": "cc7a9f08-2c1b-43bb-888c-d0469914d013" } } }}'
+                '{"data": { "viewer": { "id": "d49021de-49e5-4210-a2c7-c34737042140", "enabled": true, "access": [], "user": { "id": "cc7a9f08-2c1b-43bb-888c-d0469914d013" } } }}'
               );
             } else {
               response.end(
