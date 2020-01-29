@@ -11,7 +11,7 @@
     "@authx/authx": "^3.1.0-alpha.4",
     "@authx/strategy-password": "^3.1.0-alpha.4",
     "@types/pg": "^7.14.1",
-    "@types/uuid": "^3.4.6",
+    "@types/uuid": "^3.4.7",
     "pg": "^7.17.0",
     "uuid": "^3.4.0"
   },
