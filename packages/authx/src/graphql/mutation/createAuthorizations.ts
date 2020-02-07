@@ -80,20 +80,12 @@ export const createAuthorizations: GraphQLFieldConfig<
 
       const tx = await pool.connect();
       try {
-        const values = {
-          currentAuthorizationId: a.id,
-          currentUserId: a.userId,
-          currentGrantId: a.grantId ?? null,
-          currentClientId: (await a.grant(tx))?.clientId ?? null
-        };
-
         const grant = input.grantId
           ? await Grant.read(tx, input.grantId)
           : null;
         if (
           !(await a.can(
             tx,
-            values,
             createV2AuthXScope(
               realm,
               {

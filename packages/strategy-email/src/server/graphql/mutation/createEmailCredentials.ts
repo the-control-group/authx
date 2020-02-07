@@ -103,13 +103,6 @@ export const createEmailCredentials: GraphQLFieldConfig<
       try {
         await tx.query("BEGIN DEFERRABLE");
 
-        const values = {
-          currentAuthorizationId: a.id,
-          currentUserId: a.userId,
-          currentGrantId: a.grantId,
-          currentClientId: (await a.grant(tx))?.clientId ?? null
-        };
-
         // Make sure the ID isn't already in use.
         if (input.id) {
           try {
@@ -163,7 +156,6 @@ export const createEmailCredentials: GraphQLFieldConfig<
         if (
           !(await a.can(
             tx,
-            values,
             createV2AuthXScope(
               realm,
               {
@@ -188,7 +180,6 @@ export const createEmailCredentials: GraphQLFieldConfig<
         if (
           !(await a.can(
             tx,
-            values,
             createV2AuthXScope(
               realm,
               {

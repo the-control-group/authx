@@ -98,17 +98,9 @@ export class Authorization implements AuthorizationData {
       secrets: ""
     }
   ): Promise<boolean> {
-    const values = {
-      currentAuthorizationId: a.id,
-      currentUserId: a.userId,
-      currentGrantId: a.grantId ?? null,
-      currentClientId: (await a.grant(tx))?.clientId ?? null
-    };
-
     if (
       await a.can(
         tx,
-        values,
         createV2AuthXScope(
           realm,
           {
@@ -153,15 +145,16 @@ export class Authorization implements AuthorizationData {
 
   public async access(
     tx: ClientBase,
-    values: {
-      currentAuthorizationId: null | string;
-      currentUserId: null | string;
-      currentGrantId: null | string;
-      currentClientId: null | string;
-    },
     refresh: boolean = false
   ): Promise<string[]> {
     const grant = await this.grant(tx, refresh);
+    const values = {
+      currentAuthorizationId: this.id,
+      currentUserId: this.userId,
+      currentGrantId: grant?.id ?? null,
+      currentClientId: grant?.clientId ?? null
+    };
+
     if (grant) {
       return grant.enabled
         ? getIntersection(this.scopes, await grant.access(tx, values, refresh))
@@ -176,16 +169,10 @@ export class Authorization implements AuthorizationData {
 
   public async can(
     tx: ClientBase,
-    values: {
-      currentAuthorizationId: null | string;
-      currentUserId: null | string;
-      currentGrantId: null | string;
-      currentClientId: null | string;
-    },
     scope: string[] | string,
     refresh: boolean = false
   ): Promise<boolean> {
-    return isSuperset(await this.access(tx, values, refresh), scope);
+    return isSuperset(await this.access(tx, refresh), scope);
   }
 
   public async records(tx: ClientBase): Promise<AuthorizationRecord[]> {

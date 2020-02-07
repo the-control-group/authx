@@ -149,19 +149,12 @@ export const GraphQLAuthorization: GraphQLObjectType<
         if (!a) return null;
         const tx = await pool.connect();
         try {
-          const values = {
-            currentAuthorizationId: a.id,
-            currentUserId: a.userId,
-            currentGrantId: a.grantId ?? null,
-            currentClientId: (await a.grant(tx))?.clientId ?? null
-          };
-
           return (await authorization.isAccessibleBy(realm, a, tx, {
             basic: "r",
             scopes: "r",
             secrets: ""
           }))
-            ? authorization.access(tx, values)
+            ? authorization.access(tx)
             : null;
         } finally {
           tx.release();
@@ -212,15 +205,8 @@ export const GraphQLAuthorization: GraphQLObjectType<
           }
 
           if (args.format === "bearer") {
-            const grant = await authorization.grant(tx);
-            const values = {
-              currentAuthorizationId: a.id,
-              currentUserId: a.userId,
-              currentGrantId: a.grantId ?? null,
-              currentClientId: (await a.grant(tx))?.clientId ?? null
-            };
-
             const tokenId = v4();
+            const grant = await authorization.grant(tx);
             await authorization.invoke(tx, {
               id: tokenId,
               format: "bearer",
@@ -230,7 +216,7 @@ export const GraphQLAuthorization: GraphQLObjectType<
             return `Bearer ${jwt.sign(
               {
                 aid: authorization.id,
-                scopes: await authorization.access(tx, values)
+                scopes: await authorization.access(tx)
               },
               privateKey,
               {

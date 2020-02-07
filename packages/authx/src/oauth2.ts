@@ -561,11 +561,7 @@ async function oAuth2Middleware(
             }
           );
 
-          const scopes = await requestedAuthorization.access(tx, {
-            ...values,
-            currentAuthorizationId: requestedAuthorization.id
-          });
-
+          const scopes = await requestedAuthorization.access(tx);
           const tokenId = v4();
           await requestedAuthorization.invoke(tx, {
             id: tokenId,
@@ -863,12 +859,7 @@ async function oAuth2Middleware(
             );
           }
 
-          const scopes = await requestedAuthorization.access(tx, {
-            currentUserId: grant.userId,
-            currentGrantId: grant.id,
-            currentClientId: grant.clientId,
-            currentAuthorizationId: requestedAuthorization.id
-          });
+          const scopes = await requestedAuthorization.access(tx);
 
           const tokenId = v4();
           await requestedAuthorization.invoke(tx, {
