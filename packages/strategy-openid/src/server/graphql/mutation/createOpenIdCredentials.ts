@@ -104,13 +104,6 @@ export const createOpenIdCredentials: GraphQLFieldConfig<
       try {
         await tx.query("BEGIN DEFERRABLE");
 
-        const values = {
-          currentAuthorizationId: a.id,
-          currentUserId: a.userId,
-          currentGrantId: a.grantId,
-          currentClientId: (await a.grant(tx))?.clientId ?? null
-        };
-
         // Make sure the ID isn't already in use.
         if (input.id) {
           try {
@@ -280,7 +273,6 @@ export const createOpenIdCredentials: GraphQLFieldConfig<
         if (
           !(await a.can(
             tx,
-            values,
             createV2AuthXScope(
               realm,
               {
@@ -307,7 +299,6 @@ export const createOpenIdCredentials: GraphQLFieldConfig<
         if (
           !(await a.can(
             tx,
-            values,
             createV2AuthXScope(
               realm,
               {
