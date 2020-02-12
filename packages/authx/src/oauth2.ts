@@ -888,7 +888,7 @@ async function oAuth2Middleware(
               }
             ),
             refresh_token: getRefreshToken(grant.secrets),
-            expires_in: 3600,
+            expires_in: jwtValidityDuration,
             scope: scopes.join(" ")
             /* eslint-enabme @typescript-eslint/camelcase */
           };
