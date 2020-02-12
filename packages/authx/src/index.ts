@@ -93,6 +93,13 @@ export class AuthX extends Router<any, { [x]: Context }> {
           // invoked when the bearer token was generated.
         }
 
+        // An authorization header exists, but did not match a known format.
+        if (ctx.request.header.authorization && !authorization) {
+          throw new Error(
+            "An authorization header must be of either HTTP Basic or Bearer format."
+          );
+        }
+
         const context: Context = {
           ...ctx[x],
           ...config,
