@@ -11,14 +11,14 @@
     "@types/graphql-api-koa": "^2.0.2",
     "@types/graphql-relay": "^0.4.11",
     "@types/jsonwebtoken": "^8.3.7",
-    "@types/koa": "2.11.0",
+    "@types/koa": "2.11.1",
     "@types/koa-router": "^7.0.42",
     "@types/koa-send": "^4.1.2",
     "@types/pg": "^7.14.1",
     "@types/uuid": "^3.4.7",
     "auth-header": "^1.0.0",
     "form-data": "^3.0.0",
-    "graphql": "15.0.0-rc.1",
+    "graphql": "15.0.0-rc.2",
     "graphql-api-koa": "^4.1.1",
     "graphql-playground-middleware-koa": "^1.6.12",
     "graphql-relay": "^0.6.0",
@@ -32,9 +32,9 @@
   },
   "description": "",
   "devDependencies": {
-    "@typescript-eslint/eslint-plugin": "^2.19.0",
-    "@typescript-eslint/parser": "^2.19.0",
-    "ava": "^3.2.0",
+    "@typescript-eslint/eslint-plugin": "^2.19.2",
+    "@typescript-eslint/parser": "^2.19.2",
+    "ava": "^3.3.0",
     "eslint": "^6.7.2",
     "eslint-config-prettier": "^6.10.0",
     "eslint-plugin-prettier": "^3.1.1",
@@ -80,6 +80,6 @@
   "types": "dist/index.d.ts",
   "version": "3.1.0-alpha.4",
   "resolutions": {
-    "**/graphql": "15.0.0-rc.1"
+    "**/graphql": "15.0.0-rc.2"
   }
 }

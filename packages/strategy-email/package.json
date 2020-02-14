@@ -8,16 +8,16 @@
     "@authx/scopes": "^3.1.0-alpha.4",
     "@types/pg": "^7.14.1",
     "@types/uuid": "^3.4.7",
-    "graphql": "15.0.0-rc.1",
+    "graphql": "15.0.0-rc.2",
     "pg": "^7.18.1",
     "uuid": "^3.4.0"
   },
   "description": "",
   "devDependencies": {
     "@authx/authx": "^3.1.0-alpha.4",
-    "@typescript-eslint/eslint-plugin": "^2.19.0",
-    "@typescript-eslint/parser": "^2.19.0",
-    "ava": "^3.2.0",
+    "@typescript-eslint/eslint-plugin": "^2.19.2",
+    "@typescript-eslint/parser": "^2.19.2",
+    "ava": "^3.3.0",
     "eslint": "^6.7.2",
     "eslint-config-prettier": "^6.10.0",
     "eslint-plugin-prettier": "^3.1.1",
@@ -61,6 +61,6 @@
   "types": "dist/server/index.d.ts",
   "version": "3.1.0-alpha.4",
   "resolutions": {
-    "**/graphql": "15.0.0-rc.1"
+    "**/graphql": "15.0.0-rc.2"
   }
 }
