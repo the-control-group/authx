@@ -1,4 +1,4 @@
-import EventEmitter from "events";
+import { EventEmitter } from "events";
 import { createServer, Server, IncomingMessage, ServerResponse } from "http";
 import { createProxyServer, ServerOptions } from "http-proxy";
 import { isEqual, isSuperset } from "@authx/scopes";

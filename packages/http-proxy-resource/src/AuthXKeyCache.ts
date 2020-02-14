@@ -1,5 +1,5 @@
 import AbortController from "abort-controller";
-import EventEmitter from "events";
+import { EventEmitter } from "events";
 import fetch from "node-fetch";
 
 interface Config {
