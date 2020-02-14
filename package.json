@@ -36,7 +36,7 @@
     "test": "yarn packages:test && yarn root:test"
   },
   "devDependencies": {
-    "@authx/interface": "^3.1.0-alpha.4",
+    "@authx/interface": "^3.1.0-alpha.5",
     "@typescript-eslint/eslint-plugin": "^2.19.2",
     "@typescript-eslint/parser": "^2.19.2",
     "ava": "^3.3.0",

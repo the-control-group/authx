@@ -5,7 +5,7 @@
   },
   "bugs": "https://github.com/the-control-group/authx/issues",
   "dependencies": {
-    "@authx/scopes": "^3.1.0-alpha.4",
+    "@authx/scopes": "^3.1.0-alpha.5",
     "@types/graphql-react": "^8.1.1",
     "@types/html-webpack-plugin": "^3.2.2",
     "@types/memory-fs": "^0.3.2",
@@ -54,7 +54,7 @@
   "main": "dist/server/index.js",
   "name": "@authx/interface",
   "peerDependencies": {
-    "@authx/authx": "3.1.0-alpha.4",
+    "@authx/authx": "3.1.0-alpha.5",
     "koa": "^2.7.0"
   },
   "repository": "https://github.com/the-control-group/authx",
@@ -69,5 +69,5 @@
     "test:development": "ava --verbose --watch dist/*.test.js"
   },
   "types": "dist/server/index.d.ts",
-  "version": "3.1.0-alpha.4"
+  "version": "3.1.0-alpha.5"
 }
