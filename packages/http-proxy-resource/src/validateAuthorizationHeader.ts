@@ -181,6 +181,6 @@ export async function validateAuthorizationHeader(
   }
 
   throw new NotAuthorizedError(
-    "The sumitted authorization header was malformed."
+    "The submitted authorization header was malformed."
   );
 }
