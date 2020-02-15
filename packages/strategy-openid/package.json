@@ -5,7 +5,7 @@
   },
   "bugs": "https://github.com/the-control-group/authx/issues",
   "dependencies": {
-    "@authx/scopes": "^3.1.0-alpha.5",
+    "@authx/scopes": "^3.1.0-alpha.6",
     "@types/pg": "^7.14.1",
     "@types/uuid": "^3.4.7",
     "graphql": "15.0.0-rc.2",
@@ -14,7 +14,7 @@
   },
   "description": "",
   "devDependencies": {
-    "@authx/authx": "^3.1.0-alpha.5",
+    "@authx/authx": "^3.1.0-alpha.6",
     "@typescript-eslint/eslint-plugin": "^2.19.2",
     "@typescript-eslint/parser": "^2.19.2",
     "ava": "^3.3.0",
@@ -45,8 +45,8 @@
   "main": "dist/server",
   "name": "@authx/strategy-openid",
   "peerDependencies": {
-    "@authx/authx": "^3.1.0-alpha.5",
-    "@authx/strategy-email": "^3.1.0-alpha.5"
+    "@authx/authx": "^3.1.0-alpha.6",
+    "@authx/strategy-email": "^3.1.0-alpha.6"
   },
   "repository": "https://github.com/the-control-group/authx",
   "scripts": {
@@ -60,7 +60,7 @@
     "test:development": "ava --verbose --watch dist/*.test.js"
   },
   "types": "dist/server/index.d.ts",
-  "version": "3.1.0-alpha.5",
+  "version": "3.1.0-alpha.6",
   "resolutions": {
     "**/graphql": "15.0.0-rc.2"
   }
