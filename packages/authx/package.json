@@ -25,7 +25,7 @@
     "jsonwebtoken": "^8.5.0",
     "koa": "^2.11.0",
     "koa-body": "^4.1.1",
-    "koa-router": "^8.0.7",
+    "koa-router": "^8.0.8",
     "node-fetch": "^2.5.0",
     "pg": "^7.18.1",
     "uuid": "^3.4.0"
