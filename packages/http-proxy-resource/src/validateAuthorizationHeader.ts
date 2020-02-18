@@ -138,7 +138,7 @@ export async function validateAuthorizationHeader(
 
     if (!viewer || typeof viewer !== "object") {
       throw new NotAuthorizedError(
-        "The submitted basic credentials failed to retreive an authorization. Make sure the authorization has the scope `authx:authorization.equal.self.current:read.basic`."
+        "The submitted basic credentials failed to retreive an authorization. Make sure the authorization has permission to read its basic information."
       );
     }
 
@@ -148,7 +148,7 @@ export async function validateAuthorizationHeader(
 
     if (!viewer.access) {
       throw new NotAuthorizedError(
-        "The submitted basic credentials failed to retreive authorization scopes. Make sure the authorization has the scope `authx:authorization.equal.self.current:read.scopes`."
+        "The submitted basic credentials failed to retreive authorization scopes. Make sure the authorization has permission to read its own scopes."
       );
     }
 
@@ -169,7 +169,7 @@ export async function validateAuthorizationHeader(
 
     if (!viewer.user || typeof viewer.user.id !== "string") {
       throw new NotAuthorizedError(
-        "The submitted credentials could not resolve a subject ID. Make sure the authorization has the scope `authx:user.equal.self:read.basic`."
+        "The submitted credentials could not resolve a subject ID. Make sure the authorization has permission to read basic information of its associated user."
       );
     }
 
