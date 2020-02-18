@@ -37,7 +37,7 @@
   },
   "devDependencies": {
     "@authx/interface": "^3.1.0-alpha.6",
-    "@typescript-eslint/eslint-plugin": "^2.19.2",
+    "@typescript-eslint/eslint-plugin": "^2.20.0",
     "@typescript-eslint/parser": "^2.19.2",
     "ava": "^3.3.0",
     "eslint": "^6.7.2",
