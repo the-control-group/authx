@@ -220,6 +220,7 @@ export function Authorize({
           grant: null | {
             id: string;
             scopes: null | string[];
+            enabled: boolean;
           };
         };
       };
@@ -247,6 +248,7 @@ export function Authorize({
               grant(clientId: $clientId) {
                 id
                 scopes
+                enabled
               }
             }
           }
@@ -275,7 +277,8 @@ export function Authorize({
     cacheValue.data.viewer &&
     cacheValue.data.viewer.user;
   const client = cacheValue && cacheValue.data && cacheValue.data.client;
-  const grant = user && user.grant;
+  const grant =
+    user && user.grant && user.grant.enabled ? user.grant : undefined;
   const urls = client && client.urls;
   const explanations =
     cacheValue && cacheValue.data && cacheValue.data.explanations;
