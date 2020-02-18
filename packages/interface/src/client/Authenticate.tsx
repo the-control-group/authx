@@ -68,17 +68,12 @@ export function Authenticate({
 
   // Sort authorities by name.
   const authorities: any[] =
-    (cacheValue &&
-      cacheValue.data &&
-      cacheValue.data.authorities &&
-      cacheValue.data.authorities.edges &&
-      cacheValue.data.authorities.edges
-        .map((edge: any) => edge.node)
-        .filter((authority: any) => authority)
-        .sort((a: any, b: any) =>
-          a.name < b.name ? -1 : a.name > b.name ? 1 : 0
-        )) ||
-    [];
+    cacheValue?.data?.authorities?.edges
+      .map((edge: any) => edge.node)
+      .filter((authority: any) => authority)
+      .sort((a: any, b: any) =>
+        a.name < b.name ? -1 : a.name > b.name ? 1 : 0
+      ) || [];
 
   // Set an active authority.
   const [authorityId, setAuthorityId] = useState<null | string>(
@@ -146,9 +141,7 @@ export function Authenticate({
             <p>Loading...</p>
           ) : !authorities.length ? (
             authorityId ? (
-              cacheValue &&
-              cacheValue.graphQLErrors &&
-              cacheValue.graphQLErrors.length ? (
+              cacheValue?.graphQLErrors?.length ? (
                 cacheValue.graphQLErrors.map(({ message }, i) => (
                   <p className="error" key={i}>
                     {message}

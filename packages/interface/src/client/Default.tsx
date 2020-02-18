@@ -63,12 +63,7 @@ export function Default({
     }
   });
 
-  const displayName =
-    cacheValue &&
-    cacheValue.data &&
-    cacheValue.data.viewer &&
-    cacheValue.data.viewer.user &&
-    cacheValue.data.viewer.user.name;
+  const displayName = cacheValue?.data?.viewer?.user?.name;
 
   // API and errors
   const graphql = useContext<GraphQL>(GraphQLContext);
@@ -117,7 +112,7 @@ export function Default({
         return;
       }
 
-      if (result.graphQLErrors && result.graphQLErrors.length) {
+      if (result.graphQLErrors?.length) {
         setErrors(result.graphQLErrors.map(e => e.message));
         return;
       }

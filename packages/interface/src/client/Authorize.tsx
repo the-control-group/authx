@@ -271,24 +271,18 @@ export function Authorize({
     }
   });
 
-  const user =
-    cacheValue &&
-    cacheValue.data &&
-    cacheValue.data.viewer &&
-    cacheValue.data.viewer.user;
-  const client = cacheValue && cacheValue.data && cacheValue.data.client;
-  const grant =
-    user && user.grant && user.grant.enabled ? user.grant : undefined;
-  const urls = client && client.urls;
-  const explanations =
-    cacheValue && cacheValue.data && cacheValue.data.explanations;
+  const user = cacheValue?.data?.viewer?.user;
+  const client = cacheValue?.data?.client;
+  const grant = user?.grant?.enabled ? user.grant : undefined;
+  const urls = client?.urls;
+  const explanations = cacheValue?.data?.explanations;
 
   // These decisions override the default behavior, which is to
   const [overrides, setOverrides] = useState<{ [scope: string]: boolean }>({});
 
-  const clientId = (client && client.id) || null;
-  const grantId = (grant && grant.id) || speculativeGrantId;
-  const userId = (user && user.id) || null;
+  const clientId = client?.id || null;
+  const grantId = grant?.id || speculativeGrantId;
+  const userId = user?.id || null;
   const requestedScopes = useMemo(
     () =>
       requestedScopeTemplates
@@ -364,7 +358,7 @@ export function Authorize({
     [requestedScopeTemplates, clientId, grantId, userId]
   );
 
-  const grantedScopes = grant && grant.scopes;
+  const grantedScopes = grant?.scopes;
   const grantedScopesExplanations = useMemo(
     () =>
       explanations && grantedScopes
@@ -378,13 +372,12 @@ export function Authorize({
     [explanations, grantedScopes, clientId, grantId, userId]
   );
 
-  const newRequestedScopes =
-    grant && grant.scopes
-      ? getDifference(
-          grant.scopes.filter(s => overrides[s] !== false),
-          requestedScopes
-        )
-      : requestedScopes;
+  const newRequestedScopes = grant?.scopes
+    ? getDifference(
+        grant.scopes.filter(s => overrides[s] !== false),
+        requestedScopes
+      )
+    : requestedScopes;
 
   const newRequestedScopesExplanations = useMemo(
     () =>
@@ -496,18 +489,16 @@ export function Authorize({
         return;
       }
 
-      if (result.graphQLErrors && result.graphQLErrors.length) {
+      if (result.graphQLErrors?.length) {
         setErrors(result.graphQLErrors.map(e => e.message));
         return;
       }
 
       const final =
-        result.data &&
-        ((result.data.updateGrants && result.data.updateGrants[0]) ||
-          (result.data.createGrants && result.data.createGrants[0]));
+        result?.data?.updateGrants?.[0] ?? result?.data?.createGrants?.[0];
 
       const code =
-        (final && final.codes && [...final.codes].sort().reverse()[0]) || null;
+        (final?.codes && [...final.codes].sort().reverse()[0]) || null;
 
       if (!code) {
         setErrors([
@@ -540,8 +531,7 @@ export function Authorize({
     if (
       paramsClientId &&
       paramsRedirectUri &&
-      urls &&
-      urls.includes(paramsRedirectUri)
+      urls?.includes(paramsRedirectUri)
     ) {
       const url = new URL(paramsRedirectUri);
       if (paramsState) url.searchParams.set("state", paramsState);
@@ -571,7 +561,7 @@ export function Authorize({
       }
 
       // Check that all requested scopes are already granted
-      const grantedScopes = grant && grant.scopes;
+      const grantedScopes = grant?.scopes;
       if (
         grantedScopes &&
         requestedScopeTemplates &&
@@ -679,7 +669,7 @@ export function Authorize({
           <div>
             <p>
               Welcome
-              {" " + (user && user.name) || ""}!
+              {" " + user?.name ?? ""}!
               <button
                 onClick={e => {
                   e.preventDefault();
@@ -697,7 +687,7 @@ export function Authorize({
               </button>
             </p>
 
-            {grant && grant.scopes && grant.scopes.length ? (
+            {grant?.scopes?.length ? (
               <>
                 <p>
                   The app <strong>{client.name}</strong> has previously been
@@ -789,7 +779,7 @@ export function Authorize({
 
             {newRequestedScopes.length ? (
               <>
-                {grant && grant.scopes && grant.scopes.length ? (
+                {grant?.scopes?.length ? (
                   <p>It is also requesting access to the following scopes:</p>
                 ) : (
                   <p>
