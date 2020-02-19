@@ -62,7 +62,7 @@
   "main": "dist",
   "name": "@authx/authx",
   "optionalDependencies": {
-    "@opencensus/core": "^0.0.19",
+    "@opencensus/core": "^0.0.20",
     "graphql-middleware": "^4.0.2"
   },
   "peerDependencies": {
