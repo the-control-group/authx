@@ -367,7 +367,20 @@ export default class AuthXResourceProxy extends EventEmitter {
     send();
   };
 
-  public async listen(port?: number): Promise<void> {
+  public async listen(
+    options:
+      | number
+      | {
+          port?: number;
+          host?: string;
+          path?: string;
+          backlog?: number;
+          exclusive?: boolean;
+          readableAll?: boolean;
+          writableAll?: boolean;
+          ipv6Only?: boolean;
+        }
+  ): Promise<void> {
     if (!this._closed) {
       throw new Error("Proxy cannot listen because it not closed.");
     }
@@ -378,7 +391,7 @@ export default class AuthXResourceProxy extends EventEmitter {
 
     return new Promise(resolve => {
       this.server.once("listening", resolve);
-      this.server.listen(port);
+      this.server.listen(options);
     });
   }
 
