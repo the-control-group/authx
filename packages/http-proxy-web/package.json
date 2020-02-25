@@ -9,7 +9,7 @@
     "@types/cookies": "^0.7.4",
     "@types/http-proxy": "^1.17.2",
     "@types/jsonwebtoken": "^8.3.7",
-    "@types/node-fetch": "^2.5.4",
+    "@types/node-fetch": "^2.5.5",
     "abort-controller": "^3.0.0",
     "cookies": "^0.8.0",
     "http-proxy": "^1.18.0",
