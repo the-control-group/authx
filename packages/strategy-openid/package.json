@@ -10,7 +10,7 @@
     "@types/uuid": "^3.4.7",
     "graphql": "15.0.0-rc.2",
     "pg": "^7.18.2",
-    "uuid": "^3.4.0"
+    "uuid": "^7.0.1"
   },
   "description": "",
   "devDependencies": {
