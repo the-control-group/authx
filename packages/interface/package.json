@@ -9,7 +9,7 @@
     "@types/graphql-react": "^8.1.1",
     "@types/html-webpack-plugin": "^3.2.2",
     "@types/memory-fs": "^0.3.2",
-    "@types/react": "^16.9.22",
+    "@types/react": "^16.9.23",
     "@types/react-dom": "^16.9.5",
     "@types/webpack": "^4.41.6",
     "graphql-react": "^9.1.0",
