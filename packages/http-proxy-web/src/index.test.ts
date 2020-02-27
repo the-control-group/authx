@@ -162,7 +162,7 @@ test.before(async () => {
     ]
   });
 
-  await proxy.listen(5734);
+  await proxy.listen({ port: 5734, host: "localhost" });
   const address = proxy && proxy.server.address();
   if (!address || typeof address === "string" || !address.port) {
     throw new Error("No address for mock server.");

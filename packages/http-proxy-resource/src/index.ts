@@ -273,11 +273,12 @@ export default class AuthXResourceProxy extends EventEmitter {
           if (error instanceof NotAuthorizedError) {
             warning = error.message;
           } else {
-            this.emit("error", error);
             response.statusCode = 500;
             meta.message = error.message;
             meta.rule = rule;
             send();
+
+            this.emit("request.error", error, meta);
             return;
           }
         }
@@ -352,19 +353,37 @@ export default class AuthXResourceProxy extends EventEmitter {
       meta.message = "Request proxied." + (warning ? ` (${warning})` : "");
       meta.rule = rule;
       meta.behavior = behavior;
-      this._proxy.web(request, response, behavior.proxyOptions);
+      this._proxy.web(request, response, behavior.proxyOptions, error => {
+        if (!response.headersSent) {
+          const code = (error as any).code;
+          const statusCode =
+            typeof code === "string" && /INVALID/.test(code)
+              ? 502
+              : code === "ECONNRESET" ||
+                code === "ENOTFOUND" ||
+                code === "ECONNREFUSED"
+              ? 504
+              : 500;
+
+          response.writeHead(statusCode);
+          response.end();
+        }
+
+        this.emit("request.error", error, meta);
+      });
 
       return;
     }
 
-    this.emit(
-      "error",
-      new Error(`No rules matched requested URL "${request.url}".`)
-    );
     response.statusCode = 404;
     meta.message =
       "No rules matched requested URL." + (warning ? ` (${warning})` : "");
     send();
+    this.emit(
+      "request.error",
+      new Error(`No rules matched requested URL "${request.url}".`),
+      meta
+    );
   };
 
   public async listen(
