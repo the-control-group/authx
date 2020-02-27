@@ -8,7 +8,7 @@ import {
 } from "graphql";
 
 import jwt from "jsonwebtoken";
-import v4 from "uuid/v4";
+import { v4 } from "uuid";
 import { Grant, Authorization, User } from "../model";
 import { Context } from "../Context";
 import { GraphQLExplanation } from "./GraphQLExplanation";

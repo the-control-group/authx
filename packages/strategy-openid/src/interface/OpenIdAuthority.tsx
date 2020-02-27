@@ -7,7 +7,7 @@ import React, {
   FormEvent
 } from "react";
 
-import v4 from "uuid";
+import { v4 } from "uuid";
 import { GraphQL, GraphQLContext } from "graphql-react";
 
 interface Props {

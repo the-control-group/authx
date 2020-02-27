@@ -6,7 +6,7 @@ import {
 } from "graphql";
 import jwt from "jsonwebtoken";
 import { randomBytes } from "crypto";
-import v4 from "uuid/v4";
+import { v4 } from "uuid";
 import fetch from "node-fetch";
 import FormData from "form-data";
 

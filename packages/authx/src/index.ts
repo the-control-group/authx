@@ -1,5 +1,5 @@
 import body from "koa-body";
-import v4 from "uuid/v4";
+import { v4 } from "uuid";
 import createPlaygroundMiddleware from "graphql-playground-middleware-koa";
 import Router, { IRouterOptions } from "koa-router";
 import { errorHandler, execute } from "graphql-api-koa";
@@ -143,8 +143,8 @@ export class AuthX extends Router<any, { [x]: Context }> {
 
       execute({
         schema: config.processSchema
-          ? config.processSchema(createSchema(strategies))
-          : createSchema(strategies),
+          ? (config.processSchema(createSchema(strategies)) as any)
+          : (createSchema(strategies) as any),
         override: (ctx: any) => {
           const contextValue: Context = ctx[x];
 

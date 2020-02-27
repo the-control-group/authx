@@ -645,7 +645,7 @@ export default class AuthXClientProxy extends EventEmitter {
   }
 
   public async listen(
-    options?: 
+    options?:
       | number
       | {
           port: number;

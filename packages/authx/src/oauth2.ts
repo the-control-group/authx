@@ -1,4 +1,4 @@
-import v4 from "uuid/v4";
+import { v4 } from "uuid";
 import jwt from "jsonwebtoken";
 import { randomBytes } from "crypto";
 import { Context } from "./Context";
