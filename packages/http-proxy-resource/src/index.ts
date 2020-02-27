@@ -387,10 +387,10 @@ export default class AuthXResourceProxy extends EventEmitter {
   };
 
   public async listen(
-    options:
+    options?:
       | number
       | {
-          port?: number;
+          port: number;
           host?: string;
           path?: string;
           backlog?: number;
