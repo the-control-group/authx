@@ -1,4 +1,4 @@
-import v4 from "uuid/v4";
+import { v4 } from "uuid";
 import { GraphQLFieldConfig, GraphQLList, GraphQLNonNull } from "graphql";
 import { Context } from "../../Context";
 import { GraphQLAuthorization } from "../GraphQLAuthorization";

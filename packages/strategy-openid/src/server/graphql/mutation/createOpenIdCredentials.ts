@@ -1,4 +1,4 @@
-import v4 from "uuid/v4";
+import { v4 } from "uuid";
 import fetch from "node-fetch";
 import FormData from "form-data";
 import jwt from "jsonwebtoken";

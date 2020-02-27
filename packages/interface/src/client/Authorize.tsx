@@ -21,7 +21,7 @@ import { createV2AuthXScope } from "@authx/authx/scopes";
 import { isSuperset, getDifference, simplify, inject } from "@authx/scopes";
 import { match } from "@authx/authx/dist/util/explanations";
 
-import v4 from "uuid/v4";
+import { v4 } from "uuid";
 
 declare const __REALM__: string;
 

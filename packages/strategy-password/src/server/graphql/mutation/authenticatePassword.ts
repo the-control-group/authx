@@ -7,7 +7,7 @@ import {
 
 import { randomBytes } from "crypto";
 import { compare } from "bcrypt";
-import v4 from "uuid/v4";
+import { v4 } from "uuid";
 
 import {
   Context,

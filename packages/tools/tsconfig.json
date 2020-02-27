@@ -10,12 +10,7 @@
     "strict": true,
     "esModuleInterop": true,
     "skipLibCheck": true,
-    "sourceMap": true,
-    "baseUrl": "",
-    "paths": {
-      "graphql": ["../authx/@types/graphql"],
-      "graphql/*": ["../authx/@types/graphql/*"]
-    }
+    "sourceMap": true
   },
   "include": ["./src/**/*"]
 }

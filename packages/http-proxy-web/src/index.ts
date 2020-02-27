@@ -175,7 +175,9 @@ export default class AuthXWebProxy extends EventEmitter {
     super();
     this._config = config;
     this._proxy = createProxyServer({});
-    this._proxy.on("error", error => this.emit("error", error));
+    this._proxy.on("error", (error: Error, ...args) =>
+      this.emit("error", error, ...args)
+    );
     this.server = createServer(this._callback);
     this.server.on("listening", () => {
       this._closed = false;
@@ -253,7 +255,24 @@ export default class AuthXWebProxy extends EventEmitter {
       meta.message = "Request proxied.";
       meta.rule = rule;
       meta.behavior = behavior;
-      this._proxy.web(request, response, options);
+      this._proxy.web(request, response, options, error => {
+        if (!response.headersSent) {
+          const code = (error as any).code;
+          const statusCode =
+            typeof code === "string" && /INVALID/.test(code)
+              ? 502
+              : code === "ECONNRESET" ||
+                code === "ENOTFOUND" ||
+                code === "ECONNREFUSED"
+              ? 504
+              : 500;
+
+          response.writeHead(statusCode);
+          response.end();
+        }
+
+        this.emit("request.error", error, meta);
+      });
     };
 
     // Serve the readiness URL.
@@ -375,11 +394,10 @@ export default class AuthXWebProxy extends EventEmitter {
           "Request handled by client endpoint: redirect after successful auth.";
         return send();
       } catch (error) {
-        this.emit("error", error);
         response.statusCode = 500;
         meta.message =
           "Request handled by client endpoint: display fetch error.";
-        return send(`
+        send(`
           <html>
             <head><title>Error</title></head>
             <body>
@@ -387,6 +405,9 @@ export default class AuthXWebProxy extends EventEmitter {
             </body>
           </html>
         `);
+
+        this.emit("request.error", error);
+        return;
       }
     }
 
@@ -438,7 +459,7 @@ export default class AuthXWebProxy extends EventEmitter {
           return;
         }
       } catch (error) {
-        this.emit("error", error);
+        this.emit("request.error", error, meta);
       }
 
       const refreshToken = cookies.get("authx.r");
@@ -490,7 +511,7 @@ export default class AuthXWebProxy extends EventEmitter {
             return;
           }
         } catch (error) {
-          this.emit("error", error);
+          this.emit("request.error", error, meta);
         }
       }
 
@@ -523,21 +544,22 @@ export default class AuthXWebProxy extends EventEmitter {
       return send();
     }
 
-    this.emit(
-      "error",
-      new Error(`No rules matched requested URL "${request.url}".`)
-    );
-
     meta.message = "No rules matched requested URL.";
     response.statusCode = 404;
     send();
+
+    this.emit(
+      "request.error",
+      new Error(`No rules matched requested URL "${request.url}".`),
+      meta
+    );
   };
 
   public async listen(
-    options:
+    options?:
       | number
       | {
-          port?: number;
+          port: number;
           host?: string;
           path?: string;
           backlog?: number;

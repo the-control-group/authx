@@ -1,4 +1,4 @@
-import v4 from "uuid/v4";
+import { v4 } from "uuid";
 import { hash } from "bcrypt";
 import { GraphQLList, GraphQLFieldConfig, GraphQLNonNull } from "graphql";
 

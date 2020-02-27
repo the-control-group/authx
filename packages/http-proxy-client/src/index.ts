@@ -234,7 +234,9 @@ export default class AuthXClientProxy extends EventEmitter {
     super();
     this._config = config;
     this._proxy = createProxyServer({});
-    this._proxy.on("error", error => this.emit("error", error));
+    this._proxy.on("error", (error: Error, ...args) =>
+      this.emit("error", error, ...args)
+    );
     this.server = createServer(this._callback);
     this.server.on("listening", () => {
       this._closed = false;
@@ -317,8 +319,6 @@ export default class AuthXClientProxy extends EventEmitter {
             behavior.sendTokenToTargetWithScopes || []
           )}`;
         } catch (error) {
-          this.emit("error", error);
-
           response.statusCode = 503;
           meta.message =
             error instanceof Error
@@ -327,6 +327,8 @@ export default class AuthXClientProxy extends EventEmitter {
           meta.rule = rule;
           meta.behavior = behavior;
           send();
+
+          this.emit("request.error", error, meta);
           return;
         }
       }
@@ -335,19 +337,37 @@ export default class AuthXClientProxy extends EventEmitter {
       meta.message = "Request proxied.";
       meta.rule = rule;
       meta.behavior = behavior;
-      this._proxy.web(request, response, behavior.proxyOptions);
+      this._proxy.web(request, response, behavior.proxyOptions, error => {
+        if (!response.headersSent) {
+          const code = (error as any).code;
+          const statusCode =
+            typeof code === "string" && /INVALID/.test(code)
+              ? 502
+              : code === "ECONNRESET" ||
+                code === "ENOTFOUND" ||
+                code === "ECONNREFUSED"
+              ? 504
+              : 500;
+
+          response.writeHead(statusCode);
+          response.end();
+        }
+
+        this.emit("request.error", error, meta);
+      });
 
       return;
     }
 
-    this.emit(
-      "error",
-      new Error(`No rules matched requested URL "${request.url}".`)
-    );
-
     response.statusCode = 404;
     meta.message = "No rules matched requested URL.";
     send();
+
+    this.emit(
+      "request.error",
+      new Error(`No rules matched requested URL "${request.url}".`),
+      meta
+    );
     return;
   };
 
@@ -491,7 +511,7 @@ export default class AuthXClientProxy extends EventEmitter {
               client_secret: this._config.clientSecret,
               refresh_token: refreshToken,
               scope: scopes.join(" ")
-              /* eslint-enabme @typescript-eslint/camelcase */
+              /* eslint-enable @typescript-eslint/camelcase */
             })
           } as any);
 
@@ -625,10 +645,10 @@ export default class AuthXClientProxy extends EventEmitter {
   }
 
   public async listen(
-    options:
+    options?:
       | number
       | {
-          port?: number;
+          port: number;
           host?: string;
           path?: string;
           backlog?: number;
