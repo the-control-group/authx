@@ -46,7 +46,7 @@
     "koa": "^2.11.0",
     "nodemon": "^2.0.1",
     "prettier": "^1.19.1",
-    "typescript": "^3.8.2"
+    "typescript": "^3.8.3"
   },
   "resolutions": {
     "**/graphql": "15.0.0-rc.2"
