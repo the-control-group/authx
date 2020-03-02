@@ -6,7 +6,7 @@
   "bugs": "https://github.com/the-control-group/authx/issues",
   "dependencies": {
     "@types/http-proxy": "^1.17.2",
-    "@types/jsonwebtoken": "^8.3.7",
+    "@types/jsonwebtoken": "^8.3.8",
     "@types/node-fetch": "^2.5.5",
     "abort-controller": "^3.0.0",
     "http-proxy": "^1.18.0",
