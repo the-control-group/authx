@@ -28,7 +28,7 @@
     "koa-router": "^8.0.8",
     "node-fetch": "^2.5.0",
     "pg": "^7.18.2",
-    "uuid": "^7.0.1"
+    "uuid": "^7.0.2"
   },
   "description": "",
   "devDependencies": {

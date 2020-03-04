@@ -13,7 +13,7 @@
     "@types/pg": "^7.14.1",
     "@types/uuid": "^7.0.0",
     "pg": "^7.18.2",
-    "uuid": "^7.0.1"
+    "uuid": "^7.0.2"
   },
   "description": "",
   "devDependencies": {
