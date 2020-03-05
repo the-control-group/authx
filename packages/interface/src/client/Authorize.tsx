@@ -341,18 +341,21 @@ export function Authorize({
   const userId = user?.id || null;
   const requestedScopes = useMemo(
     () =>
-      requestedScopeTemplates
-        ? simplify(
-            inject([...requestedScopeTemplates, ...implicitScopes], {
-              /* eslint-disable @typescript-eslint/camelcase */
-              current_authorization_id: null,
-              current_client_id: clientId,
-              current_grant_id: grantId,
-              current_user_id: userId
-              /* eslint-enable @typescript-eslint/camelcase */
-            })
-          )
-        : [...implicitScopes],
+      simplify(
+        inject(
+          requestedScopeTemplates
+            ? [...requestedScopeTemplates, ...implicitScopes]
+            : implicitScopes,
+          {
+            /* eslint-disable @typescript-eslint/camelcase */
+            current_authorization_id: null,
+            current_client_id: clientId,
+            current_grant_id: grantId,
+            current_user_id: userId
+            /* eslint-enable @typescript-eslint/camelcase */
+          }
+        )
+      ),
     [requestedScopeTemplates, clientId, grantId, userId]
   );
 
