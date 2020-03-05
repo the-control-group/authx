@@ -9,23 +9,23 @@
     "@types/bcrypt": "^3.0.0",
     "@types/pg": "^7.14.1",
     "@types/uuid": "^7.0.0",
-    "bcrypt": "^4.0.0",
+    "bcrypt": "^4.0.1",
     "graphql": "15.0.0-rc.2",
     "pg": "^7.18.2",
-    "uuid": "^7.0.1"
+    "uuid": "^7.0.2"
   },
   "description": "",
   "devDependencies": {
     "@authx/authx": "^3.1.0-alpha.7",
-    "@typescript-eslint/eslint-plugin": "^2.21.0",
-    "@typescript-eslint/parser": "^2.21.0",
-    "ava": "^3.4.0",
+    "@typescript-eslint/eslint-plugin": "^2.22.0",
+    "@typescript-eslint/parser": "^2.22.0",
+    "ava": "^3.5.0",
     "eslint": "^6.7.2",
     "eslint-config-prettier": "^6.10.0",
     "eslint-plugin-prettier": "^3.1.1",
     "nodemon": "^2.0.2",
     "prettier": "^1.19.1",
-    "typescript": "^3.8.2"
+    "typescript": "^3.8.3"
   },
   "engines": {
     "node": ">=10"
