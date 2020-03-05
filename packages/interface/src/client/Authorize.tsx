@@ -25,6 +25,62 @@ import { v4 } from "uuid";
 
 declare const __REALM__: string;
 
+const implicitScopes = [
+  createV2AuthXScope(
+    __REALM__,
+    {
+      type: "user",
+      userId: "{current_user_id}"
+    },
+    {
+      basic: "r"
+    }
+  ),
+  createV2AuthXScope(
+    __REALM__,
+    {
+      type: "grant",
+      clientId: "{current_client_id}",
+      grantId: "{current_grant_id}",
+      userId: "{current_user_id}"
+    },
+    {
+      basic: "r",
+      scopes: "*",
+      secrets: "*"
+    }
+  ),
+  createV2AuthXScope(
+    __REALM__,
+    {
+      type: "grant",
+      clientId: "{current_client_id}",
+      grantId: "{current_grant_id}",
+      userId: "{current_user_id}"
+    },
+    {
+      basic: "w",
+      scopes: "",
+      secrets: "*"
+    }
+  ),
+  createV2AuthXScope(
+    __REALM__,
+    {
+      type: "authorization",
+      authorizationId: "*",
+      clientId: "{current_client_id}",
+      grantId: "{current_grant_id}",
+      userId: "{current_user_id}"
+    },
+    {
+      basic: "*",
+      scopes: "*",
+      secrets: "*"
+    }
+  )
+];
+
 function Scope({ children }: { children: ReactChild }): ReactElement {
   return (
     <div
@@ -287,74 +343,16 @@ export function Authorize({
     () =>
       requestedScopeTemplates
         ? simplify(
-            inject(
-              [
-                ...requestedScopeTemplates,
-                createV2AuthXScope(
-                  __REALM__,
-                  {
-                    type: "user",
-                    userId: "{current_user_id}"
-                  },
-                  {
-                    basic: "r"
-                  }
-                ),
-                createV2AuthXScope(
-                  __REALM__,
-                  {
-                    type: "grant",
-                    clientId: "{current_client_id}",
-                    grantId: "{current_grant_id}",
-                    userId: "{current_user_id}"
-                  },
-                  {
-                    basic: "r",
-                    scopes: "*",
-                    secrets: "*"
-                  }
-                ),
-                createV2AuthXScope(
-                  __REALM__,
-                  {
-                    type: "grant",
-                    clientId: "{current_client_id}",
-                    grantId: "{current_grant_id}",
-                    userId: "{current_user_id}"
-                  },
-                  {
-                    basic: "w",
-                    scopes: "",
-                    secrets: "*"
-                  }
-                ),
-                createV2AuthXScope(
-                  __REALM__,
-                  {
-                    type: "authorization",
-                    authorizationId: "*",
-                    clientId: "{current_client_id}",
-                    grantId: "{current_grant_id}",
-                    userId: "{current_user_id}"
-                  },
-                  {
-                    basic: "*",
-                    scopes: "*",
-                    secrets: "*"
-                  }
-                )
-              ],
-              {
-                /* eslint-disable @typescript-eslint/camelcase */
-                current_authorization_id: null,
-                current_client_id: clientId,
-                current_grant_id: grantId,
-                current_user_id: userId
-                /* eslint-enable @typescript-eslint/camelcase */
-              }
-            )
+            inject([...requestedScopeTemplates, ...implicitScopes], {
+              /* eslint-disable @typescript-eslint/camelcase */
+              current_authorization_id: null,
+              current_client_id: clientId,
+              current_grant_id: grantId,
+              current_user_id: userId
+              /* eslint-enable @typescript-eslint/camelcase */
+            })
           )
-        : [],
+        : [...implicitScopes],
     [requestedScopeTemplates, clientId, grantId, userId]
   );
 
