@@ -199,7 +199,7 @@ The resource proxy accepts two kinds of access tokens from AuthX.
 
 ### Revocable
 
-A revocable token is passed as HTTP Basic credentials in the `Authorization` header. The authorization ID is used as the "username" and the authoriztion secret is used as the "password". For each request with this type of token, the proxy makes a request to AuthX to get a list of applicable scopes, using the same header. **For this to be possible, the authorization must include the scopes `authx:authorization.equal.self.current:read.basic` and `authx:authorization.equal.self.current:read.scopes`.**
+A revocable token is passed as HTTP Basic credentials in the `Authorization` header. The authorization ID is used as the "username" and the authoriztion secret is used as the "password". For each request with this type of token, the proxy makes a request to AuthX to get a list of applicable scopes, using the same header. **For this to be possible, the authorization must include the scopes `authx:v2.authorization..*.{current_client_id}..{current_grant_id}..{current_user_id}:*..*..`.**
 
 ### Self-Contained
 
