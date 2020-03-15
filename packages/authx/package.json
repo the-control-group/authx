@@ -17,6 +17,7 @@
     "@types/pg": "^7.14.1",
     "@types/uuid": "^7.0.0",
     "auth-header": "^1.0.0",
+    "dataloader": "^2.0.0",
     "form-data": "^3.0.0",
     "graphql": "15.0.0-rc.2",
     "graphql-api-koa": "^4.1.1",

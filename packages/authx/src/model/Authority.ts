@@ -3,6 +3,7 @@ import { Credential } from "./Credential";
 import { Authorization } from "./Authorization";
 import { NotFoundError } from "../errors";
 import { AuthorityAction, createV2AuthXScope } from "../util/scopes";
+import { DataLoaderCacheKey, DataLoaderCache } from "../loader";
 
 export interface AuthorityRecordData {
   readonly id: string;
@@ -125,14 +126,14 @@ export abstract class Authority<A> implements AuthorityData<A> {
 
   public static read<T extends Authority<any>>(
     this: new (data: AuthorityData<any> & { readonly recordId: string }) => T,
-    tx: ClientBase,
+    tx: ClientBase | DataLoaderCacheKey,
     id: string,
     options?: { forUpdate: boolean }
   ): Promise<T>;
 
   public static read<T extends Authority<any>>(
     this: new (data: AuthorityData<any> & { readonly recordId: string }) => T,
-    tx: ClientBase,
+    tx: ClientBase | DataLoaderCacheKey,
     id: string[],
     options?: { forUpdate: boolean }
   ): Promise<T[]>;
@@ -147,7 +148,7 @@ export abstract class Authority<A> implements AuthorityData<A> {
     },
     K extends keyof M
   >(
-    tx: ClientBase,
+    tx: ClientBase | DataLoaderCacheKey,
     id: string,
     map: M,
     options?: { forUpdate: boolean }
@@ -163,7 +164,7 @@ export abstract class Authority<A> implements AuthorityData<A> {
     },
     K extends keyof M
   >(
-    tx: ClientBase,
+    tx: ClientBase | DataLoaderCacheKey,
     id: string[],
     map: M,
     options?: { forUpdate: boolean }
@@ -178,12 +179,20 @@ export abstract class Authority<A> implements AuthorityData<A> {
   >(
     this: {
       new (data: AuthorityData<any> & { readonly recordId: string }): T;
+      _cache: DataLoaderCache<InstanceType<M[K]>>;
     },
-    tx: ClientBase,
+    tx: ClientBase | DataLoaderCacheKey,
     id: string[] | string,
     map?: M,
     options: { forUpdate: boolean } = { forUpdate: false }
   ): Promise<InstanceType<M[K]>[] | InstanceType<M[K]> | T | T[]> {
+    if (tx instanceof DataLoaderCacheKey) {
+      const loader = this._cache.get(tx);
+      return Promise.all(
+        typeof id === "string" ? [loader.load(id)] : id.map(i => loader.load(i))
+      );
+    }
+
     if (typeof id !== "string" && !id.length) {
       return [];
     }
@@ -340,4 +349,6 @@ export abstract class Authority<A> implements AuthorityData<A> {
       baseUrls: row.base_urls
     });
   }
+
+  protected static readonly _cache: DataLoaderCache<Authority<any>>;
 }

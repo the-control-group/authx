@@ -3,6 +3,7 @@ import { Grant } from "./Grant";
 import { Authorization } from "./Authorization";
 import { NotFoundError } from "../errors";
 import { ClientAction, createV2AuthXScope } from "../util/scopes";
+import { DataLoaderCacheKey, DataLoaderCache } from "../loader";
 
 export interface ClientInvocationData {
   readonly id: string;
@@ -254,20 +255,27 @@ export class Client implements ClientData {
   }
 
   public static read(
-    tx: ClientBase,
+    tx: ClientBase | DataLoaderCacheKey,
     id: string,
     options?: { forUpdate: boolean }
   ): Promise<Client>;
   public static read(
-    tx: ClientBase,
+    tx: ClientBase | DataLoaderCacheKey,
     id: string[],
     options?: { forUpdate: boolean }
   ): Promise<Client[]>;
   public static async read(
-    tx: ClientBase,
+    tx: ClientBase | DataLoaderCacheKey,
     id: string[] | string,
     options: { forUpdate: boolean } = { forUpdate: false }
   ): Promise<Client[] | Client> {
+    if (tx instanceof DataLoaderCacheKey) {
+      const loader = this._cache.get(tx);
+      return Promise.all(
+        typeof id === "string" ? [loader.load(id)] : id.map(i => loader.load(i))
+      );
+    }
+
     if (typeof id !== "string" && !id.length) {
       return [];
     }
@@ -406,4 +414,6 @@ export class Client implements ClientData {
       urls: row.urls
     });
   }
+
+  private static readonly _cache = new DataLoaderCache(Client);
 }

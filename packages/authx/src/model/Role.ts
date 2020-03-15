@@ -4,6 +4,7 @@ import { Authorization } from "./Authorization";
 import { simplify, isSuperset, inject } from "@authx/scopes";
 import { NotFoundError } from "../errors";
 import { RoleAction, createV2AuthXScope } from "../util/scopes";
+import { DataLoaderCacheKey, DataLoaderCache } from "../loader";
 
 export interface RoleRecordData {
   readonly id: string;
@@ -154,20 +155,27 @@ export class Role implements RoleData {
   }
 
   public static read(
-    tx: ClientBase,
+    tx: ClientBase | DataLoaderCacheKey,
     id: string,
     options?: { forUpdate: boolean }
   ): Promise<Role>;
   public static read(
-    tx: ClientBase,
+    tx: ClientBase | DataLoaderCacheKey,
     id: string[],
     options?: { forUpdate: boolean }
   ): Promise<Role[]>;
   public static async read(
-    tx: ClientBase,
+    tx: ClientBase | DataLoaderCacheKey,
     id: string[] | string,
     options: { forUpdate: boolean } = { forUpdate: false }
   ): Promise<Role[] | Role> {
+    if (tx instanceof DataLoaderCacheKey) {
+      const loader = this._cache.get(tx);
+      return Promise.all(
+        typeof id === "string" ? [loader.load(id)] : id.map(i => loader.load(i))
+      );
+    }
+
     if (typeof id !== "string" && !id.length) {
       return [];
     }
@@ -329,4 +337,6 @@ export class Role implements RoleData {
       userIds: users.rows.map(({ user_id: userId }) => userId)
     });
   }
+
+  private static readonly _cache = new DataLoaderCache(Role);
 }

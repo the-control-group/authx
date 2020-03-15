@@ -4,6 +4,7 @@ import { User } from "./User";
 import { Authorization } from "./Authorization";
 import { NotFoundError } from "../errors";
 import { CredentialAction, createV2AuthXScope } from "../util/scopes";
+import { DataLoaderCacheKey, DataLoaderCache } from "../loader";
 
 export interface CredentialInvocationData {
   readonly id: string;
@@ -222,7 +223,7 @@ export abstract class Credential<C> implements CredentialData<C> {
 
   public static read<T extends Credential<any>>(
     this: new (data: CredentialData<any> & { readonly recordId: string }) => T,
-    tx: ClientBase,
+    tx: ClientBase | DataLoaderCacheKey,
     id: string,
     options?: { forUpdate: boolean }
   ): Promise<T>;
@@ -244,7 +245,7 @@ export abstract class Credential<C> implements CredentialData<C> {
     },
     K extends keyof M
   >(
-    tx: ClientBase,
+    tx: ClientBase | DataLoaderCacheKey,
     id: string,
     map: M,
     options?: { forUpdate: boolean }
@@ -260,7 +261,7 @@ export abstract class Credential<C> implements CredentialData<C> {
     },
     K extends keyof M
   >(
-    tx: ClientBase,
+    tx: ClientBase | DataLoaderCacheKey,
     id: string[],
     map: M,
     options?: { forUpdate: boolean }
@@ -275,12 +276,20 @@ export abstract class Credential<C> implements CredentialData<C> {
   >(
     this: {
       new (data: CredentialData<any> & { readonly recordId: string }): T;
+      _cache: DataLoaderCache<InstanceType<M[K]>>;
     },
-    tx: ClientBase,
+    tx: ClientBase | DataLoaderCacheKey,
     id: string[] | string,
     mapOrOptions?: M | { forUpdate: boolean },
     optionsOrUndefined?: { forUpdate: boolean }
   ): Promise<InstanceType<M[K]>[] | InstanceType<M[K]> | T | T[]> {
+    if (tx instanceof DataLoaderCacheKey) {
+      const loader = this._cache.get(tx);
+      return Promise.all(
+        typeof id === "string" ? [loader.load(id)] : id.map(i => loader.load(i))
+      );
+    }
+
     if (typeof id !== "string" && !id.length) {
       return [];
     }
@@ -452,4 +461,6 @@ export abstract class Credential<C> implements CredentialData<C> {
       userId: row.user_id
     });
   }
+
+  protected static readonly _cache: DataLoaderCache<Credential<any>>;
 }

@@ -6,6 +6,7 @@ import { simplify, isSuperset } from "@authx/scopes";
 import { Authorization } from "./Authorization";
 import { NotFoundError } from "../errors";
 import { UserAction, createV2AuthXScope } from "../util/scopes";
+import { DataLoaderCacheKey, DataLoaderCache } from "../loader";
 
 export interface UserRecordData {
   readonly id: string;
@@ -287,20 +288,27 @@ export class User implements UserData {
   }
 
   public static read(
-    tx: ClientBase,
+    tx: ClientBase | DataLoaderCacheKey,
     id: string,
     options?: { forUpdate: boolean }
   ): Promise<User>;
   public static read(
-    tx: ClientBase,
+    tx: ClientBase | DataLoaderCacheKey,
     id: string[],
     options?: { forUpdate: boolean }
   ): Promise<User[]>;
   public static async read(
-    tx: ClientBase,
+    tx: ClientBase | DataLoaderCacheKey,
     id: string[] | string,
     options: { forUpdate: boolean } = { forUpdate: false }
   ): Promise<User[] | User> {
+    if (tx instanceof DataLoaderCacheKey) {
+      const loader = this._cache.get(tx);
+      return Promise.all(
+        typeof id === "string" ? [loader.load(id)] : id.map(i => loader.load(i))
+      );
+    }
+
     if (typeof id !== "string" && !id.length) {
       return [];
     }
@@ -426,4 +434,6 @@ export class User implements UserData {
       recordId: row.record_id
     });
   }
+
+  private static readonly _cache = new DataLoaderCache(User);
 }

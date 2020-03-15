@@ -19,6 +19,7 @@ import { createAuthXExplanations } from "./explanations";
 
 export * from "./x";
 export * from "./errors";
+export * from "./loader";
 export * from "./model";
 export * from "./graphql";
 export * from "./Strategy";

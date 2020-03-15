@@ -4,6 +4,7 @@ import { Grant } from "./Grant";
 import { simplify, getIntersection, isSuperset } from "@authx/scopes";
 import { NotFoundError } from "../errors";
 import { AuthorizationAction, createV2AuthXScope } from "../util/scopes";
+import { DataLoaderCacheKey, DataLoaderCache } from "../loader";
 
 export interface AuthorizationInvocationData {
   readonly id: string;
@@ -279,20 +280,27 @@ export class Authorization implements AuthorizationData {
   }
 
   public static read(
-    tx: ClientBase,
+    tx: ClientBase | DataLoaderCacheKey,
     id: string,
     options?: { forUpdate: boolean }
   ): Promise<Authorization>;
   public static read(
-    tx: ClientBase,
+    tx: ClientBase | DataLoaderCacheKey,
     id: string[],
     options?: { forUpdate: boolean }
   ): Promise<Authorization[]>;
   public static async read(
-    tx: ClientBase,
+    tx: ClientBase | DataLoaderCacheKey,
     id: string[] | string,
     options: { forUpdate: boolean } = { forUpdate: false }
   ): Promise<Authorization[] | Authorization> {
+    if (tx instanceof DataLoaderCacheKey) {
+      const loader = this._cache.get(tx);
+      return Promise.all(
+        typeof id === "string" ? [loader.load(id)] : id.map(i => loader.load(i))
+      );
+    }
+
     if (typeof id !== "string" && !id.length) {
       return [];
     }
@@ -483,4 +491,6 @@ export class Authorization implements AuthorizationData {
       grantId: row.grant_id
     });
   }
+
+  private static readonly _cache = new DataLoaderCache(Authorization);
 }
