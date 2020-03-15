@@ -373,9 +373,7 @@ export abstract class Credential<C> implements CredentialData<C> {
   public static async write<C, T extends Credential<C>>(
     this: {
       new (data: CredentialData<C> & { readonly recordId: string }): T;
-      _cache: any;
-      write: any;
-    },
+    } & Pick<typeof Credential, "write" | "_cache">,
     tx: Pool | ClientBase | DataLoaderExecutor,
     data: CredentialData<C>,
     metadata: {
@@ -385,7 +383,7 @@ export abstract class Credential<C> implements CredentialData<C> {
     }
   ): Promise<T> {
     if (tx instanceof DataLoaderExecutor) {
-      const result = await this.write(tx.tx, data, metadata);
+      const result = await this.write<C, T>(tx.tx, data, metadata);
 
       this._cache
         .get(tx)
@@ -476,7 +474,7 @@ export abstract class Credential<C> implements CredentialData<C> {
       authorityId: row.authority_id,
       authorityUserId: row.authority_user_id,
       userId: row.user_id
-    });
+    }) as T;
   }
 
   static readonly _cache: DataLoaderCache<Credential<any>>;

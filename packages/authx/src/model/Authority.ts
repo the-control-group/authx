@@ -258,9 +258,7 @@ export abstract class Authority<A> implements AuthorityData<A> {
   public static async write<A, T extends Authority<A>>(
     this: {
       new (data: AuthorityData<A> & { readonly recordId: string }): T;
-      _cache: any;
-      write: any;
-    },
+    } & Pick<typeof Authority, "write" | "_cache">,
     tx: Pool | ClientBase | DataLoaderExecutor,
     data: AuthorityData<A>,
     metadata: {
@@ -270,7 +268,7 @@ export abstract class Authority<A> implements AuthorityData<A> {
     }
   ): Promise<T> {
     if (tx instanceof DataLoaderExecutor) {
-      const result = await this.write(tx.tx, data, metadata);
+      const result = await this.write<A, T>(tx.tx, data, metadata);
 
       this._cache
         .get(tx)
@@ -361,7 +359,7 @@ export abstract class Authority<A> implements AuthorityData<A> {
       ...row,
       recordId: row.record_id,
       baseUrls: row.base_urls
-    });
+    }) as T;
   }
 
   static readonly _cache: DataLoaderCache<Authority<any>>;

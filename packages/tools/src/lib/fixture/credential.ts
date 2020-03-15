@@ -17,9 +17,7 @@ export const credential: {
           authorityId: "0d765613-e813-40e5-9aa7-89f96531364e",
           authorityUserId: "michael.scott@dundermifflin.com",
           userId: "a6a0946d-eeb4-45cd-83c6-c7920f2272eb",
-          details: {
-            proof: null
-          }
+          details: {}
         },
         {
           recordId: "43f7df35-4c00-4baf-b175-1914869897d5",
@@ -39,9 +37,7 @@ export const credential: {
           authorityId: "0d765613-e813-40e5-9aa7-89f96531364e",
           authorityUserId: "dwight.schrute@dundermifflin.com",
           userId: "0cbd3783-0424-4f35-be51-b42f07a2a987",
-          details: {
-            proof: null
-          }
+          details: {}
         },
         {
           recordId: "a773bff0-ada1-43b9-b724-85b85dfcd2e3",
@@ -61,9 +57,7 @@ export const credential: {
           authorityId: "0d765613-e813-40e5-9aa7-89f96531364e",
           authorityUserId: "jim.halpert@dundermifflin.com",
           userId: "d0fc4c64-a3d6-4d97-9341-07de24439bb1",
-          details: {
-            proof: null
-          }
+          details: {}
         },
         {
           recordId: "d6e44a92-8841-48f1-8d9b-0f1d54ee1262",
@@ -83,9 +77,7 @@ export const credential: {
           authorityId: "0d765613-e813-40e5-9aa7-89f96531364e",
           authorityUserId: "pam.beesly-halpert@dundermifflin.com",
           userId: "eaa9fa5e-088a-4ae2-a6ab-f120006b20a9",
-          details: {
-            proof: null
-          }
+          details: {}
         },
         {
           recordId: "80a5449b-c08e-4ee5-8f4f-bd6f16b716af",
@@ -105,9 +97,7 @@ export const credential: {
           authorityId: "0d765613-e813-40e5-9aa7-89f96531364e",
           authorityUserId: "toby.flenderson@dundermifflin.com",
           userId: "306eabbb-cc2b-4f88-be19-4bb6ec98e5c3",
-          details: {
-            proof: null
-          }
+          details: {}
         },
         {
           recordId: "4c33b324-6b53-4163-8e25-d3ebaa863913",
@@ -127,9 +117,7 @@ export const credential: {
           authorityId: "0d765613-e813-40e5-9aa7-89f96531364e",
           authorityUserId: "jan.levinson@dundermifflin.com",
           userId: "dc396449-2c7d-4a23-a159-e6415ded71d2",
-          details: {
-            proof: null
-          }
+          details: {}
         },
         {
           recordId: "f3601f1e-2af0-4454-b30c-4658746d1be4",
@@ -149,9 +137,7 @@ export const credential: {
           authorityId: "0d765613-e813-40e5-9aa7-89f96531364e",
           authorityUserId: "darryl.philbin@dundermifflin.com",
           userId: "51192909-3664-44d5-be62-c6b45f0b0ee6",
-          details: {
-            proof: null
-          }
+          details: {}
         },
         {
           recordId: "8579853d-db37-4212-8cac-3fe42f1e8c42",
@@ -171,9 +157,7 @@ export const credential: {
           authorityId: "0d765613-e813-40e5-9aa7-89f96531364e",
           authorityUserId: "roy.anderson@dundermifflin.com",
           userId: "9ad4b34b-781d-44fe-ac39-9b7ac43dde21",
-          details: {
-            proof: null
-          }
+          details: {}
         },
         {
           recordId: "af713259-e3a6-4a66-96a7-284cb3bac2cb",
@@ -370,8 +354,7 @@ export const credential: {
           authorityUserId: "1691f38d-92c8-4d86-9a89-da99528cfcb5",
           userId: "1691f38d-92c8-4d86-9a89-da99528cfcb5",
           details: {
-            secret:
-              "$2a$04$SPRITTeZvQ9hI.TPkvoE0Op19wAgBlObKRQ6sz.ahjVVDFBajjFrO" // password: da8ad1c19e0f
+            hash: "$2a$04$SPRITTeZvQ9hI.TPkvoE0Op19wAgBlObKRQ6sz.ahjVVDFBajjFrO" // password: da8ad1c19e0f
           }
         },
         {
