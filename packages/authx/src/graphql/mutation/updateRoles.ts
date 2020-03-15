@@ -4,6 +4,7 @@ import { GraphQLFieldConfig, GraphQLList, GraphQLNonNull } from "graphql";
 import { Context } from "../../Context";
 import { GraphQLRole } from "../GraphQLRole";
 import { Role } from "../../model";
+import { DataLoaderExecutor } from "../../loader";
 import { filter } from "../../util/filter";
 import { validateIdFormat } from "../../util/validateIdFormat";
 import { ForbiddenError, ValidationError } from "../../errors";
@@ -34,7 +35,7 @@ export const updateRoles: GraphQLFieldConfig<
     }
   },
   async resolve(source, args, context): Promise<Promise<Role>[]> {
-    const { pool, authorization: a, realm } = context;
+    const { pool, executor, authorization: a, realm } = context;
 
     if (!a) {
       throw new ForbiddenError("You must be authenticated to update a role.");
@@ -59,14 +60,17 @@ export const updateRoles: GraphQLFieldConfig<
 
       const tx = await pool.connect();
       try {
+        // Make sure this transaction is used for queries made by the executor.
+        const x = new DataLoaderExecutor(tx, executor.key);
+
         await tx.query("BEGIN DEFERRABLE");
-        const before = await Role.read(tx, input.id, {
+        const before = await Role.read(x, input.id, {
           forUpdate: true
         });
 
         // w.... -----------------------------------------------------------
         if (
-          !(await before.isAccessibleBy(realm, a, tx, {
+          !(await before.isAccessibleBy(realm, a, x, {
             basic: "w",
             scopes: "",
             users: ""
@@ -80,7 +84,7 @@ export const updateRoles: GraphQLFieldConfig<
         // w..w.. ----------------------------------------------------------
         if (
           input.scopes &&
-          !(await before.isAccessibleBy(realm, a, tx, {
+          !(await before.isAccessibleBy(realm, a, x, {
             basic: "w",
             scopes: "w",
             users: ""
@@ -108,9 +112,9 @@ export const updateRoles: GraphQLFieldConfig<
           const assignableScopes = roleIDs.length
             ? (
                 await filter(
-                  await Role.read(tx, roleIDs, { forUpdate: true }),
+                  await Role.read(x, roleIDs, { forUpdate: true }),
                   role =>
-                    role.isAccessibleBy(realm, a, tx, {
+                    role.isAccessibleBy(realm, a, x, {
                       basic: "w",
                       scopes: "",
                       users: "w"
@@ -129,7 +133,7 @@ export const updateRoles: GraphQLFieldConfig<
 
         // w....w -----------------------------------------------------
         if (
-          !(await before.isAccessibleBy(realm, a, tx, {
+          !(await before.isAccessibleBy(realm, a, x, {
             basic: "w",
             scopes: "",
             users: "w"
@@ -154,7 +158,7 @@ export const updateRoles: GraphQLFieldConfig<
         }
 
         const role = await Role.write(
-          tx,
+          x,
           {
             ...before,
             enabled:

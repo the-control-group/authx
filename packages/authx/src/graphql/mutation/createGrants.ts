@@ -5,6 +5,7 @@ import { GraphQLFieldConfig, GraphQLList, GraphQLNonNull } from "graphql";
 import { Context } from "../../Context";
 import { GraphQLGrant } from "../GraphQLGrant";
 import { Grant, Role } from "../../model";
+import { DataLoaderExecutor } from "../../loader";
 import { validateIdFormat } from "../../util/validateIdFormat";
 import { createV2AuthXScope } from "../../util/scopes";
 import {
@@ -42,7 +43,7 @@ export const createGrants: GraphQLFieldConfig<
     }
   },
   async resolve(source, args, context): Promise<Promise<Grant>[]> {
-    const { pool, authorization: a, realm } = context;
+    const { pool, executor, authorization: a, realm } = context;
 
     if (!a) {
       throw new ForbiddenError("You must be authenticated to create a grant.");
@@ -75,9 +76,12 @@ export const createGrants: GraphQLFieldConfig<
 
       const tx = await pool.connect();
       try {
+        // Make sure this transaction is used for queries made by the executor.
+        const x = new DataLoaderExecutor(tx, executor.key);
+
         if (
           !(await a.can(
-            tx,
+            x,
             createV2AuthXScope(
               realm,
               {
@@ -105,7 +109,7 @@ export const createGrants: GraphQLFieldConfig<
           // Make sure the ID isn't already in use.
           if (input.id) {
             try {
-              await Grant.read(tx, input.id, { forUpdate: true });
+              await Grant.read(x, input.id, { forUpdate: true });
               throw new ConflictError();
             } catch (error) {
               if (!(error instanceof NotFoundError)) {
@@ -117,7 +121,7 @@ export const createGrants: GraphQLFieldConfig<
           const id = input.id || v4();
           const now = Math.floor(Date.now() / 1000);
           const grant = await Grant.write(
-            tx,
+            x,
             {
               id,
               enabled: input.enabled,
@@ -240,10 +244,10 @@ export const createGrants: GraphQLFieldConfig<
 
           // Add administration scopes.
           for (const { roleId, scopes } of input.administration) {
-            const role = await Role.read(tx, roleId, { forUpdate: true });
+            const role = await Role.read(x, roleId, { forUpdate: true });
 
             if (
-              !role.isAccessibleBy(realm, a, tx, {
+              !role.isAccessibleBy(realm, a, x, {
                 basic: "w",
                 scopes: "w",
                 users: ""
@@ -255,7 +259,7 @@ export const createGrants: GraphQLFieldConfig<
             }
 
             await Role.write(
-              tx,
+              x,
               {
                 ...role,
                 scopes: simplify([

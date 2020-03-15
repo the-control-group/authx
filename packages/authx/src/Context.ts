@@ -2,6 +2,7 @@ import { Pool } from "pg";
 import { Authorization } from "./model";
 import { StrategyCollection } from "./StrategyCollection";
 import { Explanation } from "./util/explanations";
+import { DataLoaderExecutor } from "./loader";
 
 export interface Context {
   readonly realm: string;
@@ -20,5 +21,6 @@ export interface Context {
   readonly pool: Pool;
   readonly strategies: StrategyCollection;
   readonly explanations: ReadonlyArray<Explanation>;
+  readonly executor: DataLoaderExecutor;
   authorization: null | Authorization;
 }

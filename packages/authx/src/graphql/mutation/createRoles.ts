@@ -4,6 +4,7 @@ import { GraphQLFieldConfig, GraphQLList, GraphQLNonNull } from "graphql";
 import { Context } from "../../Context";
 import { GraphQLRole } from "../GraphQLRole";
 import { Role } from "../../model";
+import { DataLoaderExecutor } from "../../loader";
 import { validateIdFormat } from "../../util/validateIdFormat";
 import { createV2AuthXScope } from "../../util/scopes";
 import {
@@ -42,7 +43,7 @@ export const createRoles: GraphQLFieldConfig<
     }
   },
   async resolve(source, args, context): Promise<Promise<Role>[]> {
-    const { pool, authorization: a, realm } = context;
+    const { pool, executor, authorization: a, realm } = context;
 
     if (!a) {
       throw new ForbiddenError("You must be authenticated to create a role.");
@@ -74,9 +75,12 @@ export const createRoles: GraphQLFieldConfig<
 
       const tx = await pool.connect();
       try {
+        // Make sure this transaction is used for queries made by the executor.
+        const x = new DataLoaderExecutor(tx, executor.key);
+
         if (
           !(await a.can(
-            tx,
+            x,
             createV2AuthXScope(
               realm,
               {
@@ -102,7 +106,7 @@ export const createRoles: GraphQLFieldConfig<
           // Make sure the ID isn't already in use.
           if (input.id) {
             try {
-              await Role.read(tx, input.id, { forUpdate: true });
+              await Role.read(x, input.id, { forUpdate: true });
               throw new ConflictError();
             } catch (error) {
               if (!(error instanceof NotFoundError)) {
@@ -182,10 +186,10 @@ export const createRoles: GraphQLFieldConfig<
             }
 
             // Make sure we have permission to add scopes to the role.
-            const role = await Role.read(tx, roleId, { forUpdate: true });
+            const role = await Role.read(x, roleId, { forUpdate: true });
 
             if (
-              !role.isAccessibleBy(realm, a, tx, {
+              !role.isAccessibleBy(realm, a, x, {
                 basic: "w",
                 scopes: "w",
                 users: ""
@@ -198,7 +202,7 @@ export const createRoles: GraphQLFieldConfig<
 
             // Update the role.
             await Role.write(
-              tx,
+              x,
               {
                 ...role,
                 scopes: simplify([
@@ -217,7 +221,7 @@ export const createRoles: GraphQLFieldConfig<
           }
 
           const role = await Role.write(
-            tx,
+            x,
             {
               id,
               enabled: input.enabled,

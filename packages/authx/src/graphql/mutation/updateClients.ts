@@ -5,6 +5,7 @@ import { GraphQLFieldConfig, GraphQLList, GraphQLNonNull } from "graphql";
 import { Context } from "../../Context";
 import { GraphQLClient } from "../GraphQLClient";
 import { Client } from "../../model";
+import { DataLoaderExecutor } from "../../loader";
 import { validateIdFormat } from "../../util/validateIdFormat";
 import { ForbiddenError, ValidationError } from "../../errors";
 import { GraphQLUpdateClientInput } from "./GraphQLUpdateClientInput";
@@ -35,7 +36,7 @@ export const updateClients: GraphQLFieldConfig<
     }
   },
   async resolve(source, args, context): Promise<Promise<Client>[]> {
-    const { pool, authorization: a, realm } = context;
+    const { pool, executor, authorization: a, realm } = context;
 
     if (!a) {
       throw new ForbiddenError("You must be authenticated to update a client.");
@@ -62,14 +63,17 @@ export const updateClients: GraphQLFieldConfig<
 
       const tx = await pool.connect();
       try {
+        // Make sure this transaction is used for queries made by the executor.
+        const x = new DataLoaderExecutor(tx, executor.key);
+
         await tx.query("BEGIN DEFERRABLE");
-        const before = await Client.read(tx, input.id, {
+        const before = await Client.read(x, input.id, {
           forUpdate: true
         });
 
         // w.... -----------------------------------------------------------
         if (
-          !(await before.isAccessibleBy(realm, a, tx, {
+          !(await before.isAccessibleBy(realm, a, x, {
             basic: "w",
             secrets: ""
           }))
@@ -94,7 +98,7 @@ export const updateClients: GraphQLFieldConfig<
 
         // w...w. ---------------------------------------------------------
         if (
-          !(await before.isAccessibleBy(realm, a, tx, {
+          !(await before.isAccessibleBy(realm, a, x, {
             basic: "w",
             secrets: "w"
           }))
@@ -120,7 +124,7 @@ export const updateClients: GraphQLFieldConfig<
         }
 
         const client = await Client.write(
-          tx,
+          x,
           {
             ...before,
             enabled:

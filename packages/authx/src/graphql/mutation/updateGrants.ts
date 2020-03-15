@@ -4,6 +4,7 @@ import { GraphQLFieldConfig, GraphQLList, GraphQLNonNull } from "graphql";
 import { Context } from "../../Context";
 import { GraphQLGrant } from "../GraphQLGrant";
 import { Grant } from "../../model";
+import { DataLoaderExecutor } from "../../loader";
 import { validateIdFormat } from "../../util/validateIdFormat";
 import { ForbiddenError, ValidationError } from "../../errors";
 import { GraphQLUpdateGrantInput } from "./GraphQLUpdateGrantInput";
@@ -33,7 +34,13 @@ export const updateGrants: GraphQLFieldConfig<
     }
   },
   async resolve(source, args, context): Promise<Promise<Grant>[]> {
-    const { pool, authorization: a, realm, codeValidityDuration } = context;
+    const {
+      pool,
+      executor,
+      authorization: a,
+      realm,
+      codeValidityDuration
+    } = context;
 
     if (!a) {
       throw new ForbiddenError("You must be authenticated to update a grant.");
@@ -47,13 +54,16 @@ export const updateGrants: GraphQLFieldConfig<
 
       const tx = await pool.connect();
       try {
+        // Make sure this transaction is used for queries made by the executor.
+        const x = new DataLoaderExecutor(tx, executor.key);
+
         await tx.query("BEGIN DEFERRABLE");
-        const before = await Grant.read(tx, input.id, {
+        const before = await Grant.read(x, input.id, {
           forUpdate: true
         });
 
         if (
-          !(await before.isAccessibleBy(realm, a, tx, {
+          !(await before.isAccessibleBy(realm, a, x, {
             basic: "w",
             scopes: "",
             secrets: ""
@@ -66,7 +76,7 @@ export const updateGrants: GraphQLFieldConfig<
 
         if (
           input.scopes &&
-          !(await before.isAccessibleBy(realm, a, tx, {
+          !(await before.isAccessibleBy(realm, a, x, {
             basic: "w",
             scopes: "w",
             secrets: ""
@@ -82,7 +92,7 @@ export const updateGrants: GraphQLFieldConfig<
             input.removeSecrets ||
             input.generateCodes ||
             input.removeCodes) &&
-          !(await before.isAccessibleBy(realm, a, tx, {
+          !(await before.isAccessibleBy(realm, a, x, {
             basic: "w",
             scopes: "",
             secrets: "w"
@@ -151,7 +161,7 @@ export const updateGrants: GraphQLFieldConfig<
         }
 
         const grant = await Grant.write(
-          tx,
+          x,
           {
             ...before,
             enabled:

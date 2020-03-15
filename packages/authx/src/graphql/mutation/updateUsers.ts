@@ -3,6 +3,7 @@ import { GraphQLFieldConfig, GraphQLNonNull, GraphQLList } from "graphql";
 import { Context } from "../../Context";
 import { GraphQLUser } from "../GraphQLUser";
 import { User } from "../../model";
+import { DataLoaderExecutor } from "../../loader";
 import { validateIdFormat } from "../../util/validateIdFormat";
 import { ForbiddenError, ValidationError } from "../../errors";
 import { GraphQLUpdateUserInput } from "./GraphQLUpdateUserInput";
@@ -28,7 +29,7 @@ export const updateUsers: GraphQLFieldConfig<
     }
   },
   async resolve(source, args, context): Promise<Promise<User>[]> {
-    const { pool, authorization: a, realm } = context;
+    const { pool, executor, authorization: a, realm } = context;
 
     if (!a) {
       throw new ForbiddenError(
@@ -37,22 +38,24 @@ export const updateUsers: GraphQLFieldConfig<
     }
 
     return args.users.map(async input => {
-      const tx = await pool.connect();
-
       // Validate `id`.
       if (!validateIdFormat(input.id)) {
         throw new ValidationError("The provided `id` is an invalid ID.");
       }
 
+      const tx = await pool.connect();
       try {
+        // Make sure this transaction is used for queries made by the executor.
+        const x = new DataLoaderExecutor(tx, executor.key);
+
         await tx.query("BEGIN DEFERRABLE");
 
-        const before = await User.read(tx, input.id, {
+        const before = await User.read(x, input.id, {
           forUpdate: true
         });
 
         if (
-          !(await before.isAccessibleBy(realm, a, tx, {
+          !(await before.isAccessibleBy(realm, a, x, {
             basic: "w"
           }))
         ) {
@@ -62,7 +65,7 @@ export const updateUsers: GraphQLFieldConfig<
         }
 
         const user = await User.write(
-          tx,
+          x,
           {
             ...before,
             enabled:

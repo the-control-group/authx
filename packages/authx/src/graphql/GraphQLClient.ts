@@ -33,20 +33,15 @@ export const GraphQLClient = new GraphQLObjectType<Client, Context>({
       async resolve(
         client,
         args,
-        { realm, authorization: a, pool }: Context
+        { realm, authorization: a, executor }: Context
       ): Promise<null | string[]> {
-        const tx = await pool.connect();
-        try {
-          return a &&
-            (await client.isAccessibleBy(realm, a, tx, {
-              basic: "r",
-              secrets: "r"
-            }))
-            ? [...client.secrets]
-            : null;
-        } finally {
-          tx.release();
-        }
+        return a &&
+          (await client.isAccessibleBy(realm, a, executor, {
+            basic: "r",
+            secrets: "r"
+          }))
+          ? [...client.secrets]
+          : null;
       }
     },
     urls: { type: new GraphQLList(GraphQLString) },
@@ -57,20 +52,19 @@ export const GraphQLClient = new GraphQLObjectType<Client, Context>({
       // TODO: The type definitions in graphql-js are garbage, and will be
       // refactored shortly.
       args: connectionArgs as any,
-      async resolve(client, args, { realm, authorization: a, pool }: Context) {
-        const tx = await pool.connect();
-        try {
-          return a
-            ? connectionFromArray(
-                await filter(await client.grants(tx), grant =>
-                  grant.isAccessibleBy(realm, a, tx)
-                ),
-                args
-              )
-            : null;
-        } finally {
-          tx.release();
-        }
+      async resolve(
+        client,
+        args,
+        { realm, authorization: a, executor }: Context
+      ) {
+        return a
+          ? connectionFromArray(
+              await filter(await client.grants(executor), grant =>
+                grant.isAccessibleBy(realm, a, executor)
+              ),
+              args
+            )
+          : null;
       }
     },
     grant: {
@@ -85,16 +79,11 @@ export const GraphQLClient = new GraphQLObjectType<Client, Context>({
       async resolve(
         client,
         args,
-        { realm, authorization: a, pool }: Context
+        { realm, authorization: a, executor }: Context
       ): Promise<null | Grant> {
         if (!a) return null;
-        const tx = await pool.connect();
-        try {
-          const grant = await client.grant(tx, args.userId);
-          return grant && grant.isAccessibleBy(realm, a, tx) ? grant : null;
-        } finally {
-          tx.release();
-        }
+        const grant = await client.grant(executor, args.userId);
+        return grant && grant.isAccessibleBy(realm, a, executor) ? grant : null;
       }
     }
   })

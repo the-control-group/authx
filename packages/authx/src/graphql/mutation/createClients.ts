@@ -6,6 +6,7 @@ import { isSuperset, simplify } from "@authx/scopes";
 import { Context } from "../../Context";
 import { GraphQLClient } from "../GraphQLClient";
 import { Client, Role } from "../../model";
+import { DataLoaderExecutor } from "../../loader";
 import { validateIdFormat } from "../../util/validateIdFormat";
 import { createV2AuthXScope } from "../../util/scopes";
 import {
@@ -43,7 +44,7 @@ export const createClients: GraphQLFieldConfig<
     }
   },
   async resolve(source, args, context): Promise<Promise<Client>[]> {
-    const { pool, authorization: a, realm } = context;
+    const { pool, executor, authorization: a, realm } = context;
 
     if (!a) {
       throw new ForbiddenError("You must be authenticated to create a client.");
@@ -77,9 +78,12 @@ export const createClients: GraphQLFieldConfig<
 
       const tx = await pool.connect();
       try {
+        // Make sure this transaction is used for queries made by the executor.
+        const x = new DataLoaderExecutor(tx, executor.key);
+
         if (
           !(await a.can(
-            tx,
+            x,
             createV2AuthXScope(
               realm,
               {
@@ -104,7 +108,7 @@ export const createClients: GraphQLFieldConfig<
           // Make sure the ID isn't already in use.
           if (input.id) {
             try {
-              await Client.read(tx, input.id, { forUpdate: true });
+              await Client.read(x, input.id, { forUpdate: true });
               throw new ConflictError();
             } catch (error) {
               if (!(error instanceof NotFoundError)) {
@@ -115,7 +119,7 @@ export const createClients: GraphQLFieldConfig<
 
           const id = input.id || v4();
           const client = await Client.write(
-            tx,
+            x,
             {
               id,
               enabled: input.enabled,
@@ -264,10 +268,10 @@ export const createClients: GraphQLFieldConfig<
 
           // Add administration scopes.
           for (const { roleId, scopes } of input.administration) {
-            const role = await Role.read(tx, roleId, { forUpdate: true });
+            const role = await Role.read(x, roleId, { forUpdate: true });
 
             if (
-              !role.isAccessibleBy(realm, a, tx, {
+              !role.isAccessibleBy(realm, a, x, {
                 basic: "w",
                 scopes: "w",
                 users: ""
@@ -279,7 +283,7 @@ export const createClients: GraphQLFieldConfig<
             }
 
             await Role.write(
-              tx,
+              x,
               {
                 ...role,
                 scopes: simplify([

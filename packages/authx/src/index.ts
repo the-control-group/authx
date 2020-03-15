@@ -16,6 +16,7 @@ import { fromBasic, fromBearer } from "./util/getAuthorization";
 import { StrategyCollection } from "./StrategyCollection";
 import { UnsupportedMediaTypeError } from "./errors";
 import { createAuthXExplanations } from "./explanations";
+import { DataLoaderExecutor } from "./loader";
 
 export * from "./x";
 export * from "./errors";
@@ -107,7 +108,8 @@ export class AuthX extends Router<any, { [x]: Context }> {
           strategies,
           authorization,
           pool: this.pool,
-          explanations: explanations
+          explanations: explanations,
+          executor: new DataLoaderExecutor(this.pool)
         };
 
         ctx[x] = context;

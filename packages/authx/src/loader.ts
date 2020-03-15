@@ -17,12 +17,12 @@ type ModelConstructor<T extends Model> = (new (data: any) => T) & {
 export class DataLoaderCacheKey {}
 
 export class DataLoaderExecutor {
-	public readonly key: DataLoaderCacheKey;
 	public readonly tx: ClientBase | Pool;
+	public readonly key: DataLoaderCacheKey;
 
 	constructor(tx: ClientBase | Pool, key = new DataLoaderCacheKey()) {
-		this.key = key;
 		this.tx = tx;
+		this.key = key;
 	}
 }
 

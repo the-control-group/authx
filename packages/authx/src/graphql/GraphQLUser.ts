@@ -50,21 +50,16 @@ export const GraphQLUser: GraphQLObjectType<
       async resolve(
         user,
         args: ConnectionArguments,
-        { realm, authorization: a, pool }: Context
+        { realm, authorization: a, executor }: Context
       ) {
-        const tx = await pool.connect();
-        try {
-          return a
-            ? connectionFromArray(
-                await filter(await user.authorizations(tx), authorization =>
-                  authorization.isAccessibleBy(realm, a, tx)
-                ),
-                args
-              )
-            : null;
-        } finally {
-          tx.release();
-        }
+        return a
+          ? connectionFromArray(
+              await filter(await user.authorizations(executor), authorization =>
+                authorization.isAccessibleBy(realm, a, executor)
+              ),
+              args
+            )
+          : null;
       }
     },
     credentials: {
@@ -80,24 +75,19 @@ export const GraphQLUser: GraphQLObjectType<
         {
           realm,
           authorization: a,
-          pool,
+          executor,
           strategies: { credentialMap }
         }: Context
       ) {
-        const tx = await pool.connect();
-        try {
-          return a
-            ? connectionFromArray(
-                await filter(
-                  await user.credentials(tx, credentialMap),
-                  credential => credential.isAccessibleBy(realm, a, tx)
-                ),
-                args
-              )
-            : null;
-        } finally {
-          tx.release();
-        }
+        return a
+          ? connectionFromArray(
+              await filter(
+                await user.credentials(executor, credentialMap),
+                credential => credential.isAccessibleBy(realm, a, executor)
+              ),
+              args
+            )
+          : null;
       }
     },
     grants: {
@@ -107,20 +97,19 @@ export const GraphQLUser: GraphQLObjectType<
       // TODO: The type definitions in graphql-js are garbage, and will be
       // refactored shortly.
       args: connectionArgs as any,
-      async resolve(user, args, { realm, authorization: a, pool }: Context) {
-        const tx = await pool.connect();
-        try {
-          return a
-            ? connectionFromArray(
-                await filter(await user.grants(tx), grant =>
-                  grant.isAccessibleBy(realm, a, tx)
-                ),
-                args
-              )
-            : null;
-        } finally {
-          tx.release();
-        }
+      async resolve(
+        user,
+        args,
+        { realm, authorization: a, executor }: Context
+      ) {
+        return a
+          ? connectionFromArray(
+              await filter(await user.grants(executor), grant =>
+                grant.isAccessibleBy(realm, a, executor)
+              ),
+              args
+            )
+          : null;
       }
     },
     grant: {
@@ -135,16 +124,11 @@ export const GraphQLUser: GraphQLObjectType<
       resolve: async function resolve(
         user: User,
         args: { clientId: string },
-        { realm, authorization: a, pool }: Context
+        { realm, authorization: a, executor }: Context
       ): Promise<null | Grant> {
         if (!a) return null;
-        const tx = await pool.connect();
-        try {
-          const grant = await user.grant(tx, args.clientId);
-          return grant && grant.isAccessibleBy(realm, a, tx) ? grant : null;
-        } finally {
-          tx.release();
-        }
+        const grant = await user.grant(executor, args.clientId);
+        return grant && grant.isAccessibleBy(realm, a, executor) ? grant : null;
 
         // This is necessary because of a flaw in the type definitions:
         // https://github.com/graphql/graphql-js/issues/2152
@@ -157,27 +141,26 @@ export const GraphQLUser: GraphQLObjectType<
       // TODO: The type definitions in graphql-js are garbage, and will be
       // refactored shortly.
       args: connectionArgs as any,
-      async resolve(user, args, { realm, authorization: a, pool }: Context) {
-        const tx = await pool.connect();
-        try {
-          return a
-            ? connectionFromArray(
-                await filter(
-                  await user.roles(tx),
-                  async role =>
-                    (await role.isAccessibleBy(realm, a, tx)) &&
-                    (await role.isAccessibleBy(realm, a, tx, {
-                      basic: "r",
-                      scopes: "",
-                      users: "r"
-                    }))
-                ),
-                args
-              )
-            : null;
-        } finally {
-          tx.release();
-        }
+      async resolve(
+        user,
+        args,
+        { realm, authorization: a, executor }: Context
+      ) {
+        return a
+          ? connectionFromArray(
+              await filter(
+                await user.roles(executor),
+                async role =>
+                  (await role.isAccessibleBy(realm, a, executor)) &&
+                  (await role.isAccessibleBy(realm, a, executor, {
+                    basic: "r",
+                    scopes: "",
+                    users: "r"
+                  }))
+              ),
+              args
+            )
+          : null;
       }
     }
   })
