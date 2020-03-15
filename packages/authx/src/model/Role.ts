@@ -63,7 +63,7 @@ export class Role implements RoleData {
   public async isAccessibleBy(
     realm: string,
     a: Authorization,
-    tx: ClientBase,
+    tx: ClientBase | DataLoaderCacheKey,
     action: RoleAction = {
       basic: "r",
       scopes: "",
@@ -89,7 +89,10 @@ export class Role implements RoleData {
     return false;
   }
 
-  public users(tx: ClientBase, refresh: boolean = false): Promise<User[]> {
+  public users(
+    tx: ClientBase | DataLoaderCacheKey,
+    refresh: boolean = false
+  ): Promise<User[]> {
     if (!refresh && this._users) {
       return this._users;
     }
@@ -234,7 +237,7 @@ export class Role implements RoleData {
   }
 
   public static async write(
-    tx: ClientBase,
+    tx: ClientBase | DataLoaderCacheKey,
     data: RoleData,
     metadata: {
       recordId: string;
@@ -242,6 +245,17 @@ export class Role implements RoleData {
       createdAt: Date;
     }
   ): Promise<Role> {
+    if (tx instanceof DataLoaderCacheKey) {
+      const result = await this.write(tx.tx, data, metadata);
+
+      this._cache
+        .get(tx)
+        .clear(result.id)
+        .prime(result.id, result);
+
+      return result;
+    }
+
     // ensure that the entity ID exists
     await tx.query(
       `

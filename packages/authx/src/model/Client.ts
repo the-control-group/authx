@@ -286,7 +286,7 @@ export class Client implements ClientData {
       return [];
     }
 
-    const result = await (tx instanceof DataLoaderCacheKey ? tx.tx : tx).query(
+    const result = await tx.query(
       `
       SELECT
         entity_id AS id,
@@ -340,8 +340,19 @@ export class Client implements ClientData {
       createdAt: Date;
     }
   ): Promise<Client> {
+    if (tx instanceof DataLoaderCacheKey) {
+      const result = await this.write(tx.tx, data, metadata);
+
+      this._cache
+        .get(tx)
+        .clear(result.id)
+        .prime(result.id, result);
+
+      return result;
+    }
+
     // ensure that the entity ID exists
-    await (tx instanceof DataLoaderCacheKey ? tx.tx : tx).query(
+    await tx.query(
       `
       INSERT INTO authx.client
         (id)
@@ -353,10 +364,7 @@ export class Client implements ClientData {
     );
 
     // replace the previous record
-    const previous = await (tx instanceof DataLoaderCacheKey
-      ? tx.tx
-      : tx
-    ).query(
+    const previous = await tx.query(
       `
       UPDATE authx.client_record
       SET replacement_record_id = $2
@@ -373,7 +381,7 @@ export class Client implements ClientData {
     }
 
     // insert the new record
-    const next = await (tx instanceof DataLoaderCacheKey ? tx.tx : tx).query(
+    const next = await tx.query(
       `
       INSERT INTO authx.client_record
       (

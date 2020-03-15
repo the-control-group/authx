@@ -124,15 +124,15 @@ export abstract class Authority<A> implements AuthorityData<A> {
     );
   }
 
-  public static read<T extends Authority<any>>(
+  public static read<A, T extends Authority<A>>(
     this: new (data: AuthorityData<any> & { readonly recordId: string }) => T,
     tx: ClientBase | DataLoaderCacheKey,
     id: string,
     options?: { forUpdate: boolean }
   ): Promise<T>;
 
-  public static read<T extends Authority<any>>(
-    this: new (data: AuthorityData<any> & { readonly recordId: string }) => T,
+  public static read<A, T extends Authority<A>>(
+    this: new (data: AuthorityData<A> & { readonly recordId: string }) => T,
     tx: ClientBase | DataLoaderCacheKey,
     id: string[],
     options?: { forUpdate: boolean }
@@ -171,14 +171,15 @@ export abstract class Authority<A> implements AuthorityData<A> {
   ): Promise<InstanceType<M[K]>[]>;
 
   public static async read<
-    T,
+    A,
+    T extends Authority<A>,
     M extends {
       [key: string]: any;
     },
     K extends keyof M
   >(
     this: {
-      new (data: AuthorityData<any> & { readonly recordId: string }): T;
+      new (data: AuthorityData<A> & { readonly recordId: string }): T;
       _cache: DataLoaderCache<InstanceType<M[K]>>;
     },
     tx: ClientBase | DataLoaderCacheKey,
@@ -197,7 +198,7 @@ export abstract class Authority<A> implements AuthorityData<A> {
       return [];
     }
 
-    const result = await (tx instanceof DataLoaderCacheKey ? tx.tx : tx).query(
+    const result = await tx.query(
       `
       SELECT
         entity_id AS id,
@@ -254,20 +255,33 @@ export abstract class Authority<A> implements AuthorityData<A> {
     return typeof id === "string" ? instances[0] : instances;
   }
 
-  public static async write<T extends Authority<any>>(
+  public static async write<A, T extends Authority<A>>(
     this: {
-      new (data: AuthorityData<any> & { readonly recordId: string }): T;
+      new (data: AuthorityData<A> & { readonly recordId: string }): T;
+      _cache: any;
+      write: any;
     },
     tx: ClientBase | DataLoaderCacheKey,
-    data: AuthorityData<any>,
+    data: AuthorityData<A>,
     metadata: {
       recordId: string;
       createdByAuthorizationId: string;
       createdAt: Date;
     }
   ): Promise<T> {
+    if (tx instanceof DataLoaderCacheKey) {
+      const result = await this.write(tx.tx, data, metadata);
+
+      this._cache
+        .get(tx)
+        .clear(result.id)
+        .prime(result.id, result);
+
+      return result;
+    }
+
     // ensure that the entity ID exists
-    await (tx instanceof DataLoaderCacheKey ? tx.tx : tx).query(
+    await tx.query(
       `
       INSERT INTO authx.authority
         (id)
@@ -279,10 +293,7 @@ export abstract class Authority<A> implements AuthorityData<A> {
     );
 
     // replace the previous record
-    const previous = await (tx instanceof DataLoaderCacheKey
-      ? tx.tx
-      : tx
-    ).query(
+    const previous = await tx.query(
       `
       UPDATE authx.authority_record
       SET replacement_record_id = $2
@@ -303,7 +314,7 @@ export abstract class Authority<A> implements AuthorityData<A> {
     }
 
     // insert the new record
-    const next = await (tx instanceof DataLoaderCacheKey ? tx.tx : tx).query(
+    const next = await tx.query(
       `
       INSERT INTO authx.authority_record
       (
@@ -353,5 +364,5 @@ export abstract class Authority<A> implements AuthorityData<A> {
     });
   }
 
-  protected static readonly _cache: DataLoaderCache<Authority<any>>;
+  static readonly _cache: DataLoaderCache<Authority<any>>;
 }

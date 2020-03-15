@@ -224,15 +224,15 @@ export abstract class Credential<C> implements CredentialData<C> {
     );
   }
 
-  public static read<T extends Credential<any>>(
-    this: new (data: CredentialData<any> & { readonly recordId: string }) => T,
+  public static read<C, T extends Credential<C>>(
+    this: new (data: CredentialData<C> & { readonly recordId: string }) => T,
     tx: ClientBase | DataLoaderCacheKey,
     id: string,
     options?: { forUpdate: boolean }
   ): Promise<T>;
 
-  public static read<T extends Credential<any>>(
-    this: new (data: CredentialData<any> & { readonly recordId: string }) => T,
+  public static read<C, T extends Credential<C>>(
+    this: new (data: CredentialData<C> & { readonly recordId: string }) => T,
     tx: ClientBase | DataLoaderCacheKey,
     id: string[],
     options?: { forUpdate: boolean }
@@ -271,14 +271,15 @@ export abstract class Credential<C> implements CredentialData<C> {
   ): Promise<InstanceType<M[K]>[]>;
 
   public static async read<
-    T,
+    C,
+    T extends Credential<C>,
     M extends {
       [key: string]: any;
     },
     K extends keyof M
   >(
     this: {
-      new (data: CredentialData<any> & { readonly recordId: string }): T;
+      new (data: CredentialData<C> & { readonly recordId: string }): T;
       _cache: DataLoaderCache<InstanceType<M[K]>>;
     },
     tx: ClientBase | DataLoaderCacheKey,
@@ -306,7 +307,7 @@ export abstract class Credential<C> implements CredentialData<C> {
       ? (optionsOrUndefined as { forUpdate: boolean })
       : mapOrOptions) || { forUpdate: false };
 
-    const result = await (tx instanceof DataLoaderCacheKey ? tx.tx : tx).query(
+    const result = await tx.query(
       `
       SELECT
         authx.credential_record.entity_id AS id,
@@ -369,20 +370,33 @@ export abstract class Credential<C> implements CredentialData<C> {
     return typeof id === "string" ? instances[0] : instances;
   }
 
-  public static async write<T extends Credential<any>>(
+  public static async write<C, T extends Credential<C>>(
     this: {
-      new (data: CredentialData<any> & { readonly recordId: string }): T;
+      new (data: CredentialData<C> & { readonly recordId: string }): T;
+      _cache: any;
+      write: any;
     },
     tx: ClientBase | DataLoaderCacheKey,
-    data: CredentialData<any>,
+    data: CredentialData<C>,
     metadata: {
       recordId: string;
       createdByAuthorizationId: string;
       createdAt: Date;
     }
   ): Promise<T> {
+    if (tx instanceof DataLoaderCacheKey) {
+      const result = await this.write(tx.tx, data, metadata);
+
+      this._cache
+        .get(tx)
+        .clear(result.id)
+        .prime(result.id, result);
+
+      return result;
+    }
+
     // ensure that the entity ID exists
-    await (tx instanceof DataLoaderCacheKey ? tx.tx : tx).query(
+    await tx.query(
       `
       INSERT INTO authx.credential
         (id)
@@ -394,10 +408,7 @@ export abstract class Credential<C> implements CredentialData<C> {
     );
 
     // replace the previous record
-    const previous = await (tx instanceof DataLoaderCacheKey
-      ? tx.tx
-      : tx
-    ).query(
+    const previous = await tx.query(
       `
       UPDATE authx.credential_record
       SET replacement_record_id = $2
@@ -416,7 +427,7 @@ export abstract class Credential<C> implements CredentialData<C> {
     }
 
     // insert the new record
-    const next = await (tx instanceof DataLoaderCacheKey ? tx.tx : tx).query(
+    const next = await tx.query(
       `
       INSERT INTO authx.credential_record
       (
@@ -468,5 +479,5 @@ export abstract class Credential<C> implements CredentialData<C> {
     });
   }
 
-  protected static readonly _cache: DataLoaderCache<Credential<any>>;
+  static readonly _cache: DataLoaderCache<Credential<any>>;
 }
