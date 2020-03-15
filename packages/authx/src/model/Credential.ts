@@ -1,10 +1,10 @@
-import { ClientBase } from "pg";
+import { Pool, ClientBase } from "pg";
 import { Authority } from "./Authority";
 import { User } from "./User";
 import { Authorization } from "./Authorization";
 import { NotFoundError } from "../errors";
 import { CredentialAction, createV2AuthXScope } from "../util/scopes";
-import { DataLoaderCacheKey, DataLoaderCache } from "../loader";
+import { DataLoaderExecutor, DataLoaderCache } from "../loader";
 
 export interface CredentialInvocationData {
   readonly id: string;
@@ -84,7 +84,7 @@ export abstract class Credential<C> implements CredentialData<C> {
   public async isAccessibleBy(
     realm: string,
     a: Authorization,
-    tx: ClientBase | DataLoaderCacheKey,
+    tx: Pool | ClientBase | DataLoaderExecutor,
     action: CredentialAction = {
       basic: "r",
       details: ""
@@ -112,12 +112,12 @@ export abstract class Credential<C> implements CredentialData<C> {
   }
 
   public abstract authority(
-    tx: ClientBase | DataLoaderCacheKey,
+    tx: Pool | ClientBase | DataLoaderExecutor,
     refresh?: boolean
   ): Promise<Authority<any>>;
 
   public user(
-    tx: ClientBase | DataLoaderCacheKey,
+    tx: Pool | ClientBase | DataLoaderExecutor,
     refresh: boolean = false
   ): Promise<User> {
     if (!refresh && this._user) {
@@ -128,7 +128,7 @@ export abstract class Credential<C> implements CredentialData<C> {
   }
 
   public async records(tx: ClientBase): Promise<CredentialRecord[]> {
-    const result = await (tx instanceof DataLoaderCacheKey ? tx.tx : tx).query(
+    const result = await (tx instanceof DataLoaderExecutor ? tx.tx : tx).query(
       `
       SELECT
         record_id as id,
@@ -157,14 +157,14 @@ export abstract class Credential<C> implements CredentialData<C> {
   }
 
   public async invoke(
-    tx: ClientBase | DataLoaderCacheKey,
+    tx: Pool | ClientBase | DataLoaderExecutor,
     data: {
       id: string;
       createdAt: Date;
     }
   ): Promise<CredentialInvocation> {
     // insert the new invocation
-    const result = await (tx instanceof DataLoaderCacheKey ? tx.tx : tx).query(
+    const result = await (tx instanceof DataLoaderExecutor ? tx.tx : tx).query(
       `
       INSERT INTO authx.credential_invocation
       (
@@ -199,7 +199,7 @@ export abstract class Credential<C> implements CredentialData<C> {
   }
 
   public async invocations(tx: ClientBase): Promise<CredentialInvocation[]> {
-    const result = await (tx instanceof DataLoaderCacheKey ? tx.tx : tx).query(
+    const result = await (tx instanceof DataLoaderExecutor ? tx.tx : tx).query(
       `
       SELECT
         invocation_id as id,
@@ -226,14 +226,14 @@ export abstract class Credential<C> implements CredentialData<C> {
 
   public static read<C, T extends Credential<C>>(
     this: new (data: CredentialData<C> & { readonly recordId: string }) => T,
-    tx: ClientBase | DataLoaderCacheKey,
+    tx: Pool | ClientBase | DataLoaderExecutor,
     id: string,
     options?: { forUpdate: boolean }
   ): Promise<T>;
 
   public static read<C, T extends Credential<C>>(
     this: new (data: CredentialData<C> & { readonly recordId: string }) => T,
-    tx: ClientBase | DataLoaderCacheKey,
+    tx: Pool | ClientBase | DataLoaderExecutor,
     id: string[],
     options?: { forUpdate: boolean }
   ): Promise<T[]>;
@@ -248,7 +248,7 @@ export abstract class Credential<C> implements CredentialData<C> {
     },
     K extends keyof M
   >(
-    tx: ClientBase | DataLoaderCacheKey,
+    tx: Pool | ClientBase | DataLoaderExecutor,
     id: string,
     map: M,
     options?: { forUpdate: boolean }
@@ -264,7 +264,7 @@ export abstract class Credential<C> implements CredentialData<C> {
     },
     K extends keyof M
   >(
-    tx: ClientBase | DataLoaderCacheKey,
+    tx: Pool | ClientBase | DataLoaderExecutor,
     id: string[],
     map: M,
     options?: { forUpdate: boolean }
@@ -282,12 +282,12 @@ export abstract class Credential<C> implements CredentialData<C> {
       new (data: CredentialData<C> & { readonly recordId: string }): T;
       _cache: DataLoaderCache<InstanceType<M[K]>>;
     },
-    tx: ClientBase | DataLoaderCacheKey,
+    tx: Pool | ClientBase | DataLoaderExecutor,
     id: string[] | string,
     mapOrOptions?: M | { forUpdate: boolean },
     optionsOrUndefined?: { forUpdate: boolean }
   ): Promise<InstanceType<M[K]>[] | InstanceType<M[K]> | T | T[]> {
-    if (tx instanceof DataLoaderCacheKey) {
+    if (tx instanceof DataLoaderExecutor) {
       const loader = this._cache.get(tx);
       return Promise.all(
         typeof id === "string" ? [loader.load(id)] : id.map(i => loader.load(i))
@@ -376,7 +376,7 @@ export abstract class Credential<C> implements CredentialData<C> {
       _cache: any;
       write: any;
     },
-    tx: ClientBase | DataLoaderCacheKey,
+    tx: Pool | ClientBase | DataLoaderExecutor,
     data: CredentialData<C>,
     metadata: {
       recordId: string;
@@ -384,7 +384,7 @@ export abstract class Credential<C> implements CredentialData<C> {
       createdAt: Date;
     }
   ): Promise<T> {
-    if (tx instanceof DataLoaderCacheKey) {
+    if (tx instanceof DataLoaderExecutor) {
       const result = await this.write(tx.tx, data, metadata);
 
       this._cache

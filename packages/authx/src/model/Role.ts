@@ -1,10 +1,10 @@
-import { ClientBase } from "pg";
+import { Pool, ClientBase } from "pg";
 import { User } from "./User";
 import { Authorization } from "./Authorization";
 import { simplify, isSuperset, inject } from "@authx/scopes";
 import { NotFoundError } from "../errors";
 import { RoleAction, createV2AuthXScope } from "../util/scopes";
-import { DataLoaderCacheKey, DataLoaderCache } from "../loader";
+import { DataLoaderExecutor, DataLoaderCache } from "../loader";
 
 export interface RoleRecordData {
   readonly id: string;
@@ -63,7 +63,7 @@ export class Role implements RoleData {
   public async isAccessibleBy(
     realm: string,
     a: Authorization,
-    tx: ClientBase | DataLoaderCacheKey,
+    tx: Pool | ClientBase | DataLoaderExecutor,
     action: RoleAction = {
       basic: "r",
       scopes: "",
@@ -90,7 +90,7 @@ export class Role implements RoleData {
   }
 
   public users(
-    tx: ClientBase | DataLoaderCacheKey,
+    tx: Pool | ClientBase | DataLoaderExecutor,
     refresh: boolean = false
   ): Promise<User[]> {
     if (!refresh && this._users) {
@@ -158,21 +158,21 @@ export class Role implements RoleData {
   }
 
   public static read(
-    tx: ClientBase | DataLoaderCacheKey,
+    tx: Pool | ClientBase | DataLoaderExecutor,
     id: string,
     options?: { forUpdate: boolean }
   ): Promise<Role>;
   public static read(
-    tx: ClientBase | DataLoaderCacheKey,
+    tx: Pool | ClientBase | DataLoaderExecutor,
     id: string[],
     options?: { forUpdate: boolean }
   ): Promise<Role[]>;
   public static async read(
-    tx: ClientBase | DataLoaderCacheKey,
+    tx: Pool | ClientBase | DataLoaderExecutor,
     id: string[] | string,
     options: { forUpdate: boolean } = { forUpdate: false }
   ): Promise<Role[] | Role> {
-    if (tx instanceof DataLoaderCacheKey) {
+    if (tx instanceof DataLoaderExecutor) {
       const loader = this._cache.get(tx);
       return Promise.all(
         typeof id === "string" ? [loader.load(id)] : id.map(i => loader.load(i))
@@ -237,7 +237,7 @@ export class Role implements RoleData {
   }
 
   public static async write(
-    tx: ClientBase | DataLoaderCacheKey,
+    tx: Pool | ClientBase | DataLoaderExecutor,
     data: RoleData,
     metadata: {
       recordId: string;
@@ -245,7 +245,7 @@ export class Role implements RoleData {
       createdAt: Date;
     }
   ): Promise<Role> {
-    if (tx instanceof DataLoaderCacheKey) {
+    if (tx instanceof DataLoaderExecutor) {
       const result = await this.write(tx.tx, data, metadata);
 
       this._cache

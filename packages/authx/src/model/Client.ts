@@ -1,9 +1,9 @@
-import { ClientBase } from "pg";
+import { Pool, ClientBase } from "pg";
 import { Grant } from "./Grant";
 import { Authorization } from "./Authorization";
 import { NotFoundError } from "../errors";
 import { ClientAction, createV2AuthXScope } from "../util/scopes";
-import { DataLoaderCacheKey, DataLoaderCache } from "../loader";
+import { DataLoaderExecutor, DataLoaderCache } from "../loader";
 
 export interface ClientInvocationData {
   readonly id: string;
@@ -83,7 +83,7 @@ export class Client implements ClientData {
   public async isAccessibleBy(
     realm: string,
     a: Authorization,
-    tx: ClientBase | DataLoaderCacheKey,
+    tx: Pool | ClientBase | DataLoaderExecutor,
     action: ClientAction = {
       basic: "r",
       secrets: ""
@@ -109,7 +109,7 @@ export class Client implements ClientData {
   }
 
   public grants(
-    tx: ClientBase | DataLoaderCacheKey,
+    tx: Pool | ClientBase | DataLoaderExecutor,
     refresh: boolean = true
   ): Promise<Grant[]> {
     if (!refresh && this._grants) {
@@ -120,7 +120,7 @@ export class Client implements ClientData {
       Grant.read(
         tx,
         (
-          await (tx instanceof DataLoaderCacheKey ? tx.tx : tx).query(
+          await (tx instanceof DataLoaderExecutor ? tx.tx : tx).query(
             `
             SELECT entity_id AS id
             FROM authx.grant_record
@@ -135,10 +135,10 @@ export class Client implements ClientData {
   }
 
   public async grant(
-    tx: ClientBase | DataLoaderCacheKey,
+    tx: Pool | ClientBase | DataLoaderExecutor,
     userId: string
   ): Promise<null | Grant> {
-    const result = await (tx instanceof DataLoaderCacheKey ? tx.tx : tx).query(
+    const result = await (tx instanceof DataLoaderExecutor ? tx.tx : tx).query(
       `
       SELECT entity_id AS id
       FROM authx.grant_record
@@ -164,7 +164,7 @@ export class Client implements ClientData {
   }
 
   public async records(tx: ClientBase): Promise<ClientRecord[]> {
-    const result = await (tx instanceof DataLoaderCacheKey ? tx.tx : tx).query(
+    const result = await (tx instanceof DataLoaderExecutor ? tx.tx : tx).query(
       `
       SELECT
         record_id as id,
@@ -193,14 +193,14 @@ export class Client implements ClientData {
   }
 
   public async invoke(
-    tx: ClientBase | DataLoaderCacheKey,
+    tx: Pool | ClientBase | DataLoaderExecutor,
     data: {
       id: string;
       createdAt: Date;
     }
   ): Promise<ClientInvocation> {
     // insert the new invocation
-    const result = await (tx instanceof DataLoaderCacheKey ? tx.tx : tx).query(
+    const result = await (tx instanceof DataLoaderExecutor ? tx.tx : tx).query(
       `
       INSERT INTO authx.client_invocation
       (
@@ -235,7 +235,7 @@ export class Client implements ClientData {
   }
 
   public async invocations(tx: ClientBase): Promise<ClientInvocation[]> {
-    const result = await (tx instanceof DataLoaderCacheKey ? tx.tx : tx).query(
+    const result = await (tx instanceof DataLoaderExecutor ? tx.tx : tx).query(
       `
       SELECT
         invocation_id as id,
@@ -261,21 +261,21 @@ export class Client implements ClientData {
   }
 
   public static read(
-    tx: ClientBase | DataLoaderCacheKey,
+    tx: Pool | ClientBase | DataLoaderExecutor,
     id: string,
     options?: { forUpdate: boolean }
   ): Promise<Client>;
   public static read(
-    tx: ClientBase | DataLoaderCacheKey,
+    tx: Pool | ClientBase | DataLoaderExecutor,
     id: string[],
     options?: { forUpdate: boolean }
   ): Promise<Client[]>;
   public static async read(
-    tx: ClientBase | DataLoaderCacheKey,
+    tx: Pool | ClientBase | DataLoaderExecutor,
     id: string[] | string,
     options: { forUpdate: boolean } = { forUpdate: false }
   ): Promise<Client[] | Client> {
-    if (tx instanceof DataLoaderCacheKey) {
+    if (tx instanceof DataLoaderExecutor) {
       const loader = this._cache.get(tx);
       return Promise.all(
         typeof id === "string" ? [loader.load(id)] : id.map(i => loader.load(i))
@@ -332,7 +332,7 @@ export class Client implements ClientData {
   }
 
   public static async write(
-    tx: ClientBase | DataLoaderCacheKey,
+    tx: Pool | ClientBase | DataLoaderExecutor,
     data: ClientData,
     metadata: {
       recordId: string;
@@ -340,7 +340,7 @@ export class Client implements ClientData {
       createdAt: Date;
     }
   ): Promise<Client> {
-    if (tx instanceof DataLoaderCacheKey) {
+    if (tx instanceof DataLoaderExecutor) {
       const result = await this.write(tx.tx, data, metadata);
 
       this._cache

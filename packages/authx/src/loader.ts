@@ -1,4 +1,4 @@
-import { ClientBase } from "pg";
+import { Pool, ClientBase } from "pg";
 import DataLoader from "dataloader";
 import { NotFoundError } from "./errors";
 
@@ -7,15 +7,26 @@ type Model = {
 };
 
 type ModelConstructor<T extends Model> = (new (data: any) => T) & {
-	read(tx: ClientBase, id: readonly string[], options?: {}): Promise<T[]>;
+	read(
+		tx: Pool | ClientBase,
+		id: readonly string[],
+		options?: {}
+	): Promise<T[]>;
 };
 
-export class DataLoaderCacheKey {
-	readonly tx: ClientBase;
-	constructor(tx: ClientBase) {
+export class DataLoaderCacheKey {}
+
+export class DataLoaderExecutor {
+	public readonly key: DataLoaderCacheKey;
+	public readonly tx: ClientBase | Pool;
+
+	constructor(tx: ClientBase | Pool, key = new DataLoaderCacheKey()) {
+		this.key = key;
 		this.tx = tx;
 	}
 }
+
+export type Queriable = ClientBase | Pool | DataLoaderExecutor;
 
 export class DataLoaderCache<T extends Model> extends WeakMap<
 	DataLoaderCacheKey,
@@ -28,20 +39,19 @@ export class DataLoaderCache<T extends Model> extends WeakMap<
 		this._model = model;
 	}
 
-	get(key: DataLoaderCacheKey): DataLoader<string, T> {
-		let loader = this.get(key);
+	get(executor: DataLoaderExecutor): DataLoader<string, T> {
+		let loader = super.get(executor.key);
 		if (loader) {
 			return loader;
 		}
 
-		const tx = key.tx;
 		const model = this._model;
 		loader = new DataLoader<string, T>(async function(
 			ids: readonly string[]
 		): Promise<(T | Error)[]> {
 			// Get the results from the model in whatever order the database found
 			// most efficient.
-			const results = await model.read(tx, ids);
+			const results = await model.read(executor.tx, ids);
 
 			// Index the results by ID.
 			const resultsById = new Map<string, T>();
@@ -59,7 +69,7 @@ export class DataLoaderCache<T extends Model> extends WeakMap<
 
 			return returnValue;
 		});
-		this.set(key, loader);
+		this.set(executor.key, loader);
 		return loader;
 	}
 }

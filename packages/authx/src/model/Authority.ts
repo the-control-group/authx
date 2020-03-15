@@ -1,9 +1,9 @@
-import { ClientBase } from "pg";
+import { Pool, ClientBase } from "pg";
 import { Credential } from "./Credential";
 import { Authorization } from "./Authorization";
 import { NotFoundError } from "../errors";
 import { AuthorityAction, createV2AuthXScope } from "../util/scopes";
-import { DataLoaderCacheKey, DataLoaderCache } from "../loader";
+import { DataLoaderExecutor, DataLoaderCache } from "../loader";
 
 export interface AuthorityRecordData {
   readonly id: string;
@@ -60,7 +60,7 @@ export abstract class Authority<A> implements AuthorityData<A> {
   public async isAccessibleBy(
     realm: string,
     a: Authorization,
-    tx: ClientBase | DataLoaderCacheKey,
+    tx: Pool | ClientBase | DataLoaderExecutor,
     action: AuthorityAction = {
       basic: "r",
       details: ""
@@ -86,17 +86,17 @@ export abstract class Authority<A> implements AuthorityData<A> {
   }
 
   public abstract credentials(
-    tx: ClientBase | DataLoaderCacheKey,
+    tx: Pool | ClientBase | DataLoaderExecutor,
     refresh?: boolean
   ): Promise<Credential<any>[]>;
 
   public abstract credential(
-    tx: ClientBase | DataLoaderCacheKey,
+    tx: Pool | ClientBase | DataLoaderExecutor,
     authorityUserId: string
   ): Promise<Credential<any> | null>;
 
   public async records(tx: ClientBase): Promise<AuthorityRecord[]> {
-    const result = await (tx instanceof DataLoaderCacheKey ? tx.tx : tx).query(
+    const result = await (tx instanceof DataLoaderExecutor ? tx.tx : tx).query(
       `
       SELECT
         record_id as id,
@@ -126,14 +126,14 @@ export abstract class Authority<A> implements AuthorityData<A> {
 
   public static read<A, T extends Authority<A>>(
     this: new (data: AuthorityData<any> & { readonly recordId: string }) => T,
-    tx: ClientBase | DataLoaderCacheKey,
+    tx: Pool | ClientBase | DataLoaderExecutor,
     id: string,
     options?: { forUpdate: boolean }
   ): Promise<T>;
 
   public static read<A, T extends Authority<A>>(
     this: new (data: AuthorityData<A> & { readonly recordId: string }) => T,
-    tx: ClientBase | DataLoaderCacheKey,
+    tx: Pool | ClientBase | DataLoaderExecutor,
     id: string[],
     options?: { forUpdate: boolean }
   ): Promise<T[]>;
@@ -148,7 +148,7 @@ export abstract class Authority<A> implements AuthorityData<A> {
     },
     K extends keyof M
   >(
-    tx: ClientBase | DataLoaderCacheKey,
+    tx: Pool | ClientBase | DataLoaderExecutor,
     id: string,
     map: M,
     options?: { forUpdate: boolean }
@@ -164,7 +164,7 @@ export abstract class Authority<A> implements AuthorityData<A> {
     },
     K extends keyof M
   >(
-    tx: ClientBase | DataLoaderCacheKey,
+    tx: Pool | ClientBase | DataLoaderExecutor,
     id: string[],
     map: M,
     options?: { forUpdate: boolean }
@@ -182,12 +182,12 @@ export abstract class Authority<A> implements AuthorityData<A> {
       new (data: AuthorityData<A> & { readonly recordId: string }): T;
       _cache: DataLoaderCache<InstanceType<M[K]>>;
     },
-    tx: ClientBase | DataLoaderCacheKey,
+    tx: Pool | ClientBase | DataLoaderExecutor,
     id: string[] | string,
     map?: M,
     options: { forUpdate: boolean } = { forUpdate: false }
   ): Promise<InstanceType<M[K]>[] | InstanceType<M[K]> | T | T[]> {
-    if (tx instanceof DataLoaderCacheKey) {
+    if (tx instanceof DataLoaderExecutor) {
       const loader = this._cache.get(tx);
       return Promise.all(
         typeof id === "string" ? [loader.load(id)] : id.map(i => loader.load(i))
@@ -261,7 +261,7 @@ export abstract class Authority<A> implements AuthorityData<A> {
       _cache: any;
       write: any;
     },
-    tx: ClientBase | DataLoaderCacheKey,
+    tx: Pool | ClientBase | DataLoaderExecutor,
     data: AuthorityData<A>,
     metadata: {
       recordId: string;
@@ -269,7 +269,7 @@ export abstract class Authority<A> implements AuthorityData<A> {
       createdAt: Date;
     }
   ): Promise<T> {
-    if (tx instanceof DataLoaderCacheKey) {
+    if (tx instanceof DataLoaderExecutor) {
       const result = await this.write(tx.tx, data, metadata);
 
       this._cache

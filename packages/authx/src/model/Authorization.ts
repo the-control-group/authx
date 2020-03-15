@@ -1,10 +1,10 @@
-import { ClientBase } from "pg";
+import { Pool, ClientBase } from "pg";
 import { User } from "./User";
 import { Grant } from "./Grant";
 import { simplify, getIntersection, isSuperset } from "@authx/scopes";
 import { NotFoundError } from "../errors";
 import { AuthorizationAction, createV2AuthXScope } from "../util/scopes";
-import { DataLoaderCacheKey, DataLoaderCache } from "../loader";
+import { DataLoaderExecutor, DataLoaderCache } from "../loader";
 
 export interface AuthorizationInvocationData {
   readonly id: string;
@@ -92,7 +92,7 @@ export class Authorization implements AuthorizationData {
   public async isAccessibleBy(
     realm: string,
     a: Authorization,
-    tx: ClientBase | DataLoaderCacheKey,
+    tx: Pool | ClientBase | DataLoaderExecutor,
     action: AuthorizationAction = {
       basic: "r",
       scopes: "",
@@ -122,7 +122,7 @@ export class Authorization implements AuthorizationData {
   }
 
   public user(
-    tx: ClientBase | DataLoaderCacheKey,
+    tx: Pool | ClientBase | DataLoaderExecutor,
     refresh: boolean = false
   ): Promise<User> {
     if (!refresh && this._user) {
@@ -133,7 +133,7 @@ export class Authorization implements AuthorizationData {
   }
 
   public async grant(
-    tx: ClientBase | DataLoaderCacheKey,
+    tx: Pool | ClientBase | DataLoaderExecutor,
     refresh: boolean = false
   ): Promise<null | Grant> {
     if (!this.grantId) {
@@ -148,7 +148,7 @@ export class Authorization implements AuthorizationData {
   }
 
   public async access(
-    tx: ClientBase | DataLoaderCacheKey,
+    tx: Pool | ClientBase | DataLoaderExecutor,
     refresh: boolean = false
   ): Promise<string[]> {
     const grant = await this.grant(tx, refresh);
@@ -172,7 +172,7 @@ export class Authorization implements AuthorizationData {
   }
 
   public async can(
-    tx: ClientBase | DataLoaderCacheKey,
+    tx: Pool | ClientBase | DataLoaderExecutor,
     scope: string[] | string,
     refresh: boolean = false
   ): Promise<boolean> {
@@ -180,7 +180,7 @@ export class Authorization implements AuthorizationData {
   }
 
   public async records(tx: ClientBase): Promise<AuthorizationRecord[]> {
-    const result = await (tx instanceof DataLoaderCacheKey ? tx.tx : tx).query(
+    const result = await (tx instanceof DataLoaderExecutor ? tx.tx : tx).query(
       `
       SELECT
         record_id as id,
@@ -210,7 +210,7 @@ export class Authorization implements AuthorizationData {
   }
 
   public async invoke(
-    tx: ClientBase | DataLoaderCacheKey,
+    tx: Pool | ClientBase | DataLoaderExecutor,
     data: {
       id: string;
       format: string;
@@ -218,7 +218,7 @@ export class Authorization implements AuthorizationData {
     }
   ): Promise<AuthorizationInvocation> {
     // insert the new invocation
-    const result = await (tx instanceof DataLoaderCacheKey ? tx.tx : tx).query(
+    const result = await (tx instanceof DataLoaderExecutor ? tx.tx : tx).query(
       `
       INSERT INTO authx.authorization_invocation
       (
@@ -256,7 +256,7 @@ export class Authorization implements AuthorizationData {
   }
 
   public async invocations(tx: ClientBase): Promise<AuthorizationInvocation[]> {
-    const result = await (tx instanceof DataLoaderCacheKey ? tx.tx : tx).query(
+    const result = await (tx instanceof DataLoaderExecutor ? tx.tx : tx).query(
       `
       SELECT
         invocation_id as id,
@@ -283,21 +283,21 @@ export class Authorization implements AuthorizationData {
   }
 
   public static read(
-    tx: ClientBase | DataLoaderCacheKey,
+    tx: Pool | ClientBase | DataLoaderExecutor,
     id: string,
     options?: { forUpdate: boolean }
   ): Promise<Authorization>;
   public static read(
-    tx: ClientBase | DataLoaderCacheKey,
+    tx: Pool | ClientBase | DataLoaderExecutor,
     id: string[],
     options?: { forUpdate: boolean }
   ): Promise<Authorization[]>;
   public static async read(
-    tx: ClientBase | DataLoaderCacheKey,
+    tx: Pool | ClientBase | DataLoaderExecutor,
     id: string[] | string,
     options: { forUpdate: boolean } = { forUpdate: false }
   ): Promise<Authorization[] | Authorization> {
-    if (tx instanceof DataLoaderCacheKey) {
+    if (tx instanceof DataLoaderExecutor) {
       const loader = this._cache.get(tx);
       return Promise.all(
         typeof id === "string" ? [loader.load(id)] : id.map(i => loader.load(i))
@@ -361,7 +361,7 @@ export class Authorization implements AuthorizationData {
   }
 
   public static async write(
-    tx: ClientBase | DataLoaderCacheKey,
+    tx: Pool | ClientBase | DataLoaderExecutor,
     data: AuthorizationData,
     metadata: {
       recordId: string;
@@ -370,7 +370,7 @@ export class Authorization implements AuthorizationData {
       createdAt: Date;
     }
   ): Promise<Authorization> {
-    if (tx instanceof DataLoaderCacheKey) {
+    if (tx instanceof DataLoaderExecutor) {
       const result = await this.write(tx.tx, data, metadata);
 
       this._cache

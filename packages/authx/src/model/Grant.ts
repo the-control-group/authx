@@ -1,11 +1,11 @@
-import { ClientBase } from "pg";
+import { Pool, ClientBase } from "pg";
 import { Client } from "./Client";
 import { User } from "./User";
 import { Authorization } from "./Authorization";
 import { simplify, getIntersection, isSuperset } from "@authx/scopes";
 import { NotFoundError } from "../errors";
 import { GrantAction, createV2AuthXScope } from "../util/scopes";
-import { DataLoaderCacheKey, DataLoaderCache } from "../loader";
+import { DataLoaderExecutor, DataLoaderCache } from "../loader";
 
 export interface GrantInvocationData {
   readonly id: string;
@@ -90,7 +90,7 @@ export class Grant implements GrantData {
   public async isAccessibleBy(
     realm: string,
     a: Authorization,
-    tx: ClientBase | DataLoaderCacheKey,
+    tx: Pool | ClientBase | DataLoaderExecutor,
     action: GrantAction = {
       basic: "r",
       scopes: "",
@@ -119,7 +119,7 @@ export class Grant implements GrantData {
   }
 
   public client(
-    tx: ClientBase | DataLoaderCacheKey,
+    tx: Pool | ClientBase | DataLoaderExecutor,
     refresh: boolean = false
   ): Promise<Client> {
     if (!refresh && this._client) {
@@ -130,7 +130,7 @@ export class Grant implements GrantData {
   }
 
   public user(
-    tx: ClientBase | DataLoaderCacheKey,
+    tx: Pool | ClientBase | DataLoaderExecutor,
     refresh: boolean = false
   ): Promise<User> {
     if (!refresh && this._user) {
@@ -140,7 +140,7 @@ export class Grant implements GrantData {
   }
 
   public async authorizations(
-    tx: ClientBase | DataLoaderCacheKey,
+    tx: Pool | ClientBase | DataLoaderExecutor,
     refresh: boolean = false
   ): Promise<Authorization[]> {
     if (!refresh && this._authorizations) {
@@ -151,7 +151,7 @@ export class Grant implements GrantData {
       Authorization.read(
         tx,
         (
-          await (tx instanceof DataLoaderCacheKey ? tx.tx : tx).query(
+          await (tx instanceof DataLoaderExecutor ? tx.tx : tx).query(
             `
           SELECT entity_id AS id
           FROM authx.authorization_record
@@ -166,7 +166,7 @@ export class Grant implements GrantData {
   }
 
   public async access(
-    tx: ClientBase | DataLoaderCacheKey,
+    tx: Pool | ClientBase | DataLoaderExecutor,
     values: {
       currentAuthorizationId: null | string;
       currentUserId: null | string;
@@ -182,7 +182,7 @@ export class Grant implements GrantData {
   }
 
   public async can(
-    tx: ClientBase | DataLoaderCacheKey,
+    tx: Pool | ClientBase | DataLoaderExecutor,
     values: {
       currentAuthorizationId: null | string;
       currentUserId: null | string;
@@ -196,7 +196,7 @@ export class Grant implements GrantData {
   }
 
   public async records(tx: ClientBase): Promise<GrantRecord[]> {
-    const result = await (tx instanceof DataLoaderCacheKey ? tx.tx : tx).query(
+    const result = await (tx instanceof DataLoaderExecutor ? tx.tx : tx).query(
       `
       SELECT
         record_id as id,
@@ -225,14 +225,14 @@ export class Grant implements GrantData {
   }
 
   public async invoke(
-    tx: ClientBase | DataLoaderCacheKey,
+    tx: Pool | ClientBase | DataLoaderExecutor,
     data: {
       id: string;
       createdAt: Date;
     }
   ): Promise<GrantInvocation> {
     // insert the new invocation
-    const result = await (tx instanceof DataLoaderCacheKey ? tx.tx : tx).query(
+    const result = await (tx instanceof DataLoaderExecutor ? tx.tx : tx).query(
       `
       INSERT INTO authx.grant_invocation
       (
@@ -267,7 +267,7 @@ export class Grant implements GrantData {
   }
 
   public async invocations(tx: ClientBase): Promise<GrantInvocation[]> {
-    const result = await (tx instanceof DataLoaderCacheKey ? tx.tx : tx).query(
+    const result = await (tx instanceof DataLoaderExecutor ? tx.tx : tx).query(
       `
       SELECT
         invocation_id as id,
@@ -293,21 +293,21 @@ export class Grant implements GrantData {
   }
 
   public static read(
-    tx: ClientBase | DataLoaderCacheKey,
+    tx: Pool | ClientBase | DataLoaderExecutor,
     id: string,
     options?: { forUpdate: boolean }
   ): Promise<Grant>;
   public static read(
-    tx: ClientBase | DataLoaderCacheKey,
+    tx: Pool | ClientBase | DataLoaderExecutor,
     id: string[],
     options?: { forUpdate: boolean }
   ): Promise<Grant[]>;
   public static async read(
-    tx: ClientBase | DataLoaderCacheKey,
+    tx: Pool | ClientBase | DataLoaderExecutor,
     id: string[] | string,
     options: { forUpdate: boolean } = { forUpdate: false }
   ): Promise<Grant[] | Grant> {
-    if (tx instanceof DataLoaderCacheKey) {
+    if (tx instanceof DataLoaderExecutor) {
       const loader = this._cache.get(tx);
       return Promise.all(
         typeof id === "string" ? [loader.load(id)] : id.map(i => loader.load(i))
@@ -362,7 +362,7 @@ export class Grant implements GrantData {
   }
 
   public static async write(
-    tx: ClientBase | DataLoaderCacheKey,
+    tx: Pool | ClientBase | DataLoaderExecutor,
     data: GrantData,
     metadata: {
       recordId: string;
@@ -370,7 +370,7 @@ export class Grant implements GrantData {
       createdAt: Date;
     }
   ): Promise<Grant> {
-    if (tx instanceof DataLoaderCacheKey) {
+    if (tx instanceof DataLoaderExecutor) {
       const result = await this.write(tx.tx, data, metadata);
 
       this._cache
