@@ -1,5 +1,5 @@
 import { ClientBase } from "pg";
-import { Credential } from "@authx/authx";
+import { Credential, DataLoaderCacheKey } from "@authx/authx";
 import { PasswordAuthority } from "./PasswordAuthority";
 
 // Credential
@@ -13,7 +13,7 @@ export class PasswordCredential extends Credential<PasswordCredentialDetails> {
   private _authority: null | Promise<PasswordAuthority> = null;
 
   public authority(
-    tx: ClientBase,
+    tx: ClientBase | DataLoaderCacheKey,
     refresh: boolean = false
   ): Promise<PasswordAuthority> {
     if (!refresh && this._authority) {

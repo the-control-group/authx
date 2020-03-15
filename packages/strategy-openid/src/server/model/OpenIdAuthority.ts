@@ -1,5 +1,5 @@
 import { ClientBase } from "pg";
-import { Authority, Role } from "@authx/authx";
+import { Authority, Role, DataLoaderCacheKey } from "@authx/authx";
 import { EmailAuthority } from "@authx/strategy-email";
 import { OpenIdCredential } from "./OpenIdCredential";
 
@@ -27,7 +27,7 @@ export class OpenIdAuthority extends Authority<OpenIdAuthorityDetails> {
   private _assignsCreatedUsersToRoles: null | Promise<Role[]> = null;
 
   public credentials(
-    tx: ClientBase,
+    tx: ClientBase | DataLoaderCacheKey,
     refresh: boolean = false
   ): Promise<OpenIdCredential[]> {
     if (!refresh && this._credentials) {
@@ -38,7 +38,7 @@ export class OpenIdAuthority extends Authority<OpenIdAuthorityDetails> {
       OpenIdCredential.read(
         tx,
         (
-          await tx.query(
+          await (tx instanceof DataLoaderCacheKey ? tx.tx : tx).query(
             `
               SELECT entity_id AS id
               FROM authx.credential_records
@@ -53,10 +53,10 @@ export class OpenIdAuthority extends Authority<OpenIdAuthorityDetails> {
   }
 
   public async credential(
-    tx: ClientBase,
+    tx: ClientBase | DataLoaderCacheKey,
     authorityUserId: string
   ): Promise<null | OpenIdCredential> {
-    const results = await tx.query(
+    const results = await (tx instanceof DataLoaderCacheKey ? tx.tx : tx).query(
       `
       SELECT entity_id AS id
       FROM authx.credential_record
@@ -81,7 +81,7 @@ export class OpenIdAuthority extends Authority<OpenIdAuthorityDetails> {
   }
 
   public async emailAuthority(
-    tx: ClientBase,
+    tx: ClientBase | DataLoaderCacheKey,
     refresh?: boolean
   ): Promise<null | EmailAuthority> {
     if (!refresh && this._emailAuthority) {
@@ -99,7 +99,7 @@ export class OpenIdAuthority extends Authority<OpenIdAuthorityDetails> {
   }
 
   public async assignsCreatedUsersToRoles(
-    tx: ClientBase,
+    tx: ClientBase | DataLoaderCacheKey,
     refresh?: boolean
   ): Promise<Role[]> {
     if (!refresh && this._assignsCreatedUsersToRoles) {

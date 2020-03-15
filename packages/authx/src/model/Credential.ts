@@ -84,7 +84,7 @@ export abstract class Credential<C> implements CredentialData<C> {
   public async isAccessibleBy(
     realm: string,
     a: Authorization,
-    tx: ClientBase,
+    tx: ClientBase | DataLoaderCacheKey,
     action: CredentialAction = {
       basic: "r",
       details: ""
@@ -112,11 +112,14 @@ export abstract class Credential<C> implements CredentialData<C> {
   }
 
   public abstract authority(
-    tx: ClientBase,
+    tx: ClientBase | DataLoaderCacheKey,
     refresh?: boolean
   ): Promise<Authority<any>>;
 
-  public user(tx: ClientBase, refresh: boolean = false): Promise<User> {
+  public user(
+    tx: ClientBase | DataLoaderCacheKey,
+    refresh: boolean = false
+  ): Promise<User> {
     if (!refresh && this._user) {
       return this._user;
     }
@@ -125,7 +128,7 @@ export abstract class Credential<C> implements CredentialData<C> {
   }
 
   public async records(tx: ClientBase): Promise<CredentialRecord[]> {
-    const result = await tx.query(
+    const result = await (tx instanceof DataLoaderCacheKey ? tx.tx : tx).query(
       `
       SELECT
         record_id as id,
@@ -154,14 +157,14 @@ export abstract class Credential<C> implements CredentialData<C> {
   }
 
   public async invoke(
-    tx: ClientBase,
+    tx: ClientBase | DataLoaderCacheKey,
     data: {
       id: string;
       createdAt: Date;
     }
   ): Promise<CredentialInvocation> {
     // insert the new invocation
-    const result = await tx.query(
+    const result = await (tx instanceof DataLoaderCacheKey ? tx.tx : tx).query(
       `
       INSERT INTO authx.credential_invocation
       (
@@ -196,7 +199,7 @@ export abstract class Credential<C> implements CredentialData<C> {
   }
 
   public async invocations(tx: ClientBase): Promise<CredentialInvocation[]> {
-    const result = await tx.query(
+    const result = await (tx instanceof DataLoaderCacheKey ? tx.tx : tx).query(
       `
       SELECT
         invocation_id as id,
@@ -230,7 +233,7 @@ export abstract class Credential<C> implements CredentialData<C> {
 
   public static read<T extends Credential<any>>(
     this: new (data: CredentialData<any> & { readonly recordId: string }) => T,
-    tx: ClientBase,
+    tx: ClientBase | DataLoaderCacheKey,
     id: string[],
     options?: { forUpdate: boolean }
   ): Promise<T[]>;
@@ -303,7 +306,7 @@ export abstract class Credential<C> implements CredentialData<C> {
       ? (optionsOrUndefined as { forUpdate: boolean })
       : mapOrOptions) || { forUpdate: false };
 
-    const result = await tx.query(
+    const result = await (tx instanceof DataLoaderCacheKey ? tx.tx : tx).query(
       `
       SELECT
         authx.credential_record.entity_id AS id,
@@ -370,7 +373,7 @@ export abstract class Credential<C> implements CredentialData<C> {
     this: {
       new (data: CredentialData<any> & { readonly recordId: string }): T;
     },
-    tx: ClientBase,
+    tx: ClientBase | DataLoaderCacheKey,
     data: CredentialData<any>,
     metadata: {
       recordId: string;
@@ -379,7 +382,7 @@ export abstract class Credential<C> implements CredentialData<C> {
     }
   ): Promise<T> {
     // ensure that the entity ID exists
-    await tx.query(
+    await (tx instanceof DataLoaderCacheKey ? tx.tx : tx).query(
       `
       INSERT INTO authx.credential
         (id)
@@ -391,7 +394,10 @@ export abstract class Credential<C> implements CredentialData<C> {
     );
 
     // replace the previous record
-    const previous = await tx.query(
+    const previous = await (tx instanceof DataLoaderCacheKey
+      ? tx.tx
+      : tx
+    ).query(
       `
       UPDATE authx.credential_record
       SET replacement_record_id = $2
@@ -410,7 +416,7 @@ export abstract class Credential<C> implements CredentialData<C> {
     }
 
     // insert the new record
-    const next = await tx.query(
+    const next = await (tx instanceof DataLoaderCacheKey ? tx.tx : tx).query(
       `
       INSERT INTO authx.credential_record
       (

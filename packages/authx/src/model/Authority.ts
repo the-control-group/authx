@@ -60,7 +60,7 @@ export abstract class Authority<A> implements AuthorityData<A> {
   public async isAccessibleBy(
     realm: string,
     a: Authorization,
-    tx: ClientBase,
+    tx: ClientBase | DataLoaderCacheKey,
     action: AuthorityAction = {
       basic: "r",
       details: ""
@@ -86,17 +86,17 @@ export abstract class Authority<A> implements AuthorityData<A> {
   }
 
   public abstract credentials(
-    tx: ClientBase,
+    tx: ClientBase | DataLoaderCacheKey,
     refresh?: boolean
   ): Promise<Credential<any>[]>;
 
   public abstract credential(
-    tx: ClientBase,
+    tx: ClientBase | DataLoaderCacheKey,
     authorityUserId: string
   ): Promise<Credential<any> | null>;
 
   public async records(tx: ClientBase): Promise<AuthorityRecord[]> {
-    const result = await tx.query(
+    const result = await (tx instanceof DataLoaderCacheKey ? tx.tx : tx).query(
       `
       SELECT
         record_id as id,
@@ -197,7 +197,7 @@ export abstract class Authority<A> implements AuthorityData<A> {
       return [];
     }
 
-    const result = await tx.query(
+    const result = await (tx instanceof DataLoaderCacheKey ? tx.tx : tx).query(
       `
       SELECT
         entity_id AS id,
@@ -258,7 +258,7 @@ export abstract class Authority<A> implements AuthorityData<A> {
     this: {
       new (data: AuthorityData<any> & { readonly recordId: string }): T;
     },
-    tx: ClientBase,
+    tx: ClientBase | DataLoaderCacheKey,
     data: AuthorityData<any>,
     metadata: {
       recordId: string;
@@ -267,7 +267,7 @@ export abstract class Authority<A> implements AuthorityData<A> {
     }
   ): Promise<T> {
     // ensure that the entity ID exists
-    await tx.query(
+    await (tx instanceof DataLoaderCacheKey ? tx.tx : tx).query(
       `
       INSERT INTO authx.authority
         (id)
@@ -279,7 +279,10 @@ export abstract class Authority<A> implements AuthorityData<A> {
     );
 
     // replace the previous record
-    const previous = await tx.query(
+    const previous = await (tx instanceof DataLoaderCacheKey
+      ? tx.tx
+      : tx
+    ).query(
       `
       UPDATE authx.authority_record
       SET replacement_record_id = $2
@@ -300,7 +303,7 @@ export abstract class Authority<A> implements AuthorityData<A> {
     }
 
     // insert the new record
-    const next = await tx.query(
+    const next = await (tx instanceof DataLoaderCacheKey ? tx.tx : tx).query(
       `
       INSERT INTO authx.authority_record
       (

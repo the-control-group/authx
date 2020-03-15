@@ -92,7 +92,7 @@ export class Authorization implements AuthorizationData {
   public async isAccessibleBy(
     realm: string,
     a: Authorization,
-    tx: ClientBase,
+    tx: ClientBase | DataLoaderCacheKey,
     action: AuthorizationAction = {
       basic: "r",
       scopes: "",
@@ -121,7 +121,10 @@ export class Authorization implements AuthorizationData {
     return false;
   }
 
-  public user(tx: ClientBase, refresh: boolean = false): Promise<User> {
+  public user(
+    tx: ClientBase | DataLoaderCacheKey,
+    refresh: boolean = false
+  ): Promise<User> {
     if (!refresh && this._user) {
       return this._user;
     }
@@ -130,7 +133,7 @@ export class Authorization implements AuthorizationData {
   }
 
   public async grant(
-    tx: ClientBase,
+    tx: ClientBase | DataLoaderCacheKey,
     refresh: boolean = false
   ): Promise<null | Grant> {
     if (!this.grantId) {
@@ -145,7 +148,7 @@ export class Authorization implements AuthorizationData {
   }
 
   public async access(
-    tx: ClientBase,
+    tx: ClientBase | DataLoaderCacheKey,
     refresh: boolean = false
   ): Promise<string[]> {
     const grant = await this.grant(tx, refresh);
@@ -169,7 +172,7 @@ export class Authorization implements AuthorizationData {
   }
 
   public async can(
-    tx: ClientBase,
+    tx: ClientBase | DataLoaderCacheKey,
     scope: string[] | string,
     refresh: boolean = false
   ): Promise<boolean> {
@@ -177,7 +180,7 @@ export class Authorization implements AuthorizationData {
   }
 
   public async records(tx: ClientBase): Promise<AuthorizationRecord[]> {
-    const result = await tx.query(
+    const result = await (tx instanceof DataLoaderCacheKey ? tx.tx : tx).query(
       `
       SELECT
         record_id as id,
@@ -207,7 +210,7 @@ export class Authorization implements AuthorizationData {
   }
 
   public async invoke(
-    tx: ClientBase,
+    tx: ClientBase | DataLoaderCacheKey,
     data: {
       id: string;
       format: string;
@@ -215,7 +218,7 @@ export class Authorization implements AuthorizationData {
     }
   ): Promise<AuthorizationInvocation> {
     // insert the new invocation
-    const result = await tx.query(
+    const result = await (tx instanceof DataLoaderCacheKey ? tx.tx : tx).query(
       `
       INSERT INTO authx.authorization_invocation
       (
@@ -253,7 +256,7 @@ export class Authorization implements AuthorizationData {
   }
 
   public async invocations(tx: ClientBase): Promise<AuthorizationInvocation[]> {
-    const result = await tx.query(
+    const result = await (tx instanceof DataLoaderCacheKey ? tx.tx : tx).query(
       `
       SELECT
         invocation_id as id,
@@ -305,7 +308,7 @@ export class Authorization implements AuthorizationData {
       return [];
     }
 
-    const result = await tx.query(
+    const result = await (tx instanceof DataLoaderCacheKey ? tx.tx : tx).query(
       `
       SELECT
         entity_id AS id,
@@ -358,7 +361,7 @@ export class Authorization implements AuthorizationData {
   }
 
   public static async write(
-    tx: ClientBase,
+    tx: ClientBase | DataLoaderCacheKey,
     data: AuthorizationData,
     metadata: {
       recordId: string;
@@ -369,7 +372,10 @@ export class Authorization implements AuthorizationData {
   ): Promise<Authorization> {
     // ensure the credential ID shares the user ID
     if (metadata.createdByCredentialId) {
-      const result = await tx.query(
+      const result = await (tx instanceof DataLoaderCacheKey
+        ? tx.tx
+        : tx
+      ).query(
         `
         SELECT user_id
         FROM authx.credential_record
@@ -389,7 +395,10 @@ export class Authorization implements AuthorizationData {
 
     if (data.grantId) {
       // ensure the grant ID shares the user ID
-      const result = await tx.query(
+      const result = await (tx instanceof DataLoaderCacheKey
+        ? tx.tx
+        : tx
+      ).query(
         `
         SELECT user_id
         FROM authx.grant_record
@@ -408,7 +417,7 @@ export class Authorization implements AuthorizationData {
     }
 
     // ensure that the entity ID exists
-    await tx.query(
+    await (tx instanceof DataLoaderCacheKey ? tx.tx : tx).query(
       `
       INSERT INTO authx.authorization
         (id)
@@ -420,7 +429,10 @@ export class Authorization implements AuthorizationData {
     );
 
     // replace the previous record
-    const previous = await tx.query(
+    const previous = await (tx instanceof DataLoaderCacheKey
+      ? tx.tx
+      : tx
+    ).query(
       `
       UPDATE authx.authorization_record
       SET replacement_record_id = $2
@@ -439,7 +451,7 @@ export class Authorization implements AuthorizationData {
     }
 
     // insert the new record
-    const next = await tx.query(
+    const next = await (tx instanceof DataLoaderCacheKey ? tx.tx : tx).query(
       `
       INSERT INTO authx.authorization_record
       (

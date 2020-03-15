@@ -64,7 +64,7 @@ export class User implements UserData {
   public async isAccessibleBy(
     realm: string,
     a: Authorization,
-    tx: ClientBase,
+    tx: ClientBase | DataLoaderCacheKey,
     action: UserAction = {
       basic: "r"
     }
@@ -89,7 +89,7 @@ export class User implements UserData {
   }
 
   public async authorizations(
-    tx: ClientBase,
+    tx: ClientBase | DataLoaderCacheKey,
     refresh: boolean = false
   ): Promise<Authorization[]> {
     if (!refresh && this._authorizations) {
@@ -100,7 +100,7 @@ export class User implements UserData {
       Authorization.read(
         tx,
         (
-          await tx.query(
+          await (tx instanceof DataLoaderCacheKey ? tx.tx : tx).query(
             `
           SELECT entity_id AS id
           FROM authx.authorization_record
@@ -115,7 +115,7 @@ export class User implements UserData {
   }
 
   public async credentials(
-    tx: ClientBase,
+    tx: ClientBase | DataLoaderCacheKey,
     map: {
       [key: string]: { new (data: CredentialData<any>): Credential<any> };
     },
@@ -129,7 +129,7 @@ export class User implements UserData {
       Credential.read(
         tx,
         (
-          await tx.query(
+          await (tx instanceof DataLoaderCacheKey ? tx.tx : tx).query(
             `
           SELECT entity_id AS id
           FROM authx.credential_record
@@ -145,7 +145,7 @@ export class User implements UserData {
   }
 
   public async grants(
-    tx: ClientBase,
+    tx: ClientBase | DataLoaderCacheKey,
     refresh: boolean = false
   ): Promise<Grant[]> {
     if (!refresh && this._grants) {
@@ -156,7 +156,7 @@ export class User implements UserData {
       Grant.read(
         tx,
         (
-          await tx.query(
+          await (tx instanceof DataLoaderCacheKey ? tx.tx : tx).query(
             `
           SELECT entity_id AS id
           FROM authx.grant_record
@@ -170,8 +170,11 @@ export class User implements UserData {
       ))());
   }
 
-  public async grant(tx: ClientBase, clientId: string): Promise<null | Grant> {
-    const result = await tx.query(
+  public async grant(
+    tx: ClientBase | DataLoaderCacheKey,
+    clientId: string
+  ): Promise<null | Grant> {
+    const result = await (tx instanceof DataLoaderCacheKey ? tx.tx : tx).query(
       `
       SELECT entity_id AS id
       FROM authx.grant_record
@@ -197,7 +200,7 @@ export class User implements UserData {
   }
 
   public async roles(
-    tx: ClientBase,
+    tx: ClientBase | DataLoaderCacheKey,
     refresh: boolean = false
   ): Promise<Role[]> {
     if (!refresh && this._roles) {
@@ -208,7 +211,7 @@ export class User implements UserData {
       Role.read(
         tx,
         (
-          await tx.query(
+          await (tx instanceof DataLoaderCacheKey ? tx.tx : tx).query(
             `
         SELECT entity_id AS id
         FROM authx.role_record
@@ -226,7 +229,7 @@ export class User implements UserData {
   }
 
   public async access(
-    tx: ClientBase,
+    tx: ClientBase | DataLoaderCacheKey,
     values: {
       currentAuthorizationId: null | string;
       currentUserId: null | string;
@@ -245,7 +248,7 @@ export class User implements UserData {
   }
 
   public async can(
-    tx: ClientBase,
+    tx: ClientBase | DataLoaderCacheKey,
     values: {
       currentAuthorizationId: null | string;
       currentUserId: null | string;
@@ -259,7 +262,7 @@ export class User implements UserData {
   }
 
   public async records(tx: ClientBase): Promise<UserRecord[]> {
-    const result = await tx.query(
+    const result = await (tx instanceof DataLoaderCacheKey ? tx.tx : tx).query(
       `
       SELECT
         record_id as id,
@@ -313,7 +316,7 @@ export class User implements UserData {
       return [];
     }
 
-    const result = await tx.query(
+    const result = await (tx instanceof DataLoaderCacheKey ? tx.tx : tx).query(
       `
       SELECT
         entity_id AS id,
@@ -352,7 +355,7 @@ export class User implements UserData {
   }
 
   public static async write(
-    tx: ClientBase,
+    tx: ClientBase | DataLoaderCacheKey,
     data: UserData,
     metadata: {
       recordId: string;
@@ -361,7 +364,7 @@ export class User implements UserData {
     }
   ): Promise<User> {
     // ensure that the entity ID exists
-    await tx.query(
+    await (tx instanceof DataLoaderCacheKey ? tx.tx : tx).query(
       `
       INSERT INTO authx.user
         (id)
@@ -373,7 +376,10 @@ export class User implements UserData {
     );
 
     // replace the previous record
-    const previous = await tx.query(
+    const previous = await (tx instanceof DataLoaderCacheKey
+      ? tx.tx
+      : tx
+    ).query(
       `
       UPDATE authx.user_record
       SET replacement_record_id = $2
@@ -392,7 +398,7 @@ export class User implements UserData {
     }
 
     // insert the new record
-    const next = await tx.query(
+    const next = await (tx instanceof DataLoaderCacheKey ? tx.tx : tx).query(
       `
       INSERT INTO authx.user_record
       (

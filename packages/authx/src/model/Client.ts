@@ -83,7 +83,7 @@ export class Client implements ClientData {
   public async isAccessibleBy(
     realm: string,
     a: Authorization,
-    tx: ClientBase,
+    tx: ClientBase | DataLoaderCacheKey,
     action: ClientAction = {
       basic: "r",
       secrets: ""
@@ -108,7 +108,10 @@ export class Client implements ClientData {
     return false;
   }
 
-  public grants(tx: ClientBase, refresh: boolean = true): Promise<Grant[]> {
+  public grants(
+    tx: ClientBase | DataLoaderCacheKey,
+    refresh: boolean = true
+  ): Promise<Grant[]> {
     if (!refresh && this._grants) {
       return this._grants;
     }
@@ -117,7 +120,7 @@ export class Client implements ClientData {
       Grant.read(
         tx,
         (
-          await tx.query(
+          await (tx instanceof DataLoaderCacheKey ? tx.tx : tx).query(
             `
             SELECT entity_id AS id
             FROM authx.grant_record
@@ -131,8 +134,11 @@ export class Client implements ClientData {
       ))());
   }
 
-  public async grant(tx: ClientBase, userId: string): Promise<null | Grant> {
-    const result = await tx.query(
+  public async grant(
+    tx: ClientBase | DataLoaderCacheKey,
+    userId: string
+  ): Promise<null | Grant> {
+    const result = await (tx instanceof DataLoaderCacheKey ? tx.tx : tx).query(
       `
       SELECT entity_id AS id
       FROM authx.grant_record
@@ -158,7 +164,7 @@ export class Client implements ClientData {
   }
 
   public async records(tx: ClientBase): Promise<ClientRecord[]> {
-    const result = await tx.query(
+    const result = await (tx instanceof DataLoaderCacheKey ? tx.tx : tx).query(
       `
       SELECT
         record_id as id,
@@ -187,14 +193,14 @@ export class Client implements ClientData {
   }
 
   public async invoke(
-    tx: ClientBase,
+    tx: ClientBase | DataLoaderCacheKey,
     data: {
       id: string;
       createdAt: Date;
     }
   ): Promise<ClientInvocation> {
     // insert the new invocation
-    const result = await tx.query(
+    const result = await (tx instanceof DataLoaderCacheKey ? tx.tx : tx).query(
       `
       INSERT INTO authx.client_invocation
       (
@@ -229,7 +235,7 @@ export class Client implements ClientData {
   }
 
   public async invocations(tx: ClientBase): Promise<ClientInvocation[]> {
-    const result = await tx.query(
+    const result = await (tx instanceof DataLoaderCacheKey ? tx.tx : tx).query(
       `
       SELECT
         invocation_id as id,
@@ -280,7 +286,7 @@ export class Client implements ClientData {
       return [];
     }
 
-    const result = await tx.query(
+    const result = await (tx instanceof DataLoaderCacheKey ? tx.tx : tx).query(
       `
       SELECT
         entity_id AS id,
@@ -326,7 +332,7 @@ export class Client implements ClientData {
   }
 
   public static async write(
-    tx: ClientBase,
+    tx: ClientBase | DataLoaderCacheKey,
     data: ClientData,
     metadata: {
       recordId: string;
@@ -335,7 +341,7 @@ export class Client implements ClientData {
     }
   ): Promise<Client> {
     // ensure that the entity ID exists
-    await tx.query(
+    await (tx instanceof DataLoaderCacheKey ? tx.tx : tx).query(
       `
       INSERT INTO authx.client
         (id)
@@ -347,7 +353,10 @@ export class Client implements ClientData {
     );
 
     // replace the previous record
-    const previous = await tx.query(
+    const previous = await (tx instanceof DataLoaderCacheKey
+      ? tx.tx
+      : tx
+    ).query(
       `
       UPDATE authx.client_record
       SET replacement_record_id = $2
@@ -364,7 +373,7 @@ export class Client implements ClientData {
     }
 
     // insert the new record
-    const next = await tx.query(
+    const next = await (tx instanceof DataLoaderCacheKey ? tx.tx : tx).query(
       `
       INSERT INTO authx.client_record
       (

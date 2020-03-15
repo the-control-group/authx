@@ -90,7 +90,7 @@ export class Grant implements GrantData {
   public async isAccessibleBy(
     realm: string,
     a: Authorization,
-    tx: ClientBase,
+    tx: ClientBase | DataLoaderCacheKey,
     action: GrantAction = {
       basic: "r",
       scopes: "",
@@ -118,7 +118,10 @@ export class Grant implements GrantData {
     return false;
   }
 
-  public client(tx: ClientBase, refresh: boolean = false): Promise<Client> {
+  public client(
+    tx: ClientBase | DataLoaderCacheKey,
+    refresh: boolean = false
+  ): Promise<Client> {
     if (!refresh && this._client) {
       return this._client;
     }
@@ -126,7 +129,10 @@ export class Grant implements GrantData {
     return (this._client = Client.read(tx, this.clientId));
   }
 
-  public user(tx: ClientBase, refresh: boolean = false): Promise<User> {
+  public user(
+    tx: ClientBase | DataLoaderCacheKey,
+    refresh: boolean = false
+  ): Promise<User> {
     if (!refresh && this._user) {
       return this._user;
     }
@@ -134,7 +140,7 @@ export class Grant implements GrantData {
   }
 
   public async authorizations(
-    tx: ClientBase,
+    tx: ClientBase | DataLoaderCacheKey,
     refresh: boolean = false
   ): Promise<Authorization[]> {
     if (!refresh && this._authorizations) {
@@ -145,7 +151,7 @@ export class Grant implements GrantData {
       Authorization.read(
         tx,
         (
-          await tx.query(
+          await (tx instanceof DataLoaderCacheKey ? tx.tx : tx).query(
             `
           SELECT entity_id AS id
           FROM authx.authorization_record
@@ -160,7 +166,7 @@ export class Grant implements GrantData {
   }
 
   public async access(
-    tx: ClientBase,
+    tx: ClientBase | DataLoaderCacheKey,
     values: {
       currentAuthorizationId: null | string;
       currentUserId: null | string;
@@ -176,7 +182,7 @@ export class Grant implements GrantData {
   }
 
   public async can(
-    tx: ClientBase,
+    tx: ClientBase | DataLoaderCacheKey,
     values: {
       currentAuthorizationId: null | string;
       currentUserId: null | string;
@@ -190,7 +196,7 @@ export class Grant implements GrantData {
   }
 
   public async records(tx: ClientBase): Promise<GrantRecord[]> {
-    const result = await tx.query(
+    const result = await (tx instanceof DataLoaderCacheKey ? tx.tx : tx).query(
       `
       SELECT
         record_id as id,
@@ -219,14 +225,14 @@ export class Grant implements GrantData {
   }
 
   public async invoke(
-    tx: ClientBase,
+    tx: ClientBase | DataLoaderCacheKey,
     data: {
       id: string;
       createdAt: Date;
     }
   ): Promise<GrantInvocation> {
     // insert the new invocation
-    const result = await tx.query(
+    const result = await (tx instanceof DataLoaderCacheKey ? tx.tx : tx).query(
       `
       INSERT INTO authx.grant_invocation
       (
@@ -261,7 +267,7 @@ export class Grant implements GrantData {
   }
 
   public async invocations(tx: ClientBase): Promise<GrantInvocation[]> {
-    const result = await tx.query(
+    const result = await (tx instanceof DataLoaderCacheKey ? tx.tx : tx).query(
       `
       SELECT
         invocation_id as id,
@@ -312,7 +318,7 @@ export class Grant implements GrantData {
       return [];
     }
 
-    const result = await tx.query(
+    const result = await (tx instanceof DataLoaderCacheKey ? tx.tx : tx).query(
       `
       SELECT
         entity_id AS id,
@@ -356,7 +362,7 @@ export class Grant implements GrantData {
   }
 
   public static async write(
-    tx: ClientBase,
+    tx: ClientBase | DataLoaderCacheKey,
     data: GrantData,
     metadata: {
       recordId: string;
@@ -365,7 +371,7 @@ export class Grant implements GrantData {
     }
   ): Promise<Grant> {
     // ensure that the entity ID exists
-    await tx.query(
+    await (tx instanceof DataLoaderCacheKey ? tx.tx : tx).query(
       `
       INSERT INTO authx.grant
         (id)
@@ -377,7 +383,10 @@ export class Grant implements GrantData {
     );
 
     // replace the previous record
-    const previous = await tx.query(
+    const previous = await (tx instanceof DataLoaderCacheKey
+      ? tx.tx
+      : tx
+    ).query(
       `
       UPDATE authx.grant_record
       SET replacement_record_id = $2
@@ -396,7 +405,7 @@ export class Grant implements GrantData {
     }
 
     // insert the new record
-    const next = await tx.query(
+    const next = await (tx instanceof DataLoaderCacheKey ? tx.tx : tx).query(
       `
       INSERT INTO authx.grant_record
       (

@@ -1,5 +1,5 @@
 import { ClientBase } from "pg";
-import { Authority } from "@authx/authx";
+import { Authority, DataLoaderCacheKey } from "@authx/authx";
 import { EmailCredential } from "./EmailCredential";
 
 // Authority
@@ -21,7 +21,7 @@ export class EmailAuthority extends Authority<EmailAuthorityDetails> {
   private _credentials: null | Promise<EmailCredential[]> = null;
 
   public credentials(
-    tx: ClientBase,
+    tx: ClientBase | DataLoaderCacheKey,
     refresh: boolean = false
   ): Promise<EmailCredential[]> {
     if (!refresh && this._credentials) {
@@ -32,7 +32,7 @@ export class EmailAuthority extends Authority<EmailAuthorityDetails> {
       EmailCredential.read(
         tx,
         (
-          await tx.query(
+          await (tx instanceof DataLoaderCacheKey ? tx.tx : tx).query(
             `
               SELECT entity_id AS id
               FROM authx.credential_records
@@ -47,10 +47,10 @@ export class EmailAuthority extends Authority<EmailAuthorityDetails> {
   }
 
   public async credential(
-    tx: ClientBase,
+    tx: ClientBase | DataLoaderCacheKey,
     authorityUserId: string
   ): Promise<null | EmailCredential> {
-    const results = await tx.query(
+    const results = await (tx instanceof DataLoaderCacheKey ? tx.tx : tx).query(
       `
       SELECT entity_id AS id
       FROM authx.credential_record
