@@ -10,7 +10,8 @@ import {
   ConflictError,
   ValidationError,
   Role,
-  validateIdFormat
+  validateIdFormat,
+  DataLoaderExecutor
 } from "@authx/authx";
 
 import { createV2AuthXScope } from "@authx/authx/scopes";
@@ -51,6 +52,7 @@ export const createPasswordCredentials: GraphQLFieldConfig<
   async resolve(source, args, context): Promise<Promise<PasswordCredential>[]> {
     const {
       pool,
+      executor,
       authorization: a,
       realm,
       strategies: { authorityMap }
@@ -99,10 +101,13 @@ export const createPasswordCredentials: GraphQLFieldConfig<
 
       const tx = await pool.connect();
       try {
+        // Make sure this transaction is used for queries made by the executor.
+        const executor = new DataLoaderExecutor(tx);
+
         // The user cannot create a credential for this user and authority.
         if (
           !(await a.can(
-            tx,
+            executor,
             createV2AuthXScope(
               realm,
               {
@@ -129,7 +134,9 @@ export const createPasswordCredentials: GraphQLFieldConfig<
           // Make sure the ID isn't already in use.
           if (input.id) {
             try {
-              await PasswordCredential.read(tx, input.id, { forUpdate: true });
+              await PasswordCredential.read(executor, input.id, {
+                forUpdate: true
+              });
               throw new ConflictError();
             } catch (error) {
               if (!(error instanceof NotFoundError)) {
@@ -140,7 +147,7 @@ export const createPasswordCredentials: GraphQLFieldConfig<
 
           const id = input.id || v4();
           const authority = await Authority.read(
-            tx,
+            executor,
             input.authorityId,
             authorityMap
           );
@@ -151,7 +158,7 @@ export const createPasswordCredentials: GraphQLFieldConfig<
           }
 
           const credential = await PasswordCredential.write(
-            tx,
+            executor,
             {
               id,
               enabled: input.enabled,
@@ -265,10 +272,10 @@ export const createPasswordCredentials: GraphQLFieldConfig<
 
           // Add administration scopes.
           for (const { roleId, scopes } of input.administration) {
-            const role = await Role.read(tx, roleId, { forUpdate: true });
+            const role = await Role.read(executor, roleId, { forUpdate: true });
 
             if (
-              !role.isAccessibleBy(realm, a, tx, {
+              !role.isAccessibleBy(realm, a, executor, {
                 basic: "w",
                 scopes: "w",
                 users: ""
@@ -280,7 +287,7 @@ export const createPasswordCredentials: GraphQLFieldConfig<
             }
 
             await Role.write(
-              tx,
+              executor,
               {
                 ...role,
                 scopes: simplify([
@@ -299,6 +306,11 @@ export const createPasswordCredentials: GraphQLFieldConfig<
           }
 
           await tx.query("COMMIT");
+
+          // Update the context to use a new executor primed with the results of
+          // this mutation, using the original connection pool.
+          context.executor = new DataLoaderExecutor(pool, executor.key);
+
           return credential;
         } catch (error) {
           await tx.query("ROLLBACK");

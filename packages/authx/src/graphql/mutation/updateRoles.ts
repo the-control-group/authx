@@ -35,7 +35,7 @@ export const updateRoles: GraphQLFieldConfig<
     }
   },
   async resolve(source, args, context): Promise<Promise<Role>[]> {
-    const { pool, executor, authorization: a, realm } = context;
+    const { pool, authorization: a, realm } = context;
 
     if (!a) {
       throw new ForbiddenError("You must be authenticated to update a role.");
@@ -61,16 +61,16 @@ export const updateRoles: GraphQLFieldConfig<
       const tx = await pool.connect();
       try {
         // Make sure this transaction is used for queries made by the executor.
-        const x = new DataLoaderExecutor(tx, executor.key);
+        const executor = new DataLoaderExecutor(tx);
 
         await tx.query("BEGIN DEFERRABLE");
-        const before = await Role.read(x, input.id, {
+        const before = await Role.read(executor, input.id, {
           forUpdate: true
         });
 
         // w.... -----------------------------------------------------------
         if (
-          !(await before.isAccessibleBy(realm, a, x, {
+          !(await before.isAccessibleBy(realm, a, executor, {
             basic: "w",
             scopes: "",
             users: ""
@@ -84,7 +84,7 @@ export const updateRoles: GraphQLFieldConfig<
         // w..w.. ----------------------------------------------------------
         if (
           input.scopes &&
-          !(await before.isAccessibleBy(realm, a, x, {
+          !(await before.isAccessibleBy(realm, a, executor, {
             basic: "w",
             scopes: "w",
             users: ""
@@ -112,9 +112,9 @@ export const updateRoles: GraphQLFieldConfig<
           const assignableScopes = roleIDs.length
             ? (
                 await filter(
-                  await Role.read(x, roleIDs, { forUpdate: true }),
+                  await Role.read(executor, roleIDs, { forUpdate: true }),
                   role =>
-                    role.isAccessibleBy(realm, a, x, {
+                    role.isAccessibleBy(realm, a, executor, {
                       basic: "w",
                       scopes: "",
                       users: "w"
@@ -133,7 +133,7 @@ export const updateRoles: GraphQLFieldConfig<
 
         // w....w -----------------------------------------------------
         if (
-          !(await before.isAccessibleBy(realm, a, x, {
+          !(await before.isAccessibleBy(realm, a, executor, {
             basic: "w",
             scopes: "",
             users: "w"
@@ -158,7 +158,7 @@ export const updateRoles: GraphQLFieldConfig<
         }
 
         const role = await Role.write(
-          x,
+          executor,
           {
             ...before,
             enabled:
@@ -176,6 +176,11 @@ export const updateRoles: GraphQLFieldConfig<
             createdAt: new Date()
           }
         );
+
+        // Update the context to use a new executor primed with the results of
+        // this mutation, using the original connection pool.
+        context.executor = new DataLoaderExecutor(pool, executor.key);
+
         await tx.query("COMMIT");
         return role;
       } catch (error) {

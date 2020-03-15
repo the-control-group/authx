@@ -10,7 +10,8 @@ import {
   NotFoundError,
   ValidationError,
   Role,
-  validateIdFormat
+  validateIdFormat,
+  DataLoaderExecutor
 } from "@authx/authx";
 
 import { createV2AuthXScope } from "@authx/authx/scopes";
@@ -101,12 +102,15 @@ export const createEmailCredentials: GraphQLFieldConfig<
 
       const tx = await pool.connect();
       try {
+        // Make sure this transaction is used for queries made by the executor.
+        const executor = new DataLoaderExecutor(tx);
+
         await tx.query("BEGIN DEFERRABLE");
 
         // Make sure the ID isn't already in use.
         if (input.id) {
           try {
-            await EmailCredential.read(tx, input.id, { forUpdate: true });
+            await EmailCredential.read(executor, input.id, { forUpdate: true });
             throw new ConflictError();
           } catch (error) {
             if (!(error instanceof NotFoundError)) {
@@ -117,7 +121,7 @@ export const createEmailCredentials: GraphQLFieldConfig<
 
         const id = input.id || v4();
         const authority = await Authority.read(
-          tx,
+          executor,
           input.authorityId,
           authorityMap,
           { forUpdate: true }
@@ -128,7 +132,7 @@ export const createEmailCredentials: GraphQLFieldConfig<
 
         // Check if the email is used in a different credential
         const existingCredentials = await EmailCredential.read(
-          tx,
+          executor,
           (
             await tx.query(
               `
@@ -155,7 +159,7 @@ export const createEmailCredentials: GraphQLFieldConfig<
         // The user cannot create a credential for this user and authority.
         if (
           !(await a.can(
-            tx,
+            executor,
             createV2AuthXScope(
               realm,
               {
@@ -179,7 +183,7 @@ export const createEmailCredentials: GraphQLFieldConfig<
         // The user cannot create a credential for all users.
         if (
           !(await a.can(
-            tx,
+            executor,
             createV2AuthXScope(
               realm,
               {
@@ -283,7 +287,7 @@ export const createEmailCredentials: GraphQLFieldConfig<
         // Disable the conflicting credential
         if (existingCredentials.length === 1) {
           await EmailCredential.write(
-            tx,
+            executor,
             {
               ...existingCredentials[0],
               enabled: false
@@ -297,7 +301,7 @@ export const createEmailCredentials: GraphQLFieldConfig<
         }
 
         const credential = await EmailCredential.write(
-          tx,
+          executor,
           {
             id,
             enabled: input.enabled,
@@ -409,10 +413,10 @@ export const createEmailCredentials: GraphQLFieldConfig<
 
         // Add administration scopes.
         for (const { roleId, scopes } of input.administration) {
-          const role = await Role.read(tx, roleId, { forUpdate: true });
+          const role = await Role.read(executor, roleId, { forUpdate: true });
 
           if (
-            !role.isAccessibleBy(realm, a, tx, {
+            !role.isAccessibleBy(realm, a, executor, {
               basic: "w",
               scopes: "w",
               users: ""
@@ -424,7 +428,7 @@ export const createEmailCredentials: GraphQLFieldConfig<
           }
 
           await Role.write(
-            tx,
+            executor,
             {
               ...role,
               scopes: simplify([
@@ -443,6 +447,11 @@ export const createEmailCredentials: GraphQLFieldConfig<
         }
 
         await tx.query("COMMIT");
+
+        // Update the context to use a new executor primed with the results of
+        // this mutation, using the original connection pool.
+        context.executor = new DataLoaderExecutor(pool, executor.key);
+
         return credential;
       } catch (error) {
         await tx.query("ROLLBACK");

@@ -7,7 +7,8 @@ import {
   ForbiddenError,
   NotFoundError,
   ValidationError,
-  validateIdFormat
+  validateIdFormat,
+  DataLoaderExecutor
 } from "@authx/authx";
 import { EmailCredential } from "../../model";
 import { GraphQLEmailCredential } from "../GraphQLEmailCredential";
@@ -54,18 +55,26 @@ export const updateEmailCredentials: GraphQLFieldConfig<
 
       const tx = await pool.connect();
       try {
+        // Make sure this transaction is used for queries made by the executor.
+        const executor = new DataLoaderExecutor(tx);
+
         await tx.query("BEGIN DEFERRABLE");
 
-        const before = await Credential.read(tx, input.id, credentialMap, {
-          forUpdate: true
-        });
+        const before = await Credential.read(
+          executor,
+          input.id,
+          credentialMap,
+          {
+            forUpdate: true
+          }
+        );
 
         if (!(before instanceof EmailCredential)) {
           throw new NotFoundError("No email credential exists with this ID.");
         }
 
         if (
-          !(await before.isAccessibleBy(realm, a, tx, {
+          !(await before.isAccessibleBy(realm, a, executor, {
             basic: "w",
             details: ""
           }))
@@ -76,7 +85,7 @@ export const updateEmailCredentials: GraphQLFieldConfig<
         }
 
         const credential = await EmailCredential.write(
-          tx,
+          executor,
           {
             ...before,
             enabled:
@@ -92,6 +101,11 @@ export const updateEmailCredentials: GraphQLFieldConfig<
         );
 
         await tx.query("COMMIT");
+
+        // Update the context to use a new executor primed with the results of
+        // this mutation, using the original connection pool.
+        context.executor = new DataLoaderExecutor(pool, executor.key);
+
         return credential;
       } catch (error) {
         await tx.query("ROLLBACK");

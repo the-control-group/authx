@@ -7,7 +7,8 @@ import {
   ForbiddenError,
   NotFoundError,
   ValidationError,
-  validateIdFormat
+  validateIdFormat,
+  DataLoaderExecutor
 } from "@authx/authx";
 import { EmailAuthority } from "../../model";
 import { GraphQLEmailAuthority } from "../GraphQLEmailAuthority";
@@ -66,9 +67,12 @@ export const updateEmailAuthorities: GraphQLFieldConfig<
 
       const tx = await pool.connect();
       try {
+        // Make sure this transaction is used for queries made by the executor.
+        const executor = new DataLoaderExecutor(tx);
+
         await tx.query("BEGIN DEFERRABLE");
 
-        const before = await Authority.read(tx, input.id, authorityMap, {
+        const before = await Authority.read(executor, input.id, authorityMap, {
           forUpdate: true
         });
 
@@ -79,7 +83,7 @@ export const updateEmailAuthorities: GraphQLFieldConfig<
         }
 
         if (
-          !(await before.isAccessibleBy(realm, a, tx, {
+          !(await before.isAccessibleBy(realm, a, executor, {
             basic: "w",
             details: ""
           }))
@@ -100,7 +104,7 @@ export const updateEmailAuthorities: GraphQLFieldConfig<
             typeof input.verificationEmailSubject === "string" ||
             typeof input.verificationEmailText === "string" ||
             typeof input.verificationEmailHtml === "string") &&
-          !(await before.isAccessibleBy(realm, a, tx, {
+          !(await before.isAccessibleBy(realm, a, executor, {
             basic: "w",
             details: "w"
           }))
@@ -123,7 +127,7 @@ export const updateEmailAuthorities: GraphQLFieldConfig<
         }
 
         const authority = await EmailAuthority.write(
-          tx,
+          executor,
           {
             ...before,
             enabled:
@@ -179,6 +183,11 @@ export const updateEmailAuthorities: GraphQLFieldConfig<
         );
 
         await tx.query("COMMIT");
+
+        // Update the context to use a new executor primed with the results of
+        // this mutation, using the original connection pool.
+        context.executor = new DataLoaderExecutor(pool, executor.key);
+
         return authority;
       } catch (error) {
         await tx.query("ROLLBACK");

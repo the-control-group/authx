@@ -34,13 +34,7 @@ export const updateGrants: GraphQLFieldConfig<
     }
   },
   async resolve(source, args, context): Promise<Promise<Grant>[]> {
-    const {
-      pool,
-      executor,
-      authorization: a,
-      realm,
-      codeValidityDuration
-    } = context;
+    const { pool, authorization: a, realm, codeValidityDuration } = context;
 
     if (!a) {
       throw new ForbiddenError("You must be authenticated to update a grant.");
@@ -55,15 +49,15 @@ export const updateGrants: GraphQLFieldConfig<
       const tx = await pool.connect();
       try {
         // Make sure this transaction is used for queries made by the executor.
-        const x = new DataLoaderExecutor(tx, executor.key);
+        const executor = new DataLoaderExecutor(tx);
 
         await tx.query("BEGIN DEFERRABLE");
-        const before = await Grant.read(x, input.id, {
+        const before = await Grant.read(executor, input.id, {
           forUpdate: true
         });
 
         if (
-          !(await before.isAccessibleBy(realm, a, x, {
+          !(await before.isAccessibleBy(realm, a, executor, {
             basic: "w",
             scopes: "",
             secrets: ""
@@ -76,7 +70,7 @@ export const updateGrants: GraphQLFieldConfig<
 
         if (
           input.scopes &&
-          !(await before.isAccessibleBy(realm, a, x, {
+          !(await before.isAccessibleBy(realm, a, executor, {
             basic: "w",
             scopes: "w",
             secrets: ""
@@ -92,7 +86,7 @@ export const updateGrants: GraphQLFieldConfig<
             input.removeSecrets ||
             input.generateCodes ||
             input.removeCodes) &&
-          !(await before.isAccessibleBy(realm, a, x, {
+          !(await before.isAccessibleBy(realm, a, executor, {
             basic: "w",
             scopes: "",
             secrets: "w"
@@ -161,7 +155,7 @@ export const updateGrants: GraphQLFieldConfig<
         }
 
         const grant = await Grant.write(
-          x,
+          executor,
           {
             ...before,
             enabled:
@@ -180,6 +174,11 @@ export const updateGrants: GraphQLFieldConfig<
         );
 
         await tx.query("COMMIT");
+
+        // Update the context to use a new executor primed with the results of
+        // this mutation, using the original connection pool.
+        context.executor = new DataLoaderExecutor(pool, executor.key);
+
         return grant;
       } catch (error) {
         await tx.query("ROLLBACK");

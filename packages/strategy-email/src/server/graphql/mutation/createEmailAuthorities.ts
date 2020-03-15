@@ -8,7 +8,8 @@ import {
   NotFoundError,
   ValidationError,
   Role,
-  validateIdFormat
+  validateIdFormat,
+  DataLoaderExecutor
 } from "@authx/authx";
 
 import { createV2AuthXScope } from "@authx/authx/scopes";
@@ -86,9 +87,12 @@ export const createEmailAuthorities: GraphQLFieldConfig<
 
       const tx = await pool.connect();
       try {
+        // Make sure this transaction is used for queries made by the executor.
+        const executor = new DataLoaderExecutor(tx);
+
         if (
           !(await a.can(
-            tx,
+            executor,
             createV2AuthXScope(
               realm,
               {
@@ -113,7 +117,9 @@ export const createEmailAuthorities: GraphQLFieldConfig<
           // Make sure the ID isn't already in use.
           if (input.id) {
             try {
-              await EmailAuthority.read(tx, input.id, { forUpdate: true });
+              await EmailAuthority.read(executor, input.id, {
+                forUpdate: true
+              });
               throw new ConflictError();
             } catch (error) {
               if (!(error instanceof NotFoundError)) {
@@ -124,7 +130,7 @@ export const createEmailAuthorities: GraphQLFieldConfig<
 
           const id = input.id || v4();
           const authority = await EmailAuthority.write(
-            tx,
+            executor,
             {
               id,
               strategy: "email",
@@ -232,10 +238,10 @@ export const createEmailAuthorities: GraphQLFieldConfig<
 
           // Add administration scopes.
           for (const { roleId, scopes } of input.administration) {
-            const role = await Role.read(tx, roleId, { forUpdate: true });
+            const role = await Role.read(executor, roleId, { forUpdate: true });
 
             if (
-              !role.isAccessibleBy(realm, a, tx, {
+              !role.isAccessibleBy(realm, a, executor, {
                 basic: "w",
                 scopes: "w",
                 users: ""
@@ -247,7 +253,7 @@ export const createEmailAuthorities: GraphQLFieldConfig<
             }
 
             await Role.write(
-              tx,
+              executor,
               {
                 ...role,
                 scopes: simplify([
@@ -266,6 +272,11 @@ export const createEmailAuthorities: GraphQLFieldConfig<
           }
 
           await tx.query("COMMIT");
+
+          // Update the context to use a new executor primed with the results of
+          // this mutation, using the original connection pool.
+          context.executor = new DataLoaderExecutor(pool, executor.key);
+
           return authority;
         } catch (error) {
           await tx.query("ROLLBACK");

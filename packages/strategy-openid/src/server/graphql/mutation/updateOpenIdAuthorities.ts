@@ -7,7 +7,8 @@ import {
   ForbiddenError,
   NotFoundError,
   ValidationError,
-  validateIdFormat
+  validateIdFormat,
+  DataLoaderExecutor
 } from "@authx/authx";
 import { OpenIdAuthority } from "../../model";
 import { GraphQLOpenIdAuthority } from "../GraphQLOpenIdAuthority";
@@ -75,9 +76,12 @@ export const updateOpenIdAuthorities: GraphQLFieldConfig<
 
       const tx = await pool.connect();
       try {
+        // Make sure this transaction is used for queries made by the executor.
+        const executor = new DataLoaderExecutor(tx);
+
         await tx.query("BEGIN DEFERRABLE");
 
-        const before = await Authority.read(tx, input.id, authorityMap, {
+        const before = await Authority.read(executor, input.id, authorityMap, {
           forUpdate: true
         });
 
@@ -86,7 +90,7 @@ export const updateOpenIdAuthorities: GraphQLFieldConfig<
         }
 
         if (
-          !(await before.isAccessibleBy(realm, a, tx, {
+          !(await before.isAccessibleBy(realm, a, executor, {
             basic: "w",
             details: ""
           }))
@@ -99,7 +103,7 @@ export const updateOpenIdAuthorities: GraphQLFieldConfig<
         if (
           (typeof input.clientId === "string" ||
             typeof input.clientSecret === "string") &&
-          !(await before.isAccessibleBy(realm, a, tx, {
+          !(await before.isAccessibleBy(realm, a, executor, {
             basic: "w",
             details: "w"
           }))
@@ -109,7 +113,7 @@ export const updateOpenIdAuthorities: GraphQLFieldConfig<
           );
         }
         const authority = await OpenIdAuthority.write(
-          tx,
+          executor,
           {
             ...before,
             enabled:
@@ -172,6 +176,11 @@ export const updateOpenIdAuthorities: GraphQLFieldConfig<
         );
 
         await tx.query("COMMIT");
+
+        // Update the context to use a new executor primed with the results of
+        // this mutation, using the original connection pool.
+        context.executor = new DataLoaderExecutor(pool, executor.key);
+
         return authority;
       } catch (error) {
         await tx.query("ROLLBACK");

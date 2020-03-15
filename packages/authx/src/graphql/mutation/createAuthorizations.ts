@@ -43,7 +43,7 @@ export const createAuthorizations: GraphQLFieldConfig<
     }
   },
   async resolve(source, args, context): Promise<Promise<Authorization>[]> {
-    const { pool, executor, authorization: a, realm } = context;
+    const { pool, authorization: a, realm } = context;
 
     if (!a) {
       throw new ForbiddenError(
@@ -82,12 +82,14 @@ export const createAuthorizations: GraphQLFieldConfig<
       const tx = await pool.connect();
       try {
         // Make sure this transaction is used for queries made by the executor.
-        const x = new DataLoaderExecutor(tx, executor.key);
+        const executor = new DataLoaderExecutor(tx);
 
-        const grant = input.grantId ? await Grant.read(x, input.grantId) : null;
+        const grant = input.grantId
+          ? await Grant.read(executor, input.grantId)
+          : null;
         if (
           !(await a.can(
-            x,
+            executor,
             createV2AuthXScope(
               realm,
               {
@@ -116,7 +118,7 @@ export const createAuthorizations: GraphQLFieldConfig<
           // Make sure the ID isn't already in use.
           if (input.id) {
             try {
-              await Authorization.read(x, input.id, { forUpdate: true });
+              await Authorization.read(executor, input.id, { forUpdate: true });
               throw new ConflictError();
             } catch (error) {
               if (!(error instanceof NotFoundError)) {
@@ -127,7 +129,7 @@ export const createAuthorizations: GraphQLFieldConfig<
 
           const id = input.id || v4();
           const authorization = await Authorization.write(
-            x,
+            executor,
             {
               id,
               enabled: input.enabled,
@@ -187,10 +189,10 @@ export const createAuthorizations: GraphQLFieldConfig<
 
           // Add administration scopes.
           for (const { roleId, scopes } of input.administration) {
-            const role = await Role.read(x, roleId, { forUpdate: true });
+            const role = await Role.read(executor, roleId, { forUpdate: true });
 
             if (
-              !role.isAccessibleBy(realm, a, x, {
+              !role.isAccessibleBy(realm, a, executor, {
                 basic: "w",
                 scopes: "w",
                 users: ""
@@ -202,7 +204,7 @@ export const createAuthorizations: GraphQLFieldConfig<
             }
 
             await Role.write(
-              x,
+              executor,
               {
                 ...role,
                 scopes: simplify([
@@ -221,6 +223,11 @@ export const createAuthorizations: GraphQLFieldConfig<
           }
 
           await tx.query("COMMIT");
+
+          // Update the context to use a new executor primed with the results of
+          // this mutation, using the original connection pool.
+          context.executor = new DataLoaderExecutor(pool, executor.key);
+
           return authorization;
         } catch (error) {
           await tx.query("ROLLBACK");

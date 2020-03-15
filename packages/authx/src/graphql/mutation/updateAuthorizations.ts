@@ -27,7 +27,7 @@ export const updateAuthorizations: GraphQLFieldConfig<
     }
   },
   async resolve(source, args, context): Promise<Promise<Authorization>[]> {
-    const { pool, executor, authorization: a, realm } = context;
+    const { pool, authorization: a, realm } = context;
 
     if (!a) {
       throw new ForbiddenError(
@@ -39,15 +39,15 @@ export const updateAuthorizations: GraphQLFieldConfig<
       const tx = await pool.connect();
       try {
         // Make sure this transaction is used for queries made by the executor.
-        const x = new DataLoaderExecutor(tx, executor.key);
+        const executor = new DataLoaderExecutor(tx);
 
         await tx.query("BEGIN DEFERRABLE");
-        const before = await Authorization.read(x, input.id, {
+        const before = await Authorization.read(executor, input.id, {
           forUpdate: true
         });
 
         if (
-          !(await before.isAccessibleBy(realm, a, x, {
+          !(await before.isAccessibleBy(realm, a, executor, {
             basic: "w",
             scopes: "",
             secrets: ""
@@ -59,7 +59,7 @@ export const updateAuthorizations: GraphQLFieldConfig<
         }
 
         const authorization = await Authorization.write(
-          x,
+          executor,
           {
             ...before,
             enabled:
@@ -76,6 +76,11 @@ export const updateAuthorizations: GraphQLFieldConfig<
         );
 
         await tx.query("COMMIT");
+
+        // Update the context to use a new executor primed with the results of
+        // this mutation, using the original connection pool.
+        context.executor = new DataLoaderExecutor(pool, executor.key);
+
         return authorization;
       } catch (error) {
         await tx.query("ROLLBACK");

@@ -8,7 +8,8 @@ import {
   NotFoundError,
   ValidationError,
   Role,
-  validateIdFormat
+  validateIdFormat,
+  DataLoaderExecutor
 } from "@authx/authx";
 
 import { createV2AuthXScope } from "@authx/authx/scopes";
@@ -86,9 +87,12 @@ export const createOpenIdAuthorities: GraphQLFieldConfig<
 
       const tx = await pool.connect();
       try {
+        // Make sure this transaction is used for queries made by the executor.
+        const executor = new DataLoaderExecutor(tx);
+
         if (
           !(await a.can(
-            tx,
+            executor,
             createV2AuthXScope(
               realm,
               {
@@ -113,7 +117,9 @@ export const createOpenIdAuthorities: GraphQLFieldConfig<
           // Make sure the ID isn't already in use.
           if (input.id) {
             try {
-              await OpenIdAuthority.read(tx, input.id, { forUpdate: true });
+              await OpenIdAuthority.read(executor, input.id, {
+                forUpdate: true
+              });
               throw new ConflictError();
             } catch (error) {
               if (!(error instanceof NotFoundError)) {
@@ -124,7 +130,7 @@ export const createOpenIdAuthorities: GraphQLFieldConfig<
 
           const id = input.id || v4();
           const authority = await OpenIdAuthority.write(
-            tx,
+            executor,
             {
               id,
               strategy: "openid",
@@ -233,10 +239,10 @@ export const createOpenIdAuthorities: GraphQLFieldConfig<
 
           // Add administration scopes.
           for (const { roleId, scopes } of input.administration) {
-            const role = await Role.read(tx, roleId, { forUpdate: true });
+            const role = await Role.read(executor, roleId, { forUpdate: true });
 
             if (
-              !role.isAccessibleBy(realm, a, tx, {
+              !role.isAccessibleBy(realm, a, executor, {
                 basic: "w",
                 scopes: "w",
                 users: ""
@@ -248,7 +254,7 @@ export const createOpenIdAuthorities: GraphQLFieldConfig<
             }
 
             await Role.write(
-              tx,
+              executor,
               {
                 ...role,
                 scopes: simplify([
@@ -267,6 +273,11 @@ export const createOpenIdAuthorities: GraphQLFieldConfig<
           }
 
           await tx.query("COMMIT");
+
+          // Update the context to use a new executor primed with the results of
+          // this mutation, using the original connection pool.
+          context.executor = new DataLoaderExecutor(pool, executor.key);
+
           return authority;
         } catch (error) {
           await tx.query("ROLLBACK");

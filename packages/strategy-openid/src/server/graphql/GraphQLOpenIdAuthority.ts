@@ -62,20 +62,15 @@ export const GraphQLOpenIdAuthority = new GraphQLObjectType<
       async resolve(
         authority,
         args,
-        { realm, authorization: a, pool }: Context
+        { realm, authorization: a, executor }: Context
       ): Promise<null | string> {
-        const tx = await pool.connect();
-        try {
-          return a &&
-            (await authority.isAccessibleBy(realm, a, tx, {
-              basic: "r",
-              details: "r"
-            }))
-            ? authority.details.tokenUrl
-            : null;
-        } finally {
-          tx.release();
-        }
+        return a &&
+          (await authority.isAccessibleBy(realm, a, executor, {
+            basic: "r",
+            details: "r"
+          }))
+          ? authority.details.tokenUrl
+          : null;
       }
     },
     clientId: {
@@ -91,20 +86,15 @@ export const GraphQLOpenIdAuthority = new GraphQLObjectType<
       async resolve(
         authority,
         args,
-        { realm, authorization: a, pool }: Context
+        { realm, authorization: a, executor }: Context
       ): Promise<null | string> {
-        const tx = await pool.connect();
-        try {
-          return a &&
-            (await authority.isAccessibleBy(realm, a, tx, {
-              basic: "r",
-              details: "r"
-            }))
-            ? authority.details.clientSecret
-            : null;
-        } finally {
-          tx.release();
-        }
+        return a &&
+          (await authority.isAccessibleBy(realm, a, executor, {
+            basic: "r",
+            details: "r"
+          }))
+          ? authority.details.clientSecret
+          : null;
       }
     },
     restrictsAccountsToHostedDomains: {
@@ -114,20 +104,15 @@ export const GraphQLOpenIdAuthority = new GraphQLObjectType<
       async resolve(
         authority,
         args,
-        { realm, authorization: a, pool }: Context
+        { realm, authorization: a, executor }: Context
       ): Promise<null | string[]> {
-        const tx = await pool.connect();
-        try {
-          return a &&
-            (await authority.isAccessibleBy(realm, a, tx, {
-              basic: "r",
-              details: "r"
-            }))
-            ? authority.details.restrictsAccountsToHostedDomains
-            : null;
-        } finally {
-          tx.release();
-        }
+        return a &&
+          (await authority.isAccessibleBy(realm, a, executor, {
+            basic: "r",
+            details: "r"
+          }))
+          ? authority.details.restrictsAccountsToHostedDomains
+          : null;
       }
     },
     emailAuthority: {
@@ -136,27 +121,23 @@ export const GraphQLOpenIdAuthority = new GraphQLObjectType<
       async resolve(
         authority,
         args,
-        { realm, authorization: a, pool }: Context
+        { realm, authorization: a, executor }: Context
       ): Promise<null | EmailAuthority> {
-        const tx = await pool.connect();
-        try {
-          if (
-            !a ||
-            !(await authority.isAccessibleBy(realm, a, tx, {
-              basic: "r",
-              details: "r"
-            }))
-          ) {
-            return null;
-          }
-
-          const emailAuthority = await authority.emailAuthority(tx);
-          return emailAuthority && emailAuthority.isAccessibleBy(realm, a, tx)
-            ? emailAuthority
-            : null;
-        } finally {
-          tx.release();
+        if (
+          !a ||
+          !(await authority.isAccessibleBy(realm, a, executor, {
+            basic: "r",
+            details: "r"
+          }))
+        ) {
+          return null;
         }
+
+        const emailAuthority = await authority.emailAuthority(executor);
+        return emailAuthority &&
+          emailAuthority.isAccessibleBy(realm, a, executor)
+          ? emailAuthority
+          : null;
       }
     },
     matchesUsersByEmail: {
@@ -166,20 +147,15 @@ export const GraphQLOpenIdAuthority = new GraphQLObjectType<
       async resolve(
         authority,
         args,
-        { realm, authorization: a, pool }: Context
+        { realm, authorization: a, executor }: Context
       ): Promise<null | boolean> {
-        const tx = await pool.connect();
-        try {
-          return a &&
-            (await authority.isAccessibleBy(realm, a, tx, {
-              basic: "r",
-              details: "r"
-            }))
-            ? authority.details.matchesUsersByEmail
-            : null;
-        } finally {
-          tx.release();
-        }
+        return a &&
+          (await authority.isAccessibleBy(realm, a, executor, {
+            basic: "r",
+            details: "r"
+          }))
+          ? authority.details.matchesUsersByEmail
+          : null;
       }
     },
     createsUnmatchedUsers: {
@@ -189,20 +165,15 @@ export const GraphQLOpenIdAuthority = new GraphQLObjectType<
       async resolve(
         authority,
         args,
-        { realm, authorization: a, pool }: Context
+        { realm, authorization: a, executor }: Context
       ): Promise<null | boolean> {
-        const tx = await pool.connect();
-        try {
-          return a &&
-            (await authority.isAccessibleBy(realm, a, tx, {
-              basic: "r",
-              details: "r"
-            }))
-            ? authority.details.createsUnmatchedUsers
-            : null;
-        } finally {
-          tx.release();
-        }
+        return a &&
+          (await authority.isAccessibleBy(realm, a, executor, {
+            basic: "r",
+            details: "r"
+          }))
+          ? authority.details.createsUnmatchedUsers
+          : null;
       }
     },
     assignsCreatedUsersToRoles: {
@@ -213,26 +184,22 @@ export const GraphQLOpenIdAuthority = new GraphQLObjectType<
       async resolve(
         authority,
         args,
-        { realm, authorization: a, pool }: Context
+        { realm, authorization: a, executor }: Context
       ): Promise<null | Role[]> {
-        const tx = await pool.connect();
-        try {
-          if (
-            !a ||
-            !(await authority.isAccessibleBy(realm, a, tx, {
-              basic: "r",
-              details: "r"
-            }))
-          ) {
-            return null;
-          }
-
-          return filter(await authority.assignsCreatedUsersToRoles(tx), role =>
-            role.isAccessibleBy(realm, a, tx)
-          );
-        } finally {
-          tx.release();
+        if (
+          !a ||
+          !(await authority.isAccessibleBy(realm, a, executor, {
+            basic: "r",
+            details: "r"
+          }))
+        ) {
+          return null;
         }
+
+        return filter(
+          await authority.assignsCreatedUsersToRoles(executor),
+          role => role.isAccessibleBy(realm, a, executor)
+        );
       }
     }
   })

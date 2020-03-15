@@ -8,7 +8,8 @@ import {
   ForbiddenError,
   NotFoundError,
   ValidationError,
-  validateIdFormat
+  validateIdFormat,
+  DataLoaderExecutor
 } from "@authx/authx";
 import { PasswordCredential } from "../../model";
 import { GraphQLPasswordCredential } from "../GraphQLPasswordCredential";
@@ -58,11 +59,19 @@ export const updatePasswordCredentials: GraphQLFieldConfig<
 
       const tx = await pool.connect();
       try {
+        // Make sure this transaction is used for queries made by the executor.
+        const executor = new DataLoaderExecutor(tx);
+
         await tx.query("BEGIN DEFERRABLE");
 
-        const before = await Credential.read(tx, input.id, credentialMap, {
-          forUpdate: true
-        });
+        const before = await Credential.read(
+          executor,
+          input.id,
+          credentialMap,
+          {
+            forUpdate: true
+          }
+        );
 
         if (!(before instanceof PasswordCredential)) {
           throw new NotFoundError(
@@ -71,7 +80,7 @@ export const updatePasswordCredentials: GraphQLFieldConfig<
         }
 
         if (
-          !(await before.isAccessibleBy(realm, a, tx, {
+          !(await before.isAccessibleBy(realm, a, executor, {
             basic: "w",
             details: ""
           }))
@@ -83,7 +92,7 @@ export const updatePasswordCredentials: GraphQLFieldConfig<
 
         if (
           typeof input.password === "string" &&
-          !(await before.isAccessibleBy(realm, a, tx, {
+          !(await before.isAccessibleBy(realm, a, executor, {
             basic: "w",
             details: "w"
           }))
@@ -94,7 +103,7 @@ export const updatePasswordCredentials: GraphQLFieldConfig<
         }
 
         const credential = await PasswordCredential.write(
-          tx,
+          executor,
           {
             ...before,
             enabled:
@@ -107,7 +116,7 @@ export const updatePasswordCredentials: GraphQLFieldConfig<
                 typeof input.password === "string"
                   ? await hash(
                       input.password,
-                      (await before.authority(tx)).details.rounds
+                      (await before.authority(executor)).details.rounds
                     )
                   : before.details.hash
             }
@@ -120,6 +129,11 @@ export const updatePasswordCredentials: GraphQLFieldConfig<
         );
 
         await tx.query("COMMIT");
+
+        // Update the context to use a new executor primed with the results of
+        // this mutation, using the original connection pool.
+        context.executor = new DataLoaderExecutor(pool, executor.key);
+
         return credential;
       } catch (error) {
         await tx.query("ROLLBACK");

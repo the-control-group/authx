@@ -7,7 +7,8 @@ import {
   ForbiddenError,
   NotFoundError,
   ValidationError,
-  validateIdFormat
+  validateIdFormat,
+  DataLoaderExecutor
 } from "@authx/authx";
 import { PasswordAuthority } from "../../model";
 import { GraphQLPasswordAuthority } from "../GraphQLPasswordAuthority";
@@ -57,9 +58,12 @@ export const updatePasswordAuthorities: GraphQLFieldConfig<
 
       const tx = await pool.connect();
       try {
+        // Make sure this transaction is used for queries made by the executor.
+        const executor = new DataLoaderExecutor(tx);
+
         await tx.query("BEGIN DEFERRABLE");
 
-        const before = await Authority.read(tx, input.id, authorityMap, {
+        const before = await Authority.read(executor, input.id, authorityMap, {
           forUpdate: true
         });
 
@@ -68,7 +72,7 @@ export const updatePasswordAuthorities: GraphQLFieldConfig<
         }
 
         if (
-          !(await before.isAccessibleBy(realm, a, tx, {
+          !(await before.isAccessibleBy(realm, a, executor, {
             basic: "w",
             details: ""
           }))
@@ -80,7 +84,7 @@ export const updatePasswordAuthorities: GraphQLFieldConfig<
 
         if (
           typeof input.rounds === "number" &&
-          !(await before.isAccessibleBy(realm, a, tx, {
+          !(await before.isAccessibleBy(realm, a, executor, {
             basic: "w",
             details: "w"
           }))
@@ -91,7 +95,7 @@ export const updatePasswordAuthorities: GraphQLFieldConfig<
         }
 
         const authority = await PasswordAuthority.write(
-          tx,
+          executor,
           {
             ...before,
             enabled:
@@ -119,6 +123,11 @@ export const updatePasswordAuthorities: GraphQLFieldConfig<
         );
 
         await tx.query("COMMIT");
+
+        // Update the context to use a new executor primed with the results of
+        // this mutation, using the original connection pool.
+        context.executor = new DataLoaderExecutor(pool, executor.key);
+
         return authority;
       } catch (error) {
         await tx.query("ROLLBACK");

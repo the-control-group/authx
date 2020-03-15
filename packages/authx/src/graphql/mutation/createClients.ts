@@ -44,7 +44,7 @@ export const createClients: GraphQLFieldConfig<
     }
   },
   async resolve(source, args, context): Promise<Promise<Client>[]> {
-    const { pool, executor, authorization: a, realm } = context;
+    const { pool, authorization: a, realm } = context;
 
     if (!a) {
       throw new ForbiddenError("You must be authenticated to create a client.");
@@ -79,11 +79,11 @@ export const createClients: GraphQLFieldConfig<
       const tx = await pool.connect();
       try {
         // Make sure this transaction is used for queries made by the executor.
-        const x = new DataLoaderExecutor(tx, executor.key);
+        const executor = new DataLoaderExecutor(tx);
 
         if (
           !(await a.can(
-            x,
+            executor,
             createV2AuthXScope(
               realm,
               {
@@ -108,7 +108,7 @@ export const createClients: GraphQLFieldConfig<
           // Make sure the ID isn't already in use.
           if (input.id) {
             try {
-              await Client.read(x, input.id, { forUpdate: true });
+              await Client.read(executor, input.id, { forUpdate: true });
               throw new ConflictError();
             } catch (error) {
               if (!(error instanceof NotFoundError)) {
@@ -119,7 +119,7 @@ export const createClients: GraphQLFieldConfig<
 
           const id = input.id || v4();
           const client = await Client.write(
-            x,
+            executor,
             {
               id,
               enabled: input.enabled,
@@ -268,10 +268,10 @@ export const createClients: GraphQLFieldConfig<
 
           // Add administration scopes.
           for (const { roleId, scopes } of input.administration) {
-            const role = await Role.read(x, roleId, { forUpdate: true });
+            const role = await Role.read(executor, roleId, { forUpdate: true });
 
             if (
-              !role.isAccessibleBy(realm, a, x, {
+              !role.isAccessibleBy(realm, a, executor, {
                 basic: "w",
                 scopes: "w",
                 users: ""
@@ -283,7 +283,7 @@ export const createClients: GraphQLFieldConfig<
             }
 
             await Role.write(
-              x,
+              executor,
               {
                 ...role,
                 scopes: simplify([
@@ -302,6 +302,11 @@ export const createClients: GraphQLFieldConfig<
           }
 
           await tx.query("COMMIT");
+
+          // Update the context to use a new executor primed with the results of
+          // this mutation, using the original connection pool.
+          context.executor = new DataLoaderExecutor(pool, executor.key);
+
           return client;
         } catch (error) {
           await tx.query("ROLLBACK");

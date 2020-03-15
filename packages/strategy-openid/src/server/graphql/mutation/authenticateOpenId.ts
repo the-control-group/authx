@@ -18,7 +18,8 @@ import {
   User,
   Role,
   ForbiddenError,
-  AuthenticationError
+  AuthenticationError,
+  DataLoaderExecutor
 } from "@authx/authx";
 
 import { createV2AuthXScope } from "@authx/authx/scopes";
@@ -62,11 +63,14 @@ export const authenticateOpenId: GraphQLFieldConfig<
 
     const tx = await pool.connect();
     try {
+      // Make sure this transaction is used for queries made by the executor.
+      const executor = new DataLoaderExecutor(tx);
+
       await tx.query("BEGIN DEFERRABLE");
 
       // Fetch the authority.
       const authority = await Authority.read(
-        tx,
+        executor,
         args.authorityId,
         authorityMap
       );
@@ -168,7 +172,7 @@ export const authenticateOpenId: GraphQLFieldConfig<
       const authorizationId = v4();
 
       // Get the credential
-      let credential = await authority.credential(tx, token.sub);
+      let credential = await authority.credential(executor, token.sub);
 
       // Try to associate an existing user by email.
       if (
@@ -179,18 +183,18 @@ export const authenticateOpenId: GraphQLFieldConfig<
         token.email_verified
       ) {
         const emailAuthority = await EmailAuthority.read(
-          tx,
+          executor,
           authority.details.emailAuthorityId
         );
 
         const emailCredential =
           emailAuthority &&
           emailAuthority.enabled &&
-          (await emailAuthority.credential(tx, token.email));
+          (await emailAuthority.credential(executor, token.email));
 
         if (emailCredential && emailCredential.enabled) {
           credential = await OpenIdCredential.write(
-            tx,
+            executor,
             {
               enabled: true,
               id: v4(),
@@ -211,7 +215,7 @@ export const authenticateOpenId: GraphQLFieldConfig<
       // Create a new user.
       if (!credential && authority.details.createsUnmatchedUsers) {
         const user = await User.write(
-          tx,
+          executor,
           {
             id: v4(),
             enabled: true,
@@ -226,7 +230,7 @@ export const authenticateOpenId: GraphQLFieldConfig<
         );
 
         credential = await OpenIdCredential.write(
-          tx,
+          executor,
           {
             enabled: true,
             id: v4(),
@@ -249,13 +253,13 @@ export const authenticateOpenId: GraphQLFieldConfig<
         ) {
           const roles = await Promise.all(
             authority.details.assignsCreatedUsersToRoleIds.map(id =>
-              Role.read(tx, id)
+              Role.read(executor, id)
             )
           );
 
           await roles.map(role =>
             Role.write(
-              tx,
+              executor,
               {
                 ...role,
                 userIds: [...role.userIds, user.id]
@@ -275,7 +279,7 @@ export const authenticateOpenId: GraphQLFieldConfig<
       }
 
       // Invoke the credential.
-      await credential.invoke(tx, {
+      await credential.invoke(executor, {
         id: v4(),
         createdAt: new Date()
       });
@@ -288,10 +292,10 @@ export const authenticateOpenId: GraphQLFieldConfig<
       };
 
       // Make sure the user can create new authorizations.
-      const user = await User.read(tx, credential.userId);
+      const user = await User.read(executor, credential.userId);
       if (
         !isSuperset(
-          await user.access(tx, values),
+          await user.access(executor, values),
           createV2AuthXScope(
             realm,
             {
@@ -316,7 +320,7 @@ export const authenticateOpenId: GraphQLFieldConfig<
 
       // Create a new authorization.
       const authorization = await Authorization.write(
-        tx,
+        executor,
         {
           id: authorizationId,
           enabled: true,
@@ -335,7 +339,7 @@ export const authenticateOpenId: GraphQLFieldConfig<
 
       // Invoke the new authorization, since it will be used for the remainder
       // of the request.
-      await authorization.invoke(tx, {
+      await authorization.invoke(executor, {
         id: v4(),
         format: "basic",
         createdAt: new Date()
@@ -343,7 +347,11 @@ export const authenticateOpenId: GraphQLFieldConfig<
 
       await tx.query("COMMIT");
 
-      // use this authorization for the rest of the request
+      // Update the context to use a new executor primed with the results of
+      // this mutation, using the original connection pool.
+      context.executor = new DataLoaderExecutor(pool, executor.key);
+
+      // Use this authorization for the rest of the request.
       context.authorization = authorization;
 
       return authorization;

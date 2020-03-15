@@ -21,6 +21,6 @@ export interface Context {
   readonly pool: Pool;
   readonly strategies: StrategyCollection;
   readonly explanations: ReadonlyArray<Explanation>;
-  readonly executor: DataLoaderExecutor;
+  executor: DataLoaderExecutor;
   authorization: null | Authorization;
 }

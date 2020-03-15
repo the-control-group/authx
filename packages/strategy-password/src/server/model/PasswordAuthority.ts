@@ -1,5 +1,5 @@
-import { ClientBase } from "pg";
-import { Authority, DataLoaderCacheKey } from "@authx/authx";
+import { ClientBase, Pool } from "pg";
+import { Authority, DataLoaderExecutor } from "@authx/authx";
 import { PasswordCredential } from "./PasswordCredential";
 
 // Authority
@@ -13,7 +13,7 @@ export class PasswordAuthority extends Authority<PasswordAuthorityDetails> {
   private _credentials: null | Promise<PasswordCredential[]> = null;
 
   public credentials(
-    tx: ClientBase | DataLoaderCacheKey,
+    tx: Pool | ClientBase | DataLoaderExecutor,
     refresh: boolean = false
   ): Promise<PasswordCredential[]> {
     if (!refresh && this._credentials) {
@@ -24,7 +24,7 @@ export class PasswordAuthority extends Authority<PasswordAuthorityDetails> {
       PasswordCredential.read(
         tx,
         (
-          await (tx instanceof DataLoaderCacheKey ? tx.tx : tx).query(
+          await (tx instanceof DataLoaderExecutor ? tx.tx : tx).query(
             `
               SELECT entity_id AS id
               FROM authx.credential_records
@@ -39,10 +39,10 @@ export class PasswordAuthority extends Authority<PasswordAuthorityDetails> {
   }
 
   public async credential(
-    tx: ClientBase | DataLoaderCacheKey,
+    tx: Pool | ClientBase | DataLoaderExecutor,
     authorityUserId: string
   ): Promise<null | PasswordCredential> {
-    const results = await (tx instanceof DataLoaderCacheKey ? tx.tx : tx).query(
+    const results = await (tx instanceof DataLoaderExecutor ? tx.tx : tx).query(
       `
       SELECT entity_id AS id
       FROM authx.credential_record

@@ -36,7 +36,7 @@ export const updateClients: GraphQLFieldConfig<
     }
   },
   async resolve(source, args, context): Promise<Promise<Client>[]> {
-    const { pool, executor, authorization: a, realm } = context;
+    const { pool, authorization: a, realm } = context;
 
     if (!a) {
       throw new ForbiddenError("You must be authenticated to update a client.");
@@ -64,16 +64,16 @@ export const updateClients: GraphQLFieldConfig<
       const tx = await pool.connect();
       try {
         // Make sure this transaction is used for queries made by the executor.
-        const x = new DataLoaderExecutor(tx, executor.key);
+        const executor = new DataLoaderExecutor(tx);
 
         await tx.query("BEGIN DEFERRABLE");
-        const before = await Client.read(x, input.id, {
+        const before = await Client.read(executor, input.id, {
           forUpdate: true
         });
 
         // w.... -----------------------------------------------------------
         if (
-          !(await before.isAccessibleBy(realm, a, x, {
+          !(await before.isAccessibleBy(realm, a, executor, {
             basic: "w",
             secrets: ""
           }))
@@ -98,7 +98,7 @@ export const updateClients: GraphQLFieldConfig<
 
         // w...w. ---------------------------------------------------------
         if (
-          !(await before.isAccessibleBy(realm, a, x, {
+          !(await before.isAccessibleBy(realm, a, executor, {
             basic: "w",
             secrets: "w"
           }))
@@ -124,7 +124,7 @@ export const updateClients: GraphQLFieldConfig<
         }
 
         const client = await Client.write(
-          x,
+          executor,
           {
             ...before,
             enabled:
@@ -144,6 +144,11 @@ export const updateClients: GraphQLFieldConfig<
         );
 
         await tx.query("COMMIT");
+
+        // Update the context to use a new executor primed with the results of
+        // this mutation, using the original connection pool.
+        context.executor = new DataLoaderExecutor(pool, executor.key);
+
         return client;
       } catch (error) {
         await tx.query("ROLLBACK");

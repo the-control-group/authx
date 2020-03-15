@@ -16,7 +16,8 @@ import {
   Authorization,
   ForbiddenError,
   AuthenticationError,
-  User
+  User,
+  DataLoaderExecutor
 } from "@authx/authx";
 
 import { createV2AuthXScope } from "@authx/authx/scopes";
@@ -65,11 +66,14 @@ export const authenticatePassword: GraphQLFieldConfig<
 
     const tx = await pool.connect();
     try {
+      // Make sure this transaction is used for queries made by the executor.
+      const executor = new DataLoaderExecutor(tx);
+
       await tx.query("BEGIN DEFERRABLE");
 
       // Fetch the authority.
       const authority = await Authority.read(
-        tx,
+        executor,
         args.passwordAuthorityId,
         authorityMap
       );
@@ -116,7 +120,7 @@ export const authenticatePassword: GraphQLFieldConfig<
       }
 
       // Get the credential.
-      const credential = await authority.credential(tx, userId);
+      const credential = await authority.credential(executor, userId);
 
       if (!credential) {
         throw new AuthenticationError(
@@ -132,7 +136,7 @@ export const authenticatePassword: GraphQLFieldConfig<
       }
 
       // Invoke the credential.
-      await credential.invoke(tx, {
+      await credential.invoke(executor, {
         id: v4(),
         createdAt: new Date()
       });
@@ -147,10 +151,10 @@ export const authenticatePassword: GraphQLFieldConfig<
       };
 
       // Make sure the user can create new authorizations.
-      const user = await User.read(tx, credential.userId);
+      const user = await User.read(executor, credential.userId);
       if (
         !isSuperset(
-          await user.access(tx, values),
+          await user.access(executor, values),
           createV2AuthXScope(
             realm,
             {
@@ -175,7 +179,7 @@ export const authenticatePassword: GraphQLFieldConfig<
 
       // Create a new authorization.
       const authorization = await Authorization.write(
-        tx,
+        executor,
         {
           id: authorizationId,
           enabled: true,
@@ -194,13 +198,17 @@ export const authenticatePassword: GraphQLFieldConfig<
 
       // Invoke the new authorization, since it will be used for the remainder
       // of the request.
-      await authorization.invoke(tx, {
+      await authorization.invoke(executor, {
         id: v4(),
         format: "basic",
         createdAt: new Date()
       });
 
       await tx.query("COMMIT");
+
+      // Update the context to use a new executor primed with the results of
+      // this mutation, using the original connection pool.
+      context.executor = new DataLoaderExecutor(pool, executor.key);
 
       // Use this authorization for the remainder of the request.
       context.authorization = authorization;

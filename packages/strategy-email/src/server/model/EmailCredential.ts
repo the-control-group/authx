@@ -1,5 +1,5 @@
-import { ClientBase } from "pg";
-import { Credential, DataLoaderCacheKey } from "@authx/authx";
+import { ClientBase, Pool } from "pg";
+import { Credential, DataLoaderExecutor } from "@authx/authx";
 import { EmailAuthority } from "./EmailAuthority";
 
 // Credential
@@ -12,7 +12,7 @@ export class EmailCredential extends Credential<{}> {
   private _authority: null | Promise<EmailAuthority> = null;
 
   public authority(
-    tx: ClientBase | DataLoaderCacheKey,
+    tx: Pool | ClientBase | DataLoaderExecutor,
     refresh: boolean = false
   ): Promise<EmailAuthority> {
     if (!refresh && this._authority) {
