@@ -173,10 +173,18 @@ export class Role implements RoleData {
     options: { forUpdate: boolean } = { forUpdate: false }
   ): Promise<Role[] | Role> {
     if (tx instanceof DataLoaderExecutor) {
-      const loader = this._cache.get(tx);
-      return Promise.all(
-        typeof id === "string" ? [loader.load(id)] : id.map(i => loader.load(i))
-      );
+      if (options?.forUpdate) {
+        // A loader cannot be used if forUpdate is true.
+        tx = tx.tx;
+      } else {
+        // Otherwise, use the loader.
+        const loader = this._cache.get(tx);
+        return Promise.all(
+          typeof id === "string"
+            ? [loader.load(id)]
+            : id.map(i => loader.load(i))
+        );
+      }
     }
 
     if (typeof id !== "string" && !id.length) {
@@ -352,5 +360,7 @@ export class Role implements RoleData {
     });
   }
 
-  private static readonly _cache = new DataLoaderCache(Role);
+  private static readonly _cache = new DataLoaderCache<Role, [], typeof Role>(
+    Role
+  );
 }

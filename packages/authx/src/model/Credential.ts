@@ -60,6 +60,14 @@ export interface CredentialData<C> {
   readonly details: C;
 }
 
+export type CredentialInstanceMap = {
+  [key: string]: {
+    new (data: CredentialData<any> & { readonly recordId: string }): Credential<
+      any
+    >;
+  };
+};
+
 export abstract class Credential<C> implements CredentialData<C> {
   public readonly id: string;
   public readonly recordId: string;
@@ -224,88 +232,74 @@ export abstract class Credential<C> implements CredentialData<C> {
     );
   }
 
-  public static read<C, T extends Credential<C>>(
-    this: new (data: CredentialData<C> & { readonly recordId: string }) => T,
+  public static read<A, T extends Credential<A>>(
+    this: new (data: CredentialData<any> & { readonly recordId: string }) => T,
     tx: Pool | ClientBase | DataLoaderExecutor,
     id: string,
     options?: { forUpdate: boolean }
   ): Promise<T>;
 
-  public static read<C, T extends Credential<C>>(
-    this: new (data: CredentialData<C> & { readonly recordId: string }) => T,
+  public static read<A, T extends Credential<A>>(
+    this: new (data: CredentialData<A> & { readonly recordId: string }) => T,
     tx: Pool | ClientBase | DataLoaderExecutor,
     id: string[],
     options?: { forUpdate: boolean }
   ): Promise<T[]>;
 
-  public static read<
-    M extends {
-      [key: string]: {
-        new (
-          data: CredentialData<any> & { readonly recordId: string }
-        ): Credential<any>;
-      };
-    },
-    K extends keyof M
-  >(
+  public static read<M extends CredentialInstanceMap, K extends keyof M>(
     tx: Pool | ClientBase | DataLoaderExecutor,
     id: string,
-    map: M,
+    map?: M,
     options?: { forUpdate: boolean }
   ): Promise<InstanceType<M[K]>>;
 
-  public static read<
-    M extends {
-      [key: string]: {
-        new (
-          data: CredentialData<any> & { readonly recordId: string }
-        ): Credential<any>;
-      };
-    },
-    K extends keyof M
-  >(
+  public static read<M extends CredentialInstanceMap, K extends keyof M>(
     tx: Pool | ClientBase | DataLoaderExecutor,
     id: string[],
-    map: M,
+    map?: M,
     options?: { forUpdate: boolean }
   ): Promise<InstanceType<M[K]>[]>;
 
   public static async read<
     C,
     T extends Credential<C>,
-    M extends {
-      [key: string]: any;
-    },
+    M extends CredentialInstanceMap,
     K extends keyof M
   >(
     this: {
       new (data: CredentialData<C> & { readonly recordId: string }): T;
-      _cache: DataLoaderCache<InstanceType<M[K]>>;
-    },
+    } & Pick<typeof Credential, "_cache">,
     tx: Pool | ClientBase | DataLoaderExecutor,
     id: string[] | string,
-    mapOrOptions?: M | { forUpdate: boolean },
-    optionsOrUndefined?: { forUpdate: boolean }
+    map?: M,
+    options: { forUpdate: boolean } = { forUpdate: false }
   ): Promise<InstanceType<M[K]>[] | InstanceType<M[K]> | T | T[]> {
     if (tx instanceof DataLoaderExecutor) {
-      const loader = this._cache.get(tx);
-      return Promise.all(
-        typeof id === "string" ? [loader.load(id)] : id.map(i => loader.load(i))
-      );
+      if (options?.forUpdate || !map) {
+        // A loader cannot be used if forUpdate is true.
+        tx = tx.tx;
+      } else {
+        // Otherwise, use the loader.
+        let cache = this._cache.get(map);
+        if (!cache) {
+          cache = new DataLoaderCache<
+            Credential<any>,
+            [CredentialInstanceMap],
+            typeof Credential
+          >(Credential, map);
+          this._cache.set(map, cache);
+        }
+
+        const loader = cache.get(tx);
+        return typeof id === "string"
+          ? (loader.load(id) as InstanceType<M[K]>)
+          : Promise.all(id.map(i => loader.load(i) as InstanceType<M[K]>));
+      }
     }
 
     if (typeof id !== "string" && !id.length) {
       return [];
     }
-
-    const map =
-      mapOrOptions && typeof mapOrOptions.forUpdate !== "boolean"
-        ? (mapOrOptions as M)
-        : undefined;
-
-    const options = (map === mapOrOptions
-      ? (optionsOrUndefined as { forUpdate: boolean })
-      : mapOrOptions) || { forUpdate: false };
 
     const result = await tx.query(
       `
@@ -367,7 +361,9 @@ export abstract class Credential<C> implements CredentialData<C> {
       return new Class(data);
     });
 
-    return typeof id === "string" ? instances[0] : instances;
+    return typeof id === "string"
+      ? (instances[0] as InstanceType<M[K]>)
+      : (instances as InstanceType<M[K]>[]);
   }
 
   public static async write<C, T extends Credential<C>>(
@@ -385,10 +381,10 @@ export abstract class Credential<C> implements CredentialData<C> {
     if (tx instanceof DataLoaderExecutor) {
       const result = await this.write<C, T>(tx.tx, data, metadata);
 
-      this._cache
-        .get(tx)
-        .clear(result.id)
-        .prime(result.id, result);
+      // this._cache
+      //   .get(tx)
+      //   .clear(result.id)
+      //   .prime(result.id, result);
 
       return result;
     }
@@ -477,5 +473,8 @@ export abstract class Credential<C> implements CredentialData<C> {
     }) as T;
   }
 
-  static readonly _cache: DataLoaderCache<Credential<any>>;
+  static _cache = new WeakMap<
+    CredentialInstanceMap,
+    DataLoaderCache<Credential<any>, [CredentialInstanceMap], typeof Credential>
+  >();
 }

@@ -1,6 +1,19 @@
-echo 'CREATE DATABASE authx;' | docker-compose exec -T -e 'PGUSER=postgres' -e 'PGPASSWORD=postgres' postgres psql
-docker-compose exec -T -e 'PGHOST=postgres' -e 'PGUSER=postgres' -e 'PGPASSWORD=postgres' server-builder yarn authx schema
-docker-compose exec -T -e 'PGHOST=postgres' -e 'PGUSER=postgres' -e 'PGPASSWORD=postgres' server-builder yarn authx fixture
+echo 'Creating database...'
+if ! (echo 'CREATE DATABASE authx;' | docker-compose exec -T -e 'PGUSER=postgres' -e 'PGPASSWORD=postgres' postgres psql);
+	then exit 1
+fi
 
-echo 'Creating new superuser:'
-docker-compose exec -T -e 'PGHOST=postgres' -e 'PGUSER=postgres' -e 'PGPASSWORD=postgres' server-builder yarn authx bootstrap
+echo 'Writing schema...'
+if ! (docker-compose exec -T -e 'PGHOST=postgres' -e 'PGUSER=postgres' -e 'PGPASSWORD=postgres' server-builder yarn authx schema);
+	then exit 1
+fi
+
+echo 'Loading fixtures...'
+if ! (docker-compose exec -T -e 'PGHOST=postgres' -e 'PGUSER=postgres' -e 'PGPASSWORD=postgres' server-builder yarn authx fixture);
+	then exit 1
+fi
+
+echo 'Creating new superuser...'
+if ! (docker-compose exec -T -e 'PGHOST=postgres' -e 'PGUSER=postgres' -e 'PGPASSWORD=postgres' server-builder yarn authx bootstrap);
+	then exit 1
+fi

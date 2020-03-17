@@ -308,10 +308,18 @@ export class Grant implements GrantData {
     options: { forUpdate: boolean } = { forUpdate: false }
   ): Promise<Grant[] | Grant> {
     if (tx instanceof DataLoaderExecutor) {
-      const loader = this._cache.get(tx);
-      return Promise.all(
-        typeof id === "string" ? [loader.load(id)] : id.map(i => loader.load(i))
-      );
+      if (options?.forUpdate) {
+        // A loader cannot be used if forUpdate is true.
+        tx = tx.tx;
+      } else {
+        // Otherwise, use the loader.
+        const loader = this._cache.get(tx);
+        return Promise.all(
+          typeof id === "string"
+            ? [loader.load(id)]
+            : id.map(i => loader.load(i))
+        );
+      }
     }
 
     if (typeof id !== "string" && !id.length) {
@@ -467,5 +475,7 @@ export class Grant implements GrantData {
     });
   }
 
-  private static readonly _cache = new DataLoaderCache(Grant);
+  private static readonly _cache = new DataLoaderCache<Grant, [], typeof Grant>(
+    Grant
+  );
 }

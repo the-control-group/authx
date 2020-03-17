@@ -38,6 +38,14 @@ export interface AuthorityData<A> {
   readonly details: A;
 }
 
+export type AuthorityInstanceMap = {
+  [key: string]: {
+    new (data: AuthorityData<any> & { readonly recordId: string }): Authority<
+      any
+    >;
+  };
+};
+
 export abstract class Authority<A> implements AuthorityData<A> {
   public readonly id: string;
   public readonly recordId: string;
@@ -180,18 +188,33 @@ export abstract class Authority<A> implements AuthorityData<A> {
   >(
     this: {
       new (data: AuthorityData<A> & { readonly recordId: string }): T;
-      _cache: DataLoaderCache<InstanceType<M[K]>>;
-    },
+    } & Pick<typeof Authority, "_cache">,
     tx: Pool | ClientBase | DataLoaderExecutor,
     id: string[] | string,
     map?: M,
     options: { forUpdate: boolean } = { forUpdate: false }
   ): Promise<InstanceType<M[K]>[] | InstanceType<M[K]> | T | T[]> {
     if (tx instanceof DataLoaderExecutor) {
-      const loader = this._cache.get(tx);
-      return Promise.all(
-        typeof id === "string" ? [loader.load(id)] : id.map(i => loader.load(i))
-      );
+      if (options?.forUpdate || !map) {
+        // A loader cannot be used if forUpdate is true.
+        tx = tx.tx;
+      } else {
+        // Otherwise, use the loader.
+        let cache = this._cache.get(map);
+        if (!cache) {
+          cache = new DataLoaderCache<
+            Authority<any>,
+            [AuthorityInstanceMap],
+            typeof Authority
+          >(Authority, map);
+          this._cache.set(map, cache);
+        }
+
+        const loader = cache.get(tx);
+        return typeof id === "string"
+          ? (loader.load(id) as InstanceType<M[K]>)
+          : Promise.all(id.map(i => loader.load(i) as InstanceType<M[K]>));
+      }
     }
 
     if (typeof id !== "string" && !id.length) {
@@ -270,10 +293,10 @@ export abstract class Authority<A> implements AuthorityData<A> {
     if (tx instanceof DataLoaderExecutor) {
       const result = await this.write<A, T>(tx.tx, data, metadata);
 
-      this._cache
-        .get(tx)
-        .clear(result.id)
-        .prime(result.id, result);
+      // this._cache
+      //   .get(tx)
+      //   .clear(result.id)
+      //   .prime(result.id, result);
 
       return result;
     }
@@ -362,5 +385,8 @@ export abstract class Authority<A> implements AuthorityData<A> {
     }) as T;
   }
 
-  static readonly _cache: DataLoaderCache<Authority<any>>;
+  static _cache = new WeakMap<
+    AuthorityInstanceMap,
+    DataLoaderCache<Authority<any>, [AuthorityInstanceMap], typeof Authority>
+  >();
 }

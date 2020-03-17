@@ -16,13 +16,10 @@ import schema from "./scripts/schema";
       await schema();
       return;
     default:
-      console.error(
-        `You must specify one of the following actions:
-  bootstrap
-  fixture
-  schema.`
-      );
-      process.exit(1);
+      throw new Error(`You must specify one of the following actions:
+  - bootstrap
+  - fixture
+  - schema.`);
   }
 })().catch(error => {
   console.error(error);

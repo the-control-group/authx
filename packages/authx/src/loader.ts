@@ -6,14 +6,6 @@ type Model = {
 	readonly id: string;
 };
 
-type ModelConstructor<T extends Model> = (new (data: any) => T) & {
-	read(
-		tx: Pool | ClientBase,
-		id: readonly string[],
-		options?: {}
-	): Promise<T[]>;
-};
-
 export class DataLoaderCacheKey {}
 
 export class DataLoaderExecutor {
@@ -28,33 +20,43 @@ export class DataLoaderExecutor {
 
 export type Queriable = ClientBase | Pool | DataLoaderExecutor;
 
-export class DataLoaderCache<T extends Model> extends WeakMap<
-	DataLoaderCacheKey,
-	DataLoader<string, T>
-> {
-	private readonly _model: ModelConstructor<T>;
+export class DataLoaderCache<
+	M extends Model,
+	A extends any[],
+	C extends {
+		read(
+			tx: Pool | ClientBase,
+			id: readonly string[],
+			...args: A
+		): Promise<M[]>;
+	}
+> extends WeakMap<DataLoaderCacheKey, DataLoader<string, M>> {
+	private readonly _model: C;
+	private readonly _args: A;
 
-	constructor(model: ModelConstructor<T>) {
+	constructor(model: C, ...args: A) {
 		super();
 		this._model = model;
+		this._args = args;
 	}
 
-	get(executor: DataLoaderExecutor): DataLoader<string, T> {
+	get(executor: DataLoaderExecutor): DataLoader<string, M> {
 		let loader = super.get(executor.key);
 		if (loader) {
 			return loader;
 		}
 
 		const model = this._model;
-		loader = new DataLoader<string, T>(async function(
+		const args = this._args;
+		loader = new DataLoader<string, M>(async function(
 			ids: readonly string[]
-		): Promise<(T | Error)[]> {
+		): Promise<(M | Error)[]> {
 			// Get the results from the model in whatever order the database found
 			// most efficient.
-			const results = await model.read(executor.tx, ids);
+			const results = await model.read(executor.tx, ids, ...args);
 
 			// Index the results by ID.
-			const resultsById = new Map<string, T>();
+			const resultsById = new Map<string, M>();
 			for (let i = 0; i < results.length; i++) {
 				const result = results[i];
 				resultsById.set(result.id, result);

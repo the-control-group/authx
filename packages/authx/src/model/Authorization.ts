@@ -298,10 +298,18 @@ export class Authorization implements AuthorizationData {
     options: { forUpdate: boolean } = { forUpdate: false }
   ): Promise<Authorization[] | Authorization> {
     if (tx instanceof DataLoaderExecutor) {
-      const loader = this._cache.get(tx);
-      return Promise.all(
-        typeof id === "string" ? [loader.load(id)] : id.map(i => loader.load(i))
-      );
+      if (options?.forUpdate) {
+        // A loader cannot be used if forUpdate is true.
+        tx = tx.tx;
+      } else {
+        // Otherwise, use the loader.
+        const loader = this._cache.get(tx);
+        return Promise.all(
+          typeof id === "string"
+            ? [loader.load(id)]
+            : id.map(i => loader.load(i))
+        );
+      }
     }
 
     if (typeof id !== "string" && !id.length) {
@@ -506,5 +514,9 @@ export class Authorization implements AuthorizationData {
     });
   }
 
-  private static readonly _cache = new DataLoaderCache(Authorization);
+  private static readonly _cache = new DataLoaderCache<
+    Authorization,
+    [],
+    typeof Authorization
+  >(Authorization);
 }

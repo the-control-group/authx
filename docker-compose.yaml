@@ -16,7 +16,9 @@ services:
         source: postgres
         target: /var/lib/postgres
     ports:
-      - 5432
+      - target: 5432
+        protocol: tcp
+        mode: localhost
 
   # This container builds the server.
   server-builder:
@@ -56,4 +58,6 @@ services:
         source: server_node_modules
         target: /workspace/node_modules
     ports:
-      - "8000:80"
+      - target: 80
+        protocol: tcp
+        mode: localhost
