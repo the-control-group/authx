@@ -120,7 +120,7 @@ export class Client implements ClientData {
       Grant.read(
         tx,
         (
-          await (tx instanceof DataLoaderExecutor ? tx.tx : tx).query(
+          await (tx instanceof DataLoaderExecutor ? tx.connection : tx).query(
             `
             SELECT entity_id AS id
             FROM authx.grant_record
@@ -138,7 +138,10 @@ export class Client implements ClientData {
     tx: Pool | ClientBase | DataLoaderExecutor,
     userId: string
   ): Promise<null | Grant> {
-    const result = await (tx instanceof DataLoaderExecutor ? tx.tx : tx).query(
+    const result = await (tx instanceof DataLoaderExecutor
+      ? tx.connection
+      : tx
+    ).query(
       `
       SELECT entity_id AS id
       FROM authx.grant_record
@@ -164,7 +167,10 @@ export class Client implements ClientData {
   }
 
   public async records(tx: ClientBase): Promise<ClientRecord[]> {
-    const result = await (tx instanceof DataLoaderExecutor ? tx.tx : tx).query(
+    const result = await (tx instanceof DataLoaderExecutor
+      ? tx.connection
+      : tx
+    ).query(
       `
       SELECT
         record_id as id,
@@ -200,7 +206,10 @@ export class Client implements ClientData {
     }
   ): Promise<ClientInvocation> {
     // insert the new invocation
-    const result = await (tx instanceof DataLoaderExecutor ? tx.tx : tx).query(
+    const result = await (tx instanceof DataLoaderExecutor
+      ? tx.connection
+      : tx
+    ).query(
       `
       INSERT INTO authx.client_invocation
       (
@@ -235,7 +244,10 @@ export class Client implements ClientData {
   }
 
   public async invocations(tx: ClientBase): Promise<ClientInvocation[]> {
-    const result = await (tx instanceof DataLoaderExecutor ? tx.tx : tx).query(
+    const result = await (tx instanceof DataLoaderExecutor
+      ? tx.connection
+      : tx
+    ).query(
       `
       SELECT
         invocation_id as id,
@@ -278,7 +290,7 @@ export class Client implements ClientData {
     if (tx instanceof DataLoaderExecutor) {
       if (options?.forUpdate) {
         // A loader cannot be used if forUpdate is true.
-        tx = tx.tx;
+        tx = tx.connection;
       } else {
         // Otherwise, use the loader.
         const loader = this._cache.get(tx);
@@ -349,7 +361,7 @@ export class Client implements ClientData {
     }
   ): Promise<Client> {
     if (tx instanceof DataLoaderExecutor) {
-      const result = await this.write(tx.tx, data, metadata);
+      const result = await this.write(tx.connection, data, metadata);
 
       this._cache
         .get(tx)

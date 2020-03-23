@@ -226,7 +226,7 @@ export const createAuthorizations: GraphQLFieldConfig<
 
           // Update the context to use a new executor primed with the results of
           // this mutation, using the original connection pool.
-          context.executor = new DataLoaderExecutor(pool, executor.key);
+          context.executor = new DataLoaderExecutor(pool, executor.context);
 
           return authorization;
         } catch (error) {

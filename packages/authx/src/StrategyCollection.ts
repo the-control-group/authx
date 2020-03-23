@@ -7,12 +7,18 @@ export class StrategyCollection {
   public map: { [name: string]: Strategy } = {};
 
   public authorityMap: {
-    readonly [name: string]: { new (data: AuthorityData<any>): Authority<any> };
+    readonly [name: string]: {
+      new (data: AuthorityData<any> & { readonly recordId: string }): Authority<
+        any
+      >;
+    };
   } = {};
 
   public credentialMap: {
     readonly [name: string]: {
-      new (data: CredentialData<any>): Credential<any>;
+      new (
+        data: CredentialData<any> & { readonly recordId: string }
+      ): Credential<any>;
     };
   } = {};
 

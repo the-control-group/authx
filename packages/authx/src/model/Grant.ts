@@ -151,7 +151,7 @@ export class Grant implements GrantData {
       Authorization.read(
         tx,
         (
-          await (tx instanceof DataLoaderExecutor ? tx.tx : tx).query(
+          await (tx instanceof DataLoaderExecutor ? tx.connection : tx).query(
             `
           SELECT entity_id AS id
           FROM authx.authorization_record
@@ -196,7 +196,10 @@ export class Grant implements GrantData {
   }
 
   public async records(tx: ClientBase): Promise<GrantRecord[]> {
-    const result = await (tx instanceof DataLoaderExecutor ? tx.tx : tx).query(
+    const result = await (tx instanceof DataLoaderExecutor
+      ? tx.connection
+      : tx
+    ).query(
       `
       SELECT
         record_id as id,
@@ -232,7 +235,10 @@ export class Grant implements GrantData {
     }
   ): Promise<GrantInvocation> {
     // insert the new invocation
-    const result = await (tx instanceof DataLoaderExecutor ? tx.tx : tx).query(
+    const result = await (tx instanceof DataLoaderExecutor
+      ? tx.connection
+      : tx
+    ).query(
       `
       INSERT INTO authx.grant_invocation
       (
@@ -267,7 +273,10 @@ export class Grant implements GrantData {
   }
 
   public async invocations(tx: ClientBase): Promise<GrantInvocation[]> {
-    const result = await (tx instanceof DataLoaderExecutor ? tx.tx : tx).query(
+    const result = await (tx instanceof DataLoaderExecutor
+      ? tx.connection
+      : tx
+    ).query(
       `
       SELECT
         invocation_id as id,
@@ -310,15 +319,13 @@ export class Grant implements GrantData {
     if (tx instanceof DataLoaderExecutor) {
       if (options?.forUpdate) {
         // A loader cannot be used if forUpdate is true.
-        tx = tx.tx;
+        tx = tx.connection;
       } else {
         // Otherwise, use the loader.
         const loader = this._cache.get(tx);
-        return Promise.all(
-          typeof id === "string"
-            ? [loader.load(id)]
-            : id.map(i => loader.load(i))
-        );
+        return typeof id === "string"
+          ? loader.load(id)
+          : Promise.all(id.map(i => loader.load(i)));
       }
     }
 
@@ -379,7 +386,7 @@ export class Grant implements GrantData {
     }
   ): Promise<Grant> {
     if (tx instanceof DataLoaderExecutor) {
-      const result = await this.write(tx.tx, data, metadata);
+      const result = await this.write(tx.connection, data, metadata);
 
       this._cache
         .get(tx)

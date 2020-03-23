@@ -100,7 +100,7 @@ export class User implements UserData {
       Authorization.read(
         tx,
         (
-          await (tx instanceof DataLoaderExecutor ? tx.tx : tx).query(
+          await (tx instanceof DataLoaderExecutor ? tx.connection : tx).query(
             `
           SELECT entity_id AS id
           FROM authx.authorization_record
@@ -129,7 +129,7 @@ export class User implements UserData {
       Credential.read(
         tx,
         (
-          await (tx instanceof DataLoaderExecutor ? tx.tx : tx).query(
+          await (tx instanceof DataLoaderExecutor ? tx.connection : tx).query(
             `
           SELECT entity_id AS id
           FROM authx.credential_record
@@ -156,7 +156,7 @@ export class User implements UserData {
       Grant.read(
         tx,
         (
-          await (tx instanceof DataLoaderExecutor ? tx.tx : tx).query(
+          await (tx instanceof DataLoaderExecutor ? tx.connection : tx).query(
             `
           SELECT entity_id AS id
           FROM authx.grant_record
@@ -174,7 +174,10 @@ export class User implements UserData {
     tx: Pool | ClientBase | DataLoaderExecutor,
     clientId: string
   ): Promise<null | Grant> {
-    const result = await (tx instanceof DataLoaderExecutor ? tx.tx : tx).query(
+    const result = await (tx instanceof DataLoaderExecutor
+      ? tx.connection
+      : tx
+    ).query(
       `
       SELECT entity_id AS id
       FROM authx.grant_record
@@ -211,7 +214,7 @@ export class User implements UserData {
       Role.read(
         tx,
         (
-          await (tx instanceof DataLoaderExecutor ? tx.tx : tx).query(
+          await (tx instanceof DataLoaderExecutor ? tx.connection : tx).query(
             `
         SELECT entity_id AS id
         FROM authx.role_record
@@ -262,7 +265,10 @@ export class User implements UserData {
   }
 
   public async records(tx: ClientBase): Promise<UserRecord[]> {
-    const result = await (tx instanceof DataLoaderExecutor ? tx.tx : tx).query(
+    const result = await (tx instanceof DataLoaderExecutor
+      ? tx.connection
+      : tx
+    ).query(
       `
       SELECT
         record_id as id,
@@ -306,18 +312,29 @@ export class User implements UserData {
     options: { forUpdate: boolean } = { forUpdate: false }
   ): Promise<User[] | User> {
     if (tx instanceof DataLoaderExecutor) {
+      const loader = this._cache.get(tx);
+
+      // If forUpdate is true, read directly from the database and then write to
+      // the cache.
       if (options?.forUpdate) {
-        // A loader cannot be used if forUpdate is true.
-        tx = tx.tx;
-      } else {
-        // Otherwise, use the loader.
-        const loader = this._cache.get(tx);
-        return Promise.all(
+        const result =
+          // This goofiness is to help TypeScript figure out the which method
+          // overload to use.
           typeof id === "string"
-            ? [loader.load(id)]
-            : id.map(i => loader.load(i))
-        );
+            ? await this.read(tx.connection, id, options)
+            : await this.read(tx.connection, id, options);
+
+        for (const user of Array.isArray(result) ? result : [result]) {
+          loader.clear(user.id).prime(user.id, user);
+        }
+
+        return result;
       }
+
+      // Otherwise, use the loader.
+      return typeof id === "string"
+        ? loader.load(id)
+        : Promise.all(id.map(i => loader.load(i)));
     }
 
     if (typeof id !== "string" && !id.length) {
@@ -372,7 +389,7 @@ export class User implements UserData {
     }
   ): Promise<User> {
     if (tx instanceof DataLoaderExecutor) {
-      const result = await this.write(tx.tx, data, metadata);
+      const result = await this.write(tx.connection, data, metadata);
 
       this._cache
         .get(tx)

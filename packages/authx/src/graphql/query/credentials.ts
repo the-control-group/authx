@@ -37,7 +37,7 @@ export const credentials: GraphQLFieldConfig<
     } = context;
     if (!a) return [];
 
-    const ids = await executor.tx.query(
+    const ids = await executor.connection.query(
       `
         SELECT entity_id AS id
         FROM authx.credential_record

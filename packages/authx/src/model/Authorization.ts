@@ -180,7 +180,10 @@ export class Authorization implements AuthorizationData {
   }
 
   public async records(tx: ClientBase): Promise<AuthorizationRecord[]> {
-    const result = await (tx instanceof DataLoaderExecutor ? tx.tx : tx).query(
+    const result = await (tx instanceof DataLoaderExecutor
+      ? tx.connection
+      : tx
+    ).query(
       `
       SELECT
         record_id as id,
@@ -218,7 +221,10 @@ export class Authorization implements AuthorizationData {
     }
   ): Promise<AuthorizationInvocation> {
     // insert the new invocation
-    const result = await (tx instanceof DataLoaderExecutor ? tx.tx : tx).query(
+    const result = await (tx instanceof DataLoaderExecutor
+      ? tx.connection
+      : tx
+    ).query(
       `
       INSERT INTO authx.authorization_invocation
       (
@@ -256,7 +262,10 @@ export class Authorization implements AuthorizationData {
   }
 
   public async invocations(tx: ClientBase): Promise<AuthorizationInvocation[]> {
-    const result = await (tx instanceof DataLoaderExecutor ? tx.tx : tx).query(
+    const result = await (tx instanceof DataLoaderExecutor
+      ? tx.connection
+      : tx
+    ).query(
       `
       SELECT
         invocation_id as id,
@@ -300,7 +309,7 @@ export class Authorization implements AuthorizationData {
     if (tx instanceof DataLoaderExecutor) {
       if (options?.forUpdate) {
         // A loader cannot be used if forUpdate is true.
-        tx = tx.tx;
+        tx = tx.connection;
       } else {
         // Otherwise, use the loader.
         const loader = this._cache.get(tx);
@@ -379,7 +388,7 @@ export class Authorization implements AuthorizationData {
     }
   ): Promise<Authorization> {
     if (tx instanceof DataLoaderExecutor) {
-      const result = await this.write(tx.tx, data, metadata);
+      const result = await this.write(tx.connection, data, metadata);
 
       this._cache
         .get(tx)

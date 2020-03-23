@@ -179,7 +179,7 @@ export const updateRoles: GraphQLFieldConfig<
 
         // Update the context to use a new executor primed with the results of
         // this mutation, using the original connection pool.
-        context.executor = new DataLoaderExecutor(pool, executor.key);
+        context.executor = new DataLoaderExecutor(pool, executor.context);
 
         await tx.query("COMMIT");
         return role;

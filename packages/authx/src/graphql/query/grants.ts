@@ -32,7 +32,7 @@ export const grants: GraphQLFieldConfig<
     const { executor, authorization: a, realm } = context;
     if (!a) return [];
 
-    const ids = await executor.tx.query(
+    const ids = await executor.connection.query(
       `
         SELECT entity_id AS id
         FROM authx.grant_record

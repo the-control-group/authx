@@ -104,7 +104,10 @@ export abstract class Authority<A> implements AuthorityData<A> {
   ): Promise<Credential<any> | null>;
 
   public async records(tx: ClientBase): Promise<AuthorityRecord[]> {
-    const result = await (tx instanceof DataLoaderExecutor ? tx.tx : tx).query(
+    const result = await (tx instanceof DataLoaderExecutor
+      ? tx.connection
+      : tx
+    ).query(
       `
       SELECT
         record_id as id,
@@ -195,26 +198,30 @@ export abstract class Authority<A> implements AuthorityData<A> {
     options: { forUpdate: boolean } = { forUpdate: false }
   ): Promise<InstanceType<M[K]>[] | InstanceType<M[K]> | T | T[]> {
     if (tx instanceof DataLoaderExecutor) {
-      if (options?.forUpdate || !map) {
-        // A loader cannot be used if forUpdate is true.
-        tx = tx.tx;
-      } else {
-        // Otherwise, use the loader.
-        let cache = this._cache.get(map);
-        if (!cache) {
-          cache = new DataLoaderCache<
-            Authority<any>,
-            [AuthorityInstanceMap],
-            typeof Authority
-          >(Authority, map);
-          this._cache.set(map, cache);
-        }
-
-        const loader = cache.get(tx);
-        return typeof id === "string"
-          ? (loader.load(id) as InstanceType<M[K]>)
-          : Promise.all(id.map(i => loader.load(i) as InstanceType<M[K]>));
+      if (map && map !== tx.context.strategies.authorityMap) {
+        throw new Error(
+          "If passed, the `map` argument must be identical to the map in the executor."
+        );
       }
+
+      const loader = this._cache.get(tx);
+
+      // If `forUpdate` is true, clear any cache for the requested IDs.
+      if (options?.forUpdate) {
+        if (typeof id === "string") {
+          loader.clear(id);
+        } else {
+          for (const i of id) {
+            loader.clear(i);
+          }
+        }
+      }
+
+      return typeof id === "string"
+        ? (loader.load(id) as Promise<InstanceType<M[K]>>)
+        : Promise.all(
+            id.map(i => loader.load(i) as Promise<InstanceType<M[K]>>)
+          );
     }
 
     if (typeof id !== "string" && !id.length) {
@@ -291,12 +298,12 @@ export abstract class Authority<A> implements AuthorityData<A> {
     }
   ): Promise<T> {
     if (tx instanceof DataLoaderExecutor) {
-      const result = await this.write<A, T>(tx.tx, data, metadata);
+      const result = await this.write<A, T>(tx.connection, data, metadata);
 
-      // this._cache
-      //   .get(tx)
-      //   .clear(result.id)
-      //   .prime(result.id, result);
+      this._cache
+        .get(tx)
+        .clear(result.id)
+        .prime(result.id, result);
 
       return result;
     }
@@ -385,8 +392,9 @@ export abstract class Authority<A> implements AuthorityData<A> {
     }) as T;
   }
 
-  static _cache = new WeakMap<
-    AuthorityInstanceMap,
-    DataLoaderCache<Authority<any>, [AuthorityInstanceMap], typeof Authority>
-  >();
+  static readonly _cache = new DataLoaderCache<
+    Authority<any>,
+    [],
+    typeof Authority
+  >(Authority);
 }

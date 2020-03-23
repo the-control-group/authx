@@ -136,7 +136,10 @@ export abstract class Credential<C> implements CredentialData<C> {
   }
 
   public async records(tx: ClientBase): Promise<CredentialRecord[]> {
-    const result = await (tx instanceof DataLoaderExecutor ? tx.tx : tx).query(
+    const result = await (tx instanceof DataLoaderExecutor
+      ? tx.connection
+      : tx
+    ).query(
       `
       SELECT
         record_id as id,
@@ -172,7 +175,10 @@ export abstract class Credential<C> implements CredentialData<C> {
     }
   ): Promise<CredentialInvocation> {
     // insert the new invocation
-    const result = await (tx instanceof DataLoaderExecutor ? tx.tx : tx).query(
+    const result = await (tx instanceof DataLoaderExecutor
+      ? tx.connection
+      : tx
+    ).query(
       `
       INSERT INTO authx.credential_invocation
       (
@@ -207,7 +213,10 @@ export abstract class Credential<C> implements CredentialData<C> {
   }
 
   public async invocations(tx: ClientBase): Promise<CredentialInvocation[]> {
-    const result = await (tx instanceof DataLoaderExecutor ? tx.tx : tx).query(
+    const result = await (tx instanceof DataLoaderExecutor
+      ? tx.connection
+      : tx
+    ).query(
       `
       SELECT
         invocation_id as id,
@@ -275,26 +284,30 @@ export abstract class Credential<C> implements CredentialData<C> {
     options: { forUpdate: boolean } = { forUpdate: false }
   ): Promise<InstanceType<M[K]>[] | InstanceType<M[K]> | T | T[]> {
     if (tx instanceof DataLoaderExecutor) {
-      if (options?.forUpdate || !map) {
-        // A loader cannot be used if forUpdate is true.
-        tx = tx.tx;
-      } else {
-        // Otherwise, use the loader.
-        let cache = this._cache.get(map);
-        if (!cache) {
-          cache = new DataLoaderCache<
-            Credential<any>,
-            [CredentialInstanceMap],
-            typeof Credential
-          >(Credential, map);
-          this._cache.set(map, cache);
-        }
-
-        const loader = cache.get(tx);
-        return typeof id === "string"
-          ? (loader.load(id) as InstanceType<M[K]>)
-          : Promise.all(id.map(i => loader.load(i) as InstanceType<M[K]>));
+      if (map && map !== tx.context.strategies.credentialMap) {
+        throw new Error(
+          "If passed, the `map` argument must be identical to the map in the executor."
+        );
       }
+
+      const loader = this._cache.get(tx);
+
+      // If `forUpdate` is true, clear any cache for the requested IDs.
+      if (options?.forUpdate) {
+        if (typeof id === "string") {
+          loader.clear(id);
+        } else {
+          for (const i of id) {
+            loader.clear(i);
+          }
+        }
+      }
+
+      return typeof id === "string"
+        ? (loader.load(id) as Promise<InstanceType<M[K]>>)
+        : Promise.all(
+            id.map(i => loader.load(i) as Promise<InstanceType<M[K]>>)
+          );
     }
 
     if (typeof id !== "string" && !id.length) {
@@ -379,12 +392,12 @@ export abstract class Credential<C> implements CredentialData<C> {
     }
   ): Promise<T> {
     if (tx instanceof DataLoaderExecutor) {
-      const result = await this.write<C, T>(tx.tx, data, metadata);
+      const result = await this.write<C, T>(tx.connection, data, metadata);
 
-      // this._cache
-      //   .get(tx)
-      //   .clear(result.id)
-      //   .prime(result.id, result);
+      this._cache
+        .get(tx)
+        .clear(result.id)
+        .prime(result.id, result);
 
       return result;
     }
@@ -473,8 +486,9 @@ export abstract class Credential<C> implements CredentialData<C> {
     }) as T;
   }
 
-  static _cache = new WeakMap<
-    CredentialInstanceMap,
-    DataLoaderCache<Credential<any>, [CredentialInstanceMap], typeof Credential>
-  >();
+  static readonly _cache = new DataLoaderCache<
+    Credential<any>,
+    [],
+    typeof Credential
+  >(Credential);
 }

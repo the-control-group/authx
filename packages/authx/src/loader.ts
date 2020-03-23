@@ -1,20 +1,26 @@
 import { Pool, ClientBase } from "pg";
 import DataLoader from "dataloader";
 import { NotFoundError } from "./errors";
+import { StrategyCollection } from "./StrategyCollection";
 
 type Model = {
 	readonly id: string;
 };
 
-export class DataLoaderCacheKey {}
+export class DataLoaderContext {
+	readonly strategies: StrategyCollection;
+	constructor(strategies: StrategyCollection) {
+		this.strategies = strategies;
+	}
+}
 
 export class DataLoaderExecutor {
-	public readonly tx: ClientBase | Pool;
-	public readonly key: DataLoaderCacheKey;
+	public readonly connection: ClientBase | Pool;
+	public readonly context: DataLoaderContext;
 
-	constructor(tx: ClientBase | Pool, key = new DataLoaderCacheKey()) {
-		this.tx = tx;
-		this.key = key;
+	constructor(connection: ClientBase | Pool, context: DataLoaderContext) {
+		this.connection = connection;
+		this.context = context;
 	}
 }
 
@@ -30,18 +36,19 @@ export class DataLoaderCache<
 			...args: A
 		): Promise<M[]>;
 	}
-> extends WeakMap<DataLoaderCacheKey, DataLoader<string, M>> {
+> {
+	private _map: WeakMap<DataLoaderContext, DataLoader<string, M>>;
 	private readonly _model: C;
 	private readonly _args: A;
 
 	constructor(model: C, ...args: A) {
-		super();
+		this._map = new WeakMap();
 		this._model = model;
 		this._args = args;
 	}
 
 	get(executor: DataLoaderExecutor): DataLoader<string, M> {
-		let loader = super.get(executor.key);
+		let loader = this._map.get(executor.context);
 		if (loader) {
 			return loader;
 		}
@@ -53,7 +60,7 @@ export class DataLoaderCache<
 		): Promise<(M | Error)[]> {
 			// Get the results from the model in whatever order the database found
 			// most efficient.
-			const results = await model.read(executor.tx, ids, ...args);
+			const results = await model.read(executor.connection, ids, ...args);
 
 			// Index the results by ID.
 			const resultsById = new Map<string, M>();
@@ -71,7 +78,7 @@ export class DataLoaderCache<
 
 			return returnValue;
 		});
-		this.set(executor.key, loader);
+		this._map.set(executor.context, loader);
 		return loader;
 	}
 }

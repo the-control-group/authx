@@ -175,15 +175,13 @@ export class Role implements RoleData {
     if (tx instanceof DataLoaderExecutor) {
       if (options?.forUpdate) {
         // A loader cannot be used if forUpdate is true.
-        tx = tx.tx;
+        tx = tx.connection;
       } else {
         // Otherwise, use the loader.
         const loader = this._cache.get(tx);
-        return Promise.all(
-          typeof id === "string"
-            ? [loader.load(id)]
-            : id.map(i => loader.load(i))
-        );
+        return typeof id === "string"
+          ? loader.load(id)
+          : Promise.all(id.map(i => loader.load(i)));
       }
     }
 
@@ -254,7 +252,7 @@ export class Role implements RoleData {
     }
   ): Promise<Role> {
     if (tx instanceof DataLoaderExecutor) {
-      const result = await this.write(tx.tx, data, metadata);
+      const result = await this.write(tx.connection, data, metadata);
 
       this._cache
         .get(tx)
