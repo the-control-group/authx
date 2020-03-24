@@ -1,4 +1,5 @@
 import { v4 } from "uuid";
+import { Pool, PoolClient } from "pg";
 import { randomBytes } from "crypto";
 import { isSuperset, simplify } from "@authx/scopes";
 import { GraphQLFieldConfig, GraphQLList, GraphQLNonNull } from "graphql";
@@ -43,10 +44,18 @@ export const createGrants: GraphQLFieldConfig<
     }
   },
   async resolve(source, args, context): Promise<Promise<Grant>[]> {
-    const { pool, authorization: a, realm } = context;
+    const { executor, authorization: a, realm } = context;
 
     if (!a) {
       throw new ForbiddenError("You must be authenticated to create a grant.");
+    }
+
+    const strategies = executor.strategies;
+    const pool = executor.connection;
+    if (!(pool instanceof Pool)) {
+      throw new Error(
+        "INVARIANT: The executor connection is expected to be an instance of Pool."
+      );
     }
 
     return args.grants.map(async input => {
@@ -77,7 +86,10 @@ export const createGrants: GraphQLFieldConfig<
       const tx = await pool.connect();
       try {
         // Make sure this transaction is used for queries made by the executor.
-        const executor = new DataLoaderExecutor(tx);
+        const executor = new DataLoaderExecutor<Pool | PoolClient>(
+          tx,
+          strategies
+        );
 
         if (
           !(await a.can(
@@ -109,7 +121,7 @@ export const createGrants: GraphQLFieldConfig<
           // Make sure the ID isn't already in use.
           if (input.id) {
             try {
-              await Grant.read(executor, input.id, { forUpdate: true });
+              await Grant.read(tx, input.id, { forUpdate: true });
               throw new ConflictError();
             } catch (error) {
               if (!(error instanceof NotFoundError)) {
@@ -121,7 +133,7 @@ export const createGrants: GraphQLFieldConfig<
           const id = input.id || v4();
           const now = Math.floor(Date.now() / 1000);
           const grant = await Grant.write(
-            executor,
+            tx,
             {
               id,
               enabled: input.enabled,
@@ -243,45 +255,58 @@ export const createGrants: GraphQLFieldConfig<
           ];
 
           // Add administration scopes.
-          for (const { roleId, scopes } of input.administration) {
-            const role = await Role.read(executor, roleId, { forUpdate: true });
+          await Promise.all(
+            input.administration.map(async ({ roleId, scopes }) => {
+              const administrationRoleBefore = await Role.read(tx, roleId, {
+                forUpdate: true
+              });
 
-            if (
-              !role.isAccessibleBy(realm, a, executor, {
-                basic: "w",
-                scopes: "w",
-                users: ""
-              })
-            ) {
-              throw new ForbiddenError(
-                `You do not have permission to modify the scopes of role ${roleId}.`
-              );
-            }
-
-            await Role.write(
-              executor,
-              {
-                ...role,
-                scopes: simplify([
-                  ...role.scopes,
-                  ...possibleAdministrationScopes.filter(possible =>
-                    isSuperset(scopes, possible)
-                  )
-                ])
-              },
-              {
-                recordId: v4(),
-                createdByAuthorizationId: a.id,
-                createdAt: new Date()
+              if (
+                !administrationRoleBefore.isAccessibleBy(realm, a, executor, {
+                  basic: "w",
+                  scopes: "w",
+                  users: ""
+                })
+              ) {
+                throw new ForbiddenError(
+                  `You do not have permission to modify the scopes of role ${roleId}.`
+                );
               }
-            );
-          }
+
+              const administrationRole = await Role.write(
+                tx,
+                {
+                  ...administrationRoleBefore,
+                  scopes: simplify([
+                    ...administrationRoleBefore.scopes,
+                    ...possibleAdministrationScopes.filter(possible =>
+                      isSuperset(scopes, possible)
+                    )
+                  ])
+                },
+                {
+                  recordId: v4(),
+                  createdByAuthorizationId: a.id,
+                  createdAt: new Date()
+                }
+              );
+
+              // Clear and prime the loader.
+              Role.clear(executor, administrationRole.id);
+              Role.prime(executor, administrationRole.id, administrationRole);
+            })
+          );
 
           await tx.query("COMMIT");
 
+          // Clear and prime the loader.
+          Grant.clear(executor, grant.id);
+          Grant.prime(executor, grant.id, grant);
+
           // Update the context to use a new executor primed with the results of
           // this mutation, using the original connection pool.
-          context.executor = new DataLoaderExecutor(pool, executor.context);
+          executor.connection = pool;
+          context.executor = executor as DataLoaderExecutor<Pool>;
 
           return grant;
         } catch (error) {

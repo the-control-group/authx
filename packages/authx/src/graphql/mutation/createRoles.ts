@@ -1,4 +1,5 @@
 import { v4 } from "uuid";
+import { Pool, PoolClient } from "pg";
 import { isSuperset, simplify } from "@authx/scopes";
 import { GraphQLFieldConfig, GraphQLList, GraphQLNonNull } from "graphql";
 import { Context } from "../../Context";
@@ -43,10 +44,18 @@ export const createRoles: GraphQLFieldConfig<
     }
   },
   async resolve(source, args, context): Promise<Promise<Role>[]> {
-    const { pool, authorization: a, realm } = context;
+    const { executor, authorization: a, realm } = context;
 
     if (!a) {
       throw new ForbiddenError("You must be authenticated to create a role.");
+    }
+
+    const strategies = executor.strategies;
+    const pool = executor.connection;
+    if (!(pool instanceof Pool)) {
+      throw new Error(
+        "INVARIANT: The executor connection is expected to be an instance of Pool."
+      );
     }
 
     return args.roles.map(async input => {
@@ -76,7 +85,10 @@ export const createRoles: GraphQLFieldConfig<
       const tx = await pool.connect();
       try {
         // Make sure this transaction is used for queries made by the executor.
-        const executor = new DataLoaderExecutor(tx);
+        const executor = new DataLoaderExecutor<Pool | PoolClient>(
+          tx,
+          strategies
+        );
 
         if (
           !(await a.can(
@@ -106,7 +118,7 @@ export const createRoles: GraphQLFieldConfig<
           // Make sure the ID isn't already in use.
           if (input.id) {
             try {
-              await Role.read(executor, input.id, { forUpdate: true });
+              await Role.read(tx, input.id, { forUpdate: true });
               throw new ConflictError();
             } catch (error) {
               if (!(error instanceof NotFoundError)) {
@@ -173,55 +185,63 @@ export const createRoles: GraphQLFieldConfig<
           let selfAdministrationScopes: string[] = [];
 
           // Add administration scopes.
-          for (const { roleId, scopes } of input.administration) {
-            // The role designates itself for administration.
-            if (roleId === id) {
-              selfAdministrationScopes = [
-                ...selfAdministrationScopes,
-                ...possibleAdministrationScopes.filter(possible =>
-                  isSuperset(scopes, possible)
-                )
-              ];
-              continue;
-            }
-
-            // Make sure we have permission to add scopes to the role.
-            const role = await Role.read(executor, roleId, { forUpdate: true });
-
-            if (
-              !role.isAccessibleBy(realm, a, executor, {
-                basic: "w",
-                scopes: "w",
-                users: ""
-              })
-            ) {
-              throw new ForbiddenError(
-                `You do not have permission to modify the scopes of role ${roleId}.`
-              );
-            }
-
-            // Update the role.
-            await Role.write(
-              executor,
-              {
-                ...role,
-                scopes: simplify([
-                  ...role.scopes,
+          await Promise.all(
+            input.administration.map(async ({ roleId, scopes }) => {
+              // The role designates itself for administration.
+              if (roleId === id) {
+                selfAdministrationScopes = [
+                  ...selfAdministrationScopes,
                   ...possibleAdministrationScopes.filter(possible =>
                     isSuperset(scopes, possible)
                   )
-                ])
-              },
-              {
-                recordId: v4(),
-                createdByAuthorizationId: a.id,
-                createdAt: new Date()
+                ];
+                return;
               }
-            );
-          }
+
+              // Make sure we have permission to add scopes to the role.
+              const administrationRoleBefore = await Role.read(tx, roleId, {
+                forUpdate: true
+              });
+
+              if (
+                !administrationRoleBefore.isAccessibleBy(realm, a, executor, {
+                  basic: "w",
+                  scopes: "w",
+                  users: ""
+                })
+              ) {
+                throw new ForbiddenError(
+                  `You do not have permission to modify the scopes of role ${roleId}.`
+                );
+              }
+
+              // Update the role.
+              const administrationRole = await Role.write(
+                tx,
+                {
+                  ...administrationRoleBefore,
+                  scopes: simplify([
+                    ...administrationRoleBefore.scopes,
+                    ...possibleAdministrationScopes.filter(possible =>
+                      isSuperset(scopes, possible)
+                    )
+                  ])
+                },
+                {
+                  recordId: v4(),
+                  createdByAuthorizationId: a.id,
+                  createdAt: new Date()
+                }
+              );
+
+              // Clear and prime the loader.
+              Role.clear(executor, administrationRole.id);
+              Role.prime(executor, administrationRole.id, administrationRole);
+            })
+          );
 
           const role = await Role.write(
-            executor,
+            tx,
             {
               id,
               enabled: input.enabled,
@@ -239,9 +259,14 @@ export const createRoles: GraphQLFieldConfig<
 
           await tx.query("COMMIT");
 
+          // Clear and prime the loader.
+          Role.clear(executor, role.id);
+          Role.prime(executor, role.id, role);
+
           // Update the context to use a new executor primed with the results of
           // this mutation, using the original connection pool.
-          context.executor = new DataLoaderExecutor(pool, executor.context);
+          executor.connection = pool;
+          context.executor = executor as DataLoaderExecutor<Pool>;
 
           return role;
         } catch (error) {

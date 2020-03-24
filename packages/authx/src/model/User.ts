@@ -295,10 +295,10 @@ export class User implements UserData {
   }
 
   public async records(tx: ClientBase): Promise<UserRecord[]> {
-    const result = await (tx instanceof DataLoaderExecutor
-      ? tx.connection
-      : tx
-    ).query(
+    const connection: Pool | ClientBase =
+      tx instanceof DataLoaderExecutor ? tx.connection : tx;
+
+    const result = await connection.query(
       `
       SELECT
         record_id as id,
@@ -488,6 +488,18 @@ export class User implements UserData {
       ...row,
       recordId: row.record_id
     });
+  }
+
+  public static clear(executor: DataLoaderExecutor, id: string): void {
+    cache.get(executor).clear(id);
+  }
+
+  public static prime(
+    executor: DataLoaderExecutor,
+    id: string,
+    value: User
+  ): void {
+    cache.get(executor).prime(id, value);
   }
 }
 

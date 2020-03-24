@@ -1,4 +1,5 @@
 import { v4 } from "uuid";
+import { Pool, PoolClient } from "pg";
 import { GraphQLFieldConfig, GraphQLNonNull, GraphQLList } from "graphql";
 import { Context } from "../../Context";
 import { GraphQLUser } from "../GraphQLUser";
@@ -29,11 +30,19 @@ export const updateUsers: GraphQLFieldConfig<
     }
   },
   async resolve(source, args, context): Promise<Promise<User>[]> {
-    const { pool, authorization: a, realm } = context;
+    const { executor, authorization: a, realm } = context;
 
     if (!a) {
       throw new ForbiddenError(
         "You must be authenticated to update a authorization."
+      );
+    }
+
+    const strategies = executor.strategies;
+    const pool = executor.connection;
+    if (!(pool instanceof Pool)) {
+      throw new Error(
+        "INVARIANT: The executor connection is expected to be an instance of Pool."
       );
     }
 
@@ -46,11 +55,14 @@ export const updateUsers: GraphQLFieldConfig<
       const tx = await pool.connect();
       try {
         // Make sure this transaction is used for queries made by the executor.
-        const executor = new DataLoaderExecutor(tx);
+        const executor = new DataLoaderExecutor<Pool | PoolClient>(
+          tx,
+          strategies
+        );
 
         await tx.query("BEGIN DEFERRABLE");
 
-        const before = await User.read(executor, input.id, {
+        const before = await User.read(tx, input.id, {
           forUpdate: true
         });
 
@@ -65,7 +77,7 @@ export const updateUsers: GraphQLFieldConfig<
         }
 
         const user = await User.write(
-          executor,
+          tx,
           {
             ...before,
             enabled:
@@ -83,9 +95,14 @@ export const updateUsers: GraphQLFieldConfig<
 
         await tx.query("COMMIT");
 
+        // Clear and prime the loader.
+        User.clear(executor, user.id);
+        User.prime(executor, user.id, user);
+
         // Update the context to use a new executor primed with the results of
         // this mutation, using the original connection pool.
-        context.executor = new DataLoaderExecutor(pool, executor.context);
+        executor.connection = pool;
+        context.executor = executor as DataLoaderExecutor<Pool>;
 
         return user;
       } catch (error) {

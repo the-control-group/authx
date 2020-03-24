@@ -1,10 +1,12 @@
 import { v4 } from "uuid";
+import { Pool } from "pg";
 import jwt from "jsonwebtoken";
 import { randomBytes } from "crypto";
 import { Context } from "./Context";
 import { Client, Grant, Authorization } from "./model";
 import { NotFoundError } from "./errors";
 import { createV2AuthXScope } from "./util/scopes";
+import { DataLoaderExecutor } from "./loader";
 import { inject, isEqual, isValidScopeTemplate } from "@authx/scopes";
 import { Context as KoaContext } from "koa";
 import { ClientBase } from "pg";
@@ -12,7 +14,7 @@ import x from "./x";
 
 async function assertPermissions(
   realm: string,
-  tx: ClientBase,
+  executor: DataLoaderExecutor,
   grant: Grant,
   values: {
     currentUserId: string | null;
@@ -24,7 +26,7 @@ async function assertPermissions(
   if (
     // Check that we have every relevant user scope:
     !(await grant.can(
-      tx,
+      executor,
       values,
       createV2AuthXScope(
         realm,
@@ -39,7 +41,7 @@ async function assertPermissions(
     )) ||
     // Check that we have every relevant grant scope:
     !(await grant.can(
-      tx,
+      executor,
       values,
       createV2AuthXScope(
         realm,
@@ -57,7 +59,7 @@ async function assertPermissions(
       )
     )) ||
     !(await grant.can(
-      tx,
+      executor,
       values,
       createV2AuthXScope(
         realm,
@@ -75,7 +77,7 @@ async function assertPermissions(
       )
     )) ||
     !(await grant.can(
-      tx,
+      executor,
       values,
       createV2AuthXScope(
         realm,
@@ -93,7 +95,7 @@ async function assertPermissions(
       )
     )) ||
     !(await grant.can(
-      tx,
+      executor,
       values,
       createV2AuthXScope(
         realm,
@@ -112,7 +114,7 @@ async function assertPermissions(
     )) ||
     // Check that we have every relevant authorization scope:
     !(await grant.can(
-      tx,
+      executor,
       values,
       createV2AuthXScope(
         realm,
@@ -131,7 +133,7 @@ async function assertPermissions(
       )
     )) ||
     !(await grant.can(
-      tx,
+      executor,
       values,
       createV2AuthXScope(
         realm,
@@ -150,7 +152,7 @@ async function assertPermissions(
       )
     )) ||
     !(await grant.can(
-      tx,
+      executor,
       values,
       createV2AuthXScope(
         realm,
@@ -169,7 +171,7 @@ async function assertPermissions(
       )
     )) ||
     !(await grant.can(
-      tx,
+      executor,
       values,
       createV2AuthXScope(
         realm,
@@ -188,7 +190,7 @@ async function assertPermissions(
       )
     )) ||
     !(await grant.can(
-      tx,
+      executor,
       values,
       createV2AuthXScope(
         realm,
@@ -207,7 +209,7 @@ async function assertPermissions(
       )
     )) ||
     !(await grant.can(
-      tx,
+      executor,
       values,
       createV2AuthXScope(
         realm,
@@ -284,16 +286,27 @@ async function oAuth2Middleware(
   ctx.response.set("Pragma", "no-cache");
 
   const {
-    pool,
+    executor,
     realm,
     jwtValidityDuration,
     codeValidityDuration,
     privateKey
   } = ctx[x];
 
+  const strategies = executor.strategies;
+  const pool = executor.connection;
+  if (!(pool instanceof Pool)) {
+    throw new Error(
+      "INVARIANT: The executor connection is expected to be an instance of Pool."
+    );
+  }
+
   try {
     const tx = await pool.connect();
     try {
+      // Make sure this transaction is used for queries made by the executor.
+      const executor = new DataLoaderExecutor(tx, strategies);
+
       // Make sure the body is an object.
       const request: {
         grant_type?: unknown;
@@ -345,7 +358,7 @@ async function oAuth2Middleware(
           // Authenticate the client with its secret.
           let client;
           try {
-            client = await Client.read(tx, paramsClientId);
+            client = await Client.read(executor, paramsClientId);
           } catch (error) {
             if (!(error instanceof NotFoundError)) throw error;
             throw new OAuthError(
@@ -375,7 +388,7 @@ async function oAuth2Middleware(
           }
 
           // Invoke the client.
-          await client.invoke(tx, {
+          await client.invoke(executor, {
             id: v4(),
             createdAt: new Date()
           });
@@ -406,7 +419,7 @@ async function oAuth2Middleware(
           // Fetch the grant.
           let grant;
           try {
-            grant = await Grant.read(tx, grantId);
+            grant = await Grant.read(executor, grantId);
           } catch (error) {
             if (!(error instanceof NotFoundError)) throw error;
             throw new OAuthError(
@@ -436,13 +449,13 @@ async function oAuth2Middleware(
           }
 
           // Invoke the grant.
-          await grant.invoke(tx, {
+          await grant.invoke(executor, {
             id: v4(),
             createdAt: new Date()
           });
 
           // Fetch the user.
-          const user = await grant.user(tx);
+          const user = await grant.user(executor);
           if (!user.enabled) {
             throw new OAuthError(
               "invalid_grant",
@@ -462,10 +475,10 @@ async function oAuth2Middleware(
           };
 
           // Make sure we have the necessary access.
-          await assertPermissions(realm, tx, grant, values);
+          await assertPermissions(realm, executor, grant, values);
 
           // Get all enabled authorizations of this grant.
-          const authorizations = (await grant.authorizations(tx)).filter(
+          const authorizations = (await grant.authorizations(executor)).filter(
             t => t.enabled
           );
 
@@ -561,9 +574,9 @@ async function oAuth2Middleware(
             }
           );
 
-          const scopes = await requestedAuthorization.access(tx);
+          const scopes = await requestedAuthorization.access(executor);
           const tokenId = v4();
-          await requestedAuthorization.invoke(tx, {
+          await requestedAuthorization.invoke(executor, {
             id: tokenId,
             format: "bearer",
             createdAt: new Date()
@@ -595,6 +608,7 @@ async function oAuth2Middleware(
           };
 
           await tx.query("COMMIT");
+
           ctx.response.body = body;
           return;
         } catch (error) {
@@ -651,7 +665,7 @@ async function oAuth2Middleware(
           // Authenticate the client with its secret.
           let client;
           try {
-            client = await Client.read(tx, paramsClientId);
+            client = await Client.read(executor, paramsClientId);
           } catch (error) {
             if (!(error instanceof NotFoundError)) throw error;
             throw new OAuthError(
@@ -706,7 +720,7 @@ async function oAuth2Middleware(
           // Fetch the grant.
           let grant: Grant;
           try {
-            grant = await Grant.read(tx, grantId);
+            grant = await Grant.read(executor, grantId);
           } catch (error) {
             if (!(error instanceof NotFoundError)) throw error;
             throw new OAuthError(
@@ -745,13 +759,13 @@ async function oAuth2Middleware(
           }
 
           // Invoke the grant.
-          await grant.invoke(tx, {
+          await grant.invoke(executor, {
             id: v4(),
             createdAt: new Date()
           });
 
           // Fetch the user.
-          const user = await grant.user(tx);
+          const user = await grant.user(executor);
           if (!user.enabled) {
             throw new OAuthError(
               "invalid_grant",
@@ -762,7 +776,7 @@ async function oAuth2Middleware(
           }
 
           // Make sure we have the necessary access.
-          await assertPermissions(realm, tx, grant, {
+          await assertPermissions(realm, executor, grant, {
             currentUserId: grant.userId,
             currentGrantId: grant.id,
             currentClientId: grant.clientId,
@@ -770,7 +784,7 @@ async function oAuth2Middleware(
           });
 
           // Get all enabled authorizations of this grant.
-          const authorizations = (await grant.authorizations(tx)).filter(
+          const authorizations = (await grant.authorizations(executor)).filter(
             t => t.enabled
           );
 
@@ -859,10 +873,10 @@ async function oAuth2Middleware(
             );
           }
 
-          const scopes = await requestedAuthorization.access(tx);
+          const scopes = await requestedAuthorization.access(executor);
 
           const tokenId = v4();
-          await requestedAuthorization.invoke(tx, {
+          await requestedAuthorization.invoke(executor, {
             id: tokenId,
             format: "bearer",
             createdAt: new Date()

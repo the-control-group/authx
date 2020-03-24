@@ -140,10 +140,10 @@ export abstract class Credential<C> implements CredentialData<C> {
   }
 
   public async records(tx: ClientBase): Promise<CredentialRecord[]> {
-    const result = await (tx instanceof DataLoaderExecutor
-      ? tx.connection
-      : tx
-    ).query(
+    const connection: Pool | ClientBase =
+      tx instanceof DataLoaderExecutor ? tx.connection : tx;
+
+    const result = await connection.query(
       `
       SELECT
         record_id as id,
@@ -217,10 +217,10 @@ export abstract class Credential<C> implements CredentialData<C> {
   }
 
   public async invocations(tx: ClientBase): Promise<CredentialInvocation[]> {
-    const result = await (tx instanceof DataLoaderExecutor
-      ? tx.connection
-      : tx
-    ).query(
+    const connection: Pool | ClientBase =
+      tx instanceof DataLoaderExecutor ? tx.connection : tx;
+
+    const result = await connection.query(
       `
       SELECT
         invocation_id as id,
@@ -511,6 +511,18 @@ export abstract class Credential<C> implements CredentialData<C> {
       authorityUserId: row.authority_user_id,
       userId: row.user_id
     }) as T;
+  }
+
+  public static clear(executor: DataLoaderExecutor, id: string): void {
+    cache.get(executor).clear(id);
+  }
+
+  public static prime(
+    executor: DataLoaderExecutor,
+    id: string,
+    value: Credential<any>
+  ): void {
+    cache.get(executor).prime(id, value);
   }
 }
 

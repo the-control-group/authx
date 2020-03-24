@@ -360,6 +360,18 @@ export class Role implements RoleData {
       userIds: users.rows.map(({ user_id: userId }) => userId)
     });
   }
+
+  public static clear(executor: DataLoaderExecutor, id: string): void {
+    cache.get(executor).clear(id);
+  }
+
+  public static prime(
+    executor: DataLoaderExecutor,
+    id: string,
+    value: Role
+  ): void {
+    cache.get(executor).prime(id, value);
+  }
 }
 
 const cache = new DataLoaderCache(

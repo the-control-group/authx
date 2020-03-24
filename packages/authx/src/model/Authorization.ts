@@ -188,10 +188,10 @@ export class Authorization implements AuthorizationData {
   }
 
   public async records(tx: ClientBase): Promise<AuthorizationRecord[]> {
-    const result = await (tx instanceof DataLoaderExecutor
-      ? tx.connection
-      : tx
-    ).query(
+    const connection: Pool | ClientBase =
+      tx instanceof DataLoaderExecutor ? tx.connection : tx;
+
+    const result = await connection.query(
       `
       SELECT
         record_id as id,
@@ -270,10 +270,10 @@ export class Authorization implements AuthorizationData {
   }
 
   public async invocations(tx: ClientBase): Promise<AuthorizationInvocation[]> {
-    const result = await (tx instanceof DataLoaderExecutor
-      ? tx.connection
-      : tx
-    ).query(
+    const connection: Pool | ClientBase =
+      tx instanceof DataLoaderExecutor ? tx.connection : tx;
+
+    const result = await connection.query(
       `
       SELECT
         invocation_id as id,
@@ -526,6 +526,18 @@ export class Authorization implements AuthorizationData {
       userId: row.user_id,
       grantId: row.grant_id
     });
+  }
+
+  public static clear(executor: DataLoaderExecutor, id: string): void {
+    cache.get(executor).clear(id);
+  }
+
+  public static prime(
+    executor: DataLoaderExecutor,
+    id: string,
+    value: Authorization
+  ): void {
+    cache.get(executor).prime(id, value);
   }
 }
 

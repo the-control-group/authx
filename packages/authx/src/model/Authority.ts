@@ -104,10 +104,10 @@ export abstract class Authority<A> implements AuthorityData<A> {
   ): Promise<Credential<any> | null>;
 
   public async records(tx: ClientBase): Promise<AuthorityRecord[]> {
-    const result = await (tx instanceof DataLoaderExecutor
-      ? tx.connection
-      : tx
-    ).query(
+    const connection: Pool | ClientBase =
+      tx instanceof DataLoaderExecutor ? tx.connection : tx;
+
+    const result = await connection.query(
       `
       SELECT
         record_id as id,
@@ -395,6 +395,18 @@ export abstract class Authority<A> implements AuthorityData<A> {
       recordId: row.record_id,
       baseUrls: row.base_urls
     }) as T;
+  }
+
+  public static clear(executor: DataLoaderExecutor, id: string): void {
+    cache.get(executor).clear(id);
+  }
+
+  public static prime(
+    executor: DataLoaderExecutor,
+    id: string,
+    value: Authority<any>
+  ): void {
+    cache.get(executor).prime(id, value);
   }
 }
 

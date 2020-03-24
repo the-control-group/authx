@@ -3,11 +3,13 @@ import DataLoader from "dataloader";
 import { NotFoundError } from "./errors";
 import { StrategyCollection } from "./StrategyCollection";
 
-export class DataLoaderExecutor {
-	public readonly connection: ClientBase | Pool;
+export class DataLoaderExecutor<
+	T extends ClientBase | Pool = ClientBase | Pool
+> {
+	public connection: T;
 	public readonly strategies: StrategyCollection;
 
-	constructor(connection: ClientBase | Pool, strategies: StrategyCollection) {
+	constructor(connection: T, strategies: StrategyCollection) {
 		this.connection = connection;
 		this.strategies = strategies;
 	}

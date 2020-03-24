@@ -1,4 +1,5 @@
 import { v4 } from "uuid";
+import { Pool, PoolClient } from "pg";
 import { isSuperset } from "@authx/scopes";
 import { GraphQLFieldConfig, GraphQLList, GraphQLNonNull } from "graphql";
 import { Context } from "../../Context";
@@ -35,10 +36,18 @@ export const updateRoles: GraphQLFieldConfig<
     }
   },
   async resolve(source, args, context): Promise<Promise<Role>[]> {
-    const { pool, authorization: a, realm } = context;
+    const { executor, authorization: a, realm } = context;
 
     if (!a) {
       throw new ForbiddenError("You must be authenticated to update a role.");
+    }
+
+    const strategies = executor.strategies;
+    const pool = executor.connection;
+    if (!(pool instanceof Pool)) {
+      throw new Error(
+        "INVARIANT: The executor connection is expected to be an instance of Pool."
+      );
     }
 
     return args.roles.map(async input => {
@@ -61,10 +70,13 @@ export const updateRoles: GraphQLFieldConfig<
       const tx = await pool.connect();
       try {
         // Make sure this transaction is used for queries made by the executor.
-        const executor = new DataLoaderExecutor(tx);
+        const executor = new DataLoaderExecutor<Pool | PoolClient>(
+          tx,
+          strategies
+        );
 
         await tx.query("BEGIN DEFERRABLE");
-        const before = await Role.read(executor, input.id, {
+        const before = await Role.read(tx, input.id, {
           forUpdate: true
         });
 
@@ -111,14 +123,12 @@ export const updateRoles: GraphQLFieldConfig<
 
           const assignableScopes = roleIDs.length
             ? (
-                await filter(
-                  await Role.read(executor, roleIDs, { forUpdate: true }),
-                  role =>
-                    role.isAccessibleBy(realm, a, executor, {
-                      basic: "w",
-                      scopes: "",
-                      users: "w"
-                    })
+                await filter(await Role.read(executor, roleIDs), role =>
+                  role.isAccessibleBy(realm, a, executor, {
+                    basic: "w",
+                    scopes: "",
+                    users: "w"
+                  })
                 )
               ).reduce<string[]>((acc, { scopes }) => {
                 return [...acc, ...scopes];
@@ -158,7 +168,7 @@ export const updateRoles: GraphQLFieldConfig<
         }
 
         const role = await Role.write(
-          executor,
+          tx,
           {
             ...before,
             enabled:
@@ -177,11 +187,17 @@ export const updateRoles: GraphQLFieldConfig<
           }
         );
 
+        await tx.query("COMMIT");
+
+        // Clear and prime the loader.
+        Role.clear(executor, role.id);
+        Role.prime(executor, role.id, role);
+
         // Update the context to use a new executor primed with the results of
         // this mutation, using the original connection pool.
-        context.executor = new DataLoaderExecutor(pool, executor.context);
+        executor.connection = pool;
+        context.executor = executor as DataLoaderExecutor<Pool>;
 
-        await tx.query("COMMIT");
         return role;
       } catch (error) {
         await tx.query("ROLLBACK");

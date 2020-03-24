@@ -171,10 +171,10 @@ export class Client implements ClientData {
   }
 
   public async records(tx: ClientBase): Promise<ClientRecord[]> {
-    const result = await (tx instanceof DataLoaderExecutor
-      ? tx.connection
-      : tx
-    ).query(
+    const connection: Pool | ClientBase =
+      tx instanceof DataLoaderExecutor ? tx.connection : tx;
+
+    const result = await connection.query(
       `
       SELECT
         record_id as id,
@@ -248,10 +248,10 @@ export class Client implements ClientData {
   }
 
   public async invocations(tx: ClientBase): Promise<ClientInvocation[]> {
-    const result = await (tx instanceof DataLoaderExecutor
-      ? tx.connection
-      : tx
-    ).query(
+    const connection: Pool | ClientBase =
+      tx instanceof DataLoaderExecutor ? tx.connection : tx;
+
+    const result = await connection.query(
       `
       SELECT
         invocation_id as id,
@@ -451,6 +451,18 @@ export class Client implements ClientData {
       secrets: row.secrets,
       urls: row.urls
     });
+  }
+
+  public static clear(executor: DataLoaderExecutor, id: string): void {
+    cache.get(executor).clear(id);
+  }
+
+  public static prime(
+    executor: DataLoaderExecutor,
+    id: string,
+    value: Client
+  ): void {
+    cache.get(executor).prime(id, value);
   }
 }
 

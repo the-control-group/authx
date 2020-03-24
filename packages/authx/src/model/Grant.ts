@@ -208,10 +208,10 @@ export class Grant implements GrantData {
   }
 
   public async records(tx: ClientBase): Promise<GrantRecord[]> {
-    const result = await (tx instanceof DataLoaderExecutor
-      ? tx.connection
-      : tx
-    ).query(
+    const connection: Pool | ClientBase =
+      tx instanceof DataLoaderExecutor ? tx.connection : tx;
+
+    const result = await connection.query(
       `
       SELECT
         record_id as id,
@@ -285,10 +285,10 @@ export class Grant implements GrantData {
   }
 
   public async invocations(tx: ClientBase): Promise<GrantInvocation[]> {
-    const result = await (tx instanceof DataLoaderExecutor
-      ? tx.connection
-      : tx
-    ).query(
+    const connection: Pool | ClientBase =
+      tx instanceof DataLoaderExecutor ? tx.connection : tx;
+
+    const result = await connection.query(
       `
       SELECT
         invocation_id as id,
@@ -491,6 +491,18 @@ export class Grant implements GrantData {
       clientId: row.client_id,
       userId: row.user_id
     });
+  }
+
+  public static clear(executor: DataLoaderExecutor, id: string): void {
+    cache.get(executor).clear(id);
+  }
+
+  public static prime(
+    executor: DataLoaderExecutor,
+    id: string,
+    value: Grant
+  ): void {
+    cache.get(executor).prime(id, value);
   }
 }
 
