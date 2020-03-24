@@ -34,12 +34,12 @@ export const authorizations: GraphQLFieldConfig<
 
     const ids = await executor.connection.query(
       `
-        SELECT entity_id AS id
-        FROM authx.authorization_record
-        WHERE
-          replacement_record_id IS NULL
-          ${args.includeDisabled ? "" : "AND enabled = true"}
-        `
+      SELECT entity_id AS id
+      FROM authx.authorization_record
+      WHERE
+        replacement_record_id IS NULL
+        ${args.includeDisabled ? "" : "AND enabled = true"}
+      `
     );
 
     if (!ids.rows.length) {

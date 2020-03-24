@@ -33,10 +33,11 @@ export class StrategyCollection {
   public types: GraphQLNamedType[] = [];
 
   public constructor(strategies?: Iterable<Strategy>) {
-    if (strategies)
+    if (strategies) {
       for (const strategy of strategies) {
         this.add(strategy);
       }
+    }
   }
 
   public add(s: Strategy): StrategyCollection {

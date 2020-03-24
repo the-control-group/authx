@@ -105,11 +105,9 @@ export class AuthX extends Router<any, { [x]: Context }> {
         const context: Context = {
           ...ctx[x],
           ...config,
-          strategies,
           authorization,
-          pool: this.pool,
           explanations: explanations,
-          executor: new DataLoaderExecutor(this.pool)
+          executor: new DataLoaderExecutor(this.pool, strategies)
         };
 
         ctx[x] = context;

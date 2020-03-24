@@ -3,64 +3,43 @@ import DataLoader from "dataloader";
 import { NotFoundError } from "./errors";
 import { StrategyCollection } from "./StrategyCollection";
 
-type Model = {
-	readonly id: string;
-};
+export class DataLoaderExecutor {
+	public readonly connection: ClientBase | Pool;
+	public readonly strategies: StrategyCollection;
 
-export class DataLoaderContext {
-	readonly strategies: StrategyCollection;
-	constructor(strategies: StrategyCollection) {
+	constructor(connection: ClientBase | Pool, strategies: StrategyCollection) {
+		this.connection = connection;
 		this.strategies = strategies;
 	}
 }
 
-export class DataLoaderExecutor {
-	public readonly connection: ClientBase | Pool;
-	public readonly context: DataLoaderContext;
+export type Reader<M> = (
+	executor: DataLoaderExecutor,
+	ids: readonly string[]
+) => Promise<M[]>;
 
-	constructor(connection: ClientBase | Pool, context: DataLoaderContext) {
-		this.connection = connection;
-		this.context = context;
-	}
-}
+export class DataLoaderCache<M extends { id: string }> {
+	private _map: WeakMap<DataLoaderExecutor, DataLoader<string, M>>;
+	private readonly _read: Reader<M>;
 
-export type Queriable = ClientBase | Pool | DataLoaderExecutor;
-
-export class DataLoaderCache<
-	M extends Model,
-	A extends any[],
-	C extends {
-		read(
-			tx: Pool | ClientBase,
-			id: readonly string[],
-			...args: A
-		): Promise<M[]>;
-	}
-> {
-	private _map: WeakMap<DataLoaderContext, DataLoader<string, M>>;
-	private readonly _model: C;
-	private readonly _args: A;
-
-	constructor(model: C, ...args: A) {
+	constructor(read: Reader<M>) {
 		this._map = new WeakMap();
-		this._model = model;
-		this._args = args;
+		this._read = read;
 	}
 
 	get(executor: DataLoaderExecutor): DataLoader<string, M> {
-		let loader = this._map.get(executor.context);
+		let loader = this._map.get(executor);
 		if (loader) {
 			return loader;
 		}
 
-		const model = this._model;
-		const args = this._args;
+		const read = this._read;
 		loader = new DataLoader<string, M>(async function(
 			ids: readonly string[]
 		): Promise<(M | Error)[]> {
-			// Get the results from the model in whatever order the database found
+			// Get the results from the read in whatever order the database found
 			// most efficient.
-			const results = await model.read(executor.connection, ids, ...args);
+			const results = await read(executor, ids);
 
 			// Index the results by ID.
 			const resultsById = new Map<string, M>();
@@ -78,7 +57,7 @@ export class DataLoaderCache<
 
 			return returnValue;
 		});
-		this._map.set(executor.context, loader);
+		this._map.set(executor, loader);
 		return loader;
 	}
 }

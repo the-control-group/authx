@@ -116,22 +116,24 @@ export class Client implements ClientData {
       return this._grants;
     }
 
-    return (this._grants = (async () =>
-      Grant.read(
-        tx,
-        (
-          await (tx instanceof DataLoaderExecutor ? tx.connection : tx).query(
-            `
+    return (this._grants = (async () => {
+      const ids = (
+        await (tx instanceof DataLoaderExecutor ? tx.connection : tx).query(
+          `
             SELECT entity_id AS id
             FROM authx.grant_record
             WHERE
               client_id = $1
               AND replacement_record_id IS NULL
             `,
-            [this.id]
-          )
-        ).rows.map(({ id }) => id)
-      ))());
+          [this.id]
+        )
+      ).rows.map(({ id }) => id);
+
+      return tx instanceof DataLoaderExecutor
+        ? Grant.read(tx, ids)
+        : Grant.read(tx, ids);
+    })());
   }
 
   public async grant(
@@ -160,7 +162,9 @@ export class Client implements ClientData {
     }
 
     if (result.rows.length) {
-      return Grant.read(tx, result.rows[0].id);
+      return tx instanceof DataLoaderExecutor
+        ? Grant.read(tx, result.rows[0].id)
+        : Grant.read(tx, result.rows[0].id);
     }
 
     return null;
@@ -272,34 +276,42 @@ export class Client implements ClientData {
     );
   }
 
+  // Read using an executor.
   public static read(
-    tx: Pool | ClientBase | DataLoaderExecutor,
+    tx: DataLoaderExecutor,
     id: string,
-    options?: { forUpdate: boolean }
+    options?: { forUpdate?: false }
   ): Promise<Client>;
+
   public static read(
-    tx: Pool | ClientBase | DataLoaderExecutor,
-    id: string[],
-    options?: { forUpdate: boolean }
+    tx: DataLoaderExecutor,
+    id: readonly string[],
+    options?: { forUpdate?: false }
   ): Promise<Client[]>;
+
+  // Read using a connection.
+  public static read(
+    tx: Pool | ClientBase,
+    id: string,
+    options?: { forUpdate?: boolean }
+  ): Promise<Client>;
+
+  public static read(
+    tx: Pool | ClientBase,
+    id: readonly string[],
+    options?: { forUpdate?: boolean }
+  ): Promise<Client[]>;
+
   public static async read(
     tx: Pool | ClientBase | DataLoaderExecutor,
-    id: string[] | string,
-    options: { forUpdate: boolean } = { forUpdate: false }
+    id: readonly string[] | string,
+    options?: { forUpdate?: boolean }
   ): Promise<Client[] | Client> {
     if (tx instanceof DataLoaderExecutor) {
-      if (options?.forUpdate) {
-        // A loader cannot be used if forUpdate is true.
-        tx = tx.connection;
-      } else {
-        // Otherwise, use the loader.
-        const loader = this._cache.get(tx);
-        return Promise.all(
-          typeof id === "string"
-            ? [loader.load(id)]
-            : id.map(i => loader.load(i))
-        );
-      }
+      const loader = cache.get(tx);
+      return Promise.all(
+        typeof id === "string" ? [loader.load(id)] : id.map(i => loader.load(i))
+      );
     }
 
     if (typeof id !== "string" && !id.length) {
@@ -322,7 +334,7 @@ export class Client implements ClientData {
         WHERE
           entity_id = ANY($1)
           AND replacement_record_id IS NULL
-        ${options.forUpdate ? "FOR UPDATE" : ""}
+        ${options?.forUpdate ? "FOR UPDATE" : ""}
       ) AS client_record
       `,
       [typeof id === "string" ? [id] : id]
@@ -352,7 +364,7 @@ export class Client implements ClientData {
   }
 
   public static async write(
-    tx: Pool | ClientBase | DataLoaderExecutor,
+    tx: Pool | ClientBase,
     data: ClientData,
     metadata: {
       recordId: string;
@@ -360,17 +372,6 @@ export class Client implements ClientData {
       createdAt: Date;
     }
   ): Promise<Client> {
-    if (tx instanceof DataLoaderExecutor) {
-      const result = await this.write(tx.connection, data, metadata);
-
-      this._cache
-        .get(tx)
-        .clear(result.id)
-        .prime(result.id, result);
-
-      return result;
-    }
-
     // ensure that the entity ID exists
     await tx.query(
       `
@@ -451,10 +452,13 @@ export class Client implements ClientData {
       urls: row.urls
     });
   }
-
-  private static readonly _cache = new DataLoaderCache<
-    Client,
-    [],
-    typeof Client
-  >(Client);
 }
+
+const cache = new DataLoaderCache(
+  async (
+    executor: DataLoaderExecutor,
+    ids: readonly string[]
+  ): Promise<Client[]> => {
+    return Client.read(executor.connection, ids);
+  }
+);

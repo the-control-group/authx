@@ -72,18 +72,12 @@ export const GraphQLUser: GraphQLObjectType<
       async resolve(
         user,
         args: ConnectionArguments,
-        {
-          realm,
-          authorization: a,
-          executor,
-          strategies: { credentialMap }
-        }: Context
+        { realm, authorization: a, executor }: Context
       ) {
         return a
           ? connectionFromArray(
-              await filter(
-                await user.credentials(executor, credentialMap),
-                credential => credential.isAccessibleBy(realm, a, executor)
+              await filter(await user.credentials(executor), credential =>
+                credential.isAccessibleBy(realm, a, executor)
               ),
               args
             )

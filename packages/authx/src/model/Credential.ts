@@ -132,7 +132,11 @@ export abstract class Credential<C> implements CredentialData<C> {
       return this._user;
     }
 
-    return (this._user = User.read(tx, this.userId));
+    return (this._user =
+      // Some silliness to help typescript...
+      tx instanceof DataLoaderExecutor
+        ? User.read(tx, this.userId)
+        : User.read(tx, this.userId));
   }
 
   public async records(tx: ClientBase): Promise<CredentialRecord[]> {
@@ -241,32 +245,68 @@ export abstract class Credential<C> implements CredentialData<C> {
     );
   }
 
+  // Read from a concrete Credential sub-class with an executor.
   public static read<A, T extends Credential<A>>(
     this: new (data: CredentialData<any> & { readonly recordId: string }) => T,
-    tx: Pool | ClientBase | DataLoaderExecutor,
+    tx: DataLoaderExecutor,
     id: string,
-    options?: { forUpdate: boolean }
+    strategies?: undefined,
+    options?: { forUpdate?: false }
   ): Promise<T>;
 
   public static read<A, T extends Credential<A>>(
     this: new (data: CredentialData<A> & { readonly recordId: string }) => T,
-    tx: Pool | ClientBase | DataLoaderExecutor,
-    id: string[],
-    options?: { forUpdate: boolean }
+    tx: DataLoaderExecutor,
+    id: readonly string[],
+    strategies?: undefined,
+    options?: { forUpdate?: false }
   ): Promise<T[]>;
 
-  public static read<M extends CredentialInstanceMap, K extends keyof M>(
-    tx: Pool | ClientBase | DataLoaderExecutor,
+  // Read from a concrete Credential sub-class.
+  public static read<A, T extends Credential<A>>(
+    this: new (data: CredentialData<any> & { readonly recordId: string }) => T,
+    tx: Pool | ClientBase,
     id: string,
-    map?: M,
-    options?: { forUpdate: boolean }
+    strategies?: undefined,
+    options?: { forUpdate?: boolean }
+  ): Promise<T>;
+
+  public static read<A, T extends Credential<A>>(
+    this: new (data: CredentialData<A> & { readonly recordId: string }) => T,
+    tx: Pool | ClientBase,
+    id: readonly string[],
+    strategies?: undefined,
+    options?: { forUpdate?: boolean }
+  ): Promise<T[]>;
+
+  // Read from the Credential abstract class using an executor.
+  public static read<M extends CredentialInstanceMap, K extends keyof M>(
+    tx: DataLoaderExecutor,
+    id: string,
+    strategies?: undefined,
+    options?: { forUpdate?: false }
   ): Promise<InstanceType<M[K]>>;
 
   public static read<M extends CredentialInstanceMap, K extends keyof M>(
-    tx: Pool | ClientBase | DataLoaderExecutor,
-    id: string[],
-    map?: M,
-    options?: { forUpdate: boolean }
+    tx: DataLoaderExecutor,
+    id: readonly string[],
+    strategies?: undefined,
+    options?: { forUpdate?: false }
+  ): Promise<InstanceType<M[K]>[]>;
+
+  // Read from the Credential abstract class using a connection and strategy map.
+  public static read<M extends CredentialInstanceMap, K extends keyof M>(
+    tx: Pool | ClientBase,
+    id: string,
+    strategies: { credentialMap: M },
+    options?: { forUpdate?: boolean }
+  ): Promise<InstanceType<M[K]>>;
+
+  public static read<M extends CredentialInstanceMap, K extends keyof M>(
+    tx: Pool | ClientBase,
+    id: readonly string[],
+    strategies: { credentialMap: M },
+    options?: { forUpdate?: boolean }
   ): Promise<InstanceType<M[K]>[]>;
 
   public static async read<
@@ -277,38 +317,36 @@ export abstract class Credential<C> implements CredentialData<C> {
   >(
     this: {
       new (data: CredentialData<C> & { readonly recordId: string }): T;
-    } & Pick<typeof Credential, "_cache">,
+    },
     tx: Pool | ClientBase | DataLoaderExecutor,
-    id: string[] | string,
-    map?: M,
-    options: { forUpdate: boolean } = { forUpdate: false }
+    id: readonly string[] | string,
+    strategies?: { credentialMap: M },
+    options?: { forUpdate?: boolean }
   ): Promise<InstanceType<M[K]>[] | InstanceType<M[K]> | T | T[]> {
     if (tx instanceof DataLoaderExecutor) {
-      if (map && map !== tx.context.strategies.credentialMap) {
-        throw new Error(
-          "If passed, the `map` argument must be identical to the map in the executor."
-        );
-      }
+      const loader = cache.get(tx);
 
-      const loader = this._cache.get(tx);
-
-      // If `forUpdate` is true, clear any cache for the requested IDs.
-      if (options?.forUpdate) {
-        if (typeof id === "string") {
-          loader.clear(id);
-        } else {
-          for (const i of id) {
-            loader.clear(i);
-          }
+      if (typeof id === "string") {
+        const credential = await loader.load(id);
+        // Address a scenario in which the loader could return a credential from
+        // a sub-class.
+        if (!(credential instanceof this)) {
+          throw new NotFoundError();
         }
+
+        return credential;
       }
 
-      return typeof id === "string"
-        ? (loader.load(id) as Promise<InstanceType<M[K]>>)
-        : Promise.all(
-            id.map(i => loader.load(i) as Promise<InstanceType<M[K]>>)
-          );
+      const credentials = await Promise.all(
+        id.map(id => loader.load(id) as Promise<InstanceType<M[K]>>)
+      );
+
+      // Address a scenario in which the loader could return a credential from a
+      // sub-class.
+      return credentials.filter(credential => credential instanceof this);
     }
+
+    const map = strategies?.credentialMap;
 
     if (typeof id !== "string" && !id.length) {
       return [];
@@ -332,7 +370,7 @@ export abstract class Credential<C> implements CredentialData<C> {
       WHERE
         authx.credential_record.entity_id = ANY($1)
         AND authx.credential_record.replacement_record_id IS NULL
-      ${options.forUpdate ? "FOR UPDATE" : ""}
+      ${options?.forUpdate ? "FOR UPDATE" : ""}
       `,
       [typeof id === "string" ? [id] : id]
     );
@@ -357,7 +395,7 @@ export abstract class Credential<C> implements CredentialData<C> {
       };
     });
 
-    // No map is provided: instantiate all returned records with this class
+    // No map is provided: instantiate all returned records with this class.
     if (!map) {
       const instances = data.map(data => new this(data));
       return typeof id === "string" ? instances[0] : instances;
@@ -382,8 +420,8 @@ export abstract class Credential<C> implements CredentialData<C> {
   public static async write<C, T extends Credential<C>>(
     this: {
       new (data: CredentialData<C> & { readonly recordId: string }): T;
-    } & Pick<typeof Credential, "write" | "_cache">,
-    tx: Pool | ClientBase | DataLoaderExecutor,
+    },
+    tx: Pool | ClientBase,
     data: CredentialData<C>,
     metadata: {
       recordId: string;
@@ -391,17 +429,6 @@ export abstract class Credential<C> implements CredentialData<C> {
       createdAt: Date;
     }
   ): Promise<T> {
-    if (tx instanceof DataLoaderExecutor) {
-      const result = await this.write<C, T>(tx.connection, data, metadata);
-
-      this._cache
-        .get(tx)
-        .clear(result.id)
-        .prime(result.id, result);
-
-      return result;
-    }
-
     // ensure that the entity ID exists
     await tx.query(
       `
@@ -485,10 +512,13 @@ export abstract class Credential<C> implements CredentialData<C> {
       userId: row.user_id
     }) as T;
   }
-
-  static readonly _cache = new DataLoaderCache<
-    Credential<any>,
-    [],
-    typeof Credential
-  >(Credential);
 }
+
+const cache = new DataLoaderCache(
+  async (
+    executor: DataLoaderExecutor,
+    ids: readonly string[]
+  ): Promise<Credential<any>[]> => {
+    return Credential.read(executor.connection, ids, executor.strategies);
+  }
+);

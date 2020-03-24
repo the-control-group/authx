@@ -1,6 +1,4 @@
-import { Pool } from "pg";
 import { Authorization } from "./model";
-import { StrategyCollection } from "./StrategyCollection";
 import { Explanation } from "./util/explanations";
 import { DataLoaderExecutor } from "./loader";
 
@@ -18,8 +16,6 @@ export interface Context {
     readonly html: string;
     readonly from?: string;
   }) => Promise<any>;
-  readonly pool: Pool;
-  readonly strategies: StrategyCollection;
   readonly explanations: ReadonlyArray<Explanation>;
   executor: DataLoaderExecutor;
   authorization: null | Authorization;

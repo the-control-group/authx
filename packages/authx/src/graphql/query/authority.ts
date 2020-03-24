@@ -18,10 +18,7 @@ export const authority: GraphQLFieldConfig<
     }
   },
   async resolve(source, args, context): Promise<null | Authority<any>> {
-    const {
-      executor,
-      strategies: { authorityMap }
-    } = context;
-    return await Authority.read(executor, args.id, authorityMap);
+    const { executor } = context;
+    return await Authority.read(executor, args.id);
   }
 };

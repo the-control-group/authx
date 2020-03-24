@@ -97,7 +97,11 @@ export class Role implements RoleData {
       return this._users;
     }
 
-    return (this._users = User.read(tx, [...this.userIds]));
+    return (this._users =
+      // Some silliness to help typescript...
+      tx instanceof DataLoaderExecutor
+        ? User.read(tx, [...this.userIds])
+        : User.read(tx, [...this.userIds]));
   }
 
   public access(values: {
@@ -157,32 +161,42 @@ export class Role implements RoleData {
     );
   }
 
+  // Read using an executor.
   public static read(
-    tx: Pool | ClientBase | DataLoaderExecutor,
+    tx: DataLoaderExecutor,
     id: string,
-    options?: { forUpdate: boolean }
+    options?: { forUpdate?: false }
   ): Promise<Role>;
+
   public static read(
-    tx: Pool | ClientBase | DataLoaderExecutor,
-    id: string[],
-    options?: { forUpdate: boolean }
+    tx: DataLoaderExecutor,
+    id: readonly string[],
+    options?: { forUpdate?: false }
   ): Promise<Role[]>;
+
+  // Read using a connection.
+  public static read(
+    tx: Pool | ClientBase,
+    id: string,
+    options?: { forUpdate?: boolean }
+  ): Promise<Role>;
+
+  public static read(
+    tx: Pool | ClientBase,
+    id: readonly string[],
+    options?: { forUpdate?: boolean }
+  ): Promise<Role[]>;
+
   public static async read(
     tx: Pool | ClientBase | DataLoaderExecutor,
-    id: string[] | string,
-    options: { forUpdate: boolean } = { forUpdate: false }
+    id: readonly string[] | string,
+    options?: { forUpdate?: boolean }
   ): Promise<Role[] | Role> {
     if (tx instanceof DataLoaderExecutor) {
-      if (options?.forUpdate) {
-        // A loader cannot be used if forUpdate is true.
-        tx = tx.connection;
-      } else {
-        // Otherwise, use the loader.
-        const loader = this._cache.get(tx);
-        return typeof id === "string"
-          ? loader.load(id)
-          : Promise.all(id.map(i => loader.load(i)));
-      }
+      const loader = cache.get(tx);
+      return Promise.all(
+        typeof id === "string" ? [loader.load(id)] : id.map(i => loader.load(i))
+      );
     }
 
     if (typeof id !== "string" && !id.length) {
@@ -205,7 +219,7 @@ export class Role implements RoleData {
         WHERE
           authx.role_record.entity_id = ANY($1)
           AND authx.role_record.replacement_record_id IS NULL
-        ${options.forUpdate ? "FOR UPDATE" : ""}
+        ${options?.forUpdate ? "FOR UPDATE" : ""}
       ) AS role_record
       LEFT JOIN authx.role_record_user
         ON authx.role_record_user.role_record_id = role_record.record_id
@@ -243,7 +257,7 @@ export class Role implements RoleData {
   }
 
   public static async write(
-    tx: Pool | ClientBase | DataLoaderExecutor,
+    tx: Pool | ClientBase,
     data: RoleData,
     metadata: {
       recordId: string;
@@ -251,17 +265,6 @@ export class Role implements RoleData {
       createdAt: Date;
     }
   ): Promise<Role> {
-    if (tx instanceof DataLoaderExecutor) {
-      const result = await this.write(tx.connection, data, metadata);
-
-      this._cache
-        .get(tx)
-        .clear(result.id)
-        .prime(result.id, result);
-
-      return result;
-    }
-
     // ensure that the entity ID exists
     await tx.query(
       `
@@ -357,8 +360,13 @@ export class Role implements RoleData {
       userIds: users.rows.map(({ user_id: userId }) => userId)
     });
   }
-
-  private static readonly _cache = new DataLoaderCache<Role, [], typeof Role>(
-    Role
-  );
 }
+
+const cache = new DataLoaderCache(
+  async (
+    executor: DataLoaderExecutor,
+    ids: readonly string[]
+  ): Promise<Role[]> => {
+    return Role.read(executor.connection, ids);
+  }
+);

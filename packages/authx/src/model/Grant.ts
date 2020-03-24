@@ -126,7 +126,11 @@ export class Grant implements GrantData {
       return this._client;
     }
 
-    return (this._client = Client.read(tx, this.clientId));
+    return (this._client =
+      // Some silliness to help typescript...
+      tx instanceof DataLoaderExecutor
+        ? Client.read(tx, this.clientId)
+        : Client.read(tx, this.clientId));
   }
 
   public user(
@@ -136,7 +140,12 @@ export class Grant implements GrantData {
     if (!refresh && this._user) {
       return this._user;
     }
-    return (this._user = User.read(tx, this.userId));
+
+    return (this._user =
+      // Some silliness to help typescript...
+      tx instanceof DataLoaderExecutor
+        ? User.read(tx, this.userId)
+        : User.read(tx, this.userId));
   }
 
   public async authorizations(
@@ -147,22 +156,25 @@ export class Grant implements GrantData {
       return this._authorizations;
     }
 
-    return (this._authorizations = (async () =>
-      Authorization.read(
-        tx,
-        (
-          await (tx instanceof DataLoaderExecutor ? tx.connection : tx).query(
-            `
+    return (this._authorizations = (async () => {
+      const ids = (
+        await (tx instanceof DataLoaderExecutor ? tx.connection : tx).query(
+          `
           SELECT entity_id AS id
           FROM authx.authorization_record
           WHERE
             grant_id = $1
             AND replacement_record_id IS NULL
           `,
-            [this.id]
-          )
-        ).rows.map(({ id }) => id)
-      ))());
+          [this.id]
+        )
+      ).rows.map(({ id }) => id);
+
+      // Some silliness to help typescript...
+      return tx instanceof DataLoaderExecutor
+        ? Authorization.read(tx, ids)
+        : Authorization.read(tx, ids);
+    })());
   }
 
   public async access(
@@ -301,32 +313,42 @@ export class Grant implements GrantData {
     );
   }
 
+  // Read using an executor.
   public static read(
-    tx: Pool | ClientBase | DataLoaderExecutor,
+    tx: DataLoaderExecutor,
     id: string,
-    options?: { forUpdate: boolean }
+    options?: { forUpdate?: false }
   ): Promise<Grant>;
+
   public static read(
-    tx: Pool | ClientBase | DataLoaderExecutor,
-    id: string[],
-    options?: { forUpdate: boolean }
+    tx: DataLoaderExecutor,
+    id: readonly string[],
+    options?: { forUpdate?: false }
   ): Promise<Grant[]>;
+
+  // Read using a connection.
+  public static read(
+    tx: Pool | ClientBase,
+    id: string,
+    options?: { forUpdate?: boolean }
+  ): Promise<Grant>;
+
+  public static read(
+    tx: Pool | ClientBase,
+    id: readonly string[],
+    options?: { forUpdate?: boolean }
+  ): Promise<Grant[]>;
+
   public static async read(
     tx: Pool | ClientBase | DataLoaderExecutor,
-    id: string[] | string,
-    options: { forUpdate: boolean } = { forUpdate: false }
+    id: readonly string[] | string,
+    options?: { forUpdate?: boolean }
   ): Promise<Grant[] | Grant> {
     if (tx instanceof DataLoaderExecutor) {
-      if (options?.forUpdate) {
-        // A loader cannot be used if forUpdate is true.
-        tx = tx.connection;
-      } else {
-        // Otherwise, use the loader.
-        const loader = this._cache.get(tx);
-        return typeof id === "string"
-          ? loader.load(id)
-          : Promise.all(id.map(i => loader.load(i)));
-      }
+      const loader = cache.get(tx);
+      return Promise.all(
+        typeof id === "string" ? [loader.load(id)] : id.map(i => loader.load(i))
+      );
     }
 
     if (typeof id !== "string" && !id.length) {
@@ -348,7 +370,7 @@ export class Grant implements GrantData {
       WHERE
         entity_id = ANY($1)
         AND replacement_record_id IS NULL
-      ${options.forUpdate ? "FOR UPDATE" : ""}
+      ${options?.forUpdate ? "FOR UPDATE" : ""}
       `,
       [typeof id === "string" ? [id] : id]
     );
@@ -377,7 +399,7 @@ export class Grant implements GrantData {
   }
 
   public static async write(
-    tx: Pool | ClientBase | DataLoaderExecutor,
+    tx: Pool | ClientBase,
     data: GrantData,
     metadata: {
       recordId: string;
@@ -385,17 +407,6 @@ export class Grant implements GrantData {
       createdAt: Date;
     }
   ): Promise<Grant> {
-    if (tx instanceof DataLoaderExecutor) {
-      const result = await this.write(tx.connection, data, metadata);
-
-      this._cache
-        .get(tx)
-        .clear(result.id)
-        .prime(result.id, result);
-
-      return result;
-    }
-
     // ensure that the entity ID exists
     await tx.query(
       `
@@ -481,8 +492,13 @@ export class Grant implements GrantData {
       userId: row.user_id
     });
   }
-
-  private static readonly _cache = new DataLoaderCache<Grant, [], typeof Grant>(
-    Grant
-  );
 }
+
+const cache = new DataLoaderCache(
+  async (
+    executor: DataLoaderExecutor,
+    ids: readonly string[]
+  ): Promise<Grant[]> => {
+    return Grant.read(executor.connection, ids);
+  }
+);
