@@ -4,7 +4,7 @@ import { GraphQLFieldConfig, GraphQLNonNull, GraphQLList } from "graphql";
 import { Context } from "../../Context";
 import { GraphQLUser } from "../GraphQLUser";
 import { User } from "../../model";
-import { DataLoaderExecutor } from "../../loader";
+import { DataLoaderExecutor, ReadonlyDataLoaderExecutor } from "../../loader";
 import { validateIdFormat } from "../../util/validateIdFormat";
 import { ForbiddenError, ValidationError } from "../../errors";
 import { GraphQLUpdateUserInput } from "./GraphQLUpdateUserInput";
@@ -102,7 +102,7 @@ export const updateUsers: GraphQLFieldConfig<
         // Update the context to use a new executor primed with the results of
         // this mutation, using the original connection pool.
         executor.connection = pool;
-        context.executor = executor as DataLoaderExecutor<Pool>;
+        context.executor = executor as ReadonlyDataLoaderExecutor<Pool>;
 
         return user;
       } catch (error) {

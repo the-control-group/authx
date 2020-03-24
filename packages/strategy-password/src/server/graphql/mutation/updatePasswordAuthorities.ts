@@ -1,4 +1,5 @@
 import { v4 } from "uuid";
+import { Pool, PoolClient } from "pg";
 import { GraphQLList, GraphQLFieldConfig, GraphQLNonNull } from "graphql";
 
 import {
@@ -37,16 +38,19 @@ export const updatePasswordAuthorities: GraphQLFieldConfig<
     }
   },
   async resolve(source, args, context): Promise<Promise<PasswordAuthority>[]> {
-    const {
-      pool,
-      authorization: a,
-      realm,
-      strategies: { authorityMap }
-    } = context;
+    const { executor, authorization: a, realm } = context;
 
     if (!a) {
       throw new ForbiddenError(
         "You must be authenticated to update an authority."
+      );
+    }
+
+    const strategies = executor.strategies;
+    const pool = executor.connection;
+    if (!(pool instanceof Pool)) {
+      throw new Error(
+        "INVARIANT: The executor connection is expected to be an instance of Pool."
       );
     }
 
@@ -59,11 +63,11 @@ export const updatePasswordAuthorities: GraphQLFieldConfig<
       const tx = await pool.connect();
       try {
         // Make sure this transaction is used for queries made by the executor.
-        const executor = new DataLoaderExecutor(tx);
+        const executor = new DataLoaderExecutor(tx, strategies);
 
         await tx.query("BEGIN DEFERRABLE");
 
-        const before = await Authority.read(executor, input.id, authorityMap, {
+        const before = await Authority.read(tx, input.id, strategies, {
           forUpdate: true
         });
 

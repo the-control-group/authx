@@ -1,6 +1,9 @@
 import { ClientBase, Pool } from "pg";
 import { Authority, DataLoaderExecutor } from "@authx/authx";
-import { PasswordCredential } from "./PasswordCredential";
+import {
+  PasswordCredentialDetails,
+  PasswordCredential
+} from "./PasswordCredential";
 
 // Authority
 // ---------
@@ -20,29 +23,34 @@ export class PasswordAuthority extends Authority<PasswordAuthorityDetails> {
       return this._credentials;
     }
 
-    return (this._credentials = (async () =>
-      PasswordCredential.read(
-        tx,
-        (
-          await (tx instanceof DataLoaderExecutor ? tx.tx : tx).query(
-            `
+    return (this._credentials = (async () => {
+      const ids = (
+        await (tx instanceof DataLoaderExecutor ? tx.connection : tx).query(
+          `
               SELECT entity_id AS id
               FROM authx.credential_records
               WHERE
                 authority_id = $1
                 AND replacement_record_id IS NULL
               `,
-            [this.id]
-          )
-        ).rows.map(({ id }) => id)
-      ))());
+          [this.id]
+        )
+      ).rows.map(({ id }) => id);
+
+      return tx instanceof DataLoaderExecutor
+        ? PasswordCredential.read(tx, ids)
+        : PasswordCredential.read(tx, ids);
+    })());
   }
 
   public async credential(
     tx: Pool | ClientBase | DataLoaderExecutor,
     authorityUserId: string
   ): Promise<null | PasswordCredential> {
-    const results = await (tx instanceof DataLoaderExecutor ? tx.tx : tx).query(
+    const results = await (tx instanceof DataLoaderExecutor
+      ? tx.connection
+      : tx
+    ).query(
       `
       SELECT entity_id AS id
       FROM authx.credential_record
@@ -63,6 +71,15 @@ export class PasswordAuthority extends Authority<PasswordAuthorityDetails> {
 
     if (!results.rows[0]) return null;
 
-    return PasswordCredential.read(tx, results.rows[0].id);
+    // Some silliness to help typescript...
+    return tx instanceof DataLoaderExecutor
+      ? PasswordCredential.read<PasswordCredentialDetails, PasswordCredential>(
+          tx,
+          results.rows[0].id
+        )
+      : PasswordCredential.read<PasswordCredentialDetails, PasswordCredential>(
+          tx,
+          results.rows[0].id
+        );
   }
 }

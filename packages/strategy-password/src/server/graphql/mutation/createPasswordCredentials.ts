@@ -1,4 +1,5 @@
 import { v4 } from "uuid";
+import { Pool, PoolClient } from "pg";
 import { hash } from "bcrypt";
 import { GraphQLList, GraphQLFieldConfig, GraphQLNonNull } from "graphql";
 
@@ -50,17 +51,19 @@ export const createPasswordCredentials: GraphQLFieldConfig<
     }
   },
   async resolve(source, args, context): Promise<Promise<PasswordCredential>[]> {
-    const {
-      pool,
-      executor,
-      authorization: a,
-      realm,
-      strategies: { authorityMap }
-    } = context;
+    const { executor, authorization: a, realm } = context;
 
     if (!a) {
       throw new ForbiddenError(
         "You must be authenticated to create a credential."
+      );
+    }
+
+    const strategies = executor.strategies;
+    const pool = executor.connection;
+    if (!(pool instanceof Pool)) {
+      throw new Error(
+        "INVARIANT: The executor connection is expected to be an instance of Pool."
       );
     }
 

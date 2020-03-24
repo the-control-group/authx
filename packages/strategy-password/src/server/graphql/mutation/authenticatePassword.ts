@@ -5,6 +5,7 @@ import {
   GraphQLString
 } from "graphql";
 
+import { Pool, PoolClient } from "pg";
 import { randomBytes } from "crypto";
 import { compare } from "bcrypt";
 import { v4 } from "uuid";
@@ -53,29 +54,32 @@ export const authenticatePassword: GraphQLFieldConfig<
     }
   },
   async resolve(source, args, context): Promise<Authorization> {
-    const {
-      pool,
-      authorization: a,
-      realm,
-      strategies: { authorityMap }
-    } = context;
+    const { executor, authorization: a, realm } = context;
 
     if (a) {
       throw new ForbiddenError("You area already authenticated.");
     }
 
+    const strategies = executor.strategies;
+    const pool = executor.connection;
+    if (!(pool instanceof Pool)) {
+      throw new Error(
+        "INVARIANT: The executor connection is expected to be an instance of Pool."
+      );
+    }
+
     const tx = await pool.connect();
     try {
       // Make sure this transaction is used for queries made by the executor.
-      const executor = new DataLoaderExecutor(tx);
+      const executor = new DataLoaderExecutor(tx, strategies);
 
       await tx.query("BEGIN DEFERRABLE");
 
       // Fetch the authority.
       const authority = await Authority.read(
-        executor,
+        tx,
         args.passwordAuthorityId,
-        authorityMap
+        strategies
       );
 
       if (!(authority instanceof PasswordAuthority)) {

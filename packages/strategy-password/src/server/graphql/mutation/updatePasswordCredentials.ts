@@ -1,4 +1,5 @@
 import { v4 } from "uuid";
+import { Pool, PoolClient } from "pg";
 import { hash } from "bcrypt";
 import { GraphQLList, GraphQLFieldConfig, GraphQLNonNull } from "graphql";
 
@@ -38,16 +39,19 @@ export const updatePasswordCredentials: GraphQLFieldConfig<
     }
   },
   async resolve(source, args, context): Promise<Promise<PasswordCredential>[]> {
-    const {
-      pool,
-      authorization: a,
-      realm,
-      strategies: { credentialMap }
-    } = context;
+    const { executor, authorization: a, realm } = context;
 
     if (!a) {
       throw new ForbiddenError(
         "You must be authenticated to update an credential."
+      );
+    }
+
+    const strategies = executor.strategies;
+    const pool = executor.connection;
+    if (!(pool instanceof Pool)) {
+      throw new Error(
+        "INVARIANT: The executor connection is expected to be an instance of Pool."
       );
     }
 
@@ -60,18 +64,13 @@ export const updatePasswordCredentials: GraphQLFieldConfig<
       const tx = await pool.connect();
       try {
         // Make sure this transaction is used for queries made by the executor.
-        const executor = new DataLoaderExecutor(tx);
+        const executor = new DataLoaderExecutor(tx, strategies);
 
         await tx.query("BEGIN DEFERRABLE");
 
-        const before = await Credential.read(
-          executor,
-          input.id,
-          credentialMap,
-          {
-            forUpdate: true
-          }
-        );
+        const before = await Credential.read(tx, input.id, strategies, {
+          forUpdate: true
+        });
 
         if (!(before instanceof PasswordCredential)) {
           throw new NotFoundError(

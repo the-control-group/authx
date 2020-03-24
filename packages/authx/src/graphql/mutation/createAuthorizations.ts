@@ -6,7 +6,7 @@ import { GraphQLFieldConfig, GraphQLList, GraphQLNonNull } from "graphql";
 import { Context } from "../../Context";
 import { GraphQLAuthorization } from "../GraphQLAuthorization";
 import { Authorization, Grant, Role } from "../../model";
-import { DataLoaderExecutor } from "../../loader";
+import { DataLoaderExecutor, ReadonlyDataLoaderExecutor } from "../../loader";
 import { validateIdFormat } from "../../util/validateIdFormat";
 import { createV2AuthXScope } from "../../util/scopes";
 import {
@@ -251,7 +251,7 @@ export const createAuthorizations: GraphQLFieldConfig<
           // Update the context to use a new executor primed with the results of
           // this mutation, using the original connection pool.
           executor.connection = pool;
-          context.executor = executor as DataLoaderExecutor<Pool>;
+          context.executor = executor as ReadonlyDataLoaderExecutor<Pool>;
 
           return authorization;
         } catch (error) {

@@ -5,7 +5,7 @@ import { isSuperset, simplify } from "@authx/scopes";
 import { Context } from "../../Context";
 import { GraphQLUser } from "../GraphQLUser";
 import { User, UserType, Role } from "../../model";
-import { DataLoaderExecutor } from "../../loader";
+import { DataLoaderExecutor, ReadonlyDataLoaderExecutor } from "../../loader";
 import { validateIdFormat } from "../../util/validateIdFormat";
 import { createV2AuthXScope } from "../../util/scopes";
 import {
@@ -306,7 +306,7 @@ export const createUsers: GraphQLFieldConfig<
           // Update the context to use a new executor primed with the results of
           // this mutation, using the original connection pool.
           executor.connection = pool;
-          context.executor = executor as DataLoaderExecutor<Pool>;
+          context.executor = executor as ReadonlyDataLoaderExecutor<Pool>;
 
           return user;
         } catch (error) {

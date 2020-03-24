@@ -15,6 +15,12 @@ export class DataLoaderExecutor<
 	}
 }
 
+export type ReadonlyDataLoaderExecutor<
+	T extends ClientBase | Pool = ClientBase | Pool
+> = DataLoaderExecutor<T> & {
+	readonly connection: T;
+};
+
 export type Reader<M> = (
 	executor: DataLoaderExecutor,
 	ids: readonly string[]

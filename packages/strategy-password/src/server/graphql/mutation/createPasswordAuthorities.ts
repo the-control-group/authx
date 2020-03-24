@@ -1,4 +1,5 @@
 import { v4 } from "uuid";
+import { Pool, PoolClient } from "pg";
 import { GraphQLList, GraphQLFieldConfig, GraphQLNonNull } from "graphql";
 
 import {
@@ -9,7 +10,8 @@ import {
   ValidationError,
   Role,
   validateIdFormat,
-  DataLoaderExecutor
+  DataLoaderExecutor,
+  Authority
 } from "@authx/authx";
 
 import { createV2AuthXScope } from "@authx/authx/scopes";
@@ -46,11 +48,19 @@ export const createPasswordAuthorities: GraphQLFieldConfig<
     }
   },
   async resolve(source, args, context): Promise<Promise<PasswordAuthority>[]> {
-    const { pool, authorization: a, realm } = context;
+    const { executor, authorization: a, realm } = context;
 
     if (!a) {
       throw new ForbiddenError(
         "You must be authenticated to create a authority."
+      );
+    }
+
+    const strategies = executor.strategies;
+    const pool = executor.connection;
+    if (!(pool instanceof Pool)) {
+      throw new Error(
+        "INVARIANT: The executor connection is expected to be an instance of Pool."
       );
     }
 
@@ -80,7 +90,10 @@ export const createPasswordAuthorities: GraphQLFieldConfig<
       const tx = await pool.connect();
       try {
         // Make sure this transaction is used for queries made by the executor.
-        const executor = new DataLoaderExecutor(tx);
+        const executor = new DataLoaderExecutor<Pool | PoolClient>(
+          tx,
+          strategies
+        );
 
         if (
           !(await a.can(
@@ -109,7 +122,7 @@ export const createPasswordAuthorities: GraphQLFieldConfig<
           // Make sure the ID isn't already in use.
           if (input.id) {
             try {
-              await PasswordAuthority.read(executor, input.id, {
+              await Authority.read(tx, input.id, strategies, {
                 forUpdate: true
               });
               throw new ConflictError();
@@ -122,7 +135,7 @@ export const createPasswordAuthorities: GraphQLFieldConfig<
 
           const id = input.id || v4();
           const authority = await PasswordAuthority.write(
-            executor,
+            tx,
             {
               id,
               strategy: "password",
@@ -221,45 +234,58 @@ export const createPasswordAuthorities: GraphQLFieldConfig<
           ];
 
           // Add administration scopes.
-          for (const { roleId, scopes } of input.administration) {
-            const role = await Role.read(executor, roleId, { forUpdate: true });
+          await Promise.all(
+            input.administration.map(async ({ roleId, scopes }) => {
+              const administrationRoleBefore = await Role.read(tx, roleId, {
+                forUpdate: true
+              });
 
-            if (
-              !role.isAccessibleBy(realm, a, executor, {
-                basic: "w",
-                scopes: "w",
-                users: ""
-              })
-            ) {
-              throw new ForbiddenError(
-                `You do not have permission to modify the scopes of role ${roleId}.`
-              );
-            }
-
-            await Role.write(
-              executor,
-              {
-                ...role,
-                scopes: simplify([
-                  ...role.scopes,
-                  ...possibleAdministrationScopes.filter(possible =>
-                    isSuperset(scopes, possible)
-                  )
-                ])
-              },
-              {
-                recordId: v4(),
-                createdByAuthorizationId: a.id,
-                createdAt: new Date()
+              if (
+                !administrationRoleBefore.isAccessibleBy(realm, a, executor, {
+                  basic: "w",
+                  scopes: "w",
+                  users: ""
+                })
+              ) {
+                throw new ForbiddenError(
+                  `You do not have permission to modify the scopes of role ${roleId}.`
+                );
               }
-            );
-          }
+
+              const administrationRole = await Role.write(
+                tx,
+                {
+                  ...administrationRoleBefore,
+                  scopes: simplify([
+                    ...administrationRoleBefore.scopes,
+                    ...possibleAdministrationScopes.filter(possible =>
+                      isSuperset(scopes, possible)
+                    )
+                  ])
+                },
+                {
+                  recordId: v4(),
+                  createdByAuthorizationId: a.id,
+                  createdAt: new Date()
+                }
+              );
+
+              // Clear and prime the loader.
+              Role.clear(executor, administrationRole.id);
+              Role.prime(executor, administrationRole.id, administrationRole);
+            })
+          );
 
           await tx.query("COMMIT");
 
+          // Clear and prime the loader.
+          PasswordAuthority.clear(executor, authority.id);
+          PasswordAuthority.prime(executor, authority.id, authority);
+
           // Update the context to use a new executor primed with the results of
           // this mutation, using the original connection pool.
-          context.executor = new DataLoaderExecutor(pool, executor.key);
+          executor.connection = pool;
+          context.executor = executor as DataLoaderExecutor<Pool>;
 
           return authority;
         } catch (error) {

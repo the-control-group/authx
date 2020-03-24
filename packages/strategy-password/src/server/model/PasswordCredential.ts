@@ -1,6 +1,9 @@
 import { ClientBase, Pool } from "pg";
 import { Credential, DataLoaderExecutor } from "@authx/authx";
-import { PasswordAuthority } from "./PasswordAuthority";
+import {
+  PasswordAuthorityDetails,
+  PasswordAuthority
+} from "./PasswordAuthority";
 
 // Credential
 // ----------
@@ -20,6 +23,16 @@ export class PasswordCredential extends Credential<PasswordCredentialDetails> {
       return this._authority;
     }
 
-    return (this._authority = PasswordAuthority.read(tx, this.authorityId));
+    return (this._authority =
+      tx instanceof DataLoaderExecutor
+        ? // Some silliness to help typescript...
+          PasswordAuthority.read<PasswordAuthorityDetails, PasswordAuthority>(
+            tx,
+            this.authorityId
+          )
+        : PasswordAuthority.read<PasswordAuthorityDetails, PasswordAuthority>(
+            tx,
+            this.authorityId
+          ));
   }
 }
