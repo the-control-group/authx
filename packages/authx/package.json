@@ -11,7 +11,7 @@
     "@types/graphql-api-koa": "^2.0.2",
     "@types/graphql-relay": "^0.4.11",
     "@types/jsonwebtoken": "^8.3.8",
-    "@types/koa": "2.11.2",
+    "@types/koa": "2.11.3",
     "@types/koa-router": "^7.0.42",
     "@types/koa-send": "^4.1.2",
     "@types/pg": "^7.14.3",
@@ -19,7 +19,7 @@
     "auth-header": "^1.0.0",
     "dataloader": "^2.0.0",
     "form-data": "^3.0.0",
-    "graphql": "15.0.0-rc.2",
+    "graphql": "15.0.0",
     "graphql-api-koa": "^4.1.1",
     "graphql-playground-middleware-koa": "^1.6.12",
     "graphql-relay": "^0.6.0",
@@ -28,14 +28,14 @@
     "koa-body": "^4.1.1",
     "koa-router": "^8.0.8",
     "node-fetch": "^2.5.0",
-    "pg": "^7.18.2",
-    "uuid": "^7.0.2"
+    "pg": "^8.0.0",
+    "uuid": "^7.0.3"
   },
   "description": "",
   "devDependencies": {
-    "@typescript-eslint/eslint-plugin": "^2.25.0",
-    "@typescript-eslint/parser": "^2.25.0",
-    "ava": "^3.5.1",
+    "@typescript-eslint/eslint-plugin": "^2.26.0",
+    "@typescript-eslint/parser": "^2.26.0",
+    "ava": "^3.5.2",
     "eslint": "^6.7.2",
     "eslint-config-prettier": "^6.10.1",
     "eslint-plugin-prettier": "^3.1.1",
@@ -63,7 +63,7 @@
   "main": "dist",
   "name": "@authx/authx",
   "optionalDependencies": {
-    "@opencensus/core": "^0.0.20",
+    "@opencensus/core": "^0.0.21",
     "graphql-middleware": "^4.0.2"
   },
   "peerDependencies": {
@@ -81,6 +81,6 @@
   "types": "dist/index.d.ts",
   "version": "3.1.0-alpha.10",
   "resolutions": {
-    "**/graphql": "15.0.0-rc.2"
+    "**/graphql": "15.0.0"
   }
 }
