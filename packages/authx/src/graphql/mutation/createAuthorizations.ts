@@ -13,7 +13,7 @@ import {
   ForbiddenError,
   ConflictError,
   NotFoundError,
-  ValidationError
+  ValidationError,
 } from "../../errors";
 import { GraphQLCreateAuthorizationInput } from "./GraphQLCreateAuthorizationInput";
 
@@ -40,11 +40,15 @@ export const createAuthorizations: GraphQLFieldConfig<
     authorizations: {
       type: new GraphQLNonNull(
         new GraphQLList(new GraphQLNonNull(GraphQLCreateAuthorizationInput))
-      )
-    }
+      ),
+    },
   },
-  async resolve(source, args, context): Promise<Promise<Authorization>[]> {
-    const { executor, authorization: a, realm } = context;
+  async resolve(source, args, context): Promise<Authorization[]> {
+    const {
+      executor: { strategies, connection },
+      authorization: a,
+      realm,
+    } = context;
 
     if (!a) {
       throw new ForbiddenError(
@@ -52,44 +56,47 @@ export const createAuthorizations: GraphQLFieldConfig<
       );
     }
 
-    const strategies = executor.strategies;
-    const pool = executor.connection;
-    if (!(pool instanceof Pool)) {
+    if (!(connection instanceof Pool)) {
       throw new Error(
         "INVARIANT: The executor connection is expected to be an instance of Pool."
       );
     }
 
-    return args.authorizations.map(async input => {
-      // Validate `id`.
-      if (typeof input.id === "string" && !validateIdFormat(input.id)) {
-        throw new ValidationError("The provided `id` is an invalid ID.");
-      }
-
-      // Validate `userId`.
-      if (!validateIdFormat(input.userId)) {
-        throw new ValidationError("The provided `userId` is an invalid ID.");
-      }
-
-      // Validate `grantId`.
-      if (
-        typeof input.grantId === "string" &&
-        !validateIdFormat(input.grantId)
-      ) {
-        throw new ValidationError("The provided `grantId` is an invalid ID.");
-      }
-
-      // Validate `administration`.
-      for (const { roleId } of input.administration) {
-        if (!validateIdFormat(roleId)) {
-          throw new ValidationError(
-            "The provided `administration` list contains a `roleId` that is an invalid ID."
-          );
+    // Loop through the authorizations sequentially. This ensures that later
+    // inputs can assume that previous ones succeeded.
+    const tx = await connection.connect();
+    let lastExecutor: DataLoaderExecutor<Pool | PoolClient> | undefined;
+    try {
+      await tx.query("BEGIN DEFERRABLE");
+      const authorizations = [];
+      for (const input of args.authorizations) {
+        // Validate `id`.
+        if (typeof input.id === "string" && !validateIdFormat(input.id)) {
+          throw new ValidationError("The provided `id` is an invalid ID.");
         }
-      }
 
-      const tx = await pool.connect();
-      try {
+        // Validate `userId`.
+        if (!validateIdFormat(input.userId)) {
+          throw new ValidationError("The provided `userId` is an invalid ID.");
+        }
+
+        // Validate `grantId`.
+        if (
+          typeof input.grantId === "string" &&
+          !validateIdFormat(input.grantId)
+        ) {
+          throw new ValidationError("The provided `grantId` is an invalid ID.");
+        }
+
+        // Validate `administration`.
+        for (const { roleId } of input.administration) {
+          if (!validateIdFormat(roleId)) {
+            throw new ValidationError(
+              "The provided `administration` list contains a `roleId` that is an invalid ID."
+            );
+          }
+        }
+
         // Make sure this transaction is used for queries made by the executor.
         const executor = new DataLoaderExecutor<Pool | PoolClient>(
           tx,
@@ -109,12 +116,12 @@ export const createAuthorizations: GraphQLFieldConfig<
                 authorizationId: "",
                 clientId: grant?.clientId ?? "",
                 grantId: grant?.id ?? "",
-                userId: input.userId
+                userId: input.userId,
               },
               {
                 basic: "*",
                 scopes: "*",
-                secrets: "*"
+                secrets: "*",
               }
             )
           ))
@@ -124,143 +131,146 @@ export const createAuthorizations: GraphQLFieldConfig<
           );
         }
 
-        try {
-          await tx.query("BEGIN DEFERRABLE");
-
-          // Make sure the ID isn't already in use.
-          if (input.id) {
-            try {
-              await Authorization.read(tx, input.id, { forUpdate: true });
-              throw new ConflictError();
-            } catch (error) {
-              if (!(error instanceof NotFoundError)) {
-                throw error;
-              }
+        // Make sure the ID isn't already in use.
+        if (input.id) {
+          try {
+            await Authorization.read(tx, input.id, { forUpdate: true });
+            throw new ConflictError();
+          } catch (error) {
+            if (!(error instanceof NotFoundError)) {
+              throw error;
             }
           }
-
-          const id = input.id || v4();
-          const authorization = await Authorization.write(
-            tx,
-            {
-              id,
-              enabled: input.enabled,
-              userId: input.userId,
-              grantId: input.grantId,
-              secret: randomBytes(16).toString("hex"),
-              scopes: input.scopes
-            },
-            {
-              recordId: v4(),
-              createdByAuthorizationId: a.id,
-              createdByCredentialId: null,
-              createdAt: new Date()
-            }
-          );
-
-          const authorizationScopeContext = {
-            type: "authorization" as "authorization",
-            authorizationId: id,
-            clientId: grant?.clientId ?? "",
-            grantId: grant?.id ?? "",
-            userId: input.userId
-          };
-
-          const possibleAdministrationScopes = [
-            createV2AuthXScope(realm, authorizationScopeContext, {
-              basic: "r",
-              scopes: "",
-              secrets: ""
-            }),
-            createV2AuthXScope(realm, authorizationScopeContext, {
-              basic: "r",
-              scopes: "r",
-              secrets: ""
-            }),
-            createV2AuthXScope(realm, authorizationScopeContext, {
-              basic: "r",
-              scopes: "",
-              secrets: "r"
-            }),
-            createV2AuthXScope(realm, authorizationScopeContext, {
-              basic: "r",
-              scopes: "*",
-              secrets: "*"
-            }),
-            createV2AuthXScope(realm, authorizationScopeContext, {
-              basic: "w",
-              scopes: "",
-              secrets: ""
-            }),
-            createV2AuthXScope(realm, authorizationScopeContext, {
-              basic: "*",
-              scopes: "*",
-              secrets: "*"
-            })
-          ];
-
-          // Add administration scopes.
-          await Promise.all(
-            input.administration.map(async ({ roleId, scopes }) => {
-              const administrationRoleBefore = await Role.read(tx, roleId, {
-                forUpdate: true
-              });
-
-              if (
-                !administrationRoleBefore.isAccessibleBy(realm, a, executor, {
-                  basic: "w",
-                  scopes: "w",
-                  users: ""
-                })
-              ) {
-                throw new ForbiddenError(
-                  `You do not have permission to modify the scopes of role ${roleId}.`
-                );
-              }
-
-              const administrationRole = await Role.write(
-                tx,
-                {
-                  ...administrationRoleBefore,
-                  scopes: simplify([
-                    ...administrationRoleBefore.scopes,
-                    ...possibleAdministrationScopes.filter(possible =>
-                      isSuperset(scopes, possible)
-                    )
-                  ])
-                },
-                {
-                  recordId: v4(),
-                  createdByAuthorizationId: a.id,
-                  createdAt: new Date()
-                }
-              );
-
-              // Clear and prime the loader.
-              Role.clear(executor, administrationRole.id);
-              Role.prime(executor, administrationRole.id, administrationRole);
-            })
-          );
-
-          await tx.query("COMMIT");
-
-          // Clear and prime the loader.
-          Authorization.clear(executor, authorization.id);
-          Authorization.prime(executor, authorization.id, authorization);
-
-          // Update the context to use a new executor primed with the results of
-          // this mutation, using the original connection pool.
-          executor.connection = pool;
-          context.executor = executor as ReadonlyDataLoaderExecutor<Pool>;
-
-          return authorization;
-        } catch (error) {
-          await tx.query("ROLLBACK");
-          throw error;
         }
-      } finally {
-        tx.release();
+
+        const id = input.id || v4();
+        const authorization = await Authorization.write(
+          tx,
+          {
+            id,
+            enabled: input.enabled,
+            userId: input.userId,
+            grantId: input.grantId,
+            secret: randomBytes(16).toString("hex"),
+            scopes: input.scopes,
+          },
+          {
+            recordId: v4(),
+            createdByAuthorizationId: a.id,
+            createdByCredentialId: null,
+            createdAt: new Date(),
+          }
+        );
+
+        const authorizationScopeContext = {
+          type: "authorization" as "authorization",
+          authorizationId: id,
+          clientId: grant?.clientId ?? "",
+          grantId: grant?.id ?? "",
+          userId: input.userId,
+        };
+
+        const possibleAdministrationScopes = [
+          createV2AuthXScope(realm, authorizationScopeContext, {
+            basic: "r",
+            scopes: "",
+            secrets: "",
+          }),
+          createV2AuthXScope(realm, authorizationScopeContext, {
+            basic: "r",
+            scopes: "r",
+            secrets: "",
+          }),
+          createV2AuthXScope(realm, authorizationScopeContext, {
+            basic: "r",
+            scopes: "",
+            secrets: "r",
+          }),
+          createV2AuthXScope(realm, authorizationScopeContext, {
+            basic: "r",
+            scopes: "*",
+            secrets: "*",
+          }),
+          createV2AuthXScope(realm, authorizationScopeContext, {
+            basic: "w",
+            scopes: "",
+            secrets: "",
+          }),
+          createV2AuthXScope(realm, authorizationScopeContext, {
+            basic: "*",
+            scopes: "*",
+            secrets: "*",
+          }),
+        ];
+
+        // Add administration scopes.
+        await Promise.all(
+          input.administration.map(async ({ roleId, scopes }) => {
+            const administrationRoleBefore = await Role.read(tx, roleId, {
+              forUpdate: true,
+            });
+
+            if (
+              !administrationRoleBefore.isAccessibleBy(realm, a, executor, {
+                basic: "w",
+                scopes: "w",
+                users: "",
+              })
+            ) {
+              throw new ForbiddenError(
+                `You do not have permission to modify the scopes of role ${roleId}.`
+              );
+            }
+
+            const administrationRole = await Role.write(
+              tx,
+              {
+                ...administrationRoleBefore,
+                scopes: simplify([
+                  ...administrationRoleBefore.scopes,
+                  ...possibleAdministrationScopes.filter((possible) =>
+                    isSuperset(scopes, possible)
+                  ),
+                ]),
+              },
+              {
+                recordId: v4(),
+                createdByAuthorizationId: a.id,
+                createdAt: new Date(),
+              }
+            );
+
+            // Clear and prime the loader.
+            Role.clear(executor, administrationRole.id);
+            Role.prime(executor, administrationRole.id, administrationRole);
+          })
+        );
+
+        await tx.query("COMMIT");
+
+        authorizations.push(authorization);
+        lastExecutor = executor;
       }
-    });
-  }
+
+      // Update the context to use a new executor primed with the results of
+      // this mutation, using the original connection pool.
+      if (lastExecutor) {
+        lastExecutor.connection = connection;
+        context.executor = lastExecutor as ReadonlyDataLoaderExecutor<Pool>;
+      } else {
+        context.executor = new DataLoaderExecutor<Pool>(connection, strategies);
+      }
+
+      for (const authorization of authorizations) {
+        Authorization.prime(context.executor, authorization.id, authorization);
+      }
+
+      return authorizations;
+    } catch (error) {
+      await tx.query("ROLLBACK");
+      throw error;
+    } finally {
+      tx.release();
+    }
+  },
 };
