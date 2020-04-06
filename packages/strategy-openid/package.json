@@ -17,7 +17,7 @@
     "@authx/authx": "^3.1.0-alpha.10",
     "@typescript-eslint/eslint-plugin": "^2.22.0",
     "@typescript-eslint/parser": "^2.22.0",
-    "ava": "^3.5.0",
+    "ava": "^3.6.0",
     "eslint": "^6.7.2",
     "eslint-config-prettier": "^6.10.0",
     "eslint-plugin-prettier": "^3.1.1",
