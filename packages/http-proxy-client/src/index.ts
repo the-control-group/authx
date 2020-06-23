@@ -279,12 +279,14 @@ export default class AuthXClientProxy extends EventEmitter {
     // Serve the readiness URL.
     if (request.url === (this._config.readinessEndpoint || "/_ready")) {
       if (this._closed || this._closing) {
+        response.setHeader("Cache-Control", "no-cache");
         response.statusCode = 503;
         meta.message = "Request handled by readiness endpoint: NOT READY.";
         send("NOT READY");
         return;
       }
 
+      response.setHeader("Cache-Control", "no-cache");
       response.statusCode = 200;
       meta.message = "Request handled by readiness endpoint: READY.";
       send("READY");
@@ -319,6 +321,7 @@ export default class AuthXClientProxy extends EventEmitter {
             behavior.sendTokenToTargetWithScopes || []
           )}`;
         } catch (error) {
+          response.setHeader("Cache-Control", "no-cache");
           response.statusCode = 503;
           meta.message =
             error instanceof Error
@@ -349,6 +352,7 @@ export default class AuthXClientProxy extends EventEmitter {
               ? 504
               : 500;
 
+          response.setHeader("Cache-Control", "no-cache");
           response.writeHead(statusCode);
           response.end();
         }
@@ -359,6 +363,7 @@ export default class AuthXClientProxy extends EventEmitter {
       return;
     }
 
+    response.setHeader("Cache-Control", "no-cache");
     response.statusCode = 404;
     meta.message = "No rules matched requested URL.";
     send();

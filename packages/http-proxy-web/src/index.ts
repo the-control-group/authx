@@ -267,6 +267,7 @@ export default class AuthXWebProxy extends EventEmitter {
               ? 504
               : 500;
 
+          response.setHeader("Cache-Control", "no-cache");
           response.writeHead(statusCode);
           response.end();
         }
@@ -278,12 +279,14 @@ export default class AuthXWebProxy extends EventEmitter {
     // Serve the readiness URL.
     if (request.url === (this._config.readinessEndpoint || "/_ready")) {
       if (this._closed || this._closing) {
+        response.setHeader("Cache-Control", "no-cache");
         response.statusCode = 503;
         meta.message = "Request handled by readiness endpoint: NOT READY.";
         return send("NOT READY");
       }
 
       meta.message = "Request handled by readiness endpoint: READY.";
+      response.setHeader("Cache-Control", "no-cache");
       response.statusCode = 200;
       return send("READY");
     }
@@ -301,6 +304,7 @@ export default class AuthXWebProxy extends EventEmitter {
       const errors = params.getAll("error");
       if (errors.length) {
         const errorDescriptions = params.getAll("error_description");
+        response.setHeader("Cache-Control", "no-cache");
         response.statusCode = 400;
         meta.message =
           "Request handled by client endpoint: display oauth errors.";
@@ -328,6 +332,7 @@ export default class AuthXWebProxy extends EventEmitter {
       // No code was returned.
       const code = params.get("code");
       if (!code) {
+        response.setHeader("Cache-Control", "no-cache");
         response.statusCode = 400;
         meta.message =
           "Request handled by client endpoint: display missing code error.";
@@ -384,6 +389,7 @@ export default class AuthXWebProxy extends EventEmitter {
         }
 
         response.setHeader("Location", cookies.get("authx.d") || "/");
+        response.setHeader("Cache-Control", "no-cache");
         response.statusCode = 303;
 
         // Delete state and destination cookies.
@@ -394,6 +400,7 @@ export default class AuthXWebProxy extends EventEmitter {
           "Request handled by client endpoint: redirect after successful auth.";
         return send();
       } catch (error) {
+        response.setHeader("Cache-Control", "no-cache");
         response.statusCode = 500;
         meta.message =
           "Request handled by client endpoint: display fetch error.";
@@ -537,6 +544,7 @@ export default class AuthXWebProxy extends EventEmitter {
       );
       location.searchParams.append("state", state);
       response.setHeader("Location", location.href);
+      response.setHeader("Cache-Control", "no-cache");
       response.statusCode = behavior.sendAuthorizationResponseAs || 303;
       meta.message = "Restricting access.";
       meta.rule = rule;
@@ -545,6 +553,7 @@ export default class AuthXWebProxy extends EventEmitter {
     }
 
     meta.message = "No rules matched requested URL.";
+    response.setHeader("Cache-Control", "no-cache");
     response.statusCode = 404;
     send();
 

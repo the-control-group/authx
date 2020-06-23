@@ -223,12 +223,14 @@ export default class AuthXResourceProxy extends EventEmitter {
     // Serve the readiness URL.
     if (request.url === (this._config.readinessEndpoint || "/_ready")) {
       if (this._closed || this._closing || !this._cache.keys) {
+        response.setHeader("Cache-Control", "no-cache");
         response.statusCode = 503;
         meta.message = "Request handled by readiness endpoint: NOT READY.";
         send("NOT READY");
         return;
       }
 
+      response.setHeader("Cache-Control", "no-cache");
       response.statusCode = 200;
       meta.message = "Request handled by readiness endpoint: READY.";
       send("READY");
@@ -237,6 +239,7 @@ export default class AuthXResourceProxy extends EventEmitter {
 
     const keys = this._cache.keys;
     if (!keys) {
+      response.setHeader("Cache-Control", "no-cache");
       response.statusCode = 503;
       meta.message = "Unable to find keys.";
       send();
@@ -273,6 +276,7 @@ export default class AuthXResourceProxy extends EventEmitter {
           if (error instanceof NotAuthorizedError) {
             warning = error.message;
           } else {
+            response.setHeader("Cache-Control", "no-cache");
             response.statusCode = 500;
             meta.message = error.message;
             meta.rule = rule;
@@ -320,6 +324,7 @@ export default class AuthXResourceProxy extends EventEmitter {
 
         // There is no valid token.
         if (!scopes) {
+          response.setHeader("Cache-Control", "no-cache");
           response.statusCode = 401;
           meta.message =
             "Restricting access." + (warning ? ` (${warning})` : "");
@@ -334,6 +339,7 @@ export default class AuthXResourceProxy extends EventEmitter {
           !isEqual(scopes, behavior.requireScopes) &&
           !isSuperset(scopes, behavior.requireScopes)
         ) {
+          response.setHeader("Cache-Control", "no-cache");
           response.statusCode = 403;
           meta.message =
             "Restricting access." + (warning ? ` (${warning})` : "");
@@ -365,6 +371,7 @@ export default class AuthXResourceProxy extends EventEmitter {
               ? 504
               : 500;
 
+          response.setHeader("Cache-Control", "no-cache");
           response.writeHead(statusCode);
           response.end();
         }
@@ -375,6 +382,7 @@ export default class AuthXResourceProxy extends EventEmitter {
       return;
     }
 
+    response.setHeader("Cache-Control", "no-cache");
     response.statusCode = 404;
     meta.message =
       "No rules matched requested URL." + (warning ? ` (${warning})` : "");
