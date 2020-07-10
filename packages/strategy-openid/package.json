@@ -6,7 +6,7 @@
   "bugs": "https://github.com/the-control-group/authx/issues",
   "dependencies": {
     "@authx/scopes": "^3.1.0-alpha.10",
-    "@types/pg": "^7.14.1",
+    "@types/pg": "^7.14.4",
     "@types/uuid": "^7.0.0",
     "graphql": "15.0.0-rc.2",
     "pg": "^7.18.2",

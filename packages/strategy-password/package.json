@@ -7,7 +7,7 @@
   "dependencies": {
     "@authx/scopes": "^3.1.0-alpha.10",
     "@types/bcrypt": "^3.0.0",
-    "@types/pg": "^7.14.1",
+    "@types/pg": "^7.14.4",
     "@types/uuid": "^7.0.0",
     "bcrypt": "^4.0.1",
     "graphql": "15.0.0-rc.2",
