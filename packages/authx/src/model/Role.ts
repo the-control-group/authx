@@ -103,12 +103,12 @@ export class Role implements RoleData {
     currentClientId: null | string;
   }): string[] {
     return inject(this.scopes, {
-      /* eslint-disable @typescript-eslint/camelcase */
+      /* eslint-disable camelcase */
       current_authorization_id: values.currentAuthorizationId,
       current_user_id: values.currentUserId,
       current_grant_id: values.currentGrantId,
       current_client_id: values.currentClientId,
-      /* eslint-enable @typescript-eslint/camelcase */
+      /* eslint-enable camelcase */
     });
   }
 

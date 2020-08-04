@@ -6,14 +6,14 @@ import React, {
   useCallback,
   useState,
   ReactChild,
-  useMemo
+  useMemo,
 } from "react";
 
 import {
   GraphQL,
   useGraphQL,
   GraphQLFetchOptionsOverride,
-  GraphQLContext
+  GraphQLContext,
 } from "graphql-react";
 
 import { createV2AuthXScope } from "@authx/authx/scopes";
@@ -30,10 +30,10 @@ const implicitScopes = [
     __REALM__,
     {
       type: "user",
-      userId: "{current_user_id}"
+      userId: "{current_user_id}",
     },
     {
-      basic: "r"
+      basic: "r",
     }
   ),
   createV2AuthXScope(
@@ -42,12 +42,12 @@ const implicitScopes = [
       type: "grant",
       clientId: "{current_client_id}",
       grantId: "{current_grant_id}",
-      userId: "{current_user_id}"
+      userId: "{current_user_id}",
     },
     {
       basic: "r",
       scopes: "*",
-      secrets: "*"
+      secrets: "*",
     }
   ),
   createV2AuthXScope(
@@ -56,12 +56,12 @@ const implicitScopes = [
       type: "grant",
       clientId: "{current_client_id}",
       grantId: "{current_grant_id}",
-      userId: "{current_user_id}"
+      userId: "{current_user_id}",
     },
     {
       basic: "w",
       scopes: "",
-      secrets: "*"
+      secrets: "*",
     }
   ),
   createV2AuthXScope(
@@ -71,14 +71,14 @@ const implicitScopes = [
       authorizationId: "*",
       clientId: "{current_client_id}",
       grantId: "{current_grant_id}",
-      userId: "{current_user_id}"
+      userId: "{current_user_id}",
     },
     {
       basic: "*",
       scopes: "*",
-      secrets: "*"
+      secrets: "*",
     }
-  )
+  ),
 ];
 
 function Scope({ children }: { children: ReactChild }): ReactElement {
@@ -92,7 +92,7 @@ function Scope({ children }: { children: ReactChild }): ReactElement {
         margin: "0",
         padding: "0",
         borderRadius: "7px",
-        overflow: "hidden"
+        overflow: "hidden",
       }}
     >
       <span
@@ -103,7 +103,7 @@ function Scope({ children }: { children: ReactChild }): ReactElement {
           bottom: "0",
           width: "14px",
           background:
-            "linear-gradient(-90deg, rgba(22,23,23,0) 0%, rgba(22,23,23,1) 75%)"
+            "linear-gradient(-90deg, rgba(22,23,23,0) 0%, rgba(22,23,23,1) 75%)",
         }}
       />
       <pre
@@ -111,7 +111,7 @@ function Scope({ children }: { children: ReactChild }): ReactElement {
           margin: "0",
           overflow: "auto",
           background: "hsl(180, 2%, 9%)",
-          padding: "14px 14px"
+          padding: "14px 14px",
         }}
       >
         {children}
@@ -124,7 +124,7 @@ function Scope({ children }: { children: ReactChild }): ReactElement {
           bottom: "0",
           width: "14px",
           background:
-            "linear-gradient(90deg, rgba(22,23,23,0) 0%, rgba(22,23,23,1) 75%)"
+            "linear-gradient(90deg, rgba(22,23,23,0) 0%, rgba(22,23,23,1) 75%)",
         }}
       />
     </div>
@@ -133,7 +133,7 @@ function Scope({ children }: { children: ReactChild }): ReactElement {
 
 function Checkbox({
   value,
-  onChange
+  onChange,
 }: {
   value: boolean;
   onChange: (checked: boolean) => void;
@@ -153,7 +153,7 @@ function Checkbox({
         color: "white",
         overflow: "hidden",
         transition: "background 200ms",
-        textTransform: "uppercase"
+        textTransform: "uppercase",
       }}
     >
       <div
@@ -164,7 +164,7 @@ function Checkbox({
           position: "relative",
           display: "flex",
           alignItems: "stretch",
-          left: value ? "0" : "calc(22px - 100%)"
+          left: value ? "0" : "calc(22px - 100%)",
         }}
       >
         <div
@@ -174,7 +174,7 @@ function Checkbox({
             alignItems: "center",
             justifyContent: "center",
             boxSizing: "border-box",
-            paddingLeft: "2px"
+            paddingLeft: "2px",
           }}
         >
           Granted
@@ -186,7 +186,7 @@ function Checkbox({
             background: "white",
             borderRadius: "9px",
             left: "50%",
-            margin: "2px 0"
+            margin: "2px 0",
           }}
         />
         <div
@@ -196,15 +196,15 @@ function Checkbox({
             alignItems: "center",
             justifyContent: "center",
             boxSizing: "border-box",
-            paddingRight: "2px"
+            paddingRight: "2px",
           }}
         >
           Denied
         </div>
       </div>
       <input
-        onChange={useCallback(e => onChange(e.currentTarget.checked), [
-          onChange
+        onChange={useCallback((e) => onChange(e.currentTarget.checked), [
+          onChange,
         ])}
         onFocus={useCallback(() => setHasFocus(true), [setHasFocus])}
         onBlur={useCallback(() => setHasFocus(false), [setHasFocus])}
@@ -219,7 +219,7 @@ function Checkbox({
           left: "0",
           height: "100%",
           width: "100%",
-          WebkitAppearance: "none"
+          WebkitAppearance: "none",
         }}
       />
     </div>
@@ -228,7 +228,7 @@ function Checkbox({
 
 export function Authorize({
   clearAuthorization,
-  fetchOptionsOverride
+  fetchOptionsOverride,
 }: {
   clearAuthorization: () => void;
   fetchOptionsOverride: GraphQLFetchOptionsOverride;
@@ -252,12 +252,12 @@ export function Authorize({
       // Make sure that the template does not contain variables in addition to
       // those that can be used here.
       inject(requestedScopeTemplates, {
-        /* eslint-disable @typescript-eslint/camelcase */
+        /* eslint-disable camelcase */
         current_client_id: "",
         current_grant_id: "",
         current_user_id: "",
-        current_authorization_id: ""
-        /* eslint-enable @typescript-eslint/camelcase */
+        current_authorization_id: "",
+        /* eslint-enable camelcase */
       });
 
       requestedScopeTemplatesAreValid = true;
@@ -322,9 +322,9 @@ export function Authorize({
         }
       `,
       variables: {
-        clientId: paramsClientId || ""
-      }
-    }
+        clientId: paramsClientId || "",
+      },
+    },
   });
 
   const user = cacheValue?.data?.viewer?.user;
@@ -347,12 +347,12 @@ export function Authorize({
             ? [...requestedScopeTemplates, ...implicitScopes]
             : implicitScopes,
           {
-            /* eslint-disable @typescript-eslint/camelcase */
+            /* eslint-disable camelcase */
             current_authorization_id: null,
             current_client_id: clientId,
             current_grant_id: grantId,
-            current_user_id: userId
-            /* eslint-enable @typescript-eslint/camelcase */
+            current_user_id: userId,
+            /* eslint-enable camelcase */
           }
         )
       ),
@@ -367,7 +367,7 @@ export function Authorize({
             currentAuthorizationId: null,
             currentGrantId: grantId,
             currentUserId: userId,
-            currentClientId: clientId
+            currentClientId: clientId,
           })
         : [],
     [explanations, grantedScopes, clientId, grantId, userId]
@@ -375,7 +375,7 @@ export function Authorize({
 
   const newRequestedScopes = grant?.scopes
     ? getDifference(
-        grant.scopes.filter(s => overrides[s] !== false),
+        grant.scopes.filter((s) => overrides[s] !== false),
         requestedScopes
       )
     : requestedScopes;
@@ -387,7 +387,7 @@ export function Authorize({
             currentAuthorizationId: null,
             currentGrantId: grantId,
             currentUserId: userId,
-            currentClientId: clientId
+            currentClientId: clientId,
           })
         : [],
     [explanations, newRequestedScopes, clientId, grantId, userId]
@@ -435,11 +435,11 @@ export function Authorize({
               id: grant.id,
               scopes: simplify(
                 [...(grant.scopes || []), ...requestedScopes].filter(
-                  s => overrides[s] !== false
+                  (s) => overrides[s] !== false
                 )
-              )
-            }
-          }
+              ),
+            },
+          },
         });
       } else {
         operation = graphql.operate<
@@ -478,9 +478,9 @@ export function Authorize({
               id: speculativeGrantId,
               clientId: client.id,
               userId: user.id,
-              scopes: requestedScopes
-            }
-          }
+              scopes: requestedScopes,
+            },
+          },
         });
       }
 
@@ -491,7 +491,7 @@ export function Authorize({
       }
 
       if (result.graphQLErrors?.length) {
-        setErrors(result.graphQLErrors.map(e => e.message));
+        setErrors(result.graphQLErrors.map((e) => e.message));
         return;
       }
 
@@ -503,7 +503,7 @@ export function Authorize({
 
       if (!code) {
         setErrors([
-          "No code was returned. Contact your administrator to ensure you have sufficient access to read your own authorizations and authorization secrets."
+          "No code was returned. Contact your administrator to ensure you have sufficient access to read your own authorizations and authorization secrets.",
         ]);
         return;
       }
@@ -586,7 +586,7 @@ export function Authorize({
     paramsResponseType,
     requestedScopeTemplates,
     requestedScopeTemplatesAreValid,
-    grant
+    grant,
   ]);
 
   // This is an invalid request
@@ -672,7 +672,7 @@ export function Authorize({
               Welcome
               {" " + user?.name ?? ""}!
               <button
-                onClick={e => {
+                onClick={(e) => {
                   e.preventDefault();
                   clearAuthorization();
                 }}
@@ -681,7 +681,7 @@ export function Authorize({
                   background: "hsl(206, 0%, 80%)",
                   color: "hsl(0, 0%, 9%)",
                   borderRadius: "14px",
-                  margin: "0 14px"
+                  margin: "0 14px",
                 }}
               >
                 Log Out
@@ -698,7 +698,7 @@ export function Authorize({
                   <tbody>
                     {grant.scopes.map((s, i) => {
                       const explanations =
-                        (grantedScopesExplanations.filter(e => {
+                        (grantedScopesExplanations.filter((e) => {
                           return e && isSuperset(s, e.scope);
                         }) as ReadonlyArray<{
                           scope: string;
@@ -719,7 +719,7 @@ export function Authorize({
                                 borderTop:
                                   i > 0
                                     ? "2px solid hsla(0, 0%, 100%, 0.04)"
-                                    : undefined
+                                    : undefined,
                               }}
                             >
                               <Scope>{s}</Scope>
@@ -732,12 +732,14 @@ export function Authorize({
                                   style={{
                                     fontSize: "14px",
                                     padding: "0 0 0 10px",
-                                    margin: "0"
+                                    margin: "0",
                                   }}
                                 >
                                   {explanations
-                                    .filter(e => explanationScopes.has(e.scope))
-                                    .map(e => (
+                                    .filter((e) =>
+                                      explanationScopes.has(e.scope)
+                                    )
+                                    .map((e) => (
                                       <li
                                         style={{ margin: "10px" }}
                                         key={e.scope}
@@ -751,7 +753,7 @@ export function Authorize({
                                   style={{
                                     opacity: 0.8,
                                     fontSize: "14px",
-                                    margin: "10px"
+                                    margin: "10px",
                                   }}
                                 >
                                   No explanations found.
@@ -761,10 +763,10 @@ export function Authorize({
                             <td style={{ width: "100px" }}>
                               <Checkbox
                                 value={overrides[s] === false ? false : true}
-                                onChange={v =>
+                                onChange={(v) =>
                                   setOverrides({
                                     ...overrides,
-                                    [s]: v
+                                    [s]: v,
                                   })
                                 }
                               />
@@ -793,7 +795,7 @@ export function Authorize({
                   <tbody>
                     {newRequestedScopes.map((s, i) => {
                       const explanations =
-                        (newRequestedScopesExplanations.filter(e => {
+                        (newRequestedScopesExplanations.filter((e) => {
                           return e && isSuperset(s, e.scope);
                         }) as ReadonlyArray<{
                           scope: string;
@@ -814,7 +816,7 @@ export function Authorize({
                                 borderTop:
                                   i > 0
                                     ? "2px solid hsla(0, 0%, 100%, 0.04)"
-                                    : undefined
+                                    : undefined,
                               }}
                             >
                               <Scope>{s}</Scope>
@@ -827,12 +829,14 @@ export function Authorize({
                                   style={{
                                     fontSize: "14px",
                                     padding: "0 0 0 10px",
-                                    margin: "0"
+                                    margin: "0",
                                   }}
                                 >
                                   {explanations
-                                    .filter(e => explanationScopes.has(e.scope))
-                                    .map(e => (
+                                    .filter((e) =>
+                                      explanationScopes.has(e.scope)
+                                    )
+                                    .map((e) => (
                                       <li
                                         style={{ margin: "10px" }}
                                         key={e.scope}
@@ -846,7 +850,7 @@ export function Authorize({
                                   style={{
                                     opacity: 0.8,
                                     fontSize: "14px",
-                                    margin: "10px"
+                                    margin: "10px",
                                   }}
                                 >
                                   No explanations found.
@@ -856,10 +860,10 @@ export function Authorize({
                             <td style={{ width: "100px" }}>
                               <Checkbox
                                 value={overrides[s] === false ? false : true}
-                                onChange={v =>
+                                onChange={(v) =>
                                   setOverrides({
                                     ...overrides,
-                                    [s]: v
+                                    [s]: v,
                                   })
                                 }
                               />
@@ -886,7 +890,7 @@ export function Authorize({
         {loading || operating || redirecting ? null : (
           <div style={{ display: "flex", margin: "14px" }}>
             <input
-              onClick={e => {
+              onClick={(e) => {
                 e.preventDefault();
                 onGrantAccess();
               }}
@@ -895,7 +899,7 @@ export function Authorize({
               value="Save &amp; Continue"
             />
             <input
-              onClick={e => {
+              onClick={(e) => {
                 e.preventDefault();
                 const url = new URL(paramsRedirectUri);
                 url.searchParams.set("error", "access_denied");

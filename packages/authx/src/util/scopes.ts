@@ -193,10 +193,11 @@ export type Context =
   | UserContext;
 
 export function createV2AuthXScopeContext(context: Context): string {
-  return `v2.${context.type}.${context.authorityId ??
-    ""}.${context.authorizationId ?? ""}.${context.clientId ??
-    ""}.${context.credentialId ?? ""}.${context.grantId ??
-    ""}.${context.roleId ?? ""}.${context.userId ?? ""}`;
+  return `v2.${context.type}.${context.authorityId ?? ""}.${
+    context.authorizationId ?? ""
+  }.${context.clientId ?? ""}.${context.credentialId ?? ""}.${
+    context.grantId ?? ""
+  }.${context.roleId ?? ""}.${context.userId ?? ""}`;
 }
 
 export type Action =
@@ -209,6 +210,7 @@ export type Action =
   | UserAction;
 
 export function createV2AuthXScopeAction(action: Action): string {
-  return `${action.basic}.${action.details ?? ""}.${action.scopes ??
-    ""}.${action.secrets ?? ""}.${action.users ?? ""}`;
+  return `${action.basic}.${action.details ?? ""}.${action.scopes ?? ""}.${
+    action.secrets ?? ""
+  }.${action.users ?? ""}`;
 }

@@ -37,14 +37,14 @@ test.before(async () => {
         response.setHeader("Content-Type", "application/json");
         response.end(
           JSON.stringify({
-            /* eslint-disable @typescript-eslint/camelcase */
+            /* eslint-disable camelcase */
             authorization_type: "bearer",
             access_token:
               "eyJhbGciOiJSUzUxMiIsInR5cCI6IkpXVCJ9.eyJzY29wZXMiOlsiQXV0aFg6dXNlci5lcXVhbC5zZWxmOnJlYWQuYmFzaWMiXSwiaWF0IjoxNTU2NjAzOTU5LCJleHAiOjQ3MTAyMDM5NTksImF1ZCI6ImZlMjQ3OGI1LTdiNjAtNGNlZC1hYWY4LTZjOWI0YTJlNzNmNiIsImlzcyI6ImF1dGh4Iiwic3ViIjoiMTZhNjA3MjItZjcyZi00MmExLTg0ZjgtNWFmODBiYWFjMjg5In0.hB7N3Ibdc-LX9gTkarWPXpjr6gFPRpFVnKND2CXS1XHq6ePzhLIs-Bn3ksHOvkpDzx96z7x_8pQwgHXg_DgUNcpUP-eFuk156wxJ7rpuG5aV-wUmAAg-yLnMjXWx65VUf7J-JvVtRVHlkzahLA1n0drf4Fll-hoTJ6qaOHidUlo",
             refresh_token: "c89900b6a34123900274e90f87f7adc0c1ab8d93",
             expires_in: 3600,
-            scope: "AuthX:user.equal.self:read.basic"
-            /* eslint-enabme @typescript-eslint/camelcase */
+            scope: "AuthX:user.equal.self:read.basic",
+            /* eslint-enabme camelcase */
           })
         );
       });
@@ -74,7 +74,7 @@ test.before(async () => {
           JSON.stringify({
             url: request.url,
             cookie: request.headers.cookie,
-            Authorization: request.headers.authorization
+            Authorization: request.headers.authorization,
           })
         );
       });
@@ -90,7 +90,7 @@ test.before(async () => {
       });
 
       server.listen(undefined, "localhost");
-    })
+    }),
   ]);
 
   mockAuthX = mocks[0];
@@ -126,9 +126,9 @@ test.before(async () => {
           return {
             proxyOptions: { target: `http://127.0.0.1:${mockTarget.port}` },
             sendAuthorizationResponseAs: 401,
-            sendTokenToTargetWithScopes: ["authx.prod:**:**"]
+            sendTokenToTargetWithScopes: ["authx.prod:**:**"],
           };
-        }
+        },
       },
       // These are static assets that we want publically cached by Google Cloud
       // CDN or Cloudflare. We won't require any auth for these endpoints.
@@ -137,8 +137,8 @@ test.before(async () => {
           return method === "GET" && /^\/static(\/.*)?$/.test(url || "");
         },
         behavior: {
-          proxyOptions: { target: `http://127.0.0.1:${mockTarget.port}` }
-        }
+          proxyOptions: { target: `http://127.0.0.1:${mockTarget.port}` },
+        },
       },
       // The rest of our routes render a single-page-app. We simply want to make
       // sure that we're
@@ -156,10 +156,10 @@ test.before(async () => {
         behavior: {
           proxyOptions: { target: `http://127.0.0.1:${mockTarget.port}` },
           sendAuthorizationResponseAs: 303,
-          sendTokenToTargetWithScopes: []
-        }
-      }
-    ]
+          sendTokenToTargetWithScopes: [],
+        },
+      },
+    ],
   });
 
   await proxy.listen({ port: 5734, host: "localhost" });
@@ -171,19 +171,19 @@ test.before(async () => {
   port = address.port;
 });
 
-test("readiness endpoint", async t => {
+test("readiness endpoint", async (t) => {
   const response = await fetch(`http://127.0.0.1:${port}/_ready`);
   t.is(response.status, 200);
   t.is(await response.text(), "READY");
 });
 
-test("anonymous - 401", async t => {
+test("anonymous - 401", async (t) => {
   const response = await fetch(`http://127.0.0.1:${port}/api/authx`, {
     method: "POST",
     redirect: "manual",
     headers: {
-      referer: "/foo"
-    }
+      referer: "/foo",
+    },
   });
   t.is(response.status, 401);
   const location = response.headers.get("Location");
@@ -205,21 +205,22 @@ test("anonymous - 401", async t => {
   // - authx.d = referer (since this is a POST request)
   t.is(
     response.headers.get("set-cookie"),
-    `authx.s=${url.searchParams.get("state") ||
-      ""}; path=/; httponly, authx.d=/foo; path=/; httponly`
+    `authx.s=${
+      url.searchParams.get("state") || ""
+    }; path=/; httponly, authx.d=/foo; path=/; httponly`
   );
 });
 
-test("anonymous - 200", async t => {
+test("anonymous - 200", async (t) => {
   const response = await fetch(`http://127.0.0.1:${port}/static/logo`, {
-    redirect: "manual"
+    redirect: "manual",
   });
   t.is(response.status, 200);
 });
 
-test("anonymous - 303", async t => {
+test("anonymous - 303", async (t) => {
   const response = await fetch(`http://127.0.0.1:${port}/admin`, {
-    redirect: "manual"
+    redirect: "manual",
   });
   t.is(response.status, 303);
   const location = response.headers.get("Location");
@@ -241,12 +242,13 @@ test("anonymous - 303", async t => {
   // - authx.d = referer (since this is a POST request)
   t.is(
     response.headers.get("set-cookie"),
-    `authx.s=${url.searchParams.get("state") ||
-      ""}; path=/; httponly, authx.d=/admin; path=/; httponly`
+    `authx.s=${
+      url.searchParams.get("state") || ""
+    }; path=/; httponly, authx.d=/admin; path=/; httponly`
   );
 });
 
-test("use token from cookie", async t => {
+test("use token from cookie", async (t) => {
   const headers = new Headers();
   headers.append("cookie", "authx.r=9a64774762a4cdece006b0007e7795eaa1709a34");
   headers.append(
@@ -255,7 +257,7 @@ test("use token from cookie", async t => {
   );
   const response = await fetch(`http://127.0.0.1:${port}/admin`, {
     redirect: "manual",
-    headers
+    headers,
   });
 
   t.is(response.status, 200);
@@ -264,11 +266,11 @@ test("use token from cookie", async t => {
   t.deepEqual(await response.json(), {
     url: "/admin",
     Authorization:
-      "Bearer eyJhbGciOiJSUzUxMiIsInR5cCI6IkpXVCJ9.eyJzY29wZXMiOltdLCJpYXQiOjE1NTY2MDMxMTAsImV4cCI6NDcxMDIwMzExMCwiYXVkIjoiZmUyNDc4YjUtN2I2MC00Y2VkLWFhZjgtNmM5YjRhMmU3M2Y2IiwiaXNzIjoiYXV0aHgiLCJzdWIiOiIxNmE2MDcyMi1mNzJmLTQyYTEtODRmOC01YWY4MGJhYWMyODkifQ.GEd75BHZP3c4NGv3te9bDLQ9hPV0B6lFxydfuBw-4k9KNP5330xQjrAY4Wu-S9thAGS2cXfHyFWR2cKfBDDno6_NivSJHszBs_ErDSAHCJsZ4Ej1VJmPXpePfXbdAmMd6Ug6dEsmmV1lO_gpICHqnVwj2KWGUPvwbN7VVdufy7g"
+      "Bearer eyJhbGciOiJSUzUxMiIsInR5cCI6IkpXVCJ9.eyJzY29wZXMiOltdLCJpYXQiOjE1NTY2MDMxMTAsImV4cCI6NDcxMDIwMzExMCwiYXVkIjoiZmUyNDc4YjUtN2I2MC00Y2VkLWFhZjgtNmM5YjRhMmU3M2Y2IiwiaXNzIjoiYXV0aHgiLCJzdWIiOiIxNmE2MDcyMi1mNzJmLTQyYTEtODRmOC01YWY4MGJhYWMyODkifQ.GEd75BHZP3c4NGv3te9bDLQ9hPV0B6lFxydfuBw-4k9KNP5330xQjrAY4Wu-S9thAGS2cXfHyFWR2cKfBDDno6_NivSJHszBs_ErDSAHCJsZ4Ej1VJmPXpePfXbdAmMd6Ug6dEsmmV1lO_gpICHqnVwj2KWGUPvwbN7VVdufy7g",
   });
 });
 
-test("fetch token from authx", async t => {
+test("fetch token from authx", async (t) => {
   const headers = new Headers();
   headers.append("cookie", "authx.r=9a64774762a4cdece006b0007e7795eaa1709a34");
   headers.append(
@@ -278,7 +280,7 @@ test("fetch token from authx", async t => {
   const response = await fetch(`http://127.0.0.1:${port}/api/authx`, {
     method: "POST",
     redirect: "manual",
-    headers
+    headers,
   });
 
   t.is(response.status, 200);
@@ -289,6 +291,6 @@ test("fetch token from authx", async t => {
   t.deepEqual(await response.json(), {
     url: "/graphql",
     Authorization:
-      "Bearer eyJhbGciOiJSUzUxMiIsInR5cCI6IkpXVCJ9.eyJzY29wZXMiOlsiQXV0aFg6dXNlci5lcXVhbC5zZWxmOnJlYWQuYmFzaWMiXSwiaWF0IjoxNTU2NjAzOTU5LCJleHAiOjQ3MTAyMDM5NTksImF1ZCI6ImZlMjQ3OGI1LTdiNjAtNGNlZC1hYWY4LTZjOWI0YTJlNzNmNiIsImlzcyI6ImF1dGh4Iiwic3ViIjoiMTZhNjA3MjItZjcyZi00MmExLTg0ZjgtNWFmODBiYWFjMjg5In0.hB7N3Ibdc-LX9gTkarWPXpjr6gFPRpFVnKND2CXS1XHq6ePzhLIs-Bn3ksHOvkpDzx96z7x_8pQwgHXg_DgUNcpUP-eFuk156wxJ7rpuG5aV-wUmAAg-yLnMjXWx65VUf7J-JvVtRVHlkzahLA1n0drf4Fll-hoTJ6qaOHidUlo"
+      "Bearer eyJhbGciOiJSUzUxMiIsInR5cCI6IkpXVCJ9.eyJzY29wZXMiOlsiQXV0aFg6dXNlci5lcXVhbC5zZWxmOnJlYWQuYmFzaWMiXSwiaWF0IjoxNTU2NjAzOTU5LCJleHAiOjQ3MTAyMDM5NTksImF1ZCI6ImZlMjQ3OGI1LTdiNjAtNGNlZC1hYWY4LTZjOWI0YTJlNzNmNiIsImlzcyI6ImF1dGh4Iiwic3ViIjoiMTZhNjA3MjItZjcyZi00MmExLTg0ZjgtNWFmODBiYWFjMjg5In0.hB7N3Ibdc-LX9gTkarWPXpjr6gFPRpFVnKND2CXS1XHq6ePzhLIs-Bn3ksHOvkpDzx96z7x_8pQwgHXg_DgUNcpUP-eFuk156wxJ7rpuG5aV-wUmAAg-yLnMjXWx65VUf7J-JvVtRVHlkzahLA1n0drf4Fll-hoTJ6qaOHidUlo",
   });
 });

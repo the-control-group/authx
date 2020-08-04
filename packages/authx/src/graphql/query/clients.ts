@@ -3,7 +3,7 @@ import { GraphQLBoolean, GraphQLFieldConfig } from "graphql";
 import {
   connectionFromArray,
   connectionArgs,
-  ConnectionArguments
+  ConnectionArguments,
 } from "graphql-relay";
 
 import { GraphQLClientConnection } from "../GraphQLClientConnection";
@@ -25,8 +25,8 @@ export const clients: GraphQLFieldConfig<
     includeDisabled: {
       type: GraphQLBoolean,
       defaultValue: false,
-      description: "Include disabled clients in results."
-    }
+      description: "Include disabled clients in results.",
+    },
   },
   async resolve(source, args, context) {
     const { executor, authorization: a, realm } = context;
@@ -52,10 +52,10 @@ export const clients: GraphQLFieldConfig<
     );
 
     return connectionFromArray(
-      await filter(clients, client =>
+      await filter(clients, (client) =>
         client.isAccessibleBy(realm, a, executor)
       ),
       args
     );
-  }
+  },
 };

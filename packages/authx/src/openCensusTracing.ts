@@ -27,7 +27,7 @@ export async function openCensusTracingGraphQLMiddleware(
     span = tracer.startChildSpan({
       name: info.fieldName,
       kind: SpanKind.UNSPECIFIED,
-      childOf: parentSpan
+      childOf: parentSpan,
     });
 
     span.addAttribute("parentId", (parent && parent.id) || null);

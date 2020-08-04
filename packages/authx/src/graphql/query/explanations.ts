@@ -17,5 +17,5 @@ export const explanations: GraphQLFieldConfig<
     { explanations }
   ): ReadonlyArray<{ scope: string; description: string }> {
     return explanations;
-  }
+  },
 };

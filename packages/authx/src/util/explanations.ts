@@ -22,7 +22,7 @@ export function generate(
             scope: `${rk}:${ck}:${ak}`,
             description: `${rv}: ${av.slice(0, 1).toUpperCase()}${av.slice(
               1
-            )} ${cv}.`
+            )} ${cv}.`,
           });
         }
       }
@@ -76,12 +76,12 @@ export function match(
     const templateSegmentCount = template.scope.split("{").length - 1;
     if (templateSegmentCount) {
       const injection = inject(template.scope, {
-        /* eslint-disable @typescript-eslint/camelcase */
+        /* eslint-disable camelcase */
         current_authorization_id: substitutions.currentAuthorizationId,
         current_user_id: substitutions.currentUserId,
         current_grant_id: substitutions.currentGrantId,
-        current_client_id: substitutions.currentClientId
-        /* eslint-enable @typescript-eslint/camelcase */
+        current_client_id: substitutions.currentClientId,
+        /* eslint-enable camelcase */
       });
 
       if (injection === null) {
@@ -118,8 +118,8 @@ export function match(
           Object.keys(parameters).length,
 
           // The "template" degrees of freedom.
-          templateSegmentCount
-        ]
+          templateSegmentCount,
+        ],
       });
     }
   }
@@ -133,7 +133,7 @@ export function match(
       // The scope was not explicly requested.
       !scopes.includes(scope) &&
       // The scope is part of a broader applicable explanation.
-      allExplanationScopes.some(s => isStrictSuperset(s, scope))
+      allExplanationScopes.some((s) => isStrictSuperset(s, scope))
     ) {
       continue;
     }
@@ -142,7 +142,7 @@ export function match(
     if (explanation) {
       filteredResults.push({
         scope: explanation.scope,
-        description: explanation.description
+        description: explanation.description,
       });
     }
   }

@@ -3,7 +3,7 @@ import { GraphQLBoolean, GraphQLFieldConfig } from "graphql";
 import {
   connectionFromArray,
   connectionArgs,
-  ConnectionArguments
+  ConnectionArguments,
 } from "graphql-relay";
 
 import { GraphQLRoleConnection } from "../GraphQLRoleConnection";
@@ -25,8 +25,8 @@ export const roles: GraphQLFieldConfig<
     includeDisabled: {
       type: GraphQLBoolean,
       defaultValue: false,
-      description: "Include disabled roles in results."
-    }
+      description: "Include disabled roles in results.",
+    },
   },
   async resolve(source, args, context) {
     const { executor, authorization: a, realm } = context;
@@ -52,8 +52,8 @@ export const roles: GraphQLFieldConfig<
     );
 
     return connectionFromArray(
-      await filter(roles, role => role.isAccessibleBy(realm, a, executor)),
+      await filter(roles, (role) => role.isAccessibleBy(realm, a, executor)),
       args
     );
-  }
+  },
 };

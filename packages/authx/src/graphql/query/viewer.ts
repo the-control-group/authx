@@ -10,5 +10,5 @@ export const viewer: GraphQLFieldConfig<any, Context, {}> = {
   async resolve(source, args, context): Promise<null | Authorization> {
     const { executor, authorization: a, realm } = context;
     return a && (await a.isAccessibleBy(realm, a, executor)) ? a : null;
-  }
+  },
 };

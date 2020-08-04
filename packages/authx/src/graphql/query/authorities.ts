@@ -6,7 +6,7 @@ import { Authority } from "../../model";
 import {
   connectionFromArray,
   connectionArgs,
-  ConnectionArguments
+  ConnectionArguments,
 } from "graphql-relay";
 
 export const authorities: GraphQLFieldConfig<
@@ -23,8 +23,8 @@ export const authorities: GraphQLFieldConfig<
     includeDisabled: {
       type: GraphQLBoolean,
       defaultValue: false,
-      description: "Include disabled authorities in results."
-    }
+      description: "Include disabled authorities in results.",
+    },
   },
   async resolve(source, args, context) {
     const { executor } = context;
@@ -50,5 +50,5 @@ export const authorities: GraphQLFieldConfig<
       ),
       args
     );
-  }
+  },
 };

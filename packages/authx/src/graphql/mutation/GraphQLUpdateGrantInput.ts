@@ -5,7 +5,7 @@ import {
   GraphQLString,
   GraphQLBoolean,
   GraphQLInputObjectType,
-  GraphQLInt
+  GraphQLInt,
 } from "graphql";
 
 import { GraphQLScope } from "../GraphQLScope";
@@ -14,25 +14,25 @@ export const GraphQLUpdateGrantInput = new GraphQLInputObjectType({
   name: "UpdateGrantInput",
   fields: () => ({
     id: {
-      type: new GraphQLNonNull(GraphQLID)
+      type: new GraphQLNonNull(GraphQLID),
     },
     enabled: {
-      type: GraphQLBoolean
+      type: GraphQLBoolean,
     },
     scopes: {
-      type: new GraphQLList(new GraphQLNonNull(GraphQLScope))
+      type: new GraphQLList(new GraphQLNonNull(GraphQLScope)),
     },
     generateSecrets: {
-      type: GraphQLInt
+      type: GraphQLInt,
     },
     removeSecrets: {
-      type: new GraphQLList(new GraphQLNonNull(GraphQLString))
+      type: new GraphQLList(new GraphQLNonNull(GraphQLString)),
     },
     generateCodes: {
-      type: GraphQLInt
+      type: GraphQLInt,
     },
     removeCodes: {
-      type: new GraphQLList(new GraphQLNonNull(GraphQLString))
-    }
-  })
+      type: new GraphQLList(new GraphQLNonNull(GraphQLString)),
+    },
+  }),
 });

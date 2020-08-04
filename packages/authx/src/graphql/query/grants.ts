@@ -3,7 +3,7 @@ import { GraphQLBoolean, GraphQLFieldConfig } from "graphql";
 import {
   connectionFromArray,
   connectionArgs,
-  ConnectionArguments
+  ConnectionArguments,
 } from "graphql-relay";
 
 import { GraphQLGrantConnection } from "../GraphQLGrantConnection";
@@ -25,8 +25,8 @@ export const grants: GraphQLFieldConfig<
     includeDisabled: {
       type: GraphQLBoolean,
       defaultValue: false,
-      description: "Include disabled grants in results."
-    }
+      description: "Include disabled grants in results.",
+    },
   },
   async resolve(source, args, context) {
     const { executor, authorization: a, realm } = context;
@@ -52,8 +52,8 @@ export const grants: GraphQLFieldConfig<
     );
 
     return connectionFromArray(
-      await filter(grants, grant => grant.isAccessibleBy(realm, a, executor)),
+      await filter(grants, (grant) => grant.isAccessibleBy(realm, a, executor)),
       args
     );
-  }
+  },
 };
