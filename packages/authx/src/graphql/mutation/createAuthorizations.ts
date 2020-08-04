@@ -163,7 +163,7 @@ export const createAuthorizations: GraphQLFieldConfig<
         );
 
         const authorizationScopeContext = {
-          type: "authorization" as "authorization",
+          type: "authorization" as const,
           authorizationId: id,
           clientId: grant?.clientId ?? "",
           grantId: grant?.id ?? "",

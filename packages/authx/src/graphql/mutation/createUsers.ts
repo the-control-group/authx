@@ -12,7 +12,7 @@ import {
   ForbiddenError,
   ConflictError,
   NotFoundError,
-  ValidationError
+  ValidationError,
 } from "../../errors";
 import { GraphQLCreateUserInput } from "./GraphQLCreateUserInput";
 
@@ -38,8 +38,8 @@ export const createUsers: GraphQLFieldConfig<
     users: {
       type: new GraphQLNonNull(
         new GraphQLList(new GraphQLNonNull(GraphQLCreateUserInput))
-      )
-    }
+      ),
+    },
   },
   async resolve(source, args, context): Promise<Promise<User>[]> {
     const { executor, authorization: a, realm } = context;
@@ -56,7 +56,7 @@ export const createUsers: GraphQLFieldConfig<
       );
     }
 
-    return args.users.map(async input => {
+    return args.users.map(async (input) => {
       // Validate `id`.
       if (typeof input.id === "string" && !validateIdFormat(input.id)) {
         throw new ValidationError("The provided `id` is an invalid ID.");
@@ -87,10 +87,10 @@ export const createUsers: GraphQLFieldConfig<
               realm,
               {
                 type: "user",
-                userId: ""
+                userId: "",
               },
               {
-                basic: "*"
+                basic: "*",
               }
             )
           ))
@@ -122,150 +122,150 @@ export const createUsers: GraphQLFieldConfig<
               id,
               enabled: input.enabled,
               type: input.type,
-              name: input.name
+              name: input.name,
             },
             {
               recordId: v4(),
               createdByAuthorizationId: a.id,
-              createdAt: new Date()
+              createdAt: new Date(),
             }
           );
 
           const userScopeContext = {
-            type: "user" as "user",
-            userId: id
+            type: "user" as const,
+            userId: id,
           };
 
           const grantScopeContext = {
-            type: "grant" as "grant",
+            type: "grant" as const,
             clientId: "*",
             grantId: "*",
-            userId: id
+            userId: id,
           };
 
           const authorizationScopeContext = {
-            type: "authorization" as "authorization",
+            type: "authorization" as const,
             authorizationId: "*",
             clientId: "*",
             grantId: "*",
-            userId: id
+            userId: id,
           };
 
           const possibleAdministrationScopes = [
             // user ------------------------------------------------------------
             createV2AuthXScope(realm, userScopeContext, {
-              basic: "r"
+              basic: "r",
             }),
             createV2AuthXScope(realm, userScopeContext, {
-              basic: "w"
+              basic: "w",
             }),
             createV2AuthXScope(realm, userScopeContext, {
-              basic: "*"
+              basic: "*",
             }),
 
             createV2AuthXScope(realm, grantScopeContext, {
               basic: "r",
               scopes: "",
-              secrets: ""
+              secrets: "",
             }),
             createV2AuthXScope(realm, grantScopeContext, {
               basic: "r",
               scopes: "",
-              secrets: ""
+              secrets: "",
             }),
 
             // grant -----------------------------------------------------------
             createV2AuthXScope(realm, grantScopeContext, {
               basic: "r",
               scopes: "",
-              secrets: ""
+              secrets: "",
             }),
             createV2AuthXScope(realm, grantScopeContext, {
               basic: "r",
               scopes: "r",
-              secrets: ""
+              secrets: "",
             }),
             createV2AuthXScope(realm, grantScopeContext, {
               basic: "r",
               scopes: "",
-              secrets: "r"
+              secrets: "r",
             }),
             createV2AuthXScope(realm, grantScopeContext, {
               basic: "r",
               scopes: "*",
-              secrets: "*"
+              secrets: "*",
             }),
             createV2AuthXScope(realm, grantScopeContext, {
               basic: "w",
               scopes: "",
-              secrets: ""
+              secrets: "",
             }),
             createV2AuthXScope(realm, grantScopeContext, {
               basic: "w",
               scopes: "w",
-              secrets: ""
+              secrets: "",
             }),
             createV2AuthXScope(realm, grantScopeContext, {
               basic: "w",
               scopes: "",
-              secrets: "w"
+              secrets: "w",
             }),
             createV2AuthXScope(realm, grantScopeContext, {
               basic: "w",
               scopes: "*",
-              secrets: "*"
+              secrets: "*",
             }),
             createV2AuthXScope(realm, grantScopeContext, {
               basic: "*",
               scopes: "*",
-              secrets: "*"
+              secrets: "*",
             }),
 
             // authorization ---------------------------------------------------
             createV2AuthXScope(realm, authorizationScopeContext, {
               basic: "r",
               scopes: "",
-              secrets: ""
+              secrets: "",
             }),
             createV2AuthXScope(realm, authorizationScopeContext, {
               basic: "r",
               scopes: "r",
-              secrets: ""
+              secrets: "",
             }),
             createV2AuthXScope(realm, authorizationScopeContext, {
               basic: "r",
               scopes: "",
-              secrets: "r"
+              secrets: "r",
             }),
             createV2AuthXScope(realm, authorizationScopeContext, {
               basic: "r",
               scopes: "*",
-              secrets: "*"
+              secrets: "*",
             }),
             createV2AuthXScope(realm, authorizationScopeContext, {
               basic: "w",
               scopes: "",
-              secrets: ""
+              secrets: "",
             }),
             createV2AuthXScope(realm, authorizationScopeContext, {
               basic: "*",
               scopes: "*",
-              secrets: "*"
-            })
+              secrets: "*",
+            }),
           ];
 
           // Add administration scopes.
           await Promise.all(
             input.administration.map(async ({ roleId, scopes }) => {
               const administrationRoleBefore = await Role.read(tx, roleId, {
-                forUpdate: true
+                forUpdate: true,
               });
 
               if (
                 !administrationRoleBefore.isAccessibleBy(realm, a, executor, {
                   basic: "w",
                   scopes: "w",
-                  users: ""
+                  users: "",
                 })
               ) {
                 throw new ForbiddenError(
@@ -279,15 +279,15 @@ export const createUsers: GraphQLFieldConfig<
                   ...administrationRoleBefore,
                   scopes: simplify([
                     ...administrationRoleBefore.scopes,
-                    ...possibleAdministrationScopes.filter(possible =>
+                    ...possibleAdministrationScopes.filter((possible) =>
                       isSuperset(scopes, possible)
-                    )
-                  ])
+                    ),
+                  ]),
                 },
                 {
                   recordId: v4(),
                   createdByAuthorizationId: a.id,
-                  createdAt: new Date()
+                  createdAt: new Date(),
                 }
               );
 
@@ -317,5 +317,5 @@ export const createUsers: GraphQLFieldConfig<
         tx.release();
       }
     });
-  }
+  },
 };
