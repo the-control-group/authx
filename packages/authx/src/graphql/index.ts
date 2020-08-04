@@ -1,4 +1,4 @@
-import { GraphQLSchema, GraphQLObjectType } from "graphql";
+import { GraphQLSchema, GraphQLObjectType, GraphQLFieldConfig } from "graphql";
 import { StrategyCollection } from "../StrategyCollection";
 import { Context } from "../Context";
 
@@ -49,22 +49,26 @@ export * from "./GraphQLUserEdge";
 export * from "./GraphQLUserType";
 
 export function createSchema(strategies: StrategyCollection): GraphQLSchema {
-  const query = new GraphQLObjectType<any, Context, any>({
+  const query = new GraphQLObjectType<any, Context>({
     name: "Query",
     description: "The query root of AuthX's GraphQL interface.",
     fields: () => ({
-      ...queryFields,
-      ...strategies.queryFields
-    })
+      ...(queryFields as {
+        [key: string]: GraphQLFieldConfig<any, Context, any>;
+      }),
+      ...strategies.queryFields,
+    }),
   });
 
-  const mutation = new GraphQLObjectType<any, Context, any>({
+  const mutation = new GraphQLObjectType<any, Context>({
     name: "Mutation",
     description: "The mutation root of AuthX's GraphQL interface.",
     fields: () => ({
-      ...mutationFields,
-      ...strategies.mutationFields
-    })
+      ...(mutationFields as {
+        [key: string]: GraphQLFieldConfig<any, Context, any>;
+      }),
+      ...strategies.mutationFields,
+    }),
   });
 
   return new GraphQLSchema({
@@ -82,9 +86,9 @@ export function createSchema(strategies: StrategyCollection): GraphQLSchema {
       ...mutationTypes,
 
       // merge in types from strategies
-      ...strategies.types
+      ...strategies.types,
     ],
     mutation,
-    query
+    query,
   });
 }

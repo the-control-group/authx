@@ -4,13 +4,13 @@ import {
   GraphQLObjectType,
   GraphQLBoolean,
   GraphQLString,
-  GraphQLFieldConfigMap
+  GraphQLFieldConfigMap,
 } from "graphql";
 
 import {
   connectionFromArray,
   connectionArgs,
-  ConnectionArguments
+  ConnectionArguments,
 } from "graphql-relay";
 
 import { User, Grant } from "../model";
@@ -26,18 +26,17 @@ import { filter } from "../util/filter";
 
 export const GraphQLUser: GraphQLObjectType<
   User,
-  Context,
-  any
+  Context
 > = new GraphQLObjectType({
   name: "User",
   interfaces: () => [GraphQLNode],
-  fields: (): GraphQLFieldConfigMap<User, Context, any> => ({
+  fields: (): GraphQLFieldConfigMap<User, Context> => ({
     id: { type: new GraphQLNonNull(GraphQLID) },
     enabled: {
-      type: new GraphQLNonNull(GraphQLBoolean)
+      type: new GraphQLNonNull(GraphQLBoolean),
     },
     name: {
-      type: GraphQLString
+      type: GraphQLString,
     },
     type: { type: GraphQLUserType },
     authorizations: {
@@ -54,13 +53,15 @@ export const GraphQLUser: GraphQLObjectType<
       ) {
         return a
           ? connectionFromArray(
-              await filter(await user.authorizations(executor), authorization =>
-                authorization.isAccessibleBy(realm, a, executor)
+              await filter(
+                await user.authorizations(executor),
+                (authorization) =>
+                  authorization.isAccessibleBy(realm, a, executor)
               ),
               args
             )
           : null;
-      }
+      },
     },
     credentials: {
       type: GraphQLCredentialConnection,
@@ -76,13 +77,13 @@ export const GraphQLUser: GraphQLObjectType<
       ) {
         return a
           ? connectionFromArray(
-              await filter(await user.credentials(executor), credential =>
+              await filter(await user.credentials(executor), (credential) =>
                 credential.isAccessibleBy(realm, a, executor)
               ),
               args
             )
           : null;
-      }
+      },
     },
     grants: {
       type: GraphQLGrantConnection,
@@ -98,21 +99,21 @@ export const GraphQLUser: GraphQLObjectType<
       ) {
         return a
           ? connectionFromArray(
-              await filter(await user.grants(executor), grant =>
+              await filter(await user.grants(executor), (grant) =>
                 grant.isAccessibleBy(realm, a, executor)
               ),
               args
             )
           : null;
-      }
+      },
     },
     grant: {
       type: GraphQLGrant,
       args: {
         clientId: {
           type: new GraphQLNonNull(GraphQLID),
-          description: "The ID of a client."
-        }
+          description: "The ID of a client.",
+        },
       },
       description: "Look for a grant between this user and a client.",
       resolve: async function resolve(
@@ -126,7 +127,7 @@ export const GraphQLUser: GraphQLObjectType<
 
         // This is necessary because of a flaw in the type definitions:
         // https://github.com/graphql/graphql-js/issues/2152
-      } as any
+      } as any,
     },
     roles: {
       type: GraphQLRoleConnection,
@@ -144,18 +145,18 @@ export const GraphQLUser: GraphQLObjectType<
           ? connectionFromArray(
               await filter(
                 await user.roles(executor),
-                async role =>
+                async (role) =>
                   (await role.isAccessibleBy(realm, a, executor)) &&
                   (await role.isAccessibleBy(realm, a, executor, {
                     basic: "r",
                     scopes: "",
-                    users: "r"
+                    users: "r",
                   }))
               ),
               args
             )
           : null;
-      }
-    }
-  })
+      },
+    },
+  }),
 });

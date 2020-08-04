@@ -23,11 +23,11 @@ export class StrategyCollection {
   } = {};
 
   public queryFields: {
-    readonly [field: string]: GraphQLFieldConfig<any, any, Context>;
+    readonly [field: string]: GraphQLFieldConfig<any, Context, any>;
   } = {};
 
   public mutationFields: {
-    readonly [field: string]: GraphQLFieldConfig<any, any, Context>;
+    readonly [field: string]: GraphQLFieldConfig<any, Context, any>;
   } = {};
 
   public types: GraphQLNamedType[] = [];
@@ -105,7 +105,7 @@ export class StrategyCollection {
     this.credentialMap = credentialMap;
     this.queryFields = queryFields;
     this.mutationFields = mutationFields;
-    this.types = this.types.filter(t => !s.types.includes(t));
+    this.types = this.types.filter((t) => !s.types.includes(t));
 
     return true;
   }

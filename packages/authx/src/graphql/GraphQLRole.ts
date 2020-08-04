@@ -5,13 +5,13 @@ import {
   GraphQLString,
   GraphQLBoolean,
   GraphQLObjectType,
-  GraphQLFieldConfigMap
+  GraphQLFieldConfigMap,
 } from "graphql";
 
 import {
   connectionFromArray,
   connectionArgs,
-  ConnectionArguments
+  ConnectionArguments,
 } from "graphql-relay";
 
 import { Role } from "../model";
@@ -24,10 +24,10 @@ import { filter } from "../util/filter";
 export const GraphQLRole = new GraphQLObjectType<Role, Context>({
   name: "Role",
   interfaces: () => [GraphQLNode],
-  fields: (): GraphQLFieldConfigMap<Role, Context, any> => ({
+  fields: (): GraphQLFieldConfigMap<Role, Context> => ({
     id: { type: new GraphQLNonNull(GraphQLID) },
     enabled: {
-      type: new GraphQLNonNull(GraphQLBoolean)
+      type: new GraphQLNonNull(GraphQLBoolean),
     },
     name: { type: GraphQLString },
     description: { type: GraphQLString },
@@ -46,16 +46,16 @@ export const GraphQLRole = new GraphQLObjectType<Role, Context>({
           (await role.isAccessibleBy(realm, a, executor, {
             basic: "r",
             scopes: "",
-            users: "r"
+            users: "r",
           }))
           ? connectionFromArray(
-              await filter(await role.users(executor), user =>
+              await filter(await role.users(executor), (user) =>
                 user.isAccessibleBy(realm, a, executor)
               ),
               args
             )
           : null;
-      }
+      },
     },
     scopes: {
       type: new GraphQLList(GraphQLScopeTemplate),
@@ -68,11 +68,11 @@ export const GraphQLRole = new GraphQLObjectType<Role, Context>({
           (await role.isAccessibleBy(realm, a, executor, {
             basic: "r",
             scopes: "r",
-            users: ""
+            users: "",
           }))
           ? role.scopes
           : null;
-      }
-    }
-  })
+      },
+    },
+  }),
 });
