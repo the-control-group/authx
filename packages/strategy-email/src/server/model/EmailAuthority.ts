@@ -1,4 +1,3 @@
-import { ClientBase, Pool } from "pg";
 import { Authority, DataLoaderExecutor } from "@authx/authx";
 import { EmailCredential } from "./EmailCredential";
 
@@ -18,39 +17,30 @@ export interface EmailAuthorityDetails {
 }
 
 export class EmailAuthority extends Authority<EmailAuthorityDetails> {
-  private _credentials: null | Promise<EmailCredential[]> = null;
-
-  public credentials(
-    tx: Pool | ClientBase | DataLoaderExecutor,
-    refresh: boolean = false
-  ): Promise<EmailCredential[]> {
-    if (!refresh && this._credentials) {
-      return this._credentials;
-    }
-
-    return (this._credentials = (async () =>
+  public credentials(tx: DataLoaderExecutor): Promise<EmailCredential[]> {
+    return (async () =>
       EmailCredential.read(
         tx,
         (
-          await (tx instanceof DataLoaderExecutor ? tx.tx : tx).query(
+          await tx.connection.query(
             `
-              SELECT entity_id AS id
-              FROM authx.credential_records
-              WHERE
-                authority_id = $1
-                AND replacement_record_id IS NULL
-              `,
+            SELECT entity_id AS id
+            FROM authx.credential_records
+            WHERE
+              authority_id = $1
+              AND replacement_record_id IS NULL
+            `,
             [this.id]
           )
         ).rows.map(({ id }) => id)
-      ))());
+      ))();
   }
 
   public async credential(
-    tx: Pool | ClientBase | DataLoaderExecutor,
+    tx: DataLoaderExecutor,
     authorityUserId: string
   ): Promise<null | EmailCredential> {
-    const results = await (tx instanceof DataLoaderExecutor ? tx.tx : tx).query(
+    const results = await tx.connection.query(
       `
       SELECT entity_id AS id
       FROM authx.credential_record
@@ -59,7 +49,7 @@ export class EmailAuthority extends Authority<EmailAuthorityDetails> {
         AND authority_user_id = $2
         AND enabled = true
         AND replacement_record_id IS NULL
-    `,
+      `,
       [this.id, authorityUserId]
     );
 

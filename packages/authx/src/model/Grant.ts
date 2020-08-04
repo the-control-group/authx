@@ -72,10 +72,6 @@ export class Grant implements GrantData {
   public readonly codes: Set<string>;
   public readonly scopes: string[];
 
-  private _client: null | Promise<Client> = null;
-  private _user: null | Promise<User> = null;
-  private _authorizations: null | Promise<Authorization[]> = null;
-
   public constructor(data: GrantData & { readonly recordId: string }) {
     this.id = data.id;
     this.recordId = data.recordId;
@@ -94,7 +90,7 @@ export class Grant implements GrantData {
     action: GrantAction = {
       basic: "r",
       scopes: "",
-      secrets: ""
+      secrets: "",
     }
   ): Promise<boolean> {
     if (
@@ -106,7 +102,7 @@ export class Grant implements GrantData {
             type: "grant",
             grantId: this.id,
             userId: this.userId,
-            clientId: this.clientId
+            clientId: this.clientId,
           },
           action
         )
@@ -118,45 +114,28 @@ export class Grant implements GrantData {
     return false;
   }
 
-  public client(
-    tx: Pool | ClientBase | DataLoaderExecutor,
-    refresh: boolean = false
-  ): Promise<Client> {
-    if (!refresh && this._client) {
-      return this._client;
-    }
-
-    return (this._client =
+  public client(tx: Pool | ClientBase | DataLoaderExecutor): Promise<Client> {
+    return (
       // Some silliness to help typescript...
       tx instanceof DataLoaderExecutor
         ? Client.read(tx, this.clientId)
-        : Client.read(tx, this.clientId));
+        : Client.read(tx, this.clientId)
+    );
   }
 
-  public user(
-    tx: Pool | ClientBase | DataLoaderExecutor,
-    refresh: boolean = false
-  ): Promise<User> {
-    if (!refresh && this._user) {
-      return this._user;
-    }
-
-    return (this._user =
+  public user(tx: Pool | ClientBase | DataLoaderExecutor): Promise<User> {
+    return (
       // Some silliness to help typescript...
       tx instanceof DataLoaderExecutor
         ? User.read(tx, this.userId)
-        : User.read(tx, this.userId));
+        : User.read(tx, this.userId)
+    );
   }
 
   public async authorizations(
-    tx: Pool | ClientBase | DataLoaderExecutor,
-    refresh: boolean = false
+    tx: Pool | ClientBase | DataLoaderExecutor
   ): Promise<Authorization[]> {
-    if (!refresh && this._authorizations) {
-      return this._authorizations;
-    }
-
-    return (this._authorizations = (async () => {
+    return (async () => {
       const ids = (
         await (tx instanceof DataLoaderExecutor ? tx.connection : tx).query(
           `
@@ -174,7 +153,7 @@ export class Grant implements GrantData {
       return tx instanceof DataLoaderExecutor
         ? Authorization.read(tx, ids)
         : Authorization.read(tx, ids);
-    })());
+    })();
   }
 
   public async access(
@@ -184,12 +163,11 @@ export class Grant implements GrantData {
       currentUserId: null | string;
       currentGrantId: null | string;
       currentClientId: null | string;
-    },
-    refresh: boolean = false
+    }
   ): Promise<string[]> {
-    const user = await this.user(tx, refresh);
+    const user = await this.user(tx);
     return user.enabled
-      ? getIntersection(this.scopes, await user.access(tx, values, refresh))
+      ? getIntersection(this.scopes, await user.access(tx, values))
       : [];
   }
 
@@ -201,10 +179,9 @@ export class Grant implements GrantData {
       currentGrantId: null | string;
       currentClientId: null | string;
     },
-    scope: string,
-    refresh: boolean = false
+    scope: string
   ): Promise<boolean> {
-    return isSuperset(await this.access(tx, values, refresh), scope);
+    return isSuperset(await this.access(tx, values), scope);
   }
 
   public async records(tx: ClientBase): Promise<GrantRecord[]> {
@@ -228,13 +205,13 @@ export class Grant implements GrantData {
     );
 
     return result.rows.map(
-      row =>
+      (row) =>
         new GrantRecord({
           ...row,
           replacementRecordId: row.replacement_record_id,
           createdByAuthorizationId: row.created_by_authorization_id,
           createdAt: row.created_at,
-          entityId: row.entity_id
+          entityId: row.entity_id,
         })
     );
   }
@@ -280,7 +257,7 @@ export class Grant implements GrantData {
       id: row.id,
       entityId: row.entity_id,
       recordId: row.record_id,
-      createdAt: row.created_at
+      createdAt: row.created_at,
     });
   }
 
@@ -303,12 +280,12 @@ export class Grant implements GrantData {
     );
 
     return result.rows.map(
-      row =>
+      (row) =>
         new GrantInvocation({
           ...row,
           recordId: row.record_id,
           entityId: row.entity_id,
-          createdAt: row.created_at
+          createdAt: row.created_at,
         })
     );
   }
@@ -347,7 +324,9 @@ export class Grant implements GrantData {
     if (tx instanceof DataLoaderExecutor) {
       const loader = cache.get(tx);
       return Promise.all(
-        typeof id === "string" ? [loader.load(id)] : id.map(i => loader.load(i))
+        typeof id === "string"
+          ? [loader.load(id)]
+          : id.map((i) => loader.load(i))
       );
     }
 
@@ -386,12 +365,12 @@ export class Grant implements GrantData {
     }
 
     const grants = result.rows.map(
-      row =>
+      (row) =>
         new Grant({
           ...row,
           recordId: row.record_id,
           clientId: row.client_id,
-          userId: row.user_id
+          userId: row.user_id,
         })
     );
 
@@ -476,7 +455,7 @@ export class Grant implements GrantData {
         data.userId,
         [...new Set(data.secrets)],
         [...new Set(data.codes)],
-        simplify([...data.scopes])
+        simplify([...data.scopes]),
       ]
     );
 
@@ -489,7 +468,7 @@ export class Grant implements GrantData {
       ...row,
       recordId: row.record_id,
       clientId: row.client_id,
-      userId: row.user_id
+      userId: row.user_id,
     });
   }
 

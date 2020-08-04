@@ -48,11 +48,6 @@ export class User implements UserData {
   public readonly type: UserType;
   public readonly name: string;
 
-  private _authorizations: null | Promise<Authorization[]> = null;
-  private _credentials: null | Promise<Credential<any>[]> = null;
-  private _roles: null | Promise<Role[]> = null;
-  private _grants: null | Promise<Grant[]> = null;
-
   public constructor(data: UserData & { readonly recordId: string }) {
     this.id = data.id;
     this.recordId = data.recordId;
@@ -66,7 +61,7 @@ export class User implements UserData {
     a: Authorization,
     tx: Pool | ClientBase | DataLoaderExecutor,
     action: UserAction = {
-      basic: "r"
+      basic: "r",
     }
   ): Promise<boolean> {
     if (
@@ -76,7 +71,7 @@ export class User implements UserData {
           realm,
           {
             type: "user",
-            userId: this.id
+            userId: this.id,
           },
           action
         )
@@ -89,14 +84,9 @@ export class User implements UserData {
   }
 
   public async authorizations(
-    tx: Pool | ClientBase | DataLoaderExecutor,
-    refresh: boolean = false
+    tx: Pool | ClientBase | DataLoaderExecutor
   ): Promise<Authorization[]> {
-    if (!refresh && this._authorizations) {
-      return this._authorizations;
-    }
-
-    return (this._authorizations = (async () => {
+    return (async () => {
       const ids: readonly string[] = (
         await (tx instanceof DataLoaderExecutor ? tx.connection : tx).query(
           `
@@ -114,13 +104,12 @@ export class User implements UserData {
       return tx instanceof DataLoaderExecutor
         ? Authorization.read(tx, ids)
         : Authorization.read(tx, ids);
-    })());
+    })();
   }
 
   public async credentials(
     tx: DataLoaderExecutor,
-    strategies?: undefined,
-    refresh?: boolean
+    strategies?: undefined
   ): Promise<Credential<unknown>[]>;
 
   public async credentials(
@@ -129,8 +118,7 @@ export class User implements UserData {
       credentialMap: {
         [key: string]: { new (data: CredentialData<any>): Credential<any> };
       };
-    },
-    refresh?: boolean
+    }
   ): Promise<Credential<unknown>[]>;
 
   public async credentials(
@@ -139,14 +127,9 @@ export class User implements UserData {
       credentialMap: {
         [key: string]: { new (data: CredentialData<any>): Credential<any> };
       };
-    },
-    refresh: boolean = false
-  ): Promise<Credential<unknown>[]> {
-    if (!refresh && this._credentials) {
-      return this._credentials;
     }
-
-    return (this._credentials = (async () => {
+  ): Promise<Credential<unknown>[]> {
+    return (async () => {
       const ids: readonly string[] = (
         await (tx instanceof DataLoaderExecutor ? tx.connection : tx).query(
           `
@@ -163,18 +146,13 @@ export class User implements UserData {
       return tx instanceof DataLoaderExecutor
         ? Credential.read(tx, ids)
         : Credential.read(tx, ids, strategies as typeof strategies & {});
-    })());
+    })();
   }
 
   public async grants(
-    tx: Pool | ClientBase | DataLoaderExecutor,
-    refresh: boolean = false
+    tx: Pool | ClientBase | DataLoaderExecutor
   ): Promise<Grant[]> {
-    if (!refresh && this._grants) {
-      return this._grants;
-    }
-
-    return (this._grants = (async () => {
+    return (async () => {
       const ids = (
         await (tx instanceof DataLoaderExecutor ? tx.connection : tx).query(
           `
@@ -192,7 +170,7 @@ export class User implements UserData {
       return tx instanceof DataLoaderExecutor
         ? Grant.read(tx, ids)
         : Grant.read(tx, ids);
-    })());
+    })();
   }
 
   public async grant(
@@ -230,14 +208,9 @@ export class User implements UserData {
   }
 
   public async roles(
-    tx: Pool | ClientBase | DataLoaderExecutor,
-    refresh: boolean = false
+    tx: Pool | ClientBase | DataLoaderExecutor
   ): Promise<Role[]> {
-    if (!refresh && this._roles) {
-      return this._roles;
-    }
-
-    return (this._roles = (async () => {
+    return (async () => {
       const ids = (
         await (tx instanceof DataLoaderExecutor ? tx.connection : tx).query(
           `
@@ -258,7 +231,7 @@ export class User implements UserData {
       return tx instanceof DataLoaderExecutor
         ? Role.read(tx, ids)
         : Role.read(tx, ids);
-    })());
+    })();
   }
 
   public async access(
@@ -268,13 +241,12 @@ export class User implements UserData {
       currentUserId: null | string;
       currentGrantId: null | string;
       currentClientId: null | string;
-    },
-    refresh: boolean = false
+    }
   ): Promise<string[]> {
     return this.enabled
       ? simplify(
-          (await this.roles(tx, refresh))
-            .map(role => role.access(values))
+          (await this.roles(tx))
+            .map((role) => role.access(values))
             .reduce((a, b) => a.concat(b), [])
         )
       : [];
@@ -288,10 +260,9 @@ export class User implements UserData {
       currentGrantId: null | string;
       currentClientId: null | string;
     },
-    scope: string[] | string,
-    refresh: boolean = false
+    scope: string[] | string
   ): Promise<boolean> {
-    return isSuperset(await this.access(tx, values, refresh), scope);
+    return isSuperset(await this.access(tx, values), scope);
   }
 
   public async records(tx: ClientBase): Promise<UserRecord[]> {
@@ -315,13 +286,13 @@ export class User implements UserData {
     );
 
     return result.rows.map(
-      row =>
+      (row) =>
         new UserRecord({
           ...row,
           replacementRecordId: row.replacement_record_id,
           createdByAuthorizationId: row.created_by_authorization_id,
           createdAt: row.created_at,
-          entityId: row.entity_id
+          entityId: row.entity_id,
         })
     );
   }
@@ -360,7 +331,9 @@ export class User implements UserData {
     if (tx instanceof DataLoaderExecutor) {
       const loader = cache.get(tx);
       return Promise.all(
-        typeof id === "string" ? [loader.load(id)] : id.map(i => loader.load(i))
+        typeof id === "string"
+          ? [loader.load(id)]
+          : id.map((i) => loader.load(i))
       );
     }
 
@@ -396,10 +369,10 @@ export class User implements UserData {
     }
 
     const users = result.rows.map(
-      row =>
+      (row) =>
         new User({
           ...row,
-          recordId: row.record_id
+          recordId: row.record_id,
         })
     );
 
@@ -475,7 +448,7 @@ export class User implements UserData {
         data.id,
         data.enabled,
         data.type,
-        data.name
+        data.name,
       ]
     );
 
@@ -486,7 +459,7 @@ export class User implements UserData {
     const row = next.rows[0];
     return new User({
       ...row,
-      recordId: row.record_id
+      recordId: row.record_id,
     });
   }
 

@@ -77,8 +77,6 @@ export abstract class Credential<C> implements CredentialData<C> {
   public readonly userId: string;
   public readonly details: C;
 
-  private _user: null | Promise<User> = null;
-
   public constructor(data: CredentialData<C> & { readonly recordId: string }) {
     this.id = data.id;
     this.recordId = data.recordId;
@@ -95,7 +93,7 @@ export abstract class Credential<C> implements CredentialData<C> {
     tx: Pool | ClientBase | DataLoaderExecutor,
     action: CredentialAction = {
       basic: "r",
-      details: ""
+      details: "",
     }
   ): Promise<boolean> {
     if (
@@ -107,7 +105,7 @@ export abstract class Credential<C> implements CredentialData<C> {
             type: "credential",
             authorityId: this.authorityId,
             credentialId: this.id,
-            userId: this.userId
+            userId: this.userId,
           },
           action
         )
@@ -120,23 +118,16 @@ export abstract class Credential<C> implements CredentialData<C> {
   }
 
   public abstract authority(
-    tx: Pool | ClientBase | DataLoaderExecutor,
-    refresh?: boolean
+    tx: Pool | ClientBase | DataLoaderExecutor
   ): Promise<Authority<any>>;
 
-  public user(
-    tx: Pool | ClientBase | DataLoaderExecutor,
-    refresh: boolean = false
-  ): Promise<User> {
-    if (!refresh && this._user) {
-      return this._user;
-    }
-
-    return (this._user =
+  public user(tx: Pool | ClientBase | DataLoaderExecutor): Promise<User> {
+    return (
       // Some silliness to help typescript...
       tx instanceof DataLoaderExecutor
         ? User.read(tx, this.userId)
-        : User.read(tx, this.userId));
+        : User.read(tx, this.userId)
+    );
   }
 
   public async records(tx: ClientBase): Promise<CredentialRecord[]> {
@@ -160,13 +151,13 @@ export abstract class Credential<C> implements CredentialData<C> {
     );
 
     return result.rows.map(
-      row =>
+      (row) =>
         new CredentialRecord({
           ...row,
           replacementRecordId: row.replacement_record_id,
           createdByAuthorizationId: row.created_by_authorization_id,
           createdAt: row.created_at,
-          entityId: row.entity_id
+          entityId: row.entity_id,
         })
     );
   }
@@ -212,7 +203,7 @@ export abstract class Credential<C> implements CredentialData<C> {
       id: row.id,
       entityId: row.entity_id,
       recordId: row.record_id,
-      createdAt: row.created_at
+      createdAt: row.created_at,
     });
   }
 
@@ -235,12 +226,12 @@ export abstract class Credential<C> implements CredentialData<C> {
     );
 
     return result.rows.map(
-      row =>
+      (row) =>
         new CredentialInvocation({
           ...row,
           recordId: row.record_id,
           entityId: row.entity_id,
-          createdAt: row.created_at
+          createdAt: row.created_at,
         })
     );
   }
@@ -338,12 +329,12 @@ export abstract class Credential<C> implements CredentialData<C> {
       }
 
       const credentials = await Promise.all(
-        id.map(id => loader.load(id) as Promise<InstanceType<M[K]>>)
+        id.map((id) => loader.load(id) as Promise<InstanceType<M[K]>>)
       );
 
       // Address a scenario in which the loader could return a credential from a
       // sub-class.
-      return credentials.filter(credential => credential instanceof this);
+      return credentials.filter((credential) => credential instanceof this);
     }
 
     const map = strategies?.credentialMap;
@@ -385,24 +376,24 @@ export abstract class Credential<C> implements CredentialData<C> {
       throw new NotFoundError();
     }
 
-    const data = result.rows.map(row => {
+    const data = result.rows.map((row) => {
       return {
         ...row,
         recordId: row.record_id,
         authorityId: row.authority_id,
         authorityUserId: row.authority_user_id,
-        userId: row.user_id
+        userId: row.user_id,
       };
     });
 
     // No map is provided: instantiate all returned records with this class.
     if (!map) {
-      const instances = data.map(data => new this(data));
+      const instances = data.map((data) => new this(data));
       return typeof id === "string" ? instances[0] : instances;
     }
 
     // A map is provided: use the constructor for the corresponding strategy
-    const instances = data.map(data => {
+    const instances = data.map((data) => {
       const Class = map[data.strategy];
 
       if (!Class) {
@@ -495,7 +486,7 @@ export abstract class Credential<C> implements CredentialData<C> {
         data.authorityId,
         data.authorityUserId,
         data.userId,
-        data.details
+        data.details,
       ]
     );
 
@@ -509,7 +500,7 @@ export abstract class Credential<C> implements CredentialData<C> {
       recordId: row.record_id,
       authorityId: row.authority_id,
       authorityUserId: row.authority_user_id,
-      userId: row.user_id
+      userId: row.user_id,
     }) as T;
   }
 

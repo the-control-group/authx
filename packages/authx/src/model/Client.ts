@@ -68,8 +68,6 @@ export class Client implements ClientData {
   public readonly secrets: Set<string>;
   public readonly urls: Set<string>;
 
-  private _grants: null | Promise<Grant[]> = null;
-
   public constructor(data: ClientData & { readonly recordId: string }) {
     this.id = data.id;
     this.recordId = data.recordId;
@@ -86,7 +84,7 @@ export class Client implements ClientData {
     tx: Pool | ClientBase | DataLoaderExecutor,
     action: ClientAction = {
       basic: "r",
-      secrets: ""
+      secrets: "",
     }
   ): Promise<boolean> {
     if (
@@ -96,7 +94,7 @@ export class Client implements ClientData {
           realm,
           {
             type: "client",
-            clientId: this.id
+            clientId: this.id,
           },
           action
         )
@@ -108,15 +106,8 @@ export class Client implements ClientData {
     return false;
   }
 
-  public grants(
-    tx: Pool | ClientBase | DataLoaderExecutor,
-    refresh: boolean = true
-  ): Promise<Grant[]> {
-    if (!refresh && this._grants) {
-      return this._grants;
-    }
-
-    return (this._grants = (async () => {
+  public grants(tx: Pool | ClientBase | DataLoaderExecutor): Promise<Grant[]> {
+    return (async () => {
       const ids = (
         await (tx instanceof DataLoaderExecutor ? tx.connection : tx).query(
           `
@@ -133,7 +124,7 @@ export class Client implements ClientData {
       return tx instanceof DataLoaderExecutor
         ? Grant.read(tx, ids)
         : Grant.read(tx, ids);
-    })());
+    })();
   }
 
   public async grant(
@@ -191,13 +182,13 @@ export class Client implements ClientData {
     );
 
     return result.rows.map(
-      row =>
+      (row) =>
         new ClientRecord({
           ...row,
           replacementRecordId: row.replacement_record_id,
           createdByAuthorizationId: row.created_by_authorization_id,
           createdAt: row.created_at,
-          entityId: row.entity_id
+          entityId: row.entity_id,
         })
     );
   }
@@ -243,7 +234,7 @@ export class Client implements ClientData {
       id: row.id,
       entityId: row.entity_id,
       recordId: row.record_id,
-      createdAt: row.created_at
+      createdAt: row.created_at,
     });
   }
 
@@ -266,12 +257,12 @@ export class Client implements ClientData {
     );
 
     return result.rows.map(
-      row =>
+      (row) =>
         new ClientInvocation({
           ...row,
           recordId: row.record_id,
           entityId: row.entity_id,
-          createdAt: row.created_at
+          createdAt: row.created_at,
         })
     );
   }
@@ -310,7 +301,9 @@ export class Client implements ClientData {
     if (tx instanceof DataLoaderExecutor) {
       const loader = cache.get(tx);
       return Promise.all(
-        typeof id === "string" ? [loader.load(id)] : id.map(i => loader.load(i))
+        typeof id === "string"
+          ? [loader.load(id)]
+          : id.map((i) => loader.load(i))
       );
     }
 
@@ -351,12 +344,12 @@ export class Client implements ClientData {
     }
 
     const clients = result.rows.map(
-      row =>
+      (row) =>
         new Client({
           ...row,
           recordId: row.record_id,
           secrets: row.secrets,
-          urls: row.urls
+          urls: row.urls,
         })
     );
 
@@ -436,7 +429,7 @@ export class Client implements ClientData {
         data.name,
         data.description,
         [...new Set(data.secrets)],
-        [...new Set(data.urls)]
+        [...new Set(data.urls)],
       ]
     );
 
@@ -449,7 +442,7 @@ export class Client implements ClientData {
       ...row,
       recordId: row.record_id,
       secrets: row.secrets,
-      urls: row.urls
+      urls: row.urls,
     });
   }
 

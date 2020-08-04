@@ -1,8 +1,7 @@
-import { ClientBase, Pool } from "pg";
 import { Authority, DataLoaderExecutor } from "@authx/authx";
 import {
   PasswordCredentialDetails,
-  PasswordCredential
+  PasswordCredential,
 } from "./PasswordCredential";
 
 // Authority
@@ -13,26 +12,17 @@ export interface PasswordAuthorityDetails {
 }
 
 export class PasswordAuthority extends Authority<PasswordAuthorityDetails> {
-  private _credentials: null | Promise<PasswordCredential[]> = null;
-
-  public credentials(
-    tx: Pool | ClientBase | DataLoaderExecutor,
-    refresh: boolean = false
-  ): Promise<PasswordCredential[]> {
-    if (!refresh && this._credentials) {
-      return this._credentials;
-    }
-
-    return (this._credentials = (async () => {
+  public credentials(tx: DataLoaderExecutor): Promise<PasswordCredential[]> {
+    return (async () => {
       const ids = (
-        await (tx instanceof DataLoaderExecutor ? tx.connection : tx).query(
+        await tx.connection.query(
           `
-              SELECT entity_id AS id
-              FROM authx.credential_records
-              WHERE
-                authority_id = $1
-                AND replacement_record_id IS NULL
-              `,
+          SELECT entity_id AS id
+          FROM authx.credential_records
+          WHERE
+            authority_id = $1
+            AND replacement_record_id IS NULL
+          `,
           [this.id]
         )
       ).rows.map(({ id }) => id);
@@ -40,17 +30,14 @@ export class PasswordAuthority extends Authority<PasswordAuthorityDetails> {
       return tx instanceof DataLoaderExecutor
         ? PasswordCredential.read(tx, ids)
         : PasswordCredential.read(tx, ids);
-    })());
+    })();
   }
 
   public async credential(
-    tx: Pool | ClientBase | DataLoaderExecutor,
+    tx: DataLoaderExecutor,
     authorityUserId: string
   ): Promise<null | PasswordCredential> {
-    const results = await (tx instanceof DataLoaderExecutor
-      ? tx.connection
-      : tx
-    ).query(
+    const results = await tx.connection.query(
       `
       SELECT entity_id AS id
       FROM authx.credential_record
@@ -59,7 +46,7 @@ export class PasswordAuthority extends Authority<PasswordAuthorityDetails> {
         AND authority_user_id = $2
         AND enabled = true
         AND replacement_record_id IS NULL
-    `,
+      `,
       [this.id, authorityUserId]
     );
 
