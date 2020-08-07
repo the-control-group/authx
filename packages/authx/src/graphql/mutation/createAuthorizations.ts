@@ -45,7 +45,7 @@ export const createAuthorizations: GraphQLFieldConfig<
   },
   async resolve(source, args, context): Promise<Authorization[]> {
     const {
-      executor: { strategies, connection },
+      executor: { strategies, connection: pool },
       authorization: a,
       realm,
     } = context;
@@ -56,7 +56,7 @@ export const createAuthorizations: GraphQLFieldConfig<
       );
     }
 
-    if (!(connection instanceof Pool)) {
+    if (!(pool instanceof Pool)) {
       throw new Error(
         "INVARIANT: The executor connection is expected to be an instance of Pool."
       );
@@ -64,7 +64,7 @@ export const createAuthorizations: GraphQLFieldConfig<
 
     // Loop through the authorizations sequentially. This ensures that later
     // inputs can assume that previous ones succeeded.
-    const tx = await connection.connect();
+    const tx = await pool.connect();
     let lastExecutor: DataLoaderExecutor<Pool | PoolClient> | undefined;
     try {
       await tx.query("BEGIN DEFERRABLE");
@@ -255,10 +255,10 @@ export const createAuthorizations: GraphQLFieldConfig<
       // Update the context to use a new executor primed with the results of
       // this mutation, using the original connection pool.
       if (lastExecutor) {
-        lastExecutor.connection = connection;
+        lastExecutor.connection = pool;
         context.executor = lastExecutor as ReadonlyDataLoaderExecutor<Pool>;
       } else {
-        context.executor = new DataLoaderExecutor<Pool>(connection, strategies);
+        context.executor = new DataLoaderExecutor<Pool>(pool, strategies);
       }
 
       for (const authorization of authorizations) {
