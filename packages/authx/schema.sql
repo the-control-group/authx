@@ -95,6 +95,8 @@ CREATE UNIQUE INDEX ON authx.credential_record USING BTREE (entity_id) WHERE rep
 CREATE UNIQUE INDEX ON authx.credential_record USING BTREE (authority_id, authority_user_id) WHERE replacement_record_id IS NULL AND enabled = TRUE;
 CREATE UNIQUE INDEX ON authx.credential_record USING BTREE (entity_id, record_id);
 
+CREATE INDEX ON authx.credential_record USING BTREE (user_id, enabled) WHERE replacement_record_id IS NULL;
+
 
 
 
@@ -114,6 +116,9 @@ CREATE TABLE authx.grant_record (
 CREATE UNIQUE INDEX ON authx.grant_record USING BTREE (entity_id) WHERE replacement_record_id IS NULL;
 CREATE UNIQUE INDEX ON authx.grant_record USING BTREE (user_id, client_id) WHERE replacement_record_id IS NULL AND enabled = TRUE;
 CREATE UNIQUE INDEX ON authx.grant_record USING BTREE (entity_id, record_id);
+
+CREATE INDEX ON authx.grant_record USING BTREE (user_id, enabled) WHERE replacement_record_id IS NULL;
+CREATE INDEX ON authx.grant_record USING BTREE (entity_id, enabled) WHERE replacement_record_id IS NULL;
 
 
 
@@ -138,6 +143,8 @@ CREATE TABLE authx.role_record_user (
   PRIMARY KEY(role_record_id, user_id)
 );
 
+CREATE INDEX ON authx.role_record_user USING BTREE (user_id, role_record_id);
+
 
 
 
@@ -156,6 +163,9 @@ CREATE TABLE authx.authorization_record (
 
 CREATE UNIQUE INDEX ON authx.authorization_record USING BTREE (entity_id) WHERE replacement_record_id IS NULL;
 CREATE UNIQUE INDEX ON authx.authorization_record USING BTREE (entity_id, record_id);
+
+CREATE INDEX ON authx.authorization_record USING BTREE (user_id, enabled) WHERE replacement_record_id IS NULL;
+CREATE INDEX ON authx.authorization_record USING BTREE (grant_id, enabled) WHERE replacement_record_id IS NULL;
 
 
 
@@ -188,12 +198,16 @@ CREATE TABLE authx.invocation (
   CHECK (false) NO INHERIT
 );
 
+
 CREATE TABLE authx.credential_invocation (
   PRIMARY KEY (invocation_id),
   FOREIGN KEY (record_id) REFERENCES authx.credential_record,
   FOREIGN KEY (entity_id) REFERENCES authx.credential,
   FOREIGN KEY (entity_id, record_id) REFERENCES authx.credential_record(entity_id, record_id)
 ) INHERITS (authx.invocation);
+
+CREATE INDEX ON authx.credential_invocation USING BTREE (entity_id, record_id);
+
 
 CREATE TABLE authx.authorization_invocation (
   format TEXT NOT NULL,
@@ -203,6 +217,9 @@ CREATE TABLE authx.authorization_invocation (
   FOREIGN KEY (entity_id, record_id) REFERENCES authx.authorization_record(entity_id, record_id)
 ) INHERITS (authx.invocation);
 
+CREATE INDEX ON authx.authorization_invocation USING BTREE (entity_id, record_id);
+
+
 CREATE TABLE authx.grant_invocation (
   PRIMARY KEY (invocation_id),
   FOREIGN KEY (record_id) REFERENCES authx.grant_record,
@@ -210,10 +227,15 @@ CREATE TABLE authx.grant_invocation (
   FOREIGN KEY (entity_id, record_id) REFERENCES authx.grant_record(entity_id, record_id)
 ) INHERITS (authx.invocation);
 
+CREATE INDEX ON authx.grant_invocation USING BTREE (entity_id, record_id);
+
+
 CREATE TABLE authx.client_invocation (
   PRIMARY KEY (invocation_id),
   FOREIGN KEY (record_id) REFERENCES authx.client_record,
   FOREIGN KEY (entity_id) REFERENCES authx.client,
   FOREIGN KEY (entity_id, record_id) REFERENCES authx.client_record(entity_id, record_id)
 ) INHERITS (authx.invocation);
+
+CREATE INDEX ON authx.client_invocation USING BTREE (entity_id, record_id);
 
