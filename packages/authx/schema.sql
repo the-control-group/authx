@@ -207,6 +207,7 @@ CREATE TABLE authx.credential_invocation (
 ) INHERITS (authx.invocation);
 
 CREATE INDEX ON authx.credential_invocation USING BTREE (entity_id, record_id);
+CREATE INDEX ON authx.credential_invocation USING BTREE (created_at);
 
 
 CREATE TABLE authx.authorization_invocation (
@@ -218,6 +219,7 @@ CREATE TABLE authx.authorization_invocation (
 ) INHERITS (authx.invocation);
 
 CREATE INDEX ON authx.authorization_invocation USING BTREE (entity_id, record_id);
+CREATE INDEX ON authx.authorization_invocation USING BTREE (created_at);
 
 
 CREATE TABLE authx.grant_invocation (
@@ -228,6 +230,7 @@ CREATE TABLE authx.grant_invocation (
 ) INHERITS (authx.invocation);
 
 CREATE INDEX ON authx.grant_invocation USING BTREE (entity_id, record_id);
+CREATE INDEX ON authx.grant_invocation USING BTREE (created_at);
 
 
 CREATE TABLE authx.client_invocation (
@@ -238,4 +241,5 @@ CREATE TABLE authx.client_invocation (
 ) INHERITS (authx.invocation);
 
 CREATE INDEX ON authx.client_invocation USING BTREE (entity_id, record_id);
+CREATE INDEX ON authx.client_invocation USING BTREE (created_at);
 
