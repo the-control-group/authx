@@ -57,7 +57,7 @@ async function setupDatabase(
       await client.connect();
       await client.query(`DROP DATABASE "${database}";`);
       await client.end();
-    }
+    },
   };
 }
 
@@ -72,7 +72,7 @@ async function setupApp(
   const interfaceMiddleware = await createAuthXInterface("authx", [
     "@authx/strategy-email/interface",
     "@authx/strategy-password/interface",
-    "@authx/strategy-openid/interface"
+    "@authx/strategy-openid/interface",
   ]);
 
   // Add the AuthX user interface.
@@ -105,7 +105,7 @@ MIGfMA0GCSqGSIb3DQEBAQUAA4GNADCBiQKBgQCfb+nyTPFCntEXbrFPU5DeE0gC
 4jXRcSFWDfCRgeqeQWqIW9DeMmCj13k0z6fQCiG3FATYosS64wAs+OiyGtu9q/Jy
 UEVIBMF0upDJMA53AFFx+0Fb/i76JFPTY7SxzvioIFeKRwY8evIRWQWYO95Os6gK
 Bac/x5qiUn5fh2xM+wIDAQAB
------END PUBLIC KEY-----`
+-----END PUBLIC KEY-----`,
     ],
     async sendMail(options: {
       to: string;
@@ -124,8 +124,8 @@ Bac/x5qiUn5fh2xM+wIDAQAB
       password: process.env.PGPASSWORD ?? undefined,
       port: process.env.PGPORT ? parseInt(process.env.PGPORT, 10) : undefined,
       ssl: process.env.PGSSL === "true" ? true : false,
-      user: process.env.PGUSER ?? undefined
-    }
+      user: process.env.PGUSER ?? undefined,
+    },
   });
 
   // Apply the AuthX routes to the app.
@@ -138,7 +138,7 @@ Bac/x5qiUn5fh2xM+wIDAQAB
       server.listen(
         {
           host: "localhost",
-          port: 0
+          port: 0,
         },
         (): void => {
           const address = server.address();
@@ -157,7 +157,7 @@ Bac/x5qiUn5fh2xM+wIDAQAB
     async teardownApp(): Promise<void> {
       // Stop the server.
       await new Promise<void>((resolve, reject) => {
-        server.close(error => {
+        server.close((error) => {
           if (error) return reject(error);
           resolve();
         });
@@ -165,7 +165,7 @@ Bac/x5qiUn5fh2xM+wIDAQAB
 
       // Close postgres connections.
       await authx.pool.end();
-    }
+    },
   };
 }
 
@@ -180,7 +180,7 @@ export async function setup(
       async teardown(): Promise<void> {
         await teardownApp();
         await teardownDatabase();
-      }
+      },
     };
   } catch (error) {
     await teardownDatabase();
