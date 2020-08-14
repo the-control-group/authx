@@ -9,7 +9,7 @@ export async function fromBasic(
   tx: ClientBase,
   basic: string
 ): Promise<Authorization> {
-  const [id, secret] = new Buffer(basic, "base64").toString().split(":", 2);
+  const [id, secret] = Buffer.from(basic, "base64").toString().split(":", 2);
   let authorization;
 
   try {
