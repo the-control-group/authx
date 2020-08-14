@@ -9,7 +9,8 @@ import {
   NotFoundError,
   ValidationError,
   validateIdFormat,
-  DataLoaderExecutor
+  DataLoaderExecutor,
+  ReadonlyDataLoaderExecutor,
 } from "@authx/authx";
 import { PasswordAuthority } from "../../model";
 import { GraphQLPasswordAuthority } from "../GraphQLPasswordAuthority";
@@ -34,8 +35,8 @@ export const updatePasswordAuthorities: GraphQLFieldConfig<
     authorities: {
       type: new GraphQLNonNull(
         new GraphQLList(new GraphQLNonNull(GraphQLUpdatePasswordAuthorityInput))
-      )
-    }
+      ),
+    },
   },
   async resolve(source, args, context): Promise<Promise<PasswordAuthority>[]> {
     const { executor, authorization: a, realm } = context;
@@ -54,7 +55,7 @@ export const updatePasswordAuthorities: GraphQLFieldConfig<
       );
     }
 
-    return args.authorities.map(async input => {
+    return args.authorities.map(async (input) => {
       // Validate `id`.
       if (!validateIdFormat(input.id)) {
         throw new ValidationError("The provided `id` is an invalid ID.");
@@ -63,12 +64,15 @@ export const updatePasswordAuthorities: GraphQLFieldConfig<
       const tx = await pool.connect();
       try {
         // Make sure this transaction is used for queries made by the executor.
-        const executor = new DataLoaderExecutor(tx, strategies);
+        const executor = new DataLoaderExecutor<Pool | PoolClient>(
+          tx,
+          strategies
+        );
 
         await tx.query("BEGIN DEFERRABLE");
 
         const before = await Authority.read(tx, input.id, strategies, {
-          forUpdate: true
+          forUpdate: true,
         });
 
         if (!(before instanceof PasswordAuthority)) {
@@ -78,7 +82,7 @@ export const updatePasswordAuthorities: GraphQLFieldConfig<
         if (
           !(await before.isAccessibleBy(realm, a, executor, {
             basic: "w",
-            details: ""
+            details: "",
           }))
         ) {
           throw new ForbiddenError(
@@ -90,7 +94,7 @@ export const updatePasswordAuthorities: GraphQLFieldConfig<
           typeof input.rounds === "number" &&
           !(await before.isAccessibleBy(realm, a, executor, {
             basic: "w",
-            details: "w"
+            details: "w",
           }))
         ) {
           throw new ForbiddenError(
@@ -99,7 +103,7 @@ export const updatePasswordAuthorities: GraphQLFieldConfig<
         }
 
         const authority = await PasswordAuthority.write(
-          executor,
+          tx,
           {
             ...before,
             enabled:
@@ -116,21 +120,26 @@ export const updatePasswordAuthorities: GraphQLFieldConfig<
               rounds:
                 typeof input.rounds === "number"
                   ? input.rounds
-                  : before.details.rounds
-            }
+                  : before.details.rounds,
+            },
           },
           {
             recordId: v4(),
             createdByAuthorizationId: a.id,
-            createdAt: new Date()
+            createdAt: new Date(),
           }
         );
 
         await tx.query("COMMIT");
 
+        // Clear and prime the loader.
+        Authority.clear(executor, authority.id);
+        Authority.prime(executor, authority.id, authority);
+
         // Update the context to use a new executor primed with the results of
         // this mutation, using the original connection pool.
-        context.executor = new DataLoaderExecutor(pool, executor.key);
+        executor.connection = pool;
+        context.executor = executor as ReadonlyDataLoaderExecutor<Pool>;
 
         return authority;
       } catch (error) {
@@ -140,5 +149,5 @@ export const updatePasswordAuthorities: GraphQLFieldConfig<
         tx.release();
       }
     });
-  }
+  },
 };

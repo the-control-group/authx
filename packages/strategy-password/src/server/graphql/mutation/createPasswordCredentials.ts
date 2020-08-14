@@ -4,6 +4,7 @@ import { hash } from "bcrypt";
 import { GraphQLList, GraphQLFieldConfig, GraphQLNonNull } from "graphql";
 
 import {
+  Credential,
   Context,
   Authority,
   ForbiddenError,
@@ -12,12 +13,16 @@ import {
   ValidationError,
   Role,
   validateIdFormat,
-  DataLoaderExecutor
+  DataLoaderExecutor,
+  ReadonlyDataLoaderExecutor,
 } from "@authx/authx";
 
-import { createV2AuthXScope } from "@authx/authx/scopes";
+import {
+  createV2AuthXScope,
+  createV2CredentialAdministrationScopes,
+} from "@authx/authx/scopes";
 
-import { isSuperset, simplify, isValidScopeLiteral } from "@authx/scopes";
+import { isSuperset, simplify } from "@authx/scopes";
 import { PasswordCredential, PasswordAuthority } from "../../model";
 import { GraphQLPasswordCredential } from "../GraphQLPasswordCredential";
 import { GraphQLCreatePasswordCredentialInput } from "./GraphQLCreatePasswordCredentialInput";
@@ -47,8 +52,8 @@ export const createPasswordCredentials: GraphQLFieldConfig<
         new GraphQLList(
           new GraphQLNonNull(GraphQLCreatePasswordCredentialInput)
         )
-      )
-    }
+      ),
+    },
   },
   async resolve(source, args, context): Promise<Promise<PasswordCredential>[]> {
     const { executor, authorization: a, realm } = context;
@@ -67,7 +72,7 @@ export const createPasswordCredentials: GraphQLFieldConfig<
       );
     }
 
-    return args.credentials.map(async input => {
+    return args.credentials.map(async (input) => {
       // Validate `id`.
       if (typeof input.id === "string" && !validateIdFormat(input.id)) {
         throw new ValidationError("The provided `id` is an invalid ID.");
@@ -86,26 +91,21 @@ export const createPasswordCredentials: GraphQLFieldConfig<
       }
 
       // Validate `administration`.
-      for (const { roleId, scopes } of input.administration) {
+      for (const { roleId } of input.administration) {
         if (!validateIdFormat(roleId)) {
           throw new ValidationError(
             "The provided `administration` list contains a `roleId` that is an invalid ID."
           );
-        }
-
-        for (const scope of scopes) {
-          if (!isValidScopeLiteral(scope)) {
-            throw new ValidationError(
-              "The provided `administration` list contains a `scopes` list with an invalid scope."
-            );
-          }
         }
       }
 
       const tx = await pool.connect();
       try {
         // Make sure this transaction is used for queries made by the executor.
-        const executor = new DataLoaderExecutor(tx);
+        const executor = new DataLoaderExecutor<Pool | PoolClient>(
+          tx,
+          strategies
+        );
 
         // The user cannot create a credential for this user and authority.
         if (
@@ -117,11 +117,11 @@ export const createPasswordCredentials: GraphQLFieldConfig<
                 type: "credential",
                 credentialId: "",
                 authorityId: input.authorityId,
-                userId: input.userId
+                userId: input.userId,
               },
               {
                 basic: "*",
-                details: "*"
+                details: "*",
               }
             )
           ))
@@ -137,8 +137,8 @@ export const createPasswordCredentials: GraphQLFieldConfig<
           // Make sure the ID isn't already in use.
           if (input.id) {
             try {
-              await PasswordCredential.read(executor, input.id, {
-                forUpdate: true
+              await Credential.read(tx, input.id, strategies, {
+                forUpdate: true,
               });
               throw new ConflictError();
             } catch (error) {
@@ -150,9 +150,9 @@ export const createPasswordCredentials: GraphQLFieldConfig<
 
           const id = input.id || v4();
           const authority = await Authority.read(
-            executor,
+            tx,
             input.authorityId,
-            authorityMap
+            strategies
           );
           if (!(authority instanceof PasswordAuthority)) {
             throw new NotFoundError(
@@ -161,7 +161,7 @@ export const createPasswordCredentials: GraphQLFieldConfig<
           }
 
           const credential = await PasswordCredential.write(
-            executor,
+            tx,
             {
               id,
               enabled: input.enabled,
@@ -169,150 +169,85 @@ export const createPasswordCredentials: GraphQLFieldConfig<
               userId: input.userId,
               authorityUserId: input.userId,
               details: {
-                hash: await hash(input.password, authority.details.rounds)
-              }
+                hash: await hash(input.password, authority.details.rounds),
+              },
             },
             {
               recordId: v4(),
               createdByAuthorizationId: a.id,
-              createdAt: new Date()
+              createdAt: new Date(),
             }
           );
 
-          const possibleAdministrationScopes = [
-            createV2AuthXScope(
-              realm,
-              {
-                type: "credential",
-                authorityId: credential.authorityId,
-                credentialId: id,
-                userId: credential.userId
-              },
-              {
-                basic: "r",
-                details: ""
-              }
-            ),
-            createV2AuthXScope(
-              realm,
-              {
-                type: "credential",
-                authorityId: credential.authorityId,
-                credentialId: id,
-                userId: credential.userId
-              },
-              {
-                basic: "r",
-                details: "r"
-              }
-            ),
-            createV2AuthXScope(
-              realm,
-              {
-                type: "credential",
-                authorityId: credential.authorityId,
-                credentialId: id,
-                userId: credential.userId
-              },
-              {
-                basic: "r",
-                details: "*"
-              }
-            ),
-            createV2AuthXScope(
-              realm,
-              {
-                type: "credential",
-                authorityId: credential.authorityId,
-                credentialId: id,
-                userId: credential.userId
-              },
-              {
-                basic: "w",
-                details: ""
-              }
-            ),
-            createV2AuthXScope(
-              realm,
-              {
-                type: "credential",
-                authorityId: credential.authorityId,
-                credentialId: id,
-                userId: credential.userId
-              },
-              {
-                basic: "w",
-                details: "w"
-              }
-            ),
-            createV2AuthXScope(
-              realm,
-              {
-                type: "credential",
-                authorityId: credential.authorityId,
-                credentialId: id,
-                userId: credential.userId
-              },
-              {
-                basic: "w",
-                details: "*"
-              }
-            ),
-            createV2AuthXScope(
-              realm,
-              {
-                type: "credential",
-                authorityId: credential.authorityId,
-                credentialId: id,
-                userId: credential.userId
-              },
-              {
-                basic: "*",
-                details: "*"
-              }
-            )
-          ];
+          const possibleAdministrationScopes = createV2CredentialAdministrationScopes(
+            realm,
+            {
+              type: "credential",
+              authorityId: credential.authorityId,
+              credentialId: id,
+              userId: credential.userId,
+            }
+          );
 
           // Add administration scopes.
-          for (const { roleId, scopes } of input.administration) {
-            const role = await Role.read(executor, roleId, { forUpdate: true });
+          const administrationResults = await Promise.allSettled(
+            input.administration.map(async ({ roleId, scopes }) => {
+              const administrationRoleBefore = await Role.read(tx, roleId, {
+                forUpdate: true,
+              });
 
-            if (
-              !role.isAccessibleBy(realm, a, executor, {
-                basic: "w",
-                scopes: "w",
-                users: ""
-              })
-            ) {
-              throw new ForbiddenError(
-                `You do not have permission to modify the scopes of role ${roleId}.`
-              );
-            }
-
-            await Role.write(
-              executor,
-              {
-                ...role,
-                scopes: simplify([
-                  ...role.scopes,
-                  ...possibleAdministrationScopes.filter(possible =>
-                    isSuperset(scopes, possible)
-                  )
-                ])
-              },
-              {
-                recordId: v4(),
-                createdByAuthorizationId: a.id,
-                createdAt: new Date()
+              if (
+                !administrationRoleBefore.isAccessibleBy(realm, a, executor, {
+                  basic: "w",
+                  scopes: "w",
+                  users: "",
+                })
+              ) {
+                throw new ForbiddenError(
+                  `You do not have permission to modify the scopes of role ${roleId}.`
+                );
               }
-            );
+
+              const administrationRole = await Role.write(
+                tx,
+                {
+                  ...administrationRoleBefore,
+                  scopes: simplify([
+                    ...administrationRoleBefore.scopes,
+                    ...possibleAdministrationScopes.filter((possible) =>
+                      isSuperset(scopes, possible)
+                    ),
+                  ]),
+                },
+                {
+                  recordId: v4(),
+                  createdByAuthorizationId: a.id,
+                  createdAt: new Date(),
+                }
+              );
+
+              // Clear and prime the loader.
+              Role.clear(executor, administrationRole.id);
+              Role.prime(executor, administrationRole.id, administrationRole);
+            })
+          );
+
+          for (const result of administrationResults) {
+            if (result.status === "rejected") {
+              throw new Error(result.reason);
+            }
           }
 
           await tx.query("COMMIT");
 
+          // Clear and prime the loader.
+          Credential.clear(executor, credential.id);
+          Credential.prime(executor, credential.id, credential);
+
           // Update the context to use a new executor primed with the results of
           // this mutation, using the original connection pool.
-          context.executor = new DataLoaderExecutor(pool, executor.key);
+          executor.connection = pool;
+          context.executor = executor as ReadonlyDataLoaderExecutor<Pool>;
 
           return credential;
         } catch (error) {
@@ -323,5 +258,5 @@ export const createPasswordCredentials: GraphQLFieldConfig<
         tx.release();
       }
     });
-  }
+  },
 };

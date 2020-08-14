@@ -185,7 +185,7 @@ export const createRoles: GraphQLFieldConfig<
           let selfAdministrationScopes: string[] = [];
 
           // Add administration scopes.
-          await Promise.all(
+          const administrationResults = await Promise.allSettled(
             input.administration.map(async ({ roleId, scopes }) => {
               // The role designates itself for administration.
               if (roleId === id) {
@@ -239,6 +239,12 @@ export const createRoles: GraphQLFieldConfig<
               Role.prime(executor, administrationRole.id, administrationRole);
             })
           );
+
+          for (const result of administrationResults) {
+            if (result.status === "rejected") {
+              throw new Error(result.reason);
+            }
+          }
 
           const role = await Role.write(
             tx,

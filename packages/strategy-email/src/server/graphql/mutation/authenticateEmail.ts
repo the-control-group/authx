@@ -2,7 +2,7 @@ import {
   GraphQLFieldConfig,
   GraphQLID,
   GraphQLNonNull,
-  GraphQLString
+  GraphQLString,
 } from "graphql";
 import jwt from "jsonwebtoken";
 import { randomBytes } from "crypto";
@@ -16,7 +16,7 @@ import {
   ForbiddenError,
   AuthenticationError,
   User,
-  DataLoaderExecutor
+  DataLoaderExecutor,
 } from "@authx/authx";
 
 import { createV2AuthXScope } from "@authx/authx/scopes";
@@ -40,14 +40,14 @@ export const authenticateEmail: GraphQLFieldConfig<
   description: "Create a new authorization.",
   args: {
     authorityId: {
-      type: new GraphQLNonNull(GraphQLID)
+      type: new GraphQLNonNull(GraphQLID),
     },
     email: {
-      type: new GraphQLNonNull(GraphQLString)
+      type: new GraphQLNonNull(GraphQLString),
     },
     proof: {
-      type: GraphQLString
-    }
+      type: GraphQLString,
+    },
   },
   async resolve(source, args, context): Promise<Authorization> {
     const {
@@ -56,7 +56,7 @@ export const authenticateEmail: GraphQLFieldConfig<
       realm,
       strategies: { authorityMap },
       sendMail,
-      base
+      base,
     } = context;
 
     if (a) {
@@ -97,10 +97,10 @@ export const authenticateEmail: GraphQLFieldConfig<
       const { proof } = args;
       if (proof) {
         if (
-          !authority.details.publicKeys.some(key => {
+          !authority.details.publicKeys.some((key) => {
             try {
               const payload = jwt.verify(proof, key, {
-                algorithms: ["RS512"]
+                algorithms: ["RS512"],
               });
 
               // Make sure we're using the same email
@@ -138,13 +138,13 @@ export const authenticateEmail: GraphQLFieldConfig<
         // Generate a new proof
         const proof = jwt.sign(
           {
-            email: args.email
+            email: args.email,
           },
           authority.details.privateKey,
           {
             algorithm: "RS512",
             expiresIn: authority.details.proofValidityDuration,
-            jwtid: proofId
+            jwtid: proofId,
           }
         );
 
@@ -165,7 +165,7 @@ export const authenticateEmail: GraphQLFieldConfig<
           html: substitute(
             { proof, url },
             authority.details.authenticationEmailHtml
-          )
+          ),
         });
 
         throw new ForbiddenError(
@@ -176,7 +176,7 @@ export const authenticateEmail: GraphQLFieldConfig<
       // Invoke the credential.
       await credential.invoke(executor, {
         id: v4(),
-        createdAt: new Date()
+        createdAt: new Date(),
       });
 
       const authorizationId = v4();
@@ -185,7 +185,7 @@ export const authenticateEmail: GraphQLFieldConfig<
         currentAuthorizationId: authorizationId,
         currentUserId: credential.userId,
         currentGrantId: null,
-        currentClientId: null
+        currentClientId: null,
       };
 
       // Make sure the user can create new authorizations.
@@ -200,12 +200,12 @@ export const authenticateEmail: GraphQLFieldConfig<
               authorizationId: "",
               grantId: "",
               clientId: "",
-              userId: user.id
+              userId: user.id,
             },
             {
               basic: "*",
               scopes: "*",
-              secrets: "*"
+              secrets: "*",
             }
           )
         )
@@ -224,13 +224,13 @@ export const authenticateEmail: GraphQLFieldConfig<
           userId: credential.userId,
           grantId: null,
           secret: randomBytes(16).toString("hex"),
-          scopes: [`${realm}:**:**`]
+          scopes: [`${realm}:**:**`],
         },
         {
           recordId: v4(),
           createdByAuthorizationId: authorizationId,
           createdByCredentialId: credential.id,
-          createdAt: new Date()
+          createdAt: new Date(),
         }
       );
 
@@ -239,7 +239,7 @@ export const authenticateEmail: GraphQLFieldConfig<
       await authorization.invoke(executor, {
         id: v4(),
         format: "basic",
-        createdAt: new Date()
+        createdAt: new Date(),
       });
 
       await tx.query("COMMIT");
@@ -258,5 +258,5 @@ export const authenticateEmail: GraphQLFieldConfig<
     } finally {
       tx.release();
     }
-  }
+  },
 };

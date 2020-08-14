@@ -2,7 +2,7 @@ import {
   GraphQLFieldConfig,
   GraphQLID,
   GraphQLNonNull,
-  GraphQLString
+  GraphQLString,
 } from "graphql";
 
 import { Pool, PoolClient } from "pg";
@@ -18,7 +18,8 @@ import {
   ForbiddenError,
   AuthenticationError,
   User,
-  DataLoaderExecutor
+  DataLoaderExecutor,
+  ReadonlyDataLoaderExecutor,
 } from "@authx/authx";
 
 import { createV2AuthXScope } from "@authx/authx/scopes";
@@ -41,17 +42,17 @@ export const authenticatePassword: GraphQLFieldConfig<
   description: "Create a new authorization.",
   args: {
     identityAuthorityId: {
-      type: new GraphQLNonNull(GraphQLID)
+      type: new GraphQLNonNull(GraphQLID),
     },
     identityAuthorityUserId: {
-      type: new GraphQLNonNull(GraphQLString)
+      type: new GraphQLNonNull(GraphQLString),
     },
     passwordAuthorityId: {
-      type: new GraphQLNonNull(GraphQLID)
+      type: new GraphQLNonNull(GraphQLID),
     },
     password: {
-      type: new GraphQLNonNull(GraphQLString)
-    }
+      type: new GraphQLNonNull(GraphQLString),
+    },
   },
   async resolve(source, args, context): Promise<Authorization> {
     const { executor, authorization: a, realm } = context;
@@ -71,7 +72,10 @@ export const authenticatePassword: GraphQLFieldConfig<
     const tx = await pool.connect();
     try {
       // Make sure this transaction is used for queries made by the executor.
-      const executor = new DataLoaderExecutor(tx, strategies);
+      const executor = new DataLoaderExecutor<Pool | PoolClient>(
+        tx,
+        strategies
+      );
 
       await tx.query("BEGIN DEFERRABLE");
 
@@ -104,7 +108,7 @@ export const authenticatePassword: GraphQLFieldConfig<
             AND authority_user_id = $2
             AND enabled = true
             AND replacement_record_id IS NULL
-        `,
+          `,
           [args.identityAuthorityId, args.identityAuthorityUserId]
         );
 
@@ -142,7 +146,7 @@ export const authenticatePassword: GraphQLFieldConfig<
       // Invoke the credential.
       await credential.invoke(executor, {
         id: v4(),
-        createdAt: new Date()
+        createdAt: new Date(),
       });
 
       const authorizationId = v4();
@@ -151,7 +155,7 @@ export const authenticatePassword: GraphQLFieldConfig<
         currentAuthorizationId: authorizationId,
         currentUserId: credential.userId,
         currentGrantId: null,
-        currentClientId: null
+        currentClientId: null,
       };
 
       // Make sure the user can create new authorizations.
@@ -166,12 +170,12 @@ export const authenticatePassword: GraphQLFieldConfig<
               authorizationId: "",
               grantId: "",
               clientId: "",
-              userId: user.id
+              userId: user.id,
             },
             {
               basic: "*",
               scopes: "*",
-              secrets: "*"
+              secrets: "*",
             }
           )
         )
@@ -183,20 +187,20 @@ export const authenticatePassword: GraphQLFieldConfig<
 
       // Create a new authorization.
       const authorization = await Authorization.write(
-        executor,
+        tx,
         {
           id: authorizationId,
           enabled: true,
           userId,
           grantId: null,
           secret: randomBytes(16).toString("hex"),
-          scopes: [`${realm}:**:**`]
+          scopes: [`${realm}:**:**`],
         },
         {
           recordId: v4(),
           createdByAuthorizationId: authorizationId,
           createdByCredentialId: credential.id,
-          createdAt: new Date()
+          createdAt: new Date(),
         }
       );
 
@@ -205,17 +209,19 @@ export const authenticatePassword: GraphQLFieldConfig<
       await authorization.invoke(executor, {
         id: v4(),
         format: "basic",
-        createdAt: new Date()
+        createdAt: new Date(),
       });
 
       await tx.query("COMMIT");
 
+      // Clear and prime the loader.
+      Authorization.clear(executor, authorization.id);
+      Authorization.prime(executor, authorization.id, authorization);
+
       // Update the context to use a new executor primed with the results of
       // this mutation, using the original connection pool.
-      context.executor = new DataLoaderExecutor(pool, executor.key);
-
-      // Use this authorization for the remainder of the request.
-      context.authorization = authorization;
+      executor.connection = pool;
+      context.executor = executor as ReadonlyDataLoaderExecutor<Pool>;
 
       return authorization;
     } catch (error) {
@@ -224,5 +230,5 @@ export const authenticatePassword: GraphQLFieldConfig<
     } finally {
       tx.release();
     }
-  }
+  },
 };

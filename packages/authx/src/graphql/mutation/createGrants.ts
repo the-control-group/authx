@@ -255,7 +255,7 @@ export const createGrants: GraphQLFieldConfig<
           ];
 
           // Add administration scopes.
-          await Promise.all(
+          const administrationResults = await Promise.allSettled(
             input.administration.map(async ({ roleId, scopes }) => {
               const administrationRoleBefore = await Role.read(tx, roleId, {
                 forUpdate: true,
@@ -296,6 +296,12 @@ export const createGrants: GraphQLFieldConfig<
               Role.prime(executor, administrationRole.id, administrationRole);
             })
           );
+
+          for (const result of administrationResults) {
+            if (result.status === "rejected") {
+              throw new Error(result.reason);
+            }
+          }
 
           await tx.query("COMMIT");
 
