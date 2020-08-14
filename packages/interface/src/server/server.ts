@@ -5,7 +5,7 @@ import createInterfaceMiddleware from ".";
   const app = new Koa();
   const interfaceMiddleware = await createInterfaceMiddleware("authx", [
     "@authx/strategy-email/client",
-    "@authx/strategy-password/client",
+    "@authx/strategy-password/client"
   ]);
   app.use(interfaceMiddleware);
   const server = app.listen(

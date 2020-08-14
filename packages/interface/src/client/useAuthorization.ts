@@ -42,7 +42,7 @@ export function useAuthorization(): {
         ) {
           setAuthorization({
             id: authorizationId,
-            secret: authorizationSecret,
+            secret: authorizationSecret
           });
         }
       }
@@ -61,7 +61,7 @@ export function useAuthorization(): {
       setAuthorization(null);
     }, [setAuthorization]),
     setAuthorization: useCallback(
-      (authorization) => {
+      authorization => {
         window.localStorage.setItem(
           "authx-interface.authorization",
           `${authorization.id}:${authorization.secret}`
@@ -69,6 +69,6 @@ export function useAuthorization(): {
         setAuthorization(authorization);
       },
       [setAuthorization]
-    ),
+    )
   };
 }

@@ -71,7 +71,7 @@ export abstract class Authority<A> implements AuthorityData<A> {
     tx: Pool | ClientBase | DataLoaderExecutor,
     action: AuthorityAction = {
       basic: "r",
-      details: "",
+      details: ""
     }
   ): Promise<boolean> {
     if (
@@ -81,7 +81,7 @@ export abstract class Authority<A> implements AuthorityData<A> {
           realm,
           {
             type: "authority",
-            authorityId: this.id,
+            authorityId: this.id
           },
           action
         )
@@ -123,13 +123,13 @@ export abstract class Authority<A> implements AuthorityData<A> {
     );
 
     return result.rows.map(
-      (row) =>
+      row =>
         new AuthorityRecord({
           ...row,
           replacementRecordId: row.replacement_record_id,
           createdByAuthorizationId: row.created_by_authorization_id,
           createdAt: row.created_at,
-          entityId: row.entity_id,
+          entityId: row.entity_id
         })
     );
   }
@@ -227,7 +227,7 @@ export abstract class Authority<A> implements AuthorityData<A> {
       }
 
       const authorities = await Promise.all(
-        id.map((id) => loader.load(id) as Promise<InstanceType<M[K]>>)
+        id.map(id => loader.load(id) as Promise<InstanceType<M[K]>>)
       );
 
       // Address a scenario in which the loader could return a authority from a
@@ -276,22 +276,22 @@ export abstract class Authority<A> implements AuthorityData<A> {
       throw new NotFoundError();
     }
 
-    const data = result.rows.map((row) => {
+    const data = result.rows.map(row => {
       return {
         ...row,
         recordId: row.record_id,
-        baseUrls: row.base_urls,
+        baseUrls: row.base_urls
       };
     });
 
     // No map is provided: instantiate all returned records with this class
     if (!map) {
-      const instances = data.map((data) => new this(data));
+      const instances = data.map(data => new this(data));
       return typeof id === "string" ? instances[0] : instances;
     }
 
     // A map is provided: use the constructor for the corresponding strategy
-    const instances = data.map((data) => {
+    const instances = data.map(data => {
       const Class = map[data.strategy];
 
       if (!Class) {
@@ -386,7 +386,7 @@ export abstract class Authority<A> implements AuthorityData<A> {
         data.name,
         data.description,
         data.strategy,
-        data.details,
+        data.details
       ]
     );
 
@@ -398,7 +398,7 @@ export abstract class Authority<A> implements AuthorityData<A> {
     return new this({
       ...row,
       recordId: row.record_id,
-      baseUrls: row.base_urls,
+      baseUrls: row.base_urls
     }) as T;
   }
 

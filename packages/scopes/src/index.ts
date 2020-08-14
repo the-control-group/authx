@@ -3,7 +3,7 @@ export {
   InvalidValueError,
   MissingValueError,
   InvalidParameterizedScopeError,
-  inject,
+  inject
 } from "./parse";
 
 import * as PARAMETER from "./parameter";
@@ -15,7 +15,7 @@ import {
   parseParameterizedScopeLiteral,
   parseParameterizedScopeTemplate,
   InvalidScopeError,
-  InvalidParameterizedScopeError,
+  InvalidParameterizedScopeError
 } from "./parse";
 import { print } from "./print";
 
@@ -257,6 +257,6 @@ export function extract(
         return acc;
       },
       {}
-    ),
+    )
   }));
 }

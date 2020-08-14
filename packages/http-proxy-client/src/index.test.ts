@@ -54,7 +54,7 @@ test.before(async () => {
                   exp: nowInSeconds + 3600,
                   iss: "authx",
                   sub: "c79a01a2-0ed7-45c5-93b8-bc921d5cf368",
-                  aud: body.client_id,
+                  aud: body.client_id
                 })
               )
                 .toString("base64")
@@ -64,7 +64,7 @@ test.before(async () => {
                 )}.SflKxwRJSMeKKF2QT4fwpMeJf36POk6yJV_adQssw5c`,
               refresh_token: body.refresh_token,
               expires_in: 3600,
-              scope: body.scope,
+              scope: body.scope
               /* eslint-enable camelcase */
             })
           );
@@ -109,7 +109,7 @@ test.before(async () => {
         response.end(
           JSON.stringify({
             url: request.url,
-            token: JSON.parse(decoded),
+            token: JSON.parse(decoded)
           })
         );
       });
@@ -125,7 +125,7 @@ test.before(async () => {
       });
 
       server.listen(undefined, "localhost");
-    }),
+    })
   ]);
 
   mockAuthX = mocks[0];
@@ -142,8 +142,8 @@ test.before(async () => {
           return url === "/no-token";
         },
         behavior: {
-          proxyOptions: { target: `http://127.0.0.1:${mockTarget.port}` },
-        },
+          proxyOptions: { target: `http://127.0.0.1:${mockTarget.port}` }
+        }
       },
       {
         test({ url }) {
@@ -151,8 +151,8 @@ test.before(async () => {
         },
         behavior: {
           proxyOptions: { target: `http://127.0.0.1:${mockTarget.port}` },
-          refreshToken: "cbfd6ad6-b770-4ffd-911d-d999a894a0fb",
-        },
+          refreshToken: "cbfd6ad6-b770-4ffd-911d-d999a894a0fb"
+        }
       },
       {
         test({ url }) {
@@ -161,8 +161,8 @@ test.before(async () => {
         behavior: {
           proxyOptions: { target: `http://127.0.0.1:${mockTarget.port}` },
           refreshToken: "cbfd6ad6-b770-4ffd-911d-d999a894a0fb",
-          sendTokenToTargetWithScopes: ["foo:**:**"],
-        },
+          sendTokenToTargetWithScopes: ["foo:**:**"]
+        }
       },
       {
         test({ url }) {
@@ -173,14 +173,14 @@ test.before(async () => {
           return {
             proxyOptions: { target: `http://127.0.0.1:${mockTarget.port}` },
             refreshToken: "58582764-308e-4eaa-9e72-dbb7e7f1c085",
-            sendTokenToTargetWithScopes: ["**:**:**"],
+            sendTokenToTargetWithScopes: ["**:**:**"]
           };
-        },
-      },
-    ],
+        }
+      }
+    ]
   });
 
-  proxy.on("error", (error) => console.error(error));
+  proxy.on("error", error => console.error(error));
 
   await proxy.listen({ port: 0, host: "localhost" });
   const address = proxy && proxy.server.address();
@@ -191,22 +191,22 @@ test.before(async () => {
   port = address.port;
 });
 
-test("readiness endpoint", async (t) => {
+test("readiness endpoint", async t => {
   const response = await fetch(`http://127.0.0.1:${port}/_ready`);
   t.is(response.status, 200);
   t.is(await response.text(), "READY");
 });
 
-test("no token", async (t) => {
+test("no token", async t => {
   const result = await fetch(`http://127.0.0.1:${port}/no-token`);
   t.assert(result.status === 200);
   t.deepEqual(await result.json(), {
     url: "/no-token",
-    token: null,
+    token: null
   });
 });
 
-test("with static token", async (t) => {
+test("with static token", async t => {
   const result = await fetch(`http://127.0.0.1:${port}/with-static-token`);
   t.assert(result.status === 200);
   t.deepEqual(await result.json(), {
@@ -217,12 +217,12 @@ test("with static token", async (t) => {
       exp: nowInSeconds + 3600,
       iss: "authx",
       sub: "c79a01a2-0ed7-45c5-93b8-bc921d5cf368",
-      aud: "b22282bf-1b78-4ffc-a0d6-2da5465895d0",
-    },
+      aud: "b22282bf-1b78-4ffc-a0d6-2da5465895d0"
+    }
   });
 });
 
-test("with static token and scopes", async (t) => {
+test("with static token and scopes", async t => {
   const result = await fetch(
     `http://127.0.0.1:${port}/with-static-token-and-scopes`
   );
@@ -235,12 +235,12 @@ test("with static token and scopes", async (t) => {
       exp: nowInSeconds + 3600,
       iss: "authx",
       sub: "c79a01a2-0ed7-45c5-93b8-bc921d5cf368",
-      aud: "b22282bf-1b78-4ffc-a0d6-2da5465895d0",
-    },
+      aud: "b22282bf-1b78-4ffc-a0d6-2da5465895d0"
+    }
   });
 });
 
-test("with dynamic token and scopes", async (t) => {
+test("with dynamic token and scopes", async t => {
   const result = await fetch(
     `http://127.0.0.1:${port}/with-dynamic-token-and-scopes`
   );
@@ -253,7 +253,7 @@ test("with dynamic token and scopes", async (t) => {
       exp: nowInSeconds + 3600,
       iss: "authx",
       sub: "c79a01a2-0ed7-45c5-93b8-bc921d5cf368",
-      aud: "b22282bf-1b78-4ffc-a0d6-2da5465895d0",
-    },
+      aud: "b22282bf-1b78-4ffc-a0d6-2da5465895d0"
+    }
   });
 });

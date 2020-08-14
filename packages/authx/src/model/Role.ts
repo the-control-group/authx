@@ -65,7 +65,7 @@ export class Role implements RoleData {
     action: RoleAction = {
       basic: "r",
       scopes: "",
-      users: "",
+      users: ""
     }
   ): Promise<boolean> {
     if (
@@ -75,7 +75,7 @@ export class Role implements RoleData {
           realm,
           {
             type: "role",
-            roleId: this.id,
+            roleId: this.id
           },
           action
         )
@@ -107,7 +107,7 @@ export class Role implements RoleData {
       current_authorization_id: values.currentAuthorizationId,
       current_user_id: values.currentUserId,
       current_grant_id: values.currentGrantId,
-      current_client_id: values.currentClientId,
+      current_client_id: values.currentClientId
       /* eslint-enable camelcase */
     });
   }
@@ -142,13 +142,13 @@ export class Role implements RoleData {
     );
 
     return result.rows.map(
-      (row) =>
+      row =>
         new RoleRecord({
           ...row,
           replacementRecordId: row.replacement_record_id,
           createdByAuthorizationId: row.created_by_authorization_id,
           createdAt: row.created_at,
-          entityId: row.entity_id,
+          entityId: row.entity_id
         })
     );
   }
@@ -193,7 +193,7 @@ export class Role implements RoleData {
       }
 
       // Load multiple instances.
-      return Promise.all(id.map((i) => loader.load(i)));
+      return Promise.all(id.map(i => loader.load(i)));
     }
 
     if (typeof id !== "string" && !id.length) {
@@ -242,11 +242,11 @@ export class Role implements RoleData {
     }
 
     const roles = result.rows.map(
-      (row) =>
+      row =>
         new Role({
           ...row,
           recordId: row.record_id,
-          userIds: row.user_ids.filter((id: null | string) => id),
+          userIds: row.user_ids.filter((id: null | string) => id)
         })
     );
 
@@ -323,7 +323,7 @@ export class Role implements RoleData {
         data.enabled,
         data.name,
         data.description,
-        simplify([...data.scopes]),
+        simplify([...data.scopes])
       ]
     );
 
@@ -354,7 +354,7 @@ export class Role implements RoleData {
     return new Role({
       ...row,
       recordId: row.record_id,
-      userIds: users.rows.map(({ user_id: userId }) => userId),
+      userIds: users.rows.map(({ user_id: userId }) => userId)
     });
   }
 

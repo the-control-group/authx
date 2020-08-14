@@ -31,10 +31,10 @@ async function assertPermissions(
         realm,
         {
           type: "user",
-          userId: grant.userId,
+          userId: grant.userId
         },
         {
-          basic: "r",
+          basic: "r"
         }
       )
     )) ||
@@ -48,12 +48,12 @@ async function assertPermissions(
           type: "grant",
           clientId: grant.clientId,
           grantId: grant.id,
-          userId: grant.userId,
+          userId: grant.userId
         },
         {
           basic: "r",
           scopes: "",
-          secrets: "",
+          secrets: ""
         }
       )
     )) ||
@@ -66,12 +66,12 @@ async function assertPermissions(
           type: "grant",
           clientId: grant.clientId,
           grantId: grant.id,
-          userId: grant.userId,
+          userId: grant.userId
         },
         {
           basic: "r",
           scopes: "",
-          secrets: "r",
+          secrets: "r"
         }
       )
     )) ||
@@ -84,12 +84,12 @@ async function assertPermissions(
           type: "grant",
           clientId: grant.clientId,
           grantId: grant.id,
-          userId: grant.userId,
+          userId: grant.userId
         },
         {
           basic: "r",
           scopes: "r",
-          secrets: "",
+          secrets: ""
         }
       )
     )) ||
@@ -102,12 +102,12 @@ async function assertPermissions(
           type: "grant",
           clientId: grant.clientId,
           grantId: grant.id,
-          userId: grant.userId,
+          userId: grant.userId
         },
         {
           basic: "w",
           scopes: "",
-          secrets: "w",
+          secrets: "w"
         }
       )
     )) ||
@@ -122,12 +122,12 @@ async function assertPermissions(
           authorizationId: "*",
           clientId: grant.clientId,
           grantId: grant.id,
-          userId: grant.userId,
+          userId: grant.userId
         },
         {
           basic: "r",
           scopes: "",
-          secrets: "",
+          secrets: ""
         }
       )
     )) ||
@@ -141,12 +141,12 @@ async function assertPermissions(
           authorizationId: "*",
           clientId: grant.clientId,
           grantId: grant.id,
-          userId: grant.userId,
+          userId: grant.userId
         },
         {
           basic: "r",
           scopes: "r",
-          secrets: "",
+          secrets: ""
         }
       )
     )) ||
@@ -160,12 +160,12 @@ async function assertPermissions(
           authorizationId: "*",
           clientId: grant.clientId,
           grantId: grant.id,
-          userId: grant.userId,
+          userId: grant.userId
         },
         {
           basic: "r",
           scopes: "",
-          secrets: "r",
+          secrets: "r"
         }
       )
     )) ||
@@ -179,12 +179,12 @@ async function assertPermissions(
           authorizationId: "*",
           clientId: grant.clientId,
           grantId: grant.id,
-          userId: grant.userId,
+          userId: grant.userId
         },
         {
           basic: "w",
           scopes: "",
-          secrets: "",
+          secrets: ""
         }
       )
     )) ||
@@ -198,12 +198,12 @@ async function assertPermissions(
           authorizationId: "*",
           clientId: grant.clientId,
           grantId: grant.id,
-          userId: grant.userId,
+          userId: grant.userId
         },
         {
           basic: "w",
           scopes: "w",
-          secrets: "",
+          secrets: ""
         }
       )
     )) ||
@@ -217,12 +217,12 @@ async function assertPermissions(
           authorizationId: "*",
           clientId: grant.clientId,
           grantId: grant.id,
-          userId: grant.userId,
+          userId: grant.userId
         },
         {
           basic: "w",
           scopes: "",
-          secrets: "w",
+          secrets: "w"
         }
       )
     ))
@@ -289,7 +289,7 @@ async function oAuth2Middleware(
     realm,
     jwtValidityDuration,
     codeValidityDuration,
-    privateKey,
+    privateKey
   } = ctx[x];
 
   const strategies = executor.strategies;
@@ -389,7 +389,7 @@ async function oAuth2Middleware(
           // Invoke the client.
           await client.invoke(executor, {
             id: v4(),
-            createdAt: new Date(),
+            createdAt: new Date()
           });
 
           // Decode and validate the authorization code.
@@ -450,7 +450,7 @@ async function oAuth2Middleware(
           // Invoke the grant.
           await grant.invoke(executor, {
             id: v4(),
-            createdAt: new Date(),
+            createdAt: new Date()
           });
 
           // Fetch the user.
@@ -470,7 +470,7 @@ async function oAuth2Middleware(
             currentUserId: grant.userId,
             currentGrantId: grant.id,
             currentClientId: grant.clientId,
-            currentAuthorizationId: null,
+            currentAuthorizationId: null
           };
 
           // Make sure we have the necessary access.
@@ -478,12 +478,12 @@ async function oAuth2Middleware(
 
           // Get all enabled authorizations of this grant.
           const authorizations = (await grant.authorizations(executor)).filter(
-            (t) => t.enabled
+            t => t.enabled
           );
 
           // Look for an existing active authorization for this grant with all
           // grant scopes.
-          const possibleRootAuthorizations = authorizations.filter((t) =>
+          const possibleRootAuthorizations = authorizations.filter(t =>
             isEqual("**:**:**", t.scopes)
           );
 
@@ -505,20 +505,20 @@ async function oAuth2Middleware(
                 userId: user.id,
                 grantId: grant.id,
                 secret: randomBytes(16).toString("hex"),
-                scopes: ["**:**:**"],
+                scopes: ["**:**:**"]
               },
               {
                 recordId: v4(),
                 createdByAuthorizationId: authorizationId,
                 createdByCredentialId: null,
-                createdAt: new Date(),
+                createdAt: new Date()
               }
             );
           }
 
           // Look for an existing active authorization for this grant with the
           // requested scopes.
-          const possibleRequestedAuthorizations = authorizations.filter((t) =>
+          const possibleRequestedAuthorizations = authorizations.filter(t =>
             isEqual(requestedScopes, t.scopes)
           );
 
@@ -536,20 +536,20 @@ async function oAuth2Middleware(
                 userId: user.id,
                 grantId: grant.id,
                 secret: randomBytes(16).toString("hex"),
-                scopes: requestedScopes,
+                scopes: requestedScopes
               },
               {
                 recordId: v4(),
                 createdByAuthorizationId: rootAuthorization.id,
                 createdByCredentialId: null,
-                createdAt: new Date(),
+                createdAt: new Date()
               }
             );
           }
 
           // Remove the authorization code we used, and prune any others that
           // have expired.
-          const codes = [...grant.codes].filter((code) => {
+          const codes = [...grant.codes].filter(code => {
             const issued = Buffer.from(code, "base64")
               .toString("utf8")
               .split(":")[1];
@@ -564,12 +564,12 @@ async function oAuth2Middleware(
             tx,
             {
               ...grant,
-              codes,
+              codes
             },
             {
               recordId: v4(),
               createdByAuthorizationId: rootAuthorization.id,
-              createdAt: new Date(),
+              createdAt: new Date()
             }
           );
 
@@ -578,7 +578,7 @@ async function oAuth2Middleware(
           await requestedAuthorization.invoke(executor, {
             id: tokenId,
             format: "bearer",
-            createdAt: new Date(),
+            createdAt: new Date()
           });
 
           const body = {
@@ -588,7 +588,7 @@ async function oAuth2Middleware(
               {
                 aid: requestedAuthorization.id,
                 scopes,
-                nonce: paramsNonce,
+                nonce: paramsNonce
               },
               privateKey,
               {
@@ -597,12 +597,12 @@ async function oAuth2Middleware(
                 expiresIn: jwtValidityDuration,
                 audience: client.id,
                 subject: user.id,
-                issuer: realm,
+                issuer: realm
               }
             ),
             refresh_token: getRefreshToken(grant.secrets),
             expires_in: jwtValidityDuration,
-            scope: scopes.join(" "),
+            scope: scopes.join(" ")
             /* eslint-enable camelcase */
           };
 
@@ -696,7 +696,7 @@ async function oAuth2Middleware(
           // Invoke the client.
           await client.invoke(tx, {
             id: v4(),
-            createdAt: new Date(),
+            createdAt: new Date()
           });
 
           // Decode and validate the authorization code.
@@ -760,7 +760,7 @@ async function oAuth2Middleware(
           // Invoke the grant.
           await grant.invoke(executor, {
             id: v4(),
-            createdAt: new Date(),
+            createdAt: new Date()
           });
 
           // Fetch the user.
@@ -779,17 +779,17 @@ async function oAuth2Middleware(
             currentUserId: grant.userId,
             currentGrantId: grant.id,
             currentClientId: grant.clientId,
-            currentAuthorizationId: null,
+            currentAuthorizationId: null
           });
 
           // Get all enabled authorizations of this grant.
           const authorizations = (await grant.authorizations(executor)).filter(
-            (t) => t.enabled
+            t => t.enabled
           );
 
           // Look for an existing active authorization for this grant with all
           // grant scopes.
-          const possibleRootAuthorizations = authorizations.filter((t) =>
+          const possibleRootAuthorizations = authorizations.filter(t =>
             isEqual("**:**:**", t.scopes)
           );
 
@@ -811,27 +811,27 @@ async function oAuth2Middleware(
                 userId: user.id,
                 grantId: grant.id,
                 secret: randomBytes(16).toString("hex"),
-                scopes: ["**:**:**"],
+                scopes: ["**:**:**"]
               },
               {
                 recordId: v4(),
                 createdByAuthorizationId: authorizationId,
                 createdByCredentialId: null,
-                createdAt: new Date(),
+                createdAt: new Date()
               }
             );
           }
 
           // Look for an existing active authorization for this grant with the
           // requested scopes.
-          const possibleRequestedAuthorizations = authorizations.filter((t) =>
+          const possibleRequestedAuthorizations = authorizations.filter(t =>
             isEqual(
               inject(requestedScopeTemplates, {
                 /* eslint-disable camelcase */
                 current_user_id: grant.userId ?? null,
                 current_grant_id: grant.id ?? null,
                 current_client_id: grant.clientId ?? null,
-                current_authorization_id: t.id ?? null,
+                current_authorization_id: t.id ?? null
                 /* eslint-enable camelcase */
               }),
               t.scopes
@@ -859,15 +859,15 @@ async function oAuth2Middleware(
                   current_user_id: grant.userId ?? null,
                   current_grant_id: grant.id ?? null,
                   current_client_id: grant.clientId ?? null,
-                  current_authorization_id: authorizationId ?? null,
+                  current_authorization_id: authorizationId ?? null
                   /* eslint-enable camelcase */
-                }),
+                })
               },
               {
                 recordId: v4(),
                 createdByAuthorizationId: rootAuthorization.id,
                 createdByCredentialId: null,
-                createdAt: new Date(),
+                createdAt: new Date()
               }
             );
           }
@@ -878,7 +878,7 @@ async function oAuth2Middleware(
           await requestedAuthorization.invoke(executor, {
             id: tokenId,
             format: "bearer",
-            createdAt: new Date(),
+            createdAt: new Date()
           });
 
           const body = {
@@ -888,7 +888,7 @@ async function oAuth2Middleware(
               {
                 aid: requestedAuthorization.id,
                 scopes,
-                nonce: paramsNonce,
+                nonce: paramsNonce
               },
               privateKey,
               {
@@ -897,12 +897,12 @@ async function oAuth2Middleware(
                 expiresIn: jwtValidityDuration,
                 audience: client.id,
                 subject: user.id,
-                issuer: realm,
+                issuer: realm
               }
             ),
             refresh_token: getRefreshToken(grant.secrets),
             expires_in: jwtValidityDuration,
-            scope: scopes.join(" "),
+            scope: scopes.join(" ")
             /* eslint-enabme camelcase */
           };
 

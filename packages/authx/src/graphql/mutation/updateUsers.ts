@@ -26,8 +26,8 @@ export const updateUsers: GraphQLFieldConfig<
     users: {
       type: new GraphQLNonNull(
         new GraphQLList(new GraphQLNonNull(GraphQLUpdateUserInput))
-      ),
-    },
+      )
+    }
   },
   async resolve(source, args, context): Promise<Promise<User>[]> {
     const { executor, authorization: a, realm } = context;
@@ -46,7 +46,7 @@ export const updateUsers: GraphQLFieldConfig<
       );
     }
 
-    return args.users.map(async (input) => {
+    return args.users.map(async input => {
       // Validate `id`.
       if (!validateIdFormat(input.id)) {
         throw new ValidationError("The provided `id` is an invalid ID.");
@@ -63,12 +63,12 @@ export const updateUsers: GraphQLFieldConfig<
         await tx.query("BEGIN DEFERRABLE");
 
         const before = await User.read(tx, input.id, {
-          forUpdate: true,
+          forUpdate: true
         });
 
         if (
           !(await before.isAccessibleBy(realm, a, executor, {
-            basic: "w",
+            basic: "w"
           }))
         ) {
           throw new ForbiddenError(
@@ -84,12 +84,12 @@ export const updateUsers: GraphQLFieldConfig<
               typeof input.enabled === "boolean"
                 ? input.enabled
                 : before.enabled,
-            name: typeof input.name === "string" ? input.name : before.name,
+            name: typeof input.name === "string" ? input.name : before.name
           },
           {
             recordId: v4(),
             createdByAuthorizationId: a.id,
-            createdAt: new Date(),
+            createdAt: new Date()
           }
         );
 
@@ -112,5 +112,5 @@ export const updateUsers: GraphQLFieldConfig<
         tx.release();
       }
     });
-  },
+  }
 };

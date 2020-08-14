@@ -7,7 +7,7 @@ import {
   isSuperset,
   isEqual,
   normalize,
-  simplify,
+  simplify
 } from "./scope";
 
 import { print } from "./print";
@@ -19,9 +19,9 @@ import { parseScopeLiteral } from "./parse";
   { a: ["a:b:c"], b: ["a.x:b:c"], result: false },
   { a: ["*:b:c"], b: ["a:b:c"], result: false },
   { a: ["a:b:c"], b: ["*:b:c"], result: false },
-  { a: ["**.**:b:c"], b: ["*.**:b:c"], result: true },
+  { a: ["**.**:b:c"], b: ["*.**:b:c"], result: true }
 ].forEach(({ a, b, result }) => {
-  t(`isEqual ${a} ${b} => ${result}`, (t) =>
+  t(`isEqual ${a} ${b} => ${result}`, t =>
     t.deepEqual(
       isEqual(a.map(parseScopeLiteral), b.map(parseScopeLiteral)),
       result
@@ -49,9 +49,9 @@ import { parseScopeLiteral } from "./parse";
   { scope: "**.**.c:resource:action", result: "*.**.c:resource:action" },
   { scope: "*.**.**:resource:action", result: "*.*.**:resource:action" },
   { scope: "**.*.**:resource:action", result: "*.*.**:resource:action" },
-  { scope: "**.**.**:resource:action", result: "*.*.**:resource:action" },
+  { scope: "**.**.**:resource:action", result: "*.*.**:resource:action" }
 ].forEach(({ scope, result }) => {
-  t(`normalize template ${scope} => ${result}`, (t) =>
+  t(`normalize template ${scope} => ${result}`, t =>
     t.is(print(normalize(parseScopeLiteral(scope))), result)
   );
 });
@@ -61,151 +61,151 @@ import { parseScopeLiteral } from "./parse";
   {
     a: ["client:resource:action"],
     b: ["wrongclient:resource:action"],
-    result: ["wrongclient:resource:action"],
+    result: ["wrongclient:resource:action"]
   },
   {
     a: ["client:resource:action"],
     b: ["client:wrongresource:action"],
-    result: ["client:wrongresource:action"],
+    result: ["client:wrongresource:action"]
   },
   {
     a: ["client:resource:action"],
     b: ["client:resource:wrongaction"],
-    result: ["client:resource:wrongaction"],
+    result: ["client:resource:wrongaction"]
   },
   {
     a: ["client:resource:action"],
     b: ["client.a:resource.b:action.c"],
-    result: ["client.a:resource.b:action.c"],
+    result: ["client.a:resource.b:action.c"]
   },
   {
     a: ["client.*:resource:action"],
     b: ["client.a:resource:action"],
-    result: [],
+    result: []
   },
   {
     a: ["client.*:resource:action"],
     b: ["client.*:resource:action"],
-    result: [],
+    result: []
   },
   {
     a: ["client.*:resource:action"],
     b: ["client.**:resource:action"],
-    result: ["client.**:resource:action"],
+    result: ["client.**:resource:action"]
   },
   {
     a: ["client.a:resource:action"],
     b: ["client.*:resource:action"],
-    result: ["client.*:resource:action"],
+    result: ["client.*:resource:action"]
   },
   {
     a: ["client.*:resource:action"],
     b: ["client:resource:action"],
-    result: ["client:resource:action"],
+    result: ["client:resource:action"]
   },
   {
     a: ["client.*:resource:action"],
     b: ["client:resource.a:action"],
-    result: ["client:resource.a:action"],
+    result: ["client:resource.a:action"]
   },
   {
     a: ["client.*:resource:action"],
     b: ["client.a.b:resource:action"],
-    result: ["client.a.b:resource:action"],
+    result: ["client.a.b:resource:action"]
   },
   {
     a: ["client.*:resource:action"],
     b: ["client.a:wrongresource:action"],
-    result: ["client.a:wrongresource:action"],
+    result: ["client.a:wrongresource:action"]
   },
   {
     a: ["client.*:resource:action"],
     b: ["client.a:resource:wrongaction"],
-    result: ["client.a:resource:wrongaction"],
+    result: ["client.a:resource:wrongaction"]
   },
   {
     a: ["client.**:resource:action"],
     b: ["client.a:resource:action"],
-    result: [],
+    result: []
   },
   {
     a: ["client.**:resource:action"],
     b: ["client.a.b:resource:action"],
-    result: [],
+    result: []
   },
   {
     a: ["client.a:resource:action"],
     b: ["client.**:resource:action"],
-    result: ["client.**:resource:action"],
+    result: ["client.**:resource:action"]
   },
   {
     a: ["client.a.b:resource:action"],
     b: ["client.**:resource:action"],
-    result: ["client.**:resource:action"],
+    result: ["client.**:resource:action"]
   },
   {
     a: ["client.**:resource:action"],
     b: ["client:resource:action"],
-    result: ["client:resource:action"],
+    result: ["client:resource:action"]
   },
   {
     a: ["client.**:resource:action"],
     b: ["client:resource.a:action"],
-    result: ["client:resource.a:action"],
+    result: ["client:resource.a:action"]
   },
   {
     a: ["client:resource:action"],
     b: ["client.**:resource:action"],
-    result: ["client.**:resource:action"],
+    result: ["client.**:resource:action"]
   },
   {
     a: ["client:resource:action"],
     b: ["client.**:resource.a:action"],
-    result: ["client.**:resource.a:action"],
+    result: ["client.**:resource.a:action"]
   },
   {
     a: ["client.**:resource:action"],
     b: ["client.a:wrongresource:action"],
-    result: ["client.a:wrongresource:action"],
+    result: ["client.a:wrongresource:action"]
   },
   {
     a: ["client.**:resource:action"],
     b: ["client.a:resource:wrongaction"],
-    result: ["client.a:resource:wrongaction"],
+    result: ["client.a:resource:wrongaction"]
   },
   {
     a: ["client.b:resource:action", "client.c:resource:action"],
     b: ["client.a:resource:action"],
-    result: ["client.a:resource:action"],
+    result: ["client.a:resource:action"]
   },
   {
     a: ["other.b:resource:action", "client.*:resource:action"],
     b: ["client.a:resource:action"],
-    result: [],
+    result: []
   },
   {
     a: ["client.*:resource:action", "other.b:resource:action"],
     b: ["client.a:resource:action"],
-    result: [],
+    result: []
   },
   {
     a: ["client.b:resource:action", "client.a:resource:action"],
     b: ["client.*:resource:action"],
-    result: ["client.*:resource:action"],
+    result: ["client.*:resource:action"]
   },
   {
     a: ["client.*:resource:action"],
     b: ["client.a:resource:action", "client.c:resource:action"],
-    result: [],
+    result: []
   },
   {
     a: ["client.*:resource:action", "other.b:resource:action"],
     b: ["client.a:resource:action", "client.c:resource:action"],
-    result: [],
+    result: []
   },
-  { a: ["a:b:c", "x:y:z"], b: ["a:b:c", "x:y:z"], result: [] },
+  { a: ["a:b:c", "x:y:z"], b: ["a:b:c", "x:y:z"], result: [] }
 ].forEach(({ a, b, result }) => {
-  t(`getDifference ${a} ${b} => ${result}`, (t) =>
+  t(`getDifference ${a} ${b} => ${result}`, t =>
     t.deepEqual(
       getDifference(a.map(parseScopeLiteral), b.map(parseScopeLiteral)).map(
         print
@@ -219,146 +219,146 @@ import { parseScopeLiteral } from "./parse";
   {
     a: ["client:resource:action"],
     b: ["client:resource:action"],
-    result: true,
+    result: true
   },
   {
     a: ["client:resource:action"],
     b: ["wrongclient:resource:action"],
-    result: false,
+    result: false
   },
   {
     a: ["client:resource:action"],
     b: ["client:wrongresource:action"],
-    result: false,
+    result: false
   },
   {
     a: ["client:resource:action"],
     b: ["client:resource:wrongaction"],
-    result: false,
+    result: false
   },
   {
     a: ["client:resource:action"],
     b: ["client.a:resource.b:action.c"],
-    result: false,
+    result: false
   },
   {
     a: ["client.*:resource:action"],
     b: ["client.a:resource:action"],
-    result: true,
+    result: true
   },
   {
     a: ["client.*:resource:action"],
     b: ["client.*:resource:action"],
-    result: true,
+    result: true
   },
   {
     a: ["client.*:resource:action"],
     b: ["client.**:resource:action"],
-    result: false,
+    result: false
   },
   {
     a: ["client.a:resource:action"],
     b: ["client.*:resource:action"],
-    result: false,
+    result: false
   },
   {
     a: ["client.*:resource:action"],
     b: ["client:resource:action"],
-    result: false,
+    result: false
   },
   {
     a: ["client.*:resource:action"],
     b: ["client:resource.a:action"],
-    result: false,
+    result: false
   },
   {
     a: ["client.*:resource:action"],
     b: ["client.a.b:resource:action"],
-    result: false,
+    result: false
   },
   {
     a: ["client.*:resource:action"],
     b: ["client.a:wrongresource:action"],
-    result: false,
+    result: false
   },
   {
     a: ["client.*:resource:action"],
     b: ["client.a:resource:wrongaction"],
-    result: false,
+    result: false
   },
   {
     a: ["client.**:resource:action"],
     b: ["client.a:resource:action"],
-    result: true,
+    result: true
   },
   {
     a: ["client.**:resource:action"],
     b: ["client.a.b:resource:action"],
-    result: true,
+    result: true
   },
   {
     a: ["client.a:resource:action"],
     b: ["client.**:resource:action"],
-    result: false,
+    result: false
   },
   {
     a: ["client.a.b:resource:action"],
     b: ["client.**:resource:action"],
-    result: false,
+    result: false
   },
   {
     a: ["client.**:resource:action"],
     b: ["client:resource:action"],
-    result: false,
+    result: false
   },
   {
     a: ["client.**:resource:action"],
     b: ["client:resource.a:action"],
-    result: false,
+    result: false
   },
   {
     a: ["client:resource:action"],
     b: ["client.**:resource:action"],
-    result: false,
+    result: false
   },
   {
     a: ["client:resource:action"],
     b: ["client.**:resource.a:action"],
-    result: false,
+    result: false
   },
   {
     a: ["client.**:resource:action"],
     b: ["client.a:wrongresource:action"],
-    result: false,
+    result: false
   },
   {
     a: ["client.**:resource:action"],
     b: ["client.a:resource:wrongaction"],
-    result: false,
+    result: false
   },
   {
     a: ["client.b:resource:action", "client.c:resource:action"],
     b: ["client.a:resource:action"],
-    result: false,
+    result: false
   },
   {
     a: ["client.b:resource:action", "client.*:resource:action"],
     b: ["client.a:resource:action"],
-    result: true,
+    result: true
   },
   {
     a: ["client.b:resource:action", "client.a:resource:action"],
     b: ["client.*:resource:action"],
-    result: false,
+    result: false
   },
   {
     a: ["client.*:resource:action", "client.b:resource:action"],
     b: ["client.a:resource:action"],
-    result: true,
+    result: true
   },
-  { a: ["a:b:c", "x:y:z"], b: ["a:b:c", "x:y:z"], result: true },
+  { a: ["a:b:c", "x:y:z"], b: ["a:b:c", "x:y:z"], result: true }
 ].forEach(({ a, b, result }) => {
-  t(`isSuperset ${a} ${b} => ${result}`, (t) =>
+  t(`isSuperset ${a} ${b} => ${result}`, t =>
     t.is(isSuperset(a.map(parseScopeLiteral), b.map(parseScopeLiteral)), result)
   );
 });
@@ -367,145 +367,145 @@ import { parseScopeLiteral } from "./parse";
   {
     a: ["client:resource:action"],
     b: ["client:resource:action"],
-    result: true,
+    result: true
   },
   {
     a: ["client:resource:action"],
     b: ["wrongclient:resource:action"],
-    result: false,
+    result: false
   },
   {
     a: ["client:resource:action"],
     b: ["client:wrongresource:action"],
-    result: false,
+    result: false
   },
   {
     a: ["client:resource:action"],
     b: ["client:resource:wrongaction"],
-    result: false,
+    result: false
   },
   {
     a: ["client:resource:action"],
     b: ["client.a:resource.b:action.c"],
-    result: false,
+    result: false
   },
   {
     a: ["client.*:resource:action"],
     b: ["client.a:resource:action"],
-    result: true,
+    result: true
   },
   {
     a: ["client.*:resource:action"],
     b: ["client.*:resource:action"],
-    result: true,
+    result: true
   },
   {
     a: ["client.*:resource:action"],
     b: ["client.**:resource:action"],
-    result: true,
+    result: true
   },
   {
     a: ["client.a:resource:action"],
     b: ["client.*:resource:action"],
-    result: true,
+    result: true
   },
   {
     a: ["client.*:resource:action"],
     b: ["client:resource:action"],
-    result: false,
+    result: false
   },
   {
     a: ["client.*:resource:action"],
     b: ["client:resource.a:action"],
-    result: false,
+    result: false
   },
   {
     a: ["client.*:resource:action"],
     b: ["client.a.b:resource:action"],
-    result: false,
+    result: false
   },
   {
     a: ["client.*:resource:action"],
     b: ["client.a:wrongresource:action"],
-    result: false,
+    result: false
   },
   {
     a: ["client.*:resource:action"],
     b: ["client.a:resource:wrongaction"],
-    result: false,
+    result: false
   },
   {
     a: ["client.**:resource:action"],
     b: ["client.a:resource:action"],
-    result: true,
+    result: true
   },
   {
     a: ["client.**:resource:action"],
     b: ["client.a.b:resource:action"],
-    result: true,
+    result: true
   },
   {
     a: ["client.a:resource:action"],
     b: ["client.**:resource:action"],
-    result: true,
+    result: true
   },
   {
     a: ["client.a.b:resource:action"],
     b: ["client.**:resource:action"],
-    result: true,
+    result: true
   },
   {
     a: ["client.**:resource:action"],
     b: ["client:resource:action"],
-    result: false,
+    result: false
   },
   {
     a: ["client.**:resource:action"],
     b: ["client:resource.a:action"],
-    result: false,
+    result: false
   },
   {
     a: ["client:resource:action"],
     b: ["client.**:resource:action"],
-    result: false,
+    result: false
   },
   {
     a: ["client:resource:action"],
     b: ["client.**:resource.a:action"],
-    result: false,
+    result: false
   },
   {
     a: ["client.**:resource:action"],
     b: ["client.a:wrongresource:action"],
-    result: false,
+    result: false
   },
   {
     a: ["client.**:resource:action"],
     b: ["client.a:resource:wrongaction"],
-    result: false,
+    result: false
   },
   {
     a: ["client.b:resource:action", "client.c:resource:action"],
     b: ["client.a:resource:action"],
-    result: false,
+    result: false
   },
   {
     a: ["client.b:resource:action", "client.*:resource:action"],
     b: ["client.a:resource:action"],
-    result: true,
+    result: true
   },
   {
     a: ["client.b:resource:action", "client.a:resource:action"],
     b: ["client.*:resource:action"],
-    result: true,
+    result: true
   },
   {
     a: ["client.*:resource:action", "client.b:resource:action"],
     b: ["client.a:resource:action"],
-    result: true,
-  },
+    result: true
+  }
 ].forEach(({ a, b, result }) => {
-  t(`hasIntersection ${a} ${b} => ${result}`, (t) =>
+  t(`hasIntersection ${a} ${b} => ${result}`, t =>
     t.is(
       hasIntersection(a.map(parseScopeLiteral), b.map(parseScopeLiteral)),
       result
@@ -538,9 +538,9 @@ import { parseScopeLiteral } from "./parse";
   { a: ["x:b:c"], b: ["a:b:c"], result: [] },
   { a: ["x:*:c"], b: ["a:b:c"], result: [] },
   { a: ["x:**:c"], b: ["a:b:c"], result: [] },
-  { a: ["**:b:c", "a:**:c"], b: ["a:b:c", "x:y:c"], result: ["a:b:c"] },
+  { a: ["**:b:c", "a:**:c"], b: ["a:b:c", "x:y:c"], result: ["a:b:c"] }
 ].forEach(({ a, b, result }) => {
-  t(`getIntersection - (${a}) ∩ (${b}) => ${result}`, (t) => {
+  t(`getIntersection - (${a}) ∩ (${b}) => ${result}`, t => {
     t.deepEqual(
       getIntersection(a.map(parseScopeLiteral), b.map(parseScopeLiteral))
         .map(print)
@@ -566,22 +566,22 @@ import { parseScopeLiteral } from "./parse";
   { scopes: ["foo.**:b:c", "foo.*:b:c", "foo.*:b:c"], result: ["foo.**:b:c"] },
   {
     scopes: ["foo.**:b:c", "foo.*:b:c", "foo.*:b:c", "foo.a:b:c"],
-    result: ["foo.**:b:c"],
+    result: ["foo.**:b:c"]
   },
   {
     scopes: ["foo.a:b:c", "foo.*:b:c", "foo.*:b:c", "foo.**:b:c"],
-    result: ["foo.**:b:c"],
+    result: ["foo.**:b:c"]
   },
   {
     scopes: [
       "AuthX:credential.incontact.me:read",
       "AuthX:credential.incontact.user:read",
-      "AuthX:credential.*.me:*",
+      "AuthX:credential.*.me:*"
     ],
-    result: ["AuthX:credential.*.me:*", "AuthX:credential.incontact.user:read"],
-  },
+    result: ["AuthX:credential.*.me:*", "AuthX:credential.incontact.user:read"]
+  }
 ].forEach(({ scopes, result }) => {
-  t(`simplify - (${scopes.join(") • (")}) => ${result}`, (t) => {
+  t(`simplify - (${scopes.join(") • (")}) => ${result}`, t => {
     t.deepEqual(
       simplify(scopes.map(parseScopeLiteral)).map(print).sort(),
       result.sort()

@@ -4,30 +4,30 @@ import {
   GraphQLNonNull,
   GraphQLString,
   GraphQLBoolean,
-  GraphQLInputObjectType,
+  GraphQLInputObjectType
 } from "graphql";
 
 export const GraphQLUpdatePasswordAuthorityInput = new GraphQLInputObjectType({
   name: "UpdatePasswordAuthorityInput",
   fields: () => ({
     id: {
-      type: new GraphQLNonNull(GraphQLID),
+      type: new GraphQLNonNull(GraphQLID)
     },
     enabled: {
-      type: GraphQLBoolean,
+      type: GraphQLBoolean
     },
     name: {
       type: GraphQLString,
-      description: "The name of the authority.",
+      description: "The name of the authority."
     },
     description: {
       type: GraphQLString,
-      description: "The description of the authority.",
+      description: "The description of the authority."
     },
     rounds: {
       type: GraphQLInt,
       description:
-        "The number of bcrypt rounds to use when generating new hashes.",
-    },
-  }),
+        "The number of bcrypt rounds to use when generating new hashes."
+    }
+  })
 });

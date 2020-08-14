@@ -22,8 +22,8 @@ new AuthXProxy({
       behavior: {
         proxyOptions: { target: "http://127.0.0.1:3000" },
         sendTokenToTarget: false,
-        requireScopes: ["example.resource:something:read"],
-      },
+        requireScopes: ["example.resource:something:read"]
+      }
     },
 
     // We want to make sure any POST or PUT request to /something has been
@@ -38,8 +38,8 @@ new AuthXProxy({
       behavior: {
         proxyOptions: { target: "http://127.0.0.1:3000" },
         sendTokenToTarget: false,
-        requireScopes: ["example.resource:something:write"],
-      },
+        requireScopes: ["example.resource:something:write"]
+      }
     },
 
     // For all other paths, we want to let all requests through, but validate
@@ -50,10 +50,10 @@ new AuthXProxy({
       },
       behavior: {
         proxyOptions: { target: "http://127.0.0.1:3000" },
-        sendTokenToTarget: false,
-      },
-    },
-  ],
+        sendTokenToTarget: false
+      }
+    }
+  ]
 });
 ```
 

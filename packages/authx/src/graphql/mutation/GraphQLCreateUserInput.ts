@@ -4,7 +4,7 @@ import {
   GraphQLString,
   GraphQLBoolean,
   GraphQLInputObjectType,
-  GraphQLList,
+  GraphQLList
 } from "graphql";
 
 import { GraphQLUserType } from "../GraphQLUserType";
@@ -15,23 +15,23 @@ export const GraphQLCreateUserInput = new GraphQLInputObjectType({
   fields: () => ({
     id: {
       type: GraphQLID,
-      description: "Optional UUID to use for the new user.",
+      description: "Optional UUID to use for the new user."
     },
     enabled: {
       type: GraphQLBoolean,
-      defaultValue: true,
+      defaultValue: true
     },
     type: {
-      type: new GraphQLNonNull(GraphQLUserType),
+      type: new GraphQLNonNull(GraphQLUserType)
     },
     name: {
-      type: new GraphQLNonNull(GraphQLString),
+      type: new GraphQLNonNull(GraphQLString)
     },
     administration: {
       type: new GraphQLList(new GraphQLNonNull(GraphQLAdministrationInput)),
       description:
         "An optional list of roles to which scopes will be added for the purpose of administering the created user.",
-      defaultValue: [],
-    },
-  }),
+      defaultValue: []
+    }
+  })
 });

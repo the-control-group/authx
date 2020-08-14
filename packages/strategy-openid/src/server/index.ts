@@ -11,7 +11,7 @@ import {
   GraphQLCreateOpenIdAuthorityInput,
   GraphQLCreateOpenIdCredentialInput,
   GraphQLUpdateOpenIdAuthorityInput,
-  GraphQLUpdateOpenIdCredentialInput,
+  GraphQLUpdateOpenIdCredentialInput
 } from "./graphql";
 
 export * from "./model";
@@ -25,7 +25,7 @@ const strategy: Strategy = {
     GraphQLCreateOpenIdAuthorityInput,
     GraphQLCreateOpenIdCredentialInput,
     GraphQLUpdateOpenIdAuthorityInput,
-    GraphQLUpdateOpenIdCredentialInput,
+    GraphQLUpdateOpenIdCredentialInput
   ],
   queryFields: {},
   mutationFields: {
@@ -35,10 +35,10 @@ const strategy: Strategy = {
     updateOpenIdAuthorities,
 
     createOpenIdCredentials,
-    updateOpenIdCredentials,
+    updateOpenIdCredentials
   },
   authorityModel: OpenIdAuthority,
-  credentialModel: OpenIdCredential,
+  credentialModel: OpenIdCredential
 };
 
 export default strategy;

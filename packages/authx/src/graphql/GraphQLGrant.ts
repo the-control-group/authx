@@ -5,13 +5,13 @@ import {
   GraphQLString,
   GraphQLBoolean,
   GraphQLObjectType,
-  GraphQLFieldConfigMap,
+  GraphQLFieldConfigMap
 } from "graphql";
 
 import {
   connectionFromArray,
   connectionArgs,
-  ConnectionArguments,
+  ConnectionArguments
 } from "graphql-relay";
 
 import { Grant, Client, User } from "../model";
@@ -34,7 +34,7 @@ export const GraphQLGrant: GraphQLObjectType<
   fields: (): GraphQLFieldConfigMap<Grant, Context> => ({
     id: { type: new GraphQLNonNull(GraphQLID) },
     enabled: {
-      type: new GraphQLNonNull(GraphQLBoolean),
+      type: new GraphQLNonNull(GraphQLBoolean)
     },
     user: {
       type: GraphQLUser,
@@ -46,7 +46,7 @@ export const GraphQLGrant: GraphQLObjectType<
         if (!a) return null;
         const user = await grant.user(executor);
         return user.isAccessibleBy(realm, a, executor) ? user : null;
-      },
+      }
     },
     client: {
       type: GraphQLClient,
@@ -58,7 +58,7 @@ export const GraphQLGrant: GraphQLObjectType<
         if (!a) return null;
         const client = await grant.client(executor);
         return client.isAccessibleBy(realm, a, executor) ? client : null;
-      },
+      }
     },
     secrets: {
       type: new GraphQLList(GraphQLString),
@@ -71,11 +71,11 @@ export const GraphQLGrant: GraphQLObjectType<
           (await grant.isAccessibleBy(realm, a, executor, {
             basic: "r",
             scopes: "",
-            secrets: "r",
+            secrets: "r"
           }))
           ? [...grant.secrets]
           : null;
-      },
+      }
     },
     codes: {
       type: new GraphQLList(GraphQLString),
@@ -88,11 +88,11 @@ export const GraphQLGrant: GraphQLObjectType<
           (await grant.isAccessibleBy(realm, a, executor, {
             basic: "r",
             scopes: "",
-            secrets: "r",
+            secrets: "r"
           }))
           ? [...grant.codes]
           : null;
-      },
+      }
     },
     scopes: {
       type: new GraphQLList(GraphQLScope),
@@ -105,11 +105,11 @@ export const GraphQLGrant: GraphQLObjectType<
           (await grant.isAccessibleBy(realm, a, executor, {
             basic: "r",
             scopes: "r",
-            secrets: "",
+            secrets: ""
           }))
           ? grant.scopes
           : null;
-      },
+      }
     },
     explanations: {
       type: new GraphQLList(GraphQLExplanation),
@@ -124,7 +124,7 @@ export const GraphQLGrant: GraphQLObjectType<
           !(await grant.isAccessibleBy(realm, a, executor, {
             basic: "r",
             scopes: "r",
-            secrets: "",
+            secrets: ""
           }))
         ) {
           return null;
@@ -133,9 +133,9 @@ export const GraphQLGrant: GraphQLObjectType<
           currentAuthorizationId: null,
           currentGrantId: grant.id,
           currentUserId: grant.userId,
-          currentClientId: grant.clientId || null,
+          currentClientId: grant.clientId || null
         });
-      },
+      }
     },
     authorizations: {
       type: GraphQLAuthorizationConnection,
@@ -152,13 +152,13 @@ export const GraphQLGrant: GraphQLObjectType<
           ? connectionFromArray(
               await filter(
                 await grant.authorizations(executor),
-                (authorization) =>
+                authorization =>
                   authorization.isAccessibleBy(realm, a, executor)
               ),
               args
             )
           : null;
-      },
-    },
-  }),
+      }
+    }
+  })
 });

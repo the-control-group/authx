@@ -3,7 +3,7 @@ import { GraphQLBoolean, GraphQLFieldConfig } from "graphql";
 import {
   connectionFromArray,
   connectionArgs,
-  ConnectionArguments,
+  ConnectionArguments
 } from "graphql-relay";
 
 import { GraphQLCredentialConnection } from "../GraphQLCredentialConnection";
@@ -25,8 +25,8 @@ export const credentials: GraphQLFieldConfig<
     includeDisabled: {
       type: GraphQLBoolean,
       defaultValue: false,
-      description: "Include disabled credentials in results.",
-    },
+      description: "Include disabled credentials in results."
+    }
   },
   async resolve(source, args, context) {
     const { executor, authorization: a, realm } = context;
@@ -52,10 +52,10 @@ export const credentials: GraphQLFieldConfig<
     );
 
     return connectionFromArray(
-      await filter(credentials, (credential) =>
+      await filter(credentials, credential =>
         credential.isAccessibleBy(realm, a, executor)
       ),
       args
     );
-  },
+  }
 };

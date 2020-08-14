@@ -14,8 +14,8 @@ export const user: GraphQLFieldConfig<
   description: "Fetch a user by ID.",
   args: {
     id: {
-      type: new GraphQLNonNull(GraphQLID),
-    },
+      type: new GraphQLNonNull(GraphQLID)
+    }
   },
   async resolve(source, args, context): Promise<null | User> {
     const { executor, authorization: a, realm } = context;
@@ -23,5 +23,5 @@ export const user: GraphQLFieldConfig<
 
     const user = await User.read(executor, args.id);
     return (await user.isAccessibleBy(realm, a, executor)) ? user : null;
-  },
+  }
 };

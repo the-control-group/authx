@@ -56,8 +56,8 @@ export function createSchema(strategies: StrategyCollection): GraphQLSchema {
       ...(queryFields as {
         [key: string]: GraphQLFieldConfig<any, Context, any>;
       }),
-      ...strategies.queryFields,
-    }),
+      ...strategies.queryFields
+    })
   });
 
   const mutation = new GraphQLObjectType<any, Context>({
@@ -67,8 +67,8 @@ export function createSchema(strategies: StrategyCollection): GraphQLSchema {
       ...(mutationFields as {
         [key: string]: GraphQLFieldConfig<any, Context, any>;
       }),
-      ...strategies.mutationFields,
-    }),
+      ...strategies.mutationFields
+    })
   });
 
   return new GraphQLSchema({
@@ -86,9 +86,9 @@ export function createSchema(strategies: StrategyCollection): GraphQLSchema {
       ...mutationTypes,
 
       // merge in types from strategies
-      ...strategies.types,
+      ...strategies.types
     ],
     mutation,
-    query,
+    query
   });
 }

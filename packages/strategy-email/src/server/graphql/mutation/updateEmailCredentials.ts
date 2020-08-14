@@ -10,7 +10,7 @@ import {
   ValidationError,
   validateIdFormat,
   DataLoaderExecutor,
-  ReadonlyDataLoaderExecutor,
+  ReadonlyDataLoaderExecutor
 } from "@authx/authx";
 import { EmailCredential } from "../../model";
 import { GraphQLEmailCredential } from "../GraphQLEmailCredential";
@@ -32,8 +32,8 @@ export const updateEmailCredentials: GraphQLFieldConfig<
     credentials: {
       type: new GraphQLNonNull(
         new GraphQLList(new GraphQLNonNull(GraphQLUpdateEmailCredentialInput))
-      ),
-    },
+      )
+    }
   },
   async resolve(source, args, context): Promise<Promise<EmailCredential>[]> {
     const { executor, authorization: a, realm } = context;
@@ -52,7 +52,7 @@ export const updateEmailCredentials: GraphQLFieldConfig<
       );
     }
 
-    return args.credentials.map(async (input) => {
+    return args.credentials.map(async input => {
       // Validate `id`.
       if (!validateIdFormat(input.id)) {
         throw new ValidationError("The provided `id` is an invalid ID.");
@@ -69,7 +69,7 @@ export const updateEmailCredentials: GraphQLFieldConfig<
         await tx.query("BEGIN DEFERRABLE");
 
         const before = await Credential.read(tx, input.id, strategies, {
-          forUpdate: true,
+          forUpdate: true
         });
 
         if (!(before instanceof EmailCredential)) {
@@ -79,7 +79,7 @@ export const updateEmailCredentials: GraphQLFieldConfig<
         if (
           !(await before.isAccessibleBy(realm, a, executor, {
             basic: "w",
-            details: "",
+            details: ""
           }))
         ) {
           throw new ForbiddenError(
@@ -94,12 +94,12 @@ export const updateEmailCredentials: GraphQLFieldConfig<
             enabled:
               typeof input.enabled === "boolean"
                 ? input.enabled
-                : before.enabled,
+                : before.enabled
           },
           {
             recordId: v4(),
             createdByAuthorizationId: a.id,
-            createdAt: new Date(),
+            createdAt: new Date()
           }
         );
 
@@ -122,5 +122,5 @@ export const updateEmailCredentials: GraphQLFieldConfig<
         tx.release();
       }
     });
-  },
+  }
 };

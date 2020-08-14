@@ -66,7 +66,7 @@ export async function fromBearer(
   for (const key of keys) {
     try {
       payload = verify(bearer, key, {
-        algorithms: ["RS512"],
+        algorithms: ["RS512"]
       }) as {
         aid: string;
         sub: string;

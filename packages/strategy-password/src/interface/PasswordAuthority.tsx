@@ -4,7 +4,7 @@ import React, {
   useEffect,
   useContext,
   ReactElement,
-  FormEvent,
+  FormEvent
 } from "react";
 
 import { GraphQL, GraphQLContext } from "graphql-react";
@@ -18,7 +18,7 @@ interface Props {
 export function PasswordAuthority({
   authority,
   authorities,
-  setAuthorization,
+  setAuthorization
 }: Props): ReactElement<Props> {
   // Focus the email field on mount
   const focusElement = useRef<HTMLInputElement>(null);
@@ -44,13 +44,13 @@ export function PasswordAuthority({
   >("");
   const identityAuthority =
     (identityAuthorityId &&
-      authorities.find((a) => a.id === identityAuthorityId)) ||
+      authorities.find(a => a.id === identityAuthorityId)) ||
     null;
 
   // Default to using an email address
   if (!identityAuthorityId) {
     const firstEmailAuthority = authorities.find(
-      (a) => a.__typename === "EmailAuthority"
+      a => a.__typename === "EmailAuthority"
     );
     if (firstEmailAuthority) {
       setIdentityAuthorityId(firstEmailAuthority.id);
@@ -107,9 +107,9 @@ export function PasswordAuthority({
             identityAuthorityId,
             identityAuthorityUserId,
             passwordAuthorityId: authority.id,
-            password,
-          },
-        },
+            password
+          }
+        }
       });
 
       const result = await operation.cacheValuePromise;
@@ -124,14 +124,14 @@ export function PasswordAuthority({
       // make it more difficult for an attacker to query for valid email
       // addresses, user IDs, or other information.
       if (result.graphQLErrors && result.graphQLErrors.length) {
-        setErrors(result.graphQLErrors.map((e) => e.message));
+        setErrors(result.graphQLErrors.map(e => e.message));
         return;
       }
 
       const authorization = result.data && result.data.authenticatePassword;
       if (!authorization || !authorization.secret) {
         setErrors([
-          "No authorization was returned. Contact your administrator to ensure you have sufficient access to read your own authorizations and authorization secrets.",
+          "No authorization was returned. Contact your administrator to ensure you have sufficient access to read your own authorizations and authorization secrets."
         ]);
         return;
       }
@@ -164,13 +164,13 @@ export function PasswordAuthority({
             <select
               disabled={operating}
               value={identityAuthorityId}
-              onChange={(e) => setIdentityAuthorityId(e.target.value)}
+              onChange={e => setIdentityAuthorityId(e.target.value)}
               style={{ marginRight: "14px" }}
             >
               <option value={authority.id}>User ID</option>
               {authorities
-                .filter((a) => a.__typename === "EmailAuthority")
-                .map((a) => (
+                .filter(a => a.__typename === "EmailAuthority")
+                .map(a => (
                   <option key={a.id} value={a.id}>
                     {a.name}
                   </option>
@@ -198,7 +198,7 @@ export function PasswordAuthority({
               "text"
             }
             value={identityAuthorityUserId}
-            onChange={(e) => setIdentityAuthorityUserId(e.target.value)}
+            onChange={e => setIdentityAuthorityUserId(e.target.value)}
             style={{ flex: "1" }}
             required
           />
@@ -211,7 +211,7 @@ export function PasswordAuthority({
           name="password"
           type="password"
           value={password}
-          onChange={(e) => setPassword(e.target.value)}
+          onChange={e => setPassword(e.target.value)}
           required
         />
       </label>

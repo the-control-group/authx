@@ -7,31 +7,31 @@ export function createV2CredentialAdministrationScopes(
   return [
     createV2AuthXScope(realm, credentialContext, {
       basic: "r",
-      details: "",
+      details: ""
     }),
     createV2AuthXScope(realm, credentialContext, {
       basic: "r",
-      details: "r",
+      details: "r"
     }),
     createV2AuthXScope(realm, credentialContext, {
       basic: "r",
-      details: "*",
+      details: "*"
     }),
     createV2AuthXScope(realm, credentialContext, {
       basic: "w",
-      details: "",
+      details: ""
     }),
     createV2AuthXScope(realm, credentialContext, {
       basic: "w",
-      details: "w",
+      details: "w"
     }),
     createV2AuthXScope(realm, credentialContext, {
       basic: "w",
-      details: "*",
+      details: "*"
     }),
     createV2AuthXScope(realm, credentialContext, {
       basic: "*",
-      details: "*",
-    }),
+      details: "*"
+    })
   ];
 }

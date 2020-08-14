@@ -4,10 +4,10 @@ export const GraphQLTokenFormat = new GraphQLEnumType({
   name: "TokenFormat",
   values: {
     BEARER: {
-      value: "bearer",
+      value: "bearer"
     },
     BASIC: {
-      value: "basic",
-    },
-  },
+      value: "basic"
+    }
+  }
 });

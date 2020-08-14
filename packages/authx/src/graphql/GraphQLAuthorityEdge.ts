@@ -7,6 +7,6 @@ export const GraphQLAuthorityEdge = new GraphQLObjectType({
   interfaces: () => [GraphQLEdge],
   fields: () => ({
     cursor: { type: new GraphQLNonNull(GraphQLString) },
-    node: { type: GraphQLAuthority },
-  }),
+    node: { type: GraphQLAuthority }
+  })
 });

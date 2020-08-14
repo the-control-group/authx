@@ -42,7 +42,7 @@ export const queryFields = {
   users,
   viewer,
   keys,
-  explanations,
+  explanations
 };
 
 export const queryTypes = [];

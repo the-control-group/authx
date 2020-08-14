@@ -4,7 +4,7 @@ import {
   GraphQLNonNull,
   GraphQLString,
   GraphQLBoolean,
-  GraphQLInputObjectType,
+  GraphQLInputObjectType
 } from "graphql";
 
 import { GraphQLAdministrationInput } from "../GraphQLAdministrationInput";
@@ -15,31 +15,31 @@ export const GraphQLCreateRoleInput = new GraphQLInputObjectType({
   fields: () => ({
     id: {
       type: GraphQLID,
-      description: "Optional UUID to use for the new role.",
+      description: "Optional UUID to use for the new role."
     },
     enabled: {
       type: GraphQLBoolean,
-      defaultValue: true,
+      defaultValue: true
     },
     name: {
-      type: new GraphQLNonNull(GraphQLString),
+      type: new GraphQLNonNull(GraphQLString)
     },
     description: {
-      type: new GraphQLNonNull(GraphQLString),
+      type: new GraphQLNonNull(GraphQLString)
     },
     scopes: {
       type: new GraphQLNonNull(
         new GraphQLList(new GraphQLNonNull(GraphQLScopeTemplate))
-      ),
+      )
     },
     userIds: {
-      type: new GraphQLNonNull(new GraphQLList(new GraphQLNonNull(GraphQLID))),
+      type: new GraphQLNonNull(new GraphQLList(new GraphQLNonNull(GraphQLID)))
     },
     administration: {
       type: new GraphQLList(new GraphQLNonNull(GraphQLAdministrationInput)),
       description:
         "An optional list of roles to which scopes will be added for the purpose of administering the created role.",
-      defaultValue: [],
-    },
-  }),
+      defaultValue: []
+    }
+  })
 });

@@ -32,8 +32,8 @@ export const updateRoles: GraphQLFieldConfig<
     roles: {
       type: new GraphQLNonNull(
         new GraphQLList(new GraphQLNonNull(GraphQLUpdateRoleInput))
-      ),
-    },
+      )
+    }
   },
   async resolve(source, args, context): Promise<Promise<Role>[]> {
     const { executor, authorization: a, realm } = context;
@@ -50,7 +50,7 @@ export const updateRoles: GraphQLFieldConfig<
       );
     }
 
-    return args.roles.map(async (input) => {
+    return args.roles.map(async input => {
       // Validate `id`.
       if (!validateIdFormat(input.id)) {
         throw new ValidationError("The provided `id` is an invalid ID.");
@@ -77,7 +77,7 @@ export const updateRoles: GraphQLFieldConfig<
 
         await tx.query("BEGIN DEFERRABLE");
         const before = await Role.read(tx, input.id, {
-          forUpdate: true,
+          forUpdate: true
         });
 
         // w.... -----------------------------------------------------------
@@ -85,7 +85,7 @@ export const updateRoles: GraphQLFieldConfig<
           !(await before.isAccessibleBy(realm, a, executor, {
             basic: "w",
             scopes: "",
-            users: "",
+            users: ""
           }))
         ) {
           throw new ForbiddenError(
@@ -99,7 +99,7 @@ export const updateRoles: GraphQLFieldConfig<
           !(await before.isAccessibleBy(realm, a, executor, {
             basic: "w",
             scopes: "w",
-            users: "",
+            users: ""
           }))
         ) {
           throw new ForbiddenError(
@@ -123,11 +123,11 @@ export const updateRoles: GraphQLFieldConfig<
 
           const assignableScopes = roleIDs.length
             ? (
-                await filter(await Role.read(executor, roleIDs), (role) =>
+                await filter(await Role.read(executor, roleIDs), role =>
                   role.isAccessibleBy(realm, a, executor, {
                     basic: "w",
                     scopes: "",
-                    users: "w",
+                    users: "w"
                   })
                 )
               ).reduce<string[]>((acc, { scopes }) => {
@@ -146,7 +146,7 @@ export const updateRoles: GraphQLFieldConfig<
           !(await before.isAccessibleBy(realm, a, executor, {
             basic: "w",
             scopes: "",
-            users: "w",
+            users: "w"
           }))
         ) {
           throw new ForbiddenError(
@@ -164,7 +164,7 @@ export const updateRoles: GraphQLFieldConfig<
         // unassign users
         if (input.unassignUserIds) {
           const unassignUserIds = new Set(input.unassignUserIds);
-          userIds = userIds.filter((id) => !unassignUserIds.has(id));
+          userIds = userIds.filter(id => !unassignUserIds.has(id));
         }
 
         const role = await Role.write(
@@ -178,12 +178,12 @@ export const updateRoles: GraphQLFieldConfig<
             name: input.name || before.name,
             description: input.description || before.description,
             scopes: input.scopes || before.scopes,
-            userIds,
+            userIds
           },
           {
             recordId: v4(),
             createdByAuthorizationId: a.id,
-            createdAt: new Date(),
+            createdAt: new Date()
           }
         );
 
@@ -206,5 +206,5 @@ export const updateRoles: GraphQLFieldConfig<
         tx.release();
       }
     });
-  },
+  }
 };

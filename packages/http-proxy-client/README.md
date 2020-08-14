@@ -23,8 +23,8 @@ proxy = new AuthXAuthorizationProxy({
         return url === "/no-token";
       },
       behavior: {
-        proxyOptions: { target: `http://127.0.0.1:${mockTarget.port}` },
-      },
+        proxyOptions: { target: `http://127.0.0.1:${mockTarget.port}` }
+      }
     },
 
     // For this route, we will inject a token that is fetched using a single
@@ -36,8 +36,8 @@ proxy = new AuthXAuthorizationProxy({
       behavior: {
         proxyOptions: { target: `http://127.0.0.1:${mockTarget.port}` },
         refreshToken: process.env.REFRESH_TOKEN,
-        sendTokenToTargetWithScopes: ["foo:**:**"],
-      },
+        sendTokenToTargetWithScopes: ["foo:**:**"]
+      }
     },
 
     // For this route, we will inject a token that is fetched using a refresh
@@ -53,11 +53,11 @@ proxy = new AuthXAuthorizationProxy({
         return {
           proxyOptions: { target: `http://127.0.0.1:${mockTarget.port}` },
           refreshToken,
-          sendTokenToTargetWithScopes: ["**:**:**"],
+          sendTokenToTargetWithScopes: ["**:**:**"]
         };
-      },
-    },
-  ],
+      }
+    }
+  ]
 });
 ```
 

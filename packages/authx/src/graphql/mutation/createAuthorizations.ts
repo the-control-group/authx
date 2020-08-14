@@ -13,7 +13,7 @@ import {
   ForbiddenError,
   ConflictError,
   NotFoundError,
-  ValidationError,
+  ValidationError
 } from "../../errors";
 import { GraphQLCreateAuthorizationInput } from "./GraphQLCreateAuthorizationInput";
 
@@ -40,14 +40,14 @@ export const createAuthorizations: GraphQLFieldConfig<
     authorizations: {
       type: new GraphQLNonNull(
         new GraphQLList(new GraphQLNonNull(GraphQLCreateAuthorizationInput))
-      ),
-    },
+      )
+    }
   },
   async resolve(source, args, context): Promise<Authorization[]> {
     const {
       executor: { strategies, connection: pool },
       authorization: a,
-      realm,
+      realm
     } = context;
 
     if (!a) {
@@ -116,12 +116,12 @@ export const createAuthorizations: GraphQLFieldConfig<
                 authorizationId: "",
                 clientId: grant?.clientId ?? "",
                 grantId: grant?.id ?? "",
-                userId: input.userId,
+                userId: input.userId
               },
               {
                 basic: "*",
                 scopes: "*",
-                secrets: "*",
+                secrets: "*"
               }
             )
           ))
@@ -152,13 +152,13 @@ export const createAuthorizations: GraphQLFieldConfig<
             userId: input.userId,
             grantId: input.grantId,
             secret: randomBytes(16).toString("hex"),
-            scopes: input.scopes,
+            scopes: input.scopes
           },
           {
             recordId: v4(),
             createdByAuthorizationId: a.id,
             createdByCredentialId: null,
-            createdAt: new Date(),
+            createdAt: new Date()
           }
         );
 
@@ -167,54 +167,54 @@ export const createAuthorizations: GraphQLFieldConfig<
           authorizationId: id,
           clientId: grant?.clientId ?? "",
           grantId: grant?.id ?? "",
-          userId: input.userId,
+          userId: input.userId
         };
 
         const possibleAdministrationScopes = [
           createV2AuthXScope(realm, authorizationScopeContext, {
             basic: "r",
             scopes: "",
-            secrets: "",
+            secrets: ""
           }),
           createV2AuthXScope(realm, authorizationScopeContext, {
             basic: "r",
             scopes: "r",
-            secrets: "",
+            secrets: ""
           }),
           createV2AuthXScope(realm, authorizationScopeContext, {
             basic: "r",
             scopes: "",
-            secrets: "r",
+            secrets: "r"
           }),
           createV2AuthXScope(realm, authorizationScopeContext, {
             basic: "r",
             scopes: "*",
-            secrets: "*",
+            secrets: "*"
           }),
           createV2AuthXScope(realm, authorizationScopeContext, {
             basic: "w",
             scopes: "",
-            secrets: "",
+            secrets: ""
           }),
           createV2AuthXScope(realm, authorizationScopeContext, {
             basic: "*",
             scopes: "*",
-            secrets: "*",
-          }),
+            secrets: "*"
+          })
         ];
 
         // Add administration scopes.
         const administrationResults = await Promise.allSettled(
           input.administration.map(async ({ roleId, scopes }) => {
             const administrationRoleBefore = await Role.read(tx, roleId, {
-              forUpdate: true,
+              forUpdate: true
             });
 
             if (
               !administrationRoleBefore.isAccessibleBy(realm, a, executor, {
                 basic: "w",
                 scopes: "w",
-                users: "",
+                users: ""
               })
             ) {
               throw new ForbiddenError(
@@ -228,15 +228,15 @@ export const createAuthorizations: GraphQLFieldConfig<
                 ...administrationRoleBefore,
                 scopes: simplify([
                   ...administrationRoleBefore.scopes,
-                  ...possibleAdministrationScopes.filter((possible) =>
+                  ...possibleAdministrationScopes.filter(possible =>
                     isSuperset(scopes, possible)
-                  ),
-                ]),
+                  )
+                ])
               },
               {
                 recordId: v4(),
                 createdByAuthorizationId: a.id,
-                createdAt: new Date(),
+                createdAt: new Date()
               }
             );
 
@@ -278,5 +278,5 @@ export const createAuthorizations: GraphQLFieldConfig<
     } finally {
       tx.release();
     }
-  },
+  }
 };

@@ -2,9 +2,9 @@ import { Scope, AnyMultiple, AnySingle } from "./scope";
 
 export function print(scope: Scope): string {
   return scope
-    .map((domain) =>
+    .map(domain =>
       domain
-        .map((segment) => {
+        .map(segment => {
           switch (segment) {
             case AnyMultiple:
               return "**";

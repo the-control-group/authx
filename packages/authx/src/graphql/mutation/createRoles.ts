@@ -12,7 +12,7 @@ import {
   ForbiddenError,
   ConflictError,
   NotFoundError,
-  ValidationError,
+  ValidationError
 } from "../../errors";
 import { GraphQLCreateRoleInput } from "./GraphQLCreateRoleInput";
 
@@ -40,8 +40,8 @@ export const createRoles: GraphQLFieldConfig<
     roles: {
       type: new GraphQLNonNull(
         new GraphQLList(new GraphQLNonNull(GraphQLCreateRoleInput))
-      ),
-    },
+      )
+    }
   },
   async resolve(source, args, context): Promise<Promise<Role>[]> {
     const { executor, authorization: a, realm } = context;
@@ -58,7 +58,7 @@ export const createRoles: GraphQLFieldConfig<
       );
     }
 
-    return args.roles.map(async (input) => {
+    return args.roles.map(async input => {
       // Validate `id`.
       if (typeof input.id === "string" && !validateIdFormat(input.id)) {
         throw new ValidationError("The provided `id` is an invalid ID.");
@@ -97,12 +97,12 @@ export const createRoles: GraphQLFieldConfig<
               realm,
               {
                 type: "role",
-                roleId: "",
+                roleId: ""
               },
               {
                 basic: "*",
                 scopes: "*",
-                users: "*",
+                users: "*"
               }
             )
           ))
@@ -131,55 +131,55 @@ export const createRoles: GraphQLFieldConfig<
 
           const roleScopeContext = {
             type: "role" as const,
-            roleId: id,
+            roleId: id
           };
 
           const possibleAdministrationScopes = [
             createV2AuthXScope(realm, roleScopeContext, {
               basic: "r",
               scopes: "",
-              users: "",
+              users: ""
             }),
             createV2AuthXScope(realm, roleScopeContext, {
               basic: "r",
               scopes: "r",
-              users: "",
+              users: ""
             }),
             createV2AuthXScope(realm, roleScopeContext, {
               basic: "r",
               scopes: "",
-              users: "r",
+              users: "r"
             }),
             createV2AuthXScope(realm, roleScopeContext, {
               basic: "r",
               scopes: "*",
-              users: "*",
+              users: "*"
             }),
             createV2AuthXScope(realm, roleScopeContext, {
               basic: "w",
               scopes: "",
-              users: "",
+              users: ""
             }),
             createV2AuthXScope(realm, roleScopeContext, {
               basic: "w",
               scopes: "w",
-              users: "",
+              users: ""
             }),
             createV2AuthXScope(realm, roleScopeContext, {
               basic: "w",
               scopes: "",
-              users: "w",
+              users: "w"
             }),
             createV2AuthXScope(realm, roleScopeContext, {
               basic: "w",
               scopes: "*",
-              users: "*",
+              users: "*"
             }),
             createV2AuthXScope(realm, roleScopeContext, {
               basic: "*",
               scopes: "*",
-              users: "*",
-            }),
+              users: "*"
+            })
           ];
 
           let selfAdministrationScopes: string[] = [];
@@ -191,23 +191,23 @@ export const createRoles: GraphQLFieldConfig<
               if (roleId === id) {
                 selfAdministrationScopes = [
                   ...selfAdministrationScopes,
-                  ...possibleAdministrationScopes.filter((possible) =>
+                  ...possibleAdministrationScopes.filter(possible =>
                     isSuperset(scopes, possible)
-                  ),
+                  )
                 ];
                 return;
               }
 
               // Make sure we have permission to add scopes to the role.
               const administrationRoleBefore = await Role.read(tx, roleId, {
-                forUpdate: true,
+                forUpdate: true
               });
 
               if (
                 !administrationRoleBefore.isAccessibleBy(realm, a, executor, {
                   basic: "w",
                   scopes: "w",
-                  users: "",
+                  users: ""
                 })
               ) {
                 throw new ForbiddenError(
@@ -222,15 +222,15 @@ export const createRoles: GraphQLFieldConfig<
                   ...administrationRoleBefore,
                   scopes: simplify([
                     ...administrationRoleBefore.scopes,
-                    ...possibleAdministrationScopes.filter((possible) =>
+                    ...possibleAdministrationScopes.filter(possible =>
                       isSuperset(scopes, possible)
-                    ),
-                  ]),
+                    )
+                  ])
                 },
                 {
                   recordId: v4(),
                   createdByAuthorizationId: a.id,
-                  createdAt: new Date(),
+                  createdAt: new Date()
                 }
               );
 
@@ -254,12 +254,12 @@ export const createRoles: GraphQLFieldConfig<
               name: input.name,
               description: input.description,
               scopes: simplify([...input.scopes, ...selfAdministrationScopes]),
-              userIds: input.userIds,
+              userIds: input.userIds
             },
             {
               recordId: v4(),
               createdByAuthorizationId: a.id,
-              createdAt: new Date(),
+              createdAt: new Date()
             }
           );
 
@@ -283,5 +283,5 @@ export const createRoles: GraphQLFieldConfig<
         tx.release();
       }
     });
-  },
+  }
 };

@@ -61,7 +61,7 @@ export class User implements UserData {
     a: Authorization,
     tx: Pool | ClientBase | DataLoaderExecutor,
     action: UserAction = {
-      basic: "r",
+      basic: "r"
     }
   ): Promise<boolean> {
     if (
@@ -71,7 +71,7 @@ export class User implements UserData {
           realm,
           {
             type: "user",
-            userId: this.id,
+            userId: this.id
           },
           action
         )
@@ -252,7 +252,7 @@ export class User implements UserData {
     return this.enabled
       ? simplify(
           (await this.roles(tx))
-            .map((role) => role.access(values))
+            .map(role => role.access(values))
             .reduce((a, b) => a.concat(b), [])
         )
       : [];
@@ -292,13 +292,13 @@ export class User implements UserData {
     );
 
     return result.rows.map(
-      (row) =>
+      row =>
         new UserRecord({
           ...row,
           replacementRecordId: row.replacement_record_id,
           createdByAuthorizationId: row.created_by_authorization_id,
           createdAt: row.created_at,
-          entityId: row.entity_id,
+          entityId: row.entity_id
         })
     );
   }
@@ -343,7 +343,7 @@ export class User implements UserData {
       }
 
       // Load multiple instances.
-      return Promise.all(id.map((i) => loader.load(i)));
+      return Promise.all(id.map(i => loader.load(i)));
     }
 
     if (typeof id !== "string" && !id.length) {
@@ -378,10 +378,10 @@ export class User implements UserData {
     }
 
     const users = result.rows.map(
-      (row) =>
+      row =>
         new User({
           ...row,
-          recordId: row.record_id,
+          recordId: row.record_id
         })
     );
 
@@ -457,7 +457,7 @@ export class User implements UserData {
         data.id,
         data.enabled,
         data.type,
-        data.name,
+        data.name
       ]
     );
 
@@ -468,7 +468,7 @@ export class User implements UserData {
     const row = next.rows[0];
     return new User({
       ...row,
-      recordId: row.record_id,
+      recordId: row.record_id
     });
   }
 

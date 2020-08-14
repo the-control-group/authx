@@ -4,7 +4,7 @@ import {
   GraphQLObjectType,
   GraphQLBoolean,
   GraphQLList,
-  GraphQLString,
+  GraphQLString
 } from "graphql";
 
 import {
@@ -12,7 +12,7 @@ import {
   GraphQLRole,
   GraphQLNode,
   Context,
-  Role,
+  Role
 } from "@authx/authx";
 import { GraphQLEmailAuthority, EmailAuthority } from "@authx/strategy-email";
 import { OpenIdAuthority } from "../model";
@@ -44,7 +44,7 @@ export const GraphQLOpenIdAuthority = new GraphQLObjectType<
   fields: () => ({
     id: { type: new GraphQLNonNull(GraphQLID) },
     enabled: {
-      type: new GraphQLNonNull(GraphQLBoolean),
+      type: new GraphQLNonNull(GraphQLBoolean)
     },
     name: { type: GraphQLString },
     description: { type: GraphQLString },
@@ -53,7 +53,7 @@ export const GraphQLOpenIdAuthority = new GraphQLObjectType<
       description: "The URL to which a user is directed to authenticate.",
       resolve(authority): string {
         return authority.details.authUrl;
-      },
+      }
     },
     tokenUrl: {
       type: GraphQLString,
@@ -67,18 +67,18 @@ export const GraphQLOpenIdAuthority = new GraphQLObjectType<
         return a &&
           (await authority.isAccessibleBy(realm, a, executor, {
             basic: "r",
-            details: "r",
+            details: "r"
           }))
           ? authority.details.tokenUrl
           : null;
-      },
+      }
     },
     clientId: {
       type: new GraphQLNonNull(GraphQLString),
       description: "The client ID of AuthX in with OpenID provider.",
       resolve(authority): string {
         return authority.details.clientId;
-      },
+      }
     },
     clientSecret: {
       type: GraphQLString,
@@ -91,11 +91,11 @@ export const GraphQLOpenIdAuthority = new GraphQLObjectType<
         return a &&
           (await authority.isAccessibleBy(realm, a, executor, {
             basic: "r",
-            details: "r",
+            details: "r"
           }))
           ? authority.details.clientSecret
           : null;
-      },
+      }
     },
     restrictsAccountsToHostedDomains: {
       type: new GraphQLList(GraphQLString),
@@ -109,11 +109,11 @@ export const GraphQLOpenIdAuthority = new GraphQLObjectType<
         return a &&
           (await authority.isAccessibleBy(realm, a, executor, {
             basic: "r",
-            details: "r",
+            details: "r"
           }))
           ? authority.details.restrictsAccountsToHostedDomains
           : null;
-      },
+      }
     },
     emailAuthority: {
       type: GraphQLEmailAuthority,
@@ -127,7 +127,7 @@ export const GraphQLOpenIdAuthority = new GraphQLObjectType<
           !a ||
           !(await authority.isAccessibleBy(realm, a, executor, {
             basic: "r",
-            details: "r",
+            details: "r"
           }))
         ) {
           return null;
@@ -138,7 +138,7 @@ export const GraphQLOpenIdAuthority = new GraphQLObjectType<
           emailAuthority.isAccessibleBy(realm, a, executor)
           ? emailAuthority
           : null;
-      },
+      }
     },
     matchesUsersByEmail: {
       type: GraphQLBoolean,
@@ -152,11 +152,11 @@ export const GraphQLOpenIdAuthority = new GraphQLObjectType<
         return a &&
           (await authority.isAccessibleBy(realm, a, executor, {
             basic: "r",
-            details: "r",
+            details: "r"
           }))
           ? authority.details.matchesUsersByEmail
           : null;
-      },
+      }
     },
     createsUnmatchedUsers: {
       type: GraphQLBoolean,
@@ -170,11 +170,11 @@ export const GraphQLOpenIdAuthority = new GraphQLObjectType<
         return a &&
           (await authority.isAccessibleBy(realm, a, executor, {
             basic: "r",
-            details: "r",
+            details: "r"
           }))
           ? authority.details.createsUnmatchedUsers
           : null;
-      },
+      }
     },
     assignsCreatedUsersToRoles: {
       type: new GraphQLNonNull(
@@ -190,7 +190,7 @@ export const GraphQLOpenIdAuthority = new GraphQLObjectType<
           !a ||
           !(await authority.isAccessibleBy(realm, a, executor, {
             basic: "r",
-            details: "r",
+            details: "r"
           }))
         ) {
           return null;
@@ -198,9 +198,9 @@ export const GraphQLOpenIdAuthority = new GraphQLObjectType<
 
         return filter(
           await authority.assignsCreatedUsersToRoles(executor),
-          (role) => role.isAccessibleBy(realm, a, executor)
+          role => role.isAccessibleBy(realm, a, executor)
         );
-      },
-    },
-  }),
+      }
+    }
+  })
 });

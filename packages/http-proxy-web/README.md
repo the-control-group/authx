@@ -44,9 +44,9 @@ proxy = new AuthXClientProxy({
         return {
           proxyOptions: { target: `https://authx.example.com` },
           sendAuthorizationResponseAs: 401,
-          sendTokenToTargetWithScopes: ["authx.prod:**:**"],
+          sendTokenToTargetWithScopes: ["authx.prod:**:**"]
         };
-      },
+      }
     },
     // These are static assets that we want publically cached by Google Cloud
     // CDN or Cloudflare. We won't require any auth for these endpoints.
@@ -55,8 +55,8 @@ proxy = new AuthXClientProxy({
         return method === "GET" && /^\/static(\/.*)?$/.test(url || "");
       },
       behavior: {
-        proxyOptions: { target: `http://127.0.0.1:3001` },
-      },
+        proxyOptions: { target: `http://127.0.0.1:3001` }
+      }
     },
     // The rest of our routes render a single-page-app.
     {
@@ -73,10 +73,10 @@ proxy = new AuthXClientProxy({
       behavior: {
         proxyOptions: { target: `http://127.0.0.1:3000` },
         sendAuthorizationResponseAs: 303,
-        sendTokenToTargetWithScopes: [],
-      },
-    },
-  ],
+        sendTokenToTargetWithScopes: []
+      }
+    }
+  ]
 });
 ```
 

@@ -21,7 +21,7 @@ import schema from "./scripts/schema";
   - fixture
   - schema.`);
   }
-})().catch((error) => {
+})().catch(error => {
   console.error(error);
   process.exit(1);
 });

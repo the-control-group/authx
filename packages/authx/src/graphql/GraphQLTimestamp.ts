@@ -52,5 +52,5 @@ export const GraphQLTimestamp = new GraphQLScalarType({
     "The javascript `Date` as integer. Type represents date and time as number of milliseconds from start of UNIX epoch.",
   serialize,
   parseValue,
-  parseLiteral,
+  parseLiteral
 });

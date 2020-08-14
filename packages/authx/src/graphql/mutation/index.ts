@@ -37,7 +37,7 @@ export const mutationFields = {
   updateAuthorizations,
 
   createUsers,
-  updateUsers,
+  updateUsers
 };
 
 export const mutationTypes = [
@@ -54,5 +54,5 @@ export const mutationTypes = [
   GraphQLUpdateAuthorizationInput,
 
   GraphQLCreateUserInput,
-  GraphQLUpdateUserInput,
+  GraphQLUpdateUserInput
 ];

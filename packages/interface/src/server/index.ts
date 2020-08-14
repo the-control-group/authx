@@ -21,31 +21,31 @@ export default async function createInterface(
     output: {
       filename: "$authx-[contenthash].js",
       chunkFilename: "$authx-[id]-[contenthash].js",
-      path: join(__dirname, "../client"),
+      path: join(__dirname, "../client")
     },
     devtool: "source-map",
     resolve: {
-      extensions: [".js", ".json"],
+      extensions: [".js", ".json"]
     },
     module: {
       rules: [
         {
           test: /\.js$/,
           use: ["source-map-loader"],
-          enforce: "pre",
+          enforce: "pre"
         },
         {
           test: join(__dirname, "../client/index.js"),
           loader: join(__dirname, "loader.js"),
           options: {
-            strategies,
-          },
-        },
-      ],
+            strategies
+          }
+        }
+      ]
     },
     plugins: [
       new DefinePlugin({
-        __REALM__: JSON.stringify(realm),
+        __REALM__: JSON.stringify(realm)
       }),
 
       // TODO: New type definitions between webpack and this plugin are
@@ -53,9 +53,9 @@ export default async function createInterface(
       // fixed shortly. If you're reading this, remove the cast through any.
       (new HtmlWebpackPlugin({
         template: join(__dirname, "../client/index.html"),
-        filename: "index.html",
-      }) as any) as Plugin,
-    ],
+        filename: "index.html"
+      }) as any) as Plugin
+    ]
   });
 
   // Output directly to memory.

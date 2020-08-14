@@ -14,11 +14,11 @@ export const authority: GraphQLFieldConfig<
   description: "Fetch an authority by ID.",
   args: {
     id: {
-      type: new GraphQLNonNull(GraphQLID),
-    },
+      type: new GraphQLNonNull(GraphQLID)
+    }
   },
   async resolve(source, args, context): Promise<null | Authority<any>> {
     const { executor } = context;
     return await Authority.read(executor, args.id);
-  },
+  }
 };

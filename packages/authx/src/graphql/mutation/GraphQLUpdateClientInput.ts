@@ -5,35 +5,35 @@ import {
   GraphQLString,
   GraphQLBoolean,
   GraphQLInputObjectType,
-  GraphQLInt,
+  GraphQLInt
 } from "graphql";
 
 export const GraphQLUpdateClientInput = new GraphQLInputObjectType({
   name: "UpdateClientInput",
   fields: () => ({
     id: {
-      type: new GraphQLNonNull(GraphQLID),
+      type: new GraphQLNonNull(GraphQLID)
     },
     enabled: {
-      type: GraphQLBoolean,
+      type: GraphQLBoolean
     },
     name: {
-      type: GraphQLString,
+      type: GraphQLString
     },
     description: {
-      type: GraphQLString,
+      type: GraphQLString
     },
     addUrls: {
-      type: new GraphQLList(new GraphQLNonNull(GraphQLString)),
+      type: new GraphQLList(new GraphQLNonNull(GraphQLString))
     },
     removeUrls: {
-      type: new GraphQLList(new GraphQLNonNull(GraphQLString)),
+      type: new GraphQLList(new GraphQLNonNull(GraphQLString))
     },
     generateSecrets: {
-      type: GraphQLInt,
+      type: GraphQLInt
     },
     removeSecrets: {
-      type: new GraphQLList(new GraphQLNonNull(GraphQLString)),
-    },
-  }),
+      type: new GraphQLList(new GraphQLNonNull(GraphQLString))
+    }
+  })
 });

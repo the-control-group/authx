@@ -10,7 +10,7 @@ export default function (
   return source.replace(
     "__STRATEGIES__",
     `[${strategies
-      .map((s) => `require(${JSON.stringify(s)}).default`)
+      .map(s => `require(${JSON.stringify(s)}).default`)
       .join(", ")}]`
   );
 }

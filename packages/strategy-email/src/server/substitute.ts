@@ -16,7 +16,7 @@ export function substitute(
   template: string
 ): string {
   let result = template;
-  Object.keys(map).forEach((key) => {
+  Object.keys(map).forEach(key => {
     result = result
       .replace(new RegExp(escapeRegExp(`{{{${key}}}}`), "g"), map[key])
       .replace(

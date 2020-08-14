@@ -7,7 +7,7 @@ import {
   grant,
   role,
   authorization,
-  user,
+  user
 } from "./fixture/index";
 
 interface Metadata {
@@ -46,7 +46,7 @@ export async function fixture(tx: ClientBase | Client): Promise<void> {
     tx.query(
       "INSERT INTO authx.user (id) SELECT id FROM UNNEST($1::uuid[]) AS id",
       [user.map(({ id }) => id)]
-    ),
+    )
   ]);
 
   // insert grants first
@@ -59,6 +59,6 @@ export async function fixture(tx: ClientBase | Client): Promise<void> {
     Promise.all(credential.map(({ insert }) => insert(tx))),
     Promise.all(role.map(({ insert }) => insert(tx))),
     Promise.all(authorization.map(({ insert }) => insert(tx))),
-    Promise.all(user.map(({ insert }) => insert(tx))),
+    Promise.all(user.map(({ insert }) => insert(tx)))
   ]);
 }

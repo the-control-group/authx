@@ -1,7 +1,7 @@
 import {
   responsePathAsArray,
   GraphQLResolveInfo,
-  GraphQLFieldResolver,
+  GraphQLFieldResolver
 } from "graphql";
 
 type HighResolutionTime = [number, number];
@@ -65,7 +65,7 @@ export async function apolloTracingGraphQLMiddleware(
       duration:
         durationHrTimeToNanos(
           process.hrtime(context[apolloTracingContext][traceHRStartTime])
-        ) - startOffset,
+        ) - startOffset
     });
   }
 }
@@ -80,8 +80,8 @@ export function startTracingContext(): ApolloTracingContext {
     endTime: "",
     duration: 0,
     execution: {
-      resolvers: [],
-    },
+      resolvers: []
+    }
   };
 }
 

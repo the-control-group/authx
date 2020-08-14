@@ -9,10 +9,10 @@ export const GraphQLExplanation: GraphQLObjectType<
   interfaces: () => [],
   fields: () => ({
     scope: {
-      type: GraphQLString,
+      type: GraphQLString
     },
     description: {
-      type: GraphQLString,
-    },
-  }),
+      type: GraphQLString
+    }
+  })
 });

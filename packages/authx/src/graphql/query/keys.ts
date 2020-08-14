@@ -2,7 +2,7 @@ import {
   GraphQLList,
   GraphQLNonNull,
   GraphQLString,
-  GraphQLFieldConfig,
+  GraphQLFieldConfig
 } from "graphql";
 import { Context } from "../../Context";
 
@@ -15,5 +15,5 @@ export const keys: GraphQLFieldConfig<
   description: "List all keys.",
   async resolve(source, args, context): Promise<ReadonlyArray<string>> {
     return context.publicKeys;
-  },
+  }
 };

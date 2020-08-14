@@ -14,7 +14,7 @@ import {
   ForbiddenError,
   ConflictError,
   NotFoundError,
-  ValidationError,
+  ValidationError
 } from "../../errors";
 import { GraphQLCreateClientInput } from "./GraphQLCreateClientInput";
 
@@ -41,8 +41,8 @@ export const createClients: GraphQLFieldConfig<
     clients: {
       type: new GraphQLNonNull(
         new GraphQLList(new GraphQLNonNull(GraphQLCreateClientInput))
-      ),
-    },
+      )
+    }
   },
   async resolve(source, args, context): Promise<Promise<Client>[]> {
     const { executor, authorization: a, realm } = context;
@@ -59,7 +59,7 @@ export const createClients: GraphQLFieldConfig<
       );
     }
 
-    return args.clients.map(async (input) => {
+    return args.clients.map(async input => {
       // Validate `id`.
       if (typeof input.id === "string" && !validateIdFormat(input.id)) {
         throw new ValidationError("The provided `id` is an invalid ID.");
@@ -100,11 +100,11 @@ export const createClients: GraphQLFieldConfig<
               realm,
               {
                 type: "client",
-                clientId: "",
+                clientId: ""
               },
               {
                 basic: "*",
-                secrets: "*",
+                secrets: "*"
               }
             )
           ))
@@ -138,25 +138,25 @@ export const createClients: GraphQLFieldConfig<
               name: input.name,
               description: input.description,
               secrets: [randomBytes(16).toString("hex")],
-              urls: input.urls,
+              urls: input.urls
             },
             {
               recordId: v4(),
               createdByAuthorizationId: a.id,
-              createdAt: new Date(),
+              createdAt: new Date()
             }
           );
 
           const clientScopeContext = {
             type: "client" as const,
-            clientId: id,
+            clientId: id
           };
 
           const grantScopeContext = {
             type: "grant" as const,
             clientId: id,
             grantId: "*",
-            userId: "*",
+            userId: "*"
           };
 
           const authorizationScopeContext = {
@@ -164,132 +164,132 @@ export const createClients: GraphQLFieldConfig<
             authorizationId: "*",
             clientId: id,
             grantId: "*",
-            userId: "*",
+            userId: "*"
           };
 
           const possibleAdministrationScopes = [
             // client ----------------------------------------------------------
             createV2AuthXScope(realm, clientScopeContext, {
               basic: "r",
-              secrets: "",
+              secrets: ""
             }),
             createV2AuthXScope(realm, clientScopeContext, {
               basic: "r",
-              secrets: "r",
+              secrets: "r"
             }),
             createV2AuthXScope(realm, clientScopeContext, {
               basic: "r",
-              secrets: "*",
+              secrets: "*"
             }),
             createV2AuthXScope(realm, clientScopeContext, {
               basic: "w",
-              secrets: "",
+              secrets: ""
             }),
             createV2AuthXScope(realm, clientScopeContext, {
               basic: "w",
-              secrets: "w",
+              secrets: "w"
             }),
             createV2AuthXScope(realm, clientScopeContext, {
               basic: "w",
-              secrets: "*",
+              secrets: "*"
             }),
             createV2AuthXScope(realm, clientScopeContext, {
               basic: "*",
-              secrets: "*",
+              secrets: "*"
             }),
 
             // grant -----------------------------------------------------------
             createV2AuthXScope(realm, grantScopeContext, {
               basic: "r",
               scopes: "",
-              secrets: "",
+              secrets: ""
             }),
             createV2AuthXScope(realm, grantScopeContext, {
               basic: "r",
               scopes: "r",
-              secrets: "",
+              secrets: ""
             }),
             createV2AuthXScope(realm, grantScopeContext, {
               basic: "r",
               scopes: "",
-              secrets: "r",
+              secrets: "r"
             }),
             createV2AuthXScope(realm, grantScopeContext, {
               basic: "r",
               scopes: "*",
-              secrets: "*",
+              secrets: "*"
             }),
             createV2AuthXScope(realm, grantScopeContext, {
               basic: "w",
               scopes: "",
-              secrets: "",
+              secrets: ""
             }),
             createV2AuthXScope(realm, grantScopeContext, {
               basic: "w",
               scopes: "",
-              secrets: "w",
+              secrets: "w"
             }),
 
             // authorization ---------------------------------------------------
             createV2AuthXScope(realm, authorizationScopeContext, {
               basic: "r",
               scopes: "",
-              secrets: "",
+              secrets: ""
             }),
             createV2AuthXScope(realm, authorizationScopeContext, {
               basic: "r",
               scopes: "r",
-              secrets: "",
+              secrets: ""
             }),
             createV2AuthXScope(realm, authorizationScopeContext, {
               basic: "r",
               scopes: "",
-              secrets: "r",
+              secrets: "r"
             }),
             createV2AuthXScope(realm, authorizationScopeContext, {
               basic: "r",
               scopes: "*",
-              secrets: "*",
+              secrets: "*"
             }),
             createV2AuthXScope(realm, authorizationScopeContext, {
               basic: "w",
               scopes: "",
-              secrets: "",
+              secrets: ""
             }),
             createV2AuthXScope(realm, authorizationScopeContext, {
               basic: "w",
               scopes: "w",
-              secrets: "",
+              secrets: ""
             }),
             createV2AuthXScope(realm, authorizationScopeContext, {
               basic: "w",
               scopes: "",
-              secrets: "w",
+              secrets: "w"
             }),
             createV2AuthXScope(realm, authorizationScopeContext, {
               basic: "w",
               scopes: "*",
-              secrets: "*",
+              secrets: "*"
             }),
             createV2AuthXScope(realm, authorizationScopeContext, {
               basic: "*",
               scopes: "*",
-              secrets: "*",
-            }),
+              secrets: "*"
+            })
           ];
 
           // Add administration scopes.
           const administrationResults = await Promise.allSettled(
             input.administration.map(async ({ roleId, scopes }) => {
               const administrationRoleBefore = await Role.read(tx, roleId, {
-                forUpdate: true,
+                forUpdate: true
               });
 
               if (
                 !administrationRoleBefore.isAccessibleBy(realm, a, executor, {
                   basic: "w",
                   scopes: "w",
-                  users: "",
+                  users: ""
                 })
               ) {
                 throw new ForbiddenError(
@@ -303,15 +303,15 @@ export const createClients: GraphQLFieldConfig<
                   ...administrationRoleBefore,
                   scopes: simplify([
                     ...administrationRoleBefore.scopes,
-                    ...possibleAdministrationScopes.filter((possible) =>
+                    ...possibleAdministrationScopes.filter(possible =>
                       isSuperset(scopes, possible)
-                    ),
-                  ]),
+                    )
+                  ])
                 },
                 {
                   recordId: v4(),
                   createdByAuthorizationId: a.id,
-                  createdAt: new Date(),
+                  createdAt: new Date()
                 }
               );
 
@@ -347,5 +347,5 @@ export const createClients: GraphQLFieldConfig<
         tx.release();
       }
     });
-  },
+  }
 };

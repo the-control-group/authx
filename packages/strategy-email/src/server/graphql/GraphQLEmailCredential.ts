@@ -3,7 +3,7 @@ import {
   GraphQLNonNull,
   GraphQLBoolean,
   GraphQLString,
-  GraphQLObjectType,
+  GraphQLObjectType
 } from "graphql";
 
 import {
@@ -11,7 +11,7 @@ import {
   GraphQLCredential,
   GraphQLUser,
   GraphQLNode,
-  Context,
+  Context
 } from "@authx/authx";
 import { EmailCredential, EmailAuthority } from "../model";
 import { GraphQLEmailAuthority } from "./GraphQLEmailAuthority";
@@ -29,7 +29,7 @@ export const GraphQLEmailCredential = new GraphQLObjectType<
   fields: () => ({
     id: { type: new GraphQLNonNull(GraphQLID) },
     enabled: {
-      type: new GraphQLNonNull(GraphQLBoolean),
+      type: new GraphQLNonNull(GraphQLBoolean)
     },
     user: {
       type: GraphQLUser,
@@ -41,7 +41,7 @@ export const GraphQLEmailCredential = new GraphQLObjectType<
         if (!a) return null;
         const user = await credential.user(executor);
         return user.isAccessibleBy(realm, a, executor) ? user : null;
-      },
+      }
     },
     authority: {
       type: GraphQLEmailAuthority,
@@ -51,13 +51,13 @@ export const GraphQLEmailCredential = new GraphQLObjectType<
         { executor }: Context
       ): Promise<null | EmailAuthority> {
         return credential.authority(executor);
-      },
+      }
     },
     email: {
       type: GraphQLString,
       resolve(credential): string {
         return credential.authorityUserId;
-      },
-    },
-  }),
+      }
+    }
+  })
 });

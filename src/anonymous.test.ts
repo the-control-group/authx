@@ -14,14 +14,14 @@ test.before(async () => {
   teardown = s.teardown;
 });
 
-test("Root query fields.", async (t) => {
+test("Root query fields.", async t => {
   const graphqlUrl = new URL(url.href);
   graphqlUrl.pathname = "/graphql";
 
   const result = await fetch(graphqlUrl.href, {
     method: "POST",
     headers: {
-      "content-type": "application/json",
+      "content-type": "application/json"
     },
     body: JSON.stringify({
       query: /* GraphQL */ `
@@ -147,8 +147,8 @@ test("Root query fields.", async (t) => {
 
           keys
         }
-      `,
-    }),
+      `
+    })
   });
 
   const json = await result.json();
@@ -160,7 +160,7 @@ test("Root query fields.", async (t) => {
           id: "0d765613-e813-40e5-9aa7-89f96531364e",
           enabled: true,
           name: "Email",
-          description: "The email authority.",
+          description: "The email authority."
         },
         authorities: {
           edges: [
@@ -178,8 +178,8 @@ test("Root query fields.", async (t) => {
                 publicKeys: null,
                 verificationEmailHtml: null,
                 verificationEmailSubject: null,
-                verificationEmailText: null,
-              },
+                verificationEmailText: null
+              }
             },
             {
               node: {
@@ -187,10 +187,10 @@ test("Root query fields.", async (t) => {
                 enabled: true,
                 name: "Password",
                 description: "The password authority.",
-                rounds: null,
-              },
-            },
-          ],
+                rounds: null
+              }
+            }
+          ]
         },
 
         authorization: null,
@@ -219,9 +219,9 @@ MIGfMA0GCSqGSIb3DQEBAQUAA4GNADCBiQKBgQCfb+nyTPFCntEXbrFPU5DeE0gC
 4jXRcSFWDfCRgeqeQWqIW9DeMmCj13k0z6fQCiG3FATYosS64wAs+OiyGtu9q/Jy
 UEVIBMF0upDJMA53AFFx+0Fb/i76JFPTY7SxzvioIFeKRwY8evIRWQWYO95Os6gK
 Bac/x5qiUn5fh2xM+wIDAQAB
------END PUBLIC KEY-----`,
-        ],
-      },
+-----END PUBLIC KEY-----`
+        ]
+      }
     },
     json
   );
