@@ -152,8 +152,6 @@ export class Authorization implements AuthorizationData {
       currentClientId: grant?.clientId ?? null,
     };
 
-    console.log(grant);
-
     if (grant) {
       return grant.enabled
         ? getIntersection(this.scopes, await grant.access(tx, values))

@@ -91,8 +91,8 @@ export class Role implements RoleData {
     return (
       // Some silliness to help typescript...
       tx instanceof DataLoaderExecutor
-        ? User.read(tx, [...this.userIds])
-        : User.read(tx, [...this.userIds])
+        ? User.read(tx, [...this.userIds].sort())
+        : User.read(tx, [...this.userIds].sort())
     );
   }
 

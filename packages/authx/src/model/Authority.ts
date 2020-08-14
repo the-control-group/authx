@@ -94,8 +94,7 @@ export abstract class Authority<A> implements AuthorityData<A> {
   }
 
   public abstract credentials(
-    tx: Pool | ClientBase | DataLoaderExecutor,
-    refresh?: boolean
+    tx: Pool | ClientBase | DataLoaderExecutor
   ): Promise<Credential<any>[]>;
 
   public abstract credential(

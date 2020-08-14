@@ -138,6 +138,7 @@ export class User implements UserData {
           WHERE
             user_id = $1
             AND replacement_record_id IS NULL
+          ORDER BY id ASC
           `,
           [this.id]
         )
@@ -165,6 +166,7 @@ export class User implements UserData {
           WHERE
             user_id = $1
             AND replacement_record_id IS NULL
+          ORDER BY id ASC
           `,
           [this.id]
         )
@@ -192,6 +194,7 @@ export class User implements UserData {
         user_id = $1
         AND client_id = $2
         AND replacement_record_id IS NULL
+      ORDER BY id ASC
       `,
       [this.id, clientId]
     );
@@ -226,6 +229,7 @@ export class User implements UserData {
           authx.role_record_user.user_id = $1
           AND authx.role_record.enabled = TRUE
           AND authx.role_record.replacement_record_id IS NULL
+        ORDER BY id ASC
         `,
           [this.id]
         )

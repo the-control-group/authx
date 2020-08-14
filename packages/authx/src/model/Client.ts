@@ -116,6 +116,7 @@ export class Client implements ClientData {
             WHERE
               client_id = $1
               AND replacement_record_id IS NULL
+            ORDER BY id ASC
             `,
           [this.id]
         )

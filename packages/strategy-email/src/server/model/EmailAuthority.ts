@@ -29,6 +29,7 @@ export class EmailAuthority extends Authority<EmailAuthorityDetails> {
             WHERE
               authority_id = $1
               AND replacement_record_id IS NULL
+            ORDER BY id ASC
             `,
             [this.id]
           )

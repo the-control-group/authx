@@ -144,6 +144,7 @@ export class Grant implements GrantData {
           WHERE
             grant_id = $1
             AND replacement_record_id IS NULL
+          ORDER BY id ASC
           `,
           [this.id]
         )
