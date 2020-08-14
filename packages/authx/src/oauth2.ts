@@ -9,7 +9,6 @@ import { createV2AuthXScope } from "./util/scopes";
 import { DataLoaderExecutor } from "./loader";
 import { inject, isEqual, isValidScopeTemplate } from "@authx/scopes";
 import { Context as KoaContext } from "koa";
-import { ClientBase } from "pg";
 import x from "./x";
 
 async function assertPermissions(

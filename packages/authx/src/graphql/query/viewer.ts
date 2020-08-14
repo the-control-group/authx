@@ -3,7 +3,11 @@ import { Context } from "../../Context";
 import { GraphQLAuthorization } from "../GraphQLAuthorization";
 import { Authorization } from "../../model";
 
-export const viewer: GraphQLFieldConfig<any, Context, {}> = {
+export const viewer: GraphQLFieldConfig<
+  any,
+  Context,
+  { [key: string]: unknown }
+> = {
   type: GraphQLAuthorization,
   description: "Returns the current authorization.",
   args: {},

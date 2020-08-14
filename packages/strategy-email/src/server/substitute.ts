@@ -8,7 +8,7 @@ function escapeHtml(unsafe: string): string {
 }
 
 function escapeRegExp(unsafe: string): string {
-  return unsafe.replace(/[\-\[\]\/\{\}\(\)\*\+\?\.\\\^\$\|]/g, "\\$&");
+  return unsafe.replace(/[-[\]/{}()*+?.\\^$|]/g, "\\$&");
 }
 
 export function substitute(

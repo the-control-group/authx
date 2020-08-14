@@ -13,7 +13,7 @@ export const authority: {
 }[] = [
   {
     id: "0d765613-e813-40e5-9aa7-89f96531364e",
-    insert: (tx: ClientBase) =>
+    insert: (tx: ClientBase): Promise<EmailAuthority> =>
       EmailAuthority.write(
         tx,
         {
@@ -68,7 +68,7 @@ Bac/x5qiUn5fh2xM+wIDAQAB
   },
   {
     id: "725f9c3b-4a72-4021-9066-c89e534df5be",
-    insert: (tx: ClientBase) =>
+    insert: (tx: ClientBase): Promise<PasswordAuthority> =>
       PasswordAuthority.write(
         tx,
         {

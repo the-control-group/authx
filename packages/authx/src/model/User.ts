@@ -145,7 +145,11 @@ export class User implements UserData {
 
       return tx instanceof DataLoaderExecutor
         ? Credential.read(tx, ids)
-        : Credential.read(tx, ids, strategies as typeof strategies & {});
+        : Credential.read(
+            tx,
+            ids,
+            strategies as typeof strategies & { [key: string]: unknown }
+          );
     })();
   }
 

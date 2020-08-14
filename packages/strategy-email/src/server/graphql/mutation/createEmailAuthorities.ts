@@ -82,7 +82,7 @@ export const createEmailAuthorities: GraphQLFieldConfig<
       }
 
       // Validate `administration`.
-      for (const { roleId, scopes } of input.administration) {
+      for (const { roleId } of input.administration) {
         if (!validateIdFormat(roleId)) {
           throw new ValidationError(
             "The provided `administration` list contains a `roleId` that is an invalid ID."

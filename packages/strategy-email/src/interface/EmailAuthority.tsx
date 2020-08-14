@@ -45,16 +45,22 @@ export function EmailAuthority({
     if (!payload) return;
 
     try {
-      const { email } = JSON.parse(atob(payload));
-      if (email) {
-        setEmail(email);
+      const parsed = JSON.parse(atob(payload));
+      if (
+        typeof parsed === "object" &&
+        parsed &&
+        typeof parsed.email === "string"
+      ) {
+        setEmail(parsed.email);
         setProof(proof);
 
         const url = new URL(window.location.href);
         url.searchParams.delete("proof");
         window.history.replaceState({}, document.title, url.href);
       }
-    } catch (error) {}
+    } catch (error) {
+      // Ignore an error here.
+    }
   }, []);
 
   // API and errors

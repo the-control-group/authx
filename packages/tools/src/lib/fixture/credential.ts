@@ -8,7 +8,7 @@ export const credential: {
 }[] = [
   {
     id: "540128ad-7a55-423e-a85c-103677df333c",
-    insert: (tx: ClientBase) =>
+    insert: (tx: ClientBase): Promise<EmailCredential> =>
       EmailCredential.write(
         tx,
         {
@@ -28,7 +28,7 @@ export const credential: {
   },
   {
     id: "d92a642f-70ca-465c-9130-c25fdad16a6d",
-    insert: (tx: ClientBase) =>
+    insert: (tx: ClientBase): Promise<EmailCredential> =>
       EmailCredential.write(
         tx,
         {
@@ -48,7 +48,7 @@ export const credential: {
   },
   {
     id: "42b27b88-672c-4649-9afa-77e114e6ad98",
-    insert: (tx: ClientBase) =>
+    insert: (tx: ClientBase): Promise<EmailCredential> =>
       EmailCredential.write(
         tx,
         {
@@ -68,7 +68,7 @@ export const credential: {
   },
   {
     id: "2caedd2e-fff6-4df9-952e-34d807f21cab",
-    insert: (tx: ClientBase) =>
+    insert: (tx: ClientBase): Promise<EmailCredential> =>
       EmailCredential.write(
         tx,
         {
@@ -88,7 +88,7 @@ export const credential: {
   },
   {
     id: "02e588b0-60a7-4af5-a0c7-b78ed43957b4",
-    insert: (tx: ClientBase) =>
+    insert: (tx: ClientBase): Promise<EmailCredential> =>
       EmailCredential.write(
         tx,
         {
@@ -108,7 +108,7 @@ export const credential: {
   },
   {
     id: "d08302e7-6b48-4eb9-83a3-4f49ef4b6647",
-    insert: (tx: ClientBase) =>
+    insert: (tx: ClientBase): Promise<EmailCredential> =>
       EmailCredential.write(
         tx,
         {
@@ -128,7 +128,7 @@ export const credential: {
   },
   {
     id: "74501d3e-b319-4c84-b5a6-4135fc595fb1",
-    insert: (tx: ClientBase) =>
+    insert: (tx: ClientBase): Promise<EmailCredential> =>
       EmailCredential.write(
         tx,
         {
@@ -148,7 +148,7 @@ export const credential: {
   },
   {
     id: "fee2e658-ddca-46d8-a75c-114b36325e35",
-    insert: (tx: ClientBase) =>
+    insert: (tx: ClientBase): Promise<EmailCredential> =>
       EmailCredential.write(
         tx,
         {
@@ -168,7 +168,7 @@ export const credential: {
   },
   {
     id: "c1a8cc41-66d5-4aef-8b97-e5f97d2bc699",
-    insert: (tx: ClientBase) =>
+    insert: (tx: ClientBase): Promise<PasswordCredential> =>
       PasswordCredential.write(
         tx,
         {
@@ -191,7 +191,7 @@ export const credential: {
   },
   {
     id: "f1937f99-4c17-4b10-a745-345288727c1a",
-    insert: (tx: ClientBase) =>
+    insert: (tx: ClientBase): Promise<PasswordCredential> =>
       PasswordCredential.write(
         tx,
         {
@@ -214,7 +214,7 @@ export const credential: {
   },
   {
     id: "8d5d1c50-cba2-4afe-83fa-3b8d784b607c",
-    insert: (tx: ClientBase) =>
+    insert: (tx: ClientBase): Promise<PasswordCredential> =>
       PasswordCredential.write(
         tx,
         {
@@ -237,7 +237,7 @@ export const credential: {
   },
   {
     id: "6b33db96-05e5-4ade-8ac7-2959b96ce7db",
-    insert: (tx: ClientBase) =>
+    insert: (tx: ClientBase): Promise<PasswordCredential> =>
       PasswordCredential.write(
         tx,
         {
@@ -260,7 +260,7 @@ export const credential: {
   },
   {
     id: "03e69b4c-3f73-4b15-866c-17efeeed1678",
-    insert: (tx: ClientBase) =>
+    insert: (tx: ClientBase): Promise<PasswordCredential> =>
       PasswordCredential.write(
         tx,
         {
@@ -283,7 +283,7 @@ export const credential: {
   },
   {
     id: "a941a36d-a3d3-4c8b-a03a-f549dac3871e",
-    insert: (tx: ClientBase) =>
+    insert: (tx: ClientBase): Promise<PasswordCredential> =>
       PasswordCredential.write(
         tx,
         {
@@ -306,7 +306,7 @@ export const credential: {
   },
   {
     id: "2e933e24-072f-41dd-b5f2-75d27f11a8b4",
-    insert: (tx: ClientBase) =>
+    insert: (tx: ClientBase): Promise<PasswordCredential> =>
       PasswordCredential.write(
         tx,
         {
@@ -329,7 +329,7 @@ export const credential: {
   },
   {
     id: "0bae2fed-26ac-4fa2-8879-a226c9fb859a",
-    insert: (tx: ClientBase) =>
+    insert: (tx: ClientBase): Promise<PasswordCredential> =>
       PasswordCredential.write(
         tx,
         {
@@ -352,7 +352,7 @@ export const credential: {
   },
   {
     id: "e1381b64-b0df-4e81-9b31-38ae2f1325fc",
-    insert: (tx: ClientBase) =>
+    insert: (tx: ClientBase): Promise<PasswordCredential> =>
       PasswordCredential.write(
         tx,
         {

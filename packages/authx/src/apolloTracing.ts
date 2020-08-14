@@ -1,4 +1,8 @@
-import { responsePathAsArray, GraphQLResolveInfo } from "graphql";
+import {
+  responsePathAsArray,
+  GraphQLResolveInfo,
+  GraphQLFieldResolver,
+} from "graphql";
 
 type HighResolutionTime = [number, number];
 
@@ -40,9 +44,9 @@ function durationHrTimeToNanos(hrtime: HighResolutionTime): number {
 }
 
 export async function apolloTracingGraphQLMiddleware(
-  resolve: Function,
-  parent: any,
-  args: any,
+  resolve: GraphQLFieldResolver<any, any, any>,
+  parent: unknown,
+  args: unknown,
   context: { [apolloTracingContext]: ApolloTracingContext },
   info: GraphQLResolveInfo
 ): Promise<any> {
