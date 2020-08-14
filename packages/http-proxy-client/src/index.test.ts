@@ -27,10 +27,10 @@ test.before(async () => {
     }>((resolve, reject) => {
       const server = createServer((request, response) => {
         const data: Buffer[] = [];
-        request.on("data", function(d) {
+        request.on("data", function (d) {
           data.push(d);
         });
-        request.on("end", function() {
+        request.on("end", function () {
           const body = JSON.parse(Buffer.concat(data).toString());
           if (body.grant_type !== "refresh_token")
             throw new Error("Request must include grant_type=refresh_token.");
@@ -45,7 +45,7 @@ test.before(async () => {
           response.setHeader("Content-Type", "application/json");
           response.end(
             JSON.stringify({
-              /* eslint-disable @typescript-eslint/camelcase */
+              /* eslint-disable camelcase */
               token_type: "bearer",
               access_token: `eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.${Buffer.from(
                 JSON.stringify({
@@ -65,7 +65,7 @@ test.before(async () => {
               refresh_token: body.refresh_token,
               expires_in: 3600,
               scope: body.scope
-              /* eslint-enable @typescript-eslint/camelcase */
+              /* eslint-enable camelcase */
             })
           );
         });

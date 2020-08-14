@@ -7,30 +7,37 @@ export class StrategyCollection {
   public map: { [name: string]: Strategy } = {};
 
   public authorityMap: {
-    readonly [name: string]: { new (data: AuthorityData<any>): Authority<any> };
+    readonly [name: string]: {
+      new (data: AuthorityData<any> & { readonly recordId: string }): Authority<
+        any
+      >;
+    };
   } = {};
 
   public credentialMap: {
     readonly [name: string]: {
-      new (data: CredentialData<any>): Credential<any>;
+      new (
+        data: CredentialData<any> & { readonly recordId: string }
+      ): Credential<any>;
     };
   } = {};
 
   public queryFields: {
-    readonly [field: string]: GraphQLFieldConfig<any, any, Context>;
+    readonly [field: string]: GraphQLFieldConfig<any, Context, any>;
   } = {};
 
   public mutationFields: {
-    readonly [field: string]: GraphQLFieldConfig<any, any, Context>;
+    readonly [field: string]: GraphQLFieldConfig<any, Context, any>;
   } = {};
 
   public types: GraphQLNamedType[] = [];
 
   public constructor(strategies?: Iterable<Strategy>) {
-    if (strategies)
+    if (strategies) {
       for (const strategy of strategies) {
         this.add(strategy);
       }
+    }
   }
 
   public add(s: Strategy): StrategyCollection {

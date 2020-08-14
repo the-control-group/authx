@@ -1,6 +1,6 @@
 import { loader } from "webpack";
 
-export default function(
+export default function (
   this: loader.LoaderContext,
   source: string | Buffer
 ): string {

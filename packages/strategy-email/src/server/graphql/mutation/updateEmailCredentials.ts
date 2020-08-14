@@ -1,4 +1,5 @@
 import { v4 } from "uuid";
+import { Pool, PoolClient } from "pg";
 import { GraphQLFieldConfig, GraphQLNonNull, GraphQLList } from "graphql";
 
 import {
@@ -7,7 +8,9 @@ import {
   ForbiddenError,
   NotFoundError,
   ValidationError,
-  validateIdFormat
+  validateIdFormat,
+  DataLoaderExecutor,
+  ReadonlyDataLoaderExecutor
 } from "@authx/authx";
 import { EmailCredential } from "../../model";
 import { GraphQLEmailCredential } from "../GraphQLEmailCredential";
@@ -33,16 +36,19 @@ export const updateEmailCredentials: GraphQLFieldConfig<
     }
   },
   async resolve(source, args, context): Promise<Promise<EmailCredential>[]> {
-    const {
-      pool,
-      authorization: a,
-      realm,
-      strategies: { credentialMap }
-    } = context;
+    const { executor, authorization: a, realm } = context;
 
     if (!a) {
       throw new ForbiddenError(
         "You must be authenticated to update an credential."
+      );
+    }
+
+    const strategies = executor.strategies;
+    const pool = executor.connection;
+    if (!(pool instanceof Pool)) {
+      throw new Error(
+        "INVARIANT: The executor connection is expected to be an instance of Pool."
       );
     }
 
@@ -54,9 +60,15 @@ export const updateEmailCredentials: GraphQLFieldConfig<
 
       const tx = await pool.connect();
       try {
+        // Make sure this transaction is used for queries made by the executor.
+        const executor = new DataLoaderExecutor<Pool | PoolClient>(
+          tx,
+          strategies
+        );
+
         await tx.query("BEGIN DEFERRABLE");
 
-        const before = await Credential.read(tx, input.id, credentialMap, {
+        const before = await Credential.read(tx, input.id, strategies, {
           forUpdate: true
         });
 
@@ -65,7 +77,7 @@ export const updateEmailCredentials: GraphQLFieldConfig<
         }
 
         if (
-          !(await before.isAccessibleBy(realm, a, tx, {
+          !(await before.isAccessibleBy(realm, a, executor, {
             basic: "w",
             details: ""
           }))
@@ -92,6 +104,16 @@ export const updateEmailCredentials: GraphQLFieldConfig<
         );
 
         await tx.query("COMMIT");
+
+        // Clear and prime the loader.
+        Credential.clear(executor, credential.id);
+        Credential.prime(executor, credential.id, credential);
+
+        // Update the context to use a new executor primed with the results of
+        // this mutation, using the original connection pool.
+        executor.connection = pool;
+        context.executor = executor as ReadonlyDataLoaderExecutor<Pool>;
+
         return credential;
       } catch (error) {
         await tx.query("ROLLBACK");

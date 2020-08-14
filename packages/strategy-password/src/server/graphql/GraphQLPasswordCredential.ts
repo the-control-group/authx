@@ -36,16 +36,11 @@ export const GraphQLPasswordCredential = new GraphQLObjectType<
       async resolve(
         credential,
         args,
-        { realm, authorization: a, pool }: Context
+        { realm, authorization: a, executor }: Context
       ): Promise<null | User> {
-        const tx = await pool.connect();
-        try {
-          if (!a) return null;
-          const user = await credential.user(tx);
-          return user.isAccessibleBy(realm, a, tx) ? user : null;
-        } finally {
-          tx.release();
-        }
+        if (!a) return null;
+        const user = await credential.user(executor);
+        return user.isAccessibleBy(realm, a, executor) ? user : null;
       }
     },
     authority: {
@@ -53,14 +48,9 @@ export const GraphQLPasswordCredential = new GraphQLObjectType<
       async resolve(
         credential,
         args,
-        { pool }: Context
+        { executor }: Context
       ): Promise<null | PasswordAuthority> {
-        const tx = await pool.connect();
-        try {
-          return credential.authority(tx);
-        } finally {
-          tx.release();
-        }
+        return credential.authority(executor);
       }
     },
     subject: {
@@ -74,20 +64,15 @@ export const GraphQLPasswordCredential = new GraphQLObjectType<
       async resolve(
         credential,
         args,
-        { realm, authorization: a, pool }: Context
+        { realm, authorization: a, executor }: Context
       ): Promise<null | string> {
-        const tx = await pool.connect();
-        try {
-          return a &&
-            (await credential.isAccessibleBy(realm, a, tx, {
-              basic: "r",
-              details: "r"
-            }))
-            ? credential.details.hash
-            : null;
-        } finally {
-          tx.release();
-        }
+        return a &&
+          (await credential.isAccessibleBy(realm, a, executor, {
+            basic: "r",
+            details: "r"
+          }))
+          ? credential.details.hash
+          : null;
       }
     }
   })

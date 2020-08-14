@@ -1,5 +1,5 @@
-import { ClientBase } from "pg";
-import { Credential } from "@authx/authx";
+import { Pool, ClientBase } from "pg";
+import { Credential, DataLoaderExecutor } from "@authx/authx";
 import { OpenIdAuthority } from "./OpenIdAuthority";
 
 // Credential
@@ -8,17 +8,14 @@ import { OpenIdAuthority } from "./OpenIdAuthority";
 // eslint-disable-next-line
 export interface OpenIdCredentialDetails {}
 
-export class OpenIdCredential extends Credential<{}> {
-  private _authority: null | Promise<OpenIdAuthority> = null;
-
+export class OpenIdCredential extends Credential<OpenIdCredentialDetails> {
   public authority(
-    tx: ClientBase,
-    refresh: boolean = false
+    tx: Pool | ClientBase | DataLoaderExecutor
   ): Promise<OpenIdAuthority> {
-    if (!refresh && this._authority) {
-      return this._authority;
-    }
-
-    return (this._authority = OpenIdAuthority.read(tx, this.authorityId));
+    return tx instanceof DataLoaderExecutor
+      ? (OpenIdAuthority.read(tx, this.authorityId) as Promise<OpenIdAuthority>)
+      : (OpenIdAuthority.read(tx, this.authorityId) as Promise<
+          OpenIdAuthority
+        >);
   }
 }

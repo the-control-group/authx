@@ -1,6 +1,9 @@
-import { ClientBase } from "pg";
-import { Credential } from "@authx/authx";
-import { PasswordAuthority } from "./PasswordAuthority";
+import { Pool, ClientBase } from "pg";
+import { Credential, DataLoaderExecutor } from "@authx/authx";
+import {
+  PasswordAuthorityDetails,
+  PasswordAuthority
+} from "./PasswordAuthority";
 
 // Credential
 // ----------
@@ -10,16 +13,18 @@ export interface PasswordCredentialDetails {
 }
 
 export class PasswordCredential extends Credential<PasswordCredentialDetails> {
-  private _authority: null | Promise<PasswordAuthority> = null;
-
   public authority(
-    tx: ClientBase,
-    refresh: boolean = false
+    tx: Pool | ClientBase | DataLoaderExecutor
   ): Promise<PasswordAuthority> {
-    if (!refresh && this._authority) {
-      return this._authority;
-    }
-
-    return (this._authority = PasswordAuthority.read(tx, this.authorityId));
+    return tx instanceof DataLoaderExecutor
+      ? // Some silliness to help typescript...
+        PasswordAuthority.read<PasswordAuthorityDetails, PasswordAuthority>(
+          tx,
+          this.authorityId
+        )
+      : PasswordAuthority.read<PasswordAuthorityDetails, PasswordAuthority>(
+          tx,
+          this.authorityId
+        );
   }
 }

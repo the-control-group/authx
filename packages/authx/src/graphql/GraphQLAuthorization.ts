@@ -35,16 +35,11 @@ export const GraphQLAuthorization: GraphQLObjectType<
       async resolve(
         authorization,
         args,
-        { realm, authorization: a, pool }: Context
+        { realm, authorization: a, executor }: Context
       ): Promise<null | Grant> {
         if (!a) return null;
-        const tx = await pool.connect();
-        try {
-          const grant = await authorization.grant(tx);
-          return grant && grant.isAccessibleBy(realm, a, tx) ? grant : null;
-        } finally {
-          tx.release();
-        }
+        const grant = await authorization.grant(executor);
+        return grant && grant.isAccessibleBy(realm, a, executor) ? grant : null;
       }
     },
     user: {
@@ -52,16 +47,12 @@ export const GraphQLAuthorization: GraphQLObjectType<
       async resolve(
         authorization,
         args,
-        { realm, authorization: a, pool }: Context
+        { realm, authorization: a, executor }: Context
       ): Promise<null | User> {
         if (!a) return null;
-        const tx = await pool.connect();
-        try {
-          const user = await authorization.user(tx);
-          return user.isAccessibleBy(realm, a, tx) ? user : null;
-        } finally {
-          tx.release();
-        }
+
+        const user = await authorization.user(executor);
+        return user.isAccessibleBy(realm, a, executor) ? user : null;
       }
     },
     secret: {
@@ -69,21 +60,16 @@ export const GraphQLAuthorization: GraphQLObjectType<
       async resolve(
         authorization,
         args,
-        { realm, authorization: a, pool }: Context
+        { realm, authorization: a, executor }: Context
       ): Promise<null | string> {
-        const tx = await pool.connect();
-        try {
-          return a &&
-            (await authorization.isAccessibleBy(realm, a, tx, {
-              basic: "r",
-              scopes: "",
-              secrets: "r"
-            }))
-            ? authorization.secret
-            : null;
-        } finally {
-          tx.release();
-        }
+        return a &&
+          (await authorization.isAccessibleBy(realm, a, executor, {
+            basic: "r",
+            scopes: "",
+            secrets: "r"
+          }))
+          ? authorization.secret
+          : null;
       }
     },
     scopes: {
@@ -91,21 +77,16 @@ export const GraphQLAuthorization: GraphQLObjectType<
       async resolve(
         authorization,
         args,
-        { realm, authorization: a, pool }: Context
+        { realm, authorization: a, executor }: Context
       ): Promise<null | string[]> {
-        const tx = await pool.connect();
-        try {
-          return a &&
-            (await authorization.isAccessibleBy(realm, a, tx, {
-              basic: "r",
-              scopes: "r",
-              secrets: ""
-            }))
-            ? authorization.scopes
-            : null;
-        } finally {
-          tx.release();
-        }
+        return a &&
+          (await authorization.isAccessibleBy(realm, a, executor, {
+            basic: "r",
+            scopes: "r",
+            secrets: ""
+          }))
+          ? authorization.scopes
+          : null;
       }
     },
     explanations: {
@@ -113,30 +94,25 @@ export const GraphQLAuthorization: GraphQLObjectType<
       async resolve(
         authorization,
         args,
-        { realm, authorization: a, pool, explanations }: Context
+        { realm, authorization: a, executor, explanations }: Context
       ): Promise<null | Explanation[]> {
-        const tx = await pool.connect();
-        try {
-          if (
-            !a ||
-            !(await authorization.isAccessibleBy(realm, a, tx, {
-              basic: "r",
-              scopes: "r",
-              secrets: ""
-            }))
-          ) {
-            return null;
-          }
-          const grant = await authorization.grant(tx);
-          return match(explanations, authorization.scopes, {
-            currentAuthorizationId: authorization.id,
-            currentGrantId: authorization.grantId,
-            currentUserId: authorization.userId,
-            currentClientId: (grant && grant.clientId) || null
-          });
-        } finally {
-          tx.release();
+        if (
+          !a ||
+          !(await authorization.isAccessibleBy(realm, a, executor, {
+            basic: "r",
+            scopes: "r",
+            secrets: ""
+          }))
+        ) {
+          return null;
         }
+        const grant = await authorization.grant(executor);
+        return match(explanations, authorization.scopes, {
+          currentAuthorizationId: authorization.id,
+          currentGrantId: authorization.grantId,
+          currentUserId: authorization.userId,
+          currentClientId: (grant && grant.clientId) || null
+        });
       }
     },
     access: {
@@ -144,21 +120,16 @@ export const GraphQLAuthorization: GraphQLObjectType<
       async resolve(
         authorization,
         args,
-        { realm, authorization: a, pool }: Context
+        { realm, authorization: a, executor }: Context
       ): Promise<null | string[]> {
         if (!a) return null;
-        const tx = await pool.connect();
-        try {
-          return (await authorization.isAccessibleBy(realm, a, tx, {
-            basic: "r",
-            scopes: "r",
-            secrets: ""
-          }))
-            ? authorization.access(tx)
-            : null;
-        } finally {
-          tx.release();
-        }
+        return (await authorization.isAccessibleBy(realm, a, executor, {
+          basic: "r",
+          scopes: "r",
+          secrets: ""
+        }))
+          ? authorization.access(executor)
+          : null;
       }
     },
     token: {
@@ -176,67 +147,62 @@ export const GraphQLAuthorization: GraphQLObjectType<
           jwtValidityDuration,
           privateKey,
           authorization: a,
-          pool
+          executor
         }: Context
       ): Promise<null | string> {
-        const tx = await pool.connect();
         if (!a) return null;
-        try {
-          if (
-            !(await authorization.isAccessibleBy(realm, a, tx, {
-              basic: "r",
-              scopes: "r",
-              secrets: ""
-            })) ||
-            !(await authorization.isAccessibleBy(realm, a, tx, {
-              basic: "r",
-              scopes: "",
-              secrets: "r"
-            }))
-          ) {
-            return null;
-          }
-
-          if (args.format === "basic") {
-            return `Basic ${Buffer.from(
-              `${authorization.id}:${authorization.secret}`,
-              "utf8"
-            ).toString("base64")}`;
-          }
-
-          if (args.format === "bearer") {
-            const tokenId = v4();
-            const grant = await authorization.grant(tx);
-            await authorization.invoke(tx, {
-              id: tokenId,
-              format: "bearer",
-              createdAt: new Date()
-            });
-
-            return `Bearer ${jwt.sign(
-              {
-                aid: authorization.id,
-                scopes: await authorization.access(tx)
-              },
-              privateKey,
-              {
-                jwtid: tokenId,
-                algorithm: "RS512",
-                expiresIn: jwtValidityDuration,
-                subject: authorization.userId,
-                issuer: realm,
-
-                // The jwt library uses the presence of keys in its validation,
-                // so we cannot just set `audience` to undefined.
-                ...(grant ? { audience: grant.clientId } : {})
-              }
-            )}`;
-          }
-
-          throw new Error("INVARIANT: Impossible token format.");
-        } finally {
-          tx.release();
+        if (
+          !(await authorization.isAccessibleBy(realm, a, executor, {
+            basic: "r",
+            scopes: "r",
+            secrets: ""
+          })) ||
+          !(await authorization.isAccessibleBy(realm, a, executor, {
+            basic: "r",
+            scopes: "",
+            secrets: "r"
+          }))
+        ) {
+          return null;
         }
+
+        if (args.format === "basic") {
+          return `Basic ${Buffer.from(
+            `${authorization.id}:${authorization.secret}`,
+            "utf8"
+          ).toString("base64")}`;
+        }
+
+        if (args.format === "bearer") {
+          const tokenId = v4();
+          const grant = await authorization.grant(executor);
+          await authorization.invoke(executor, {
+            id: tokenId,
+            format: "bearer",
+            createdAt: new Date()
+          });
+
+          return `Bearer ${jwt.sign(
+            {
+              aid: authorization.id,
+              scopes: await authorization.access(executor)
+            },
+            privateKey,
+            {
+              jwtid: tokenId,
+              algorithm: "RS512",
+              expiresIn: jwtValidityDuration,
+              subject: authorization.userId,
+              issuer: realm,
+
+              // The jwt library uses the presence of keys in its validation,
+              // so we cannot just set `audience` to undefined.
+              ...(grant ? { audience: grant.clientId } : {})
+            }
+          )}`;
+        }
+
+        throw new Error("INVARIANT: Impossible token format.");
       }
     }
   })

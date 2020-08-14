@@ -1,9 +1,10 @@
-import { ClientBase } from "pg";
+import { Pool, ClientBase } from "pg";
 import { User } from "./User";
 import { Authorization } from "./Authorization";
 import { simplify, isSuperset, inject } from "@authx/scopes";
 import { NotFoundError } from "../errors";
 import { RoleAction, createV2AuthXScope } from "../util/scopes";
+import { DataLoaderExecutor, DataLoaderCache } from "../loader";
 
 export interface RoleRecordData {
   readonly id: string;
@@ -47,8 +48,6 @@ export class Role implements RoleData {
   public readonly scopes: string[];
   public readonly userIds: Set<string>;
 
-  private _users: null | Promise<User[]> = null;
-
   public constructor(data: RoleData & { readonly recordId: string }) {
     this.id = data.id;
     this.recordId = data.recordId;
@@ -62,7 +61,7 @@ export class Role implements RoleData {
   public async isAccessibleBy(
     realm: string,
     a: Authorization,
-    tx: ClientBase,
+    tx: Pool | ClientBase | DataLoaderExecutor,
     action: RoleAction = {
       basic: "r",
       scopes: "",
@@ -88,12 +87,13 @@ export class Role implements RoleData {
     return false;
   }
 
-  public users(tx: ClientBase, refresh: boolean = false): Promise<User[]> {
-    if (!refresh && this._users) {
-      return this._users;
-    }
-
-    return (this._users = User.read(tx, [...this.userIds]));
+  public users(tx: Pool | ClientBase | DataLoaderExecutor): Promise<User[]> {
+    return (
+      // Some silliness to help typescript...
+      tx instanceof DataLoaderExecutor
+        ? User.read(tx, [...this.userIds].sort())
+        : User.read(tx, [...this.userIds].sort())
+    );
   }
 
   public access(values: {
@@ -103,12 +103,12 @@ export class Role implements RoleData {
     currentClientId: null | string;
   }): string[] {
     return inject(this.scopes, {
-      /* eslint-disable @typescript-eslint/camelcase */
+      /* eslint-disable camelcase */
       current_authorization_id: values.currentAuthorizationId,
       current_user_id: values.currentUserId,
       current_grant_id: values.currentGrantId,
       current_client_id: values.currentClientId
-      /* eslint-enable @typescript-eslint/camelcase */
+      /* eslint-enable camelcase */
     });
   }
 
@@ -153,21 +153,49 @@ export class Role implements RoleData {
     );
   }
 
+  // Read using an executor.
   public static read(
-    tx: ClientBase,
+    tx: DataLoaderExecutor,
     id: string,
-    options?: { forUpdate: boolean }
+    options?: { forUpdate?: false }
   ): Promise<Role>;
+
   public static read(
-    tx: ClientBase,
-    id: string[],
-    options?: { forUpdate: boolean }
+    tx: DataLoaderExecutor,
+    id: readonly string[],
+    options?: { forUpdate?: false }
   ): Promise<Role[]>;
+
+  // Read using a connection.
+  public static read(
+    tx: Pool | ClientBase,
+    id: string,
+    options?: { forUpdate?: boolean }
+  ): Promise<Role>;
+
+  public static read(
+    tx: Pool | ClientBase,
+    id: readonly string[],
+    options?: { forUpdate?: boolean }
+  ): Promise<Role[]>;
+
   public static async read(
-    tx: ClientBase,
-    id: string[] | string,
-    options: { forUpdate: boolean } = { forUpdate: false }
+    tx: Pool | ClientBase | DataLoaderExecutor,
+    id: readonly string[] | string,
+    options?: { forUpdate?: boolean }
   ): Promise<Role[] | Role> {
+    if (tx instanceof DataLoaderExecutor) {
+      const loader = cache.get(tx);
+
+      // Load a single instance.
+      if (typeof id === "string") {
+        return loader.load(id);
+      }
+
+      // Load multiple instances.
+      return Promise.all(id.map(i => loader.load(i)));
+    }
+
     if (typeof id !== "string" && !id.length) {
       return [];
     }
@@ -188,7 +216,7 @@ export class Role implements RoleData {
         WHERE
           authx.role_record.entity_id = ANY($1)
           AND authx.role_record.replacement_record_id IS NULL
-        ${options.forUpdate ? "FOR UPDATE" : ""}
+        ${options?.forUpdate ? "FOR UPDATE" : ""}
       ) AS role_record
       LEFT JOIN authx.role_record_user
         ON authx.role_record_user.role_record_id = role_record.record_id
@@ -226,7 +254,7 @@ export class Role implements RoleData {
   }
 
   public static async write(
-    tx: ClientBase,
+    tx: Pool | ClientBase,
     data: RoleData,
     metadata: {
       recordId: string;
@@ -329,4 +357,25 @@ export class Role implements RoleData {
       userIds: users.rows.map(({ user_id: userId }) => userId)
     });
   }
+
+  public static clear(executor: DataLoaderExecutor, id: string): void {
+    cache.get(executor).clear(id);
+  }
+
+  public static prime(
+    executor: DataLoaderExecutor,
+    id: string,
+    value: Role
+  ): void {
+    cache.get(executor).prime(id, value);
+  }
 }
+
+const cache = new DataLoaderCache(
+  async (
+    executor: DataLoaderExecutor,
+    ids: readonly string[]
+  ): Promise<Role[]> => {
+    return Role.read(executor.connection, ids);
+  }
+);

@@ -1,9 +1,11 @@
 import { v4 } from "uuid";
+import { Pool, PoolClient } from "pg";
 import { isSuperset } from "@authx/scopes";
 import { GraphQLFieldConfig, GraphQLList, GraphQLNonNull } from "graphql";
 import { Context } from "../../Context";
 import { GraphQLRole } from "../GraphQLRole";
 import { Role } from "../../model";
+import { DataLoaderExecutor, ReadonlyDataLoaderExecutor } from "../../loader";
 import { filter } from "../../util/filter";
 import { validateIdFormat } from "../../util/validateIdFormat";
 import { ForbiddenError, ValidationError } from "../../errors";
@@ -34,10 +36,18 @@ export const updateRoles: GraphQLFieldConfig<
     }
   },
   async resolve(source, args, context): Promise<Promise<Role>[]> {
-    const { pool, authorization: a, realm } = context;
+    const { executor, authorization: a, realm } = context;
 
     if (!a) {
       throw new ForbiddenError("You must be authenticated to update a role.");
+    }
+
+    const strategies = executor.strategies;
+    const pool = executor.connection;
+    if (!(pool instanceof Pool)) {
+      throw new Error(
+        "INVARIANT: The executor connection is expected to be an instance of Pool."
+      );
     }
 
     return args.roles.map(async input => {
@@ -59,6 +69,12 @@ export const updateRoles: GraphQLFieldConfig<
 
       const tx = await pool.connect();
       try {
+        // Make sure this transaction is used for queries made by the executor.
+        const executor = new DataLoaderExecutor<Pool | PoolClient>(
+          tx,
+          strategies
+        );
+
         await tx.query("BEGIN DEFERRABLE");
         const before = await Role.read(tx, input.id, {
           forUpdate: true
@@ -66,7 +82,7 @@ export const updateRoles: GraphQLFieldConfig<
 
         // w.... -----------------------------------------------------------
         if (
-          !(await before.isAccessibleBy(realm, a, tx, {
+          !(await before.isAccessibleBy(realm, a, executor, {
             basic: "w",
             scopes: "",
             users: ""
@@ -80,7 +96,7 @@ export const updateRoles: GraphQLFieldConfig<
         // w..w.. ----------------------------------------------------------
         if (
           input.scopes &&
-          !(await before.isAccessibleBy(realm, a, tx, {
+          !(await before.isAccessibleBy(realm, a, executor, {
             basic: "w",
             scopes: "w",
             users: ""
@@ -107,14 +123,12 @@ export const updateRoles: GraphQLFieldConfig<
 
           const assignableScopes = roleIDs.length
             ? (
-                await filter(
-                  await Role.read(tx, roleIDs, { forUpdate: true }),
-                  role =>
-                    role.isAccessibleBy(realm, a, tx, {
-                      basic: "w",
-                      scopes: "",
-                      users: "w"
-                    })
+                await filter(await Role.read(executor, roleIDs), role =>
+                  role.isAccessibleBy(realm, a, executor, {
+                    basic: "w",
+                    scopes: "",
+                    users: "w"
+                  })
                 )
               ).reduce<string[]>((acc, { scopes }) => {
                 return [...acc, ...scopes];
@@ -129,7 +143,7 @@ export const updateRoles: GraphQLFieldConfig<
 
         // w....w -----------------------------------------------------
         if (
-          !(await before.isAccessibleBy(realm, a, tx, {
+          !(await before.isAccessibleBy(realm, a, executor, {
             basic: "w",
             scopes: "",
             users: "w"
@@ -172,7 +186,18 @@ export const updateRoles: GraphQLFieldConfig<
             createdAt: new Date()
           }
         );
+
         await tx.query("COMMIT");
+
+        // Clear and prime the loader.
+        Role.clear(executor, role.id);
+        Role.prime(executor, role.id, role);
+
+        // Update the context to use a new executor primed with the results of
+        // this mutation, using the original connection pool.
+        executor.connection = pool;
+        context.executor = executor as ReadonlyDataLoaderExecutor<Pool>;
+
         return role;
       } catch (error) {
         await tx.query("ROLLBACK");

@@ -18,15 +18,10 @@ export const user: GraphQLFieldConfig<
     }
   },
   async resolve(source, args, context): Promise<null | User> {
-    const { pool, authorization: a, realm } = context;
+    const { executor, authorization: a, realm } = context;
     if (!a) return null;
 
-    const tx = await pool.connect();
-    try {
-      const user = await User.read(tx, args.id);
-      return (await user.isAccessibleBy(realm, a, tx)) ? user : null;
-    } finally {
-      tx.release();
-    }
+    const user = await User.read(executor, args.id);
+    return (await user.isAccessibleBy(realm, a, executor)) ? user : null;
   }
 };

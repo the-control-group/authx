@@ -226,7 +226,7 @@ export default class AuthXWebProxy extends EventEmitter {
     ): void => {
       // Merge `set-cookie` header values with those set by the proxy.
       const setHeader = response.setHeader;
-      response.setHeader = function(name, value) {
+      response.setHeader = function (name, value) {
         if (name.toLowerCase() === "set-cookie") {
           const setCookie = response.getHeader("set-cookie");
 
@@ -353,13 +353,13 @@ export default class AuthXWebProxy extends EventEmitter {
             "Content-Type": "application/json"
           },
           body: JSON.stringify({
-            /* eslint-disable @typescript-eslint/camelcase */
+            /* eslint-disable camelcase */
             grant_type: "authorization_code",
             client_id: this._config.clientId,
             client_secret: this._config.clientSecret,
             code: code,
             scope: "**:**:**"
-            /* eslint-enable @typescript-eslint/camelcase */
+            /* eslint-enable camelcase */
           })
         });
 
@@ -478,13 +478,13 @@ export default class AuthXWebProxy extends EventEmitter {
               "Content-Type": "application/json"
             },
             body: JSON.stringify({
-              /* eslint-disable @typescript-eslint/camelcase */
+              /* eslint-disable camelcase */
               grant_type: "refresh_token",
               client_id: this._config.clientId,
               client_secret: this._config.clientSecret,
               refresh_token: refreshToken,
               scope: scopes.join(" ")
-              /* eslint-enabme @typescript-eslint/camelcase */
+              /* eslint-enabme camelcase */
             })
           });
 

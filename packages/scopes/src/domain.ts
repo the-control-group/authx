@@ -117,10 +117,7 @@ function s(winners: Domain[], candidate: Domain): Domain[] {
 }
 
 function simplify(collection: Domain[]): Domain[] {
-  return collection
-    .map(normalize)
-    .reduce(s, [])
-    .reduceRight(s, []);
+  return collection.map(normalize).reduce(s, []).reduceRight(s, []);
 }
 
 export function compare(a: Domain, b: Domain): 0 | -1 | 1 {

@@ -1,13 +1,18 @@
+const EMPTY: unique symbol = Symbol("empty");
 export async function filter<T>(
   iter: Iterable<T>,
   callback: (item: T, index: number) => boolean | Promise<boolean>
 ): Promise<T[]> {
-  const result: T[] = [];
+  const array = [...iter];
+
+  // Use our unique symbol to distinguish between an intentionally "undefined"
+  // value and a truly omitted one.
+  const result: (T | typeof EMPTY)[] = new Array(array.length).fill(EMPTY);
   await Promise.all(
-    [...iter].map(async (item: T, index: number) => {
-      if (await callback(item, index)) result.push(item);
+    array.map(async (item: T, index: number) => {
+      if (await callback(item, index)) result[index] = item;
     })
   );
 
-  return result;
+  return result.filter((r): r is T => r !== EMPTY);
 }

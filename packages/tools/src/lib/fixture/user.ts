@@ -4,7 +4,7 @@ import { User } from "@authx/authx";
 export const user = [
   {
     id: "e165cbb0-86b0-4e11-9db7-eb5f742161b8",
-    insert: (tx: ClientBase) =>
+    insert: (tx: ClientBase): Promise<User> =>
       User.write(
         tx,
         {
@@ -22,7 +22,7 @@ export const user = [
   },
   {
     id: "a6a0946d-eeb4-45cd-83c6-c7920f2272eb",
-    insert: (tx: ClientBase) =>
+    insert: (tx: ClientBase): Promise<User> =>
       User.write(
         tx,
         {
@@ -40,7 +40,7 @@ export const user = [
   },
   {
     id: "0cbd3783-0424-4f35-be51-b42f07a2a987",
-    insert: (tx: ClientBase) =>
+    insert: (tx: ClientBase): Promise<User> =>
       User.write(
         tx,
         {
@@ -58,7 +58,7 @@ export const user = [
   },
   {
     id: "d0fc4c64-a3d6-4d97-9341-07de24439bb1",
-    insert: (tx: ClientBase) =>
+    insert: (tx: ClientBase): Promise<User> =>
       User.write(
         tx,
         {
@@ -76,7 +76,7 @@ export const user = [
   },
   {
     id: "eaa9fa5e-088a-4ae2-a6ab-f120006b20a9",
-    insert: (tx: ClientBase) =>
+    insert: (tx: ClientBase): Promise<User> =>
       User.write(
         tx,
         {
@@ -94,7 +94,7 @@ export const user = [
   },
   {
     id: "306eabbb-cc2b-4f88-be19-4bb6ec98e5c3",
-    insert: (tx: ClientBase) =>
+    insert: (tx: ClientBase): Promise<User> =>
       User.write(
         tx,
         {
@@ -112,7 +112,7 @@ export const user = [
   },
   {
     id: "dc396449-2c7d-4a23-a159-e6415ded71d2",
-    insert: (tx: ClientBase) =>
+    insert: (tx: ClientBase): Promise<User> =>
       User.write(
         tx,
         {
@@ -130,7 +130,7 @@ export const user = [
   },
   {
     id: "51192909-3664-44d5-be62-c6b45f0b0ee6",
-    insert: (tx: ClientBase) =>
+    insert: (tx: ClientBase): Promise<User> =>
       User.write(
         tx,
         {
@@ -148,7 +148,7 @@ export const user = [
   },
   {
     id: "9ad4b34b-781d-44fe-ac39-9b7ac43dde21",
-    insert: (tx: ClientBase) =>
+    insert: (tx: ClientBase): Promise<User> =>
       User.write(
         tx,
         {
@@ -166,7 +166,7 @@ export const user = [
   },
   {
     id: "1691f38d-92c8-4d86-9a89-da99528cfcb5",
-    insert: (tx: ClientBase) =>
+    insert: (tx: ClientBase): Promise<User> =>
       User.write(
         tx,
         {
@@ -184,7 +184,7 @@ export const user = [
   },
   {
     id: "98361302-49d2-449e-9f2d-a71ebc958e77",
-    insert: (tx: ClientBase) =>
+    insert: (tx: ClientBase): Promise<User> =>
       User.write(
         tx,
         {

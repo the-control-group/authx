@@ -5,6 +5,7 @@ import {
   GraphQLString
 } from "graphql";
 
+import { Pool, PoolClient } from "pg";
 import { randomBytes } from "crypto";
 import { compare } from "bcrypt";
 import { v4 } from "uuid";
@@ -16,7 +17,9 @@ import {
   Authorization,
   ForbiddenError,
   AuthenticationError,
-  User
+  User,
+  DataLoaderExecutor,
+  ReadonlyDataLoaderExecutor
 } from "@authx/authx";
 
 import { createV2AuthXScope } from "@authx/authx/scopes";
@@ -52,26 +55,35 @@ export const authenticatePassword: GraphQLFieldConfig<
     }
   },
   async resolve(source, args, context): Promise<Authorization> {
-    const {
-      pool,
-      authorization: a,
-      realm,
-      strategies: { authorityMap }
-    } = context;
+    const { executor, authorization: a, realm } = context;
 
     if (a) {
       throw new ForbiddenError("You area already authenticated.");
     }
 
+    const strategies = executor.strategies;
+    const pool = executor.connection;
+    if (!(pool instanceof Pool)) {
+      throw new Error(
+        "INVARIANT: The executor connection is expected to be an instance of Pool."
+      );
+    }
+
     const tx = await pool.connect();
     try {
+      // Make sure this transaction is used for queries made by the executor.
+      const executor = new DataLoaderExecutor<Pool | PoolClient>(
+        tx,
+        strategies
+      );
+
       await tx.query("BEGIN DEFERRABLE");
 
       // Fetch the authority.
       const authority = await Authority.read(
         tx,
         args.passwordAuthorityId,
-        authorityMap
+        strategies
       );
 
       if (!(authority instanceof PasswordAuthority)) {
@@ -96,7 +108,7 @@ export const authenticatePassword: GraphQLFieldConfig<
             AND authority_user_id = $2
             AND enabled = true
             AND replacement_record_id IS NULL
-        `,
+          `,
           [args.identityAuthorityId, args.identityAuthorityUserId]
         );
 
@@ -116,7 +128,7 @@ export const authenticatePassword: GraphQLFieldConfig<
       }
 
       // Get the credential.
-      const credential = await authority.credential(tx, userId);
+      const credential = await authority.credential(executor, userId);
 
       if (!credential) {
         throw new AuthenticationError(
@@ -132,7 +144,7 @@ export const authenticatePassword: GraphQLFieldConfig<
       }
 
       // Invoke the credential.
-      await credential.invoke(tx, {
+      await credential.invoke(executor, {
         id: v4(),
         createdAt: new Date()
       });
@@ -147,10 +159,10 @@ export const authenticatePassword: GraphQLFieldConfig<
       };
 
       // Make sure the user can create new authorizations.
-      const user = await User.read(tx, credential.userId);
+      const user = await User.read(executor, credential.userId);
       if (
         !isSuperset(
-          await user.access(tx, values),
+          await user.access(executor, values),
           createV2AuthXScope(
             realm,
             {
@@ -194,7 +206,7 @@ export const authenticatePassword: GraphQLFieldConfig<
 
       // Invoke the new authorization, since it will be used for the remainder
       // of the request.
-      await authorization.invoke(tx, {
+      await authorization.invoke(executor, {
         id: v4(),
         format: "basic",
         createdAt: new Date()
@@ -202,8 +214,14 @@ export const authenticatePassword: GraphQLFieldConfig<
 
       await tx.query("COMMIT");
 
-      // Use this authorization for the remainder of the request.
-      context.authorization = authorization;
+      // Clear and prime the loader.
+      Authorization.clear(executor, authorization.id);
+      Authorization.prime(executor, authorization.id, authorization);
+
+      // Update the context to use a new executor primed with the results of
+      // this mutation, using the original connection pool.
+      executor.connection = pool;
+      context.executor = executor as ReadonlyDataLoaderExecutor<Pool>;
 
       return authorization;
     } catch (error) {

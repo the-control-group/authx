@@ -1,4 +1,4 @@
-import { ClientBase } from "pg";
+import { Pool, ClientBase } from "pg";
 import { Credential, CredentialData } from "./Credential";
 import { Grant } from "./Grant";
 import { Role } from "./Role";
@@ -6,6 +6,7 @@ import { simplify, isSuperset } from "@authx/scopes";
 import { Authorization } from "./Authorization";
 import { NotFoundError } from "../errors";
 import { UserAction, createV2AuthXScope } from "../util/scopes";
+import { DataLoaderExecutor, DataLoaderCache, QueryCache } from "../loader";
 
 export interface UserRecordData {
   readonly id: string;
@@ -47,11 +48,6 @@ export class User implements UserData {
   public readonly type: UserType;
   public readonly name: string;
 
-  private _authorizations: null | Promise<Authorization[]> = null;
-  private _credentials: null | Promise<Credential<any>[]> = null;
-  private _roles: null | Promise<Role[]> = null;
-  private _grants: null | Promise<Grant[]> = null;
-
   public constructor(data: UserData & { readonly recordId: string }) {
     this.id = data.id;
     this.recordId = data.recordId;
@@ -63,7 +59,7 @@ export class User implements UserData {
   public async isAccessibleBy(
     realm: string,
     a: Authorization,
-    tx: ClientBase,
+    tx: Pool | ClientBase | DataLoaderExecutor,
     action: UserAction = {
       basic: "r"
     }
@@ -88,89 +84,106 @@ export class User implements UserData {
   }
 
   public async authorizations(
-    tx: ClientBase,
-    refresh: boolean = false
+    tx: Pool | ClientBase | DataLoaderExecutor
   ): Promise<Authorization[]> {
-    if (!refresh && this._authorizations) {
-      return this._authorizations;
-    }
-
-    return (this._authorizations = (async () =>
-      Authorization.read(
-        tx,
-        (
-          await tx.query(
-            `
+    return (async () => {
+      const ids: readonly string[] = (
+        await queryCache.query(
+          tx,
+          `
           SELECT entity_id AS id
           FROM authx.authorization_record
           WHERE
             user_id = $1
             AND replacement_record_id IS NULL
           `,
-            [this.id]
-          )
-        ).rows.map(({ id }) => id)
-      ))());
+          [this.id]
+        )
+      ).rows.map(({ id }) => id);
+
+      // Some silliness to help typescript...
+      return tx instanceof DataLoaderExecutor
+        ? Authorization.read(tx, ids)
+        : Authorization.read(tx, ids);
+    })();
   }
 
   public async credentials(
-    tx: ClientBase,
-    map: {
-      [key: string]: { new (data: CredentialData<any>): Credential<any> };
-    },
-    refresh: boolean = false
-  ): Promise<Credential<any>[]> {
-    if (!refresh && this._credentials) {
-      return this._credentials;
-    }
+    tx: DataLoaderExecutor,
+    strategies?: undefined
+  ): Promise<Credential<unknown>[]>;
 
-    return (this._credentials = (async () =>
-      Credential.read(
+  public async credentials(
+    tx: Pool | ClientBase,
+    strategies: {
+      credentialMap: {
+        [key: string]: { new (data: CredentialData<any>): Credential<any> };
+      };
+    }
+  ): Promise<Credential<unknown>[]>;
+
+  public async credentials(
+    tx: Pool | ClientBase | DataLoaderExecutor,
+    strategies?: {
+      credentialMap: {
+        [key: string]: { new (data: CredentialData<any>): Credential<any> };
+      };
+    }
+  ): Promise<Credential<unknown>[]> {
+    const ids: readonly string[] = (
+      await queryCache.query(
         tx,
-        (
-          await tx.query(
-            `
+        `
           SELECT entity_id AS id
           FROM authx.credential_record
           WHERE
             user_id = $1
             AND replacement_record_id IS NULL
+          ORDER BY id ASC
           `,
-            [this.id]
-          )
-        ).rows.map(({ id }) => id),
-        map
-      ))());
+        [this.id]
+      )
+    ).rows.map(({ id }) => id);
+
+    return tx instanceof DataLoaderExecutor
+      ? Credential.read(tx, ids)
+      : Credential.read(
+          tx,
+          ids,
+          strategies as typeof strategies & { [key: string]: unknown }
+        );
   }
 
   public async grants(
-    tx: ClientBase,
-    refresh: boolean = false
+    tx: Pool | ClientBase | DataLoaderExecutor
   ): Promise<Grant[]> {
-    if (!refresh && this._grants) {
-      return this._grants;
-    }
-
-    return (this._grants = (async () =>
-      Grant.read(
+    const ids = (
+      await queryCache.query(
         tx,
-        (
-          await tx.query(
-            `
+        `
           SELECT entity_id AS id
           FROM authx.grant_record
           WHERE
             user_id = $1
             AND replacement_record_id IS NULL
+          ORDER BY id ASC
           `,
-            [this.id]
-          )
-        ).rows.map(({ id }) => id)
-      ))());
+        [this.id]
+      )
+    ).rows.map(({ id }) => id);
+
+    // Some silliness to help typescript...
+    return tx instanceof DataLoaderExecutor
+      ? Grant.read(tx, ids)
+      : Grant.read(tx, ids);
   }
 
-  public async grant(tx: ClientBase, clientId: string): Promise<null | Grant> {
-    const result = await tx.query(
+  public async grant(
+    tx: Pool | ClientBase | DataLoaderExecutor,
+    clientId: string
+  ): Promise<null | Grant> {
+    const result = await queryCache.query(
+      tx,
       `
       SELECT entity_id AS id
       FROM authx.grant_record
@@ -178,6 +191,7 @@ export class User implements UserData {
         user_id = $1
         AND client_id = $2
         AND replacement_record_id IS NULL
+      ORDER BY id ASC
       `,
       [this.id, clientId]
     );
@@ -189,26 +203,22 @@ export class User implements UserData {
     }
 
     if (result.rows.length) {
-      return Grant.read(tx, result.rows[0].id);
+      return tx instanceof DataLoaderExecutor
+        ? Grant.read(tx, result.rows[0].id)
+        : Grant.read(tx, result.rows[0].id);
     }
 
     return null;
   }
 
   public async roles(
-    tx: ClientBase,
-    refresh: boolean = false
+    tx: Pool | ClientBase | DataLoaderExecutor
   ): Promise<Role[]> {
-    if (!refresh && this._roles) {
-      return this._roles;
-    }
-
-    return (this._roles = (async () =>
-      Role.read(
-        tx,
-        (
-          await tx.query(
-            `
+    return (async () => {
+      const ids = (
+        await queryCache.query(
+          tx,
+          `
         SELECT entity_id AS id
         FROM authx.role_record
         JOIN authx.role_record_user
@@ -217,26 +227,31 @@ export class User implements UserData {
           authx.role_record_user.user_id = $1
           AND authx.role_record.enabled = TRUE
           AND authx.role_record.replacement_record_id IS NULL
+        ORDER BY id ASC
         `,
-            [this.id]
-          )
-        ).rows.map(({ id }) => id)
-      ))());
+          [this.id]
+        )
+      ).rows.map(({ id }) => id);
+
+      // Some silliness to help typescript...
+      return tx instanceof DataLoaderExecutor
+        ? Role.read(tx, ids)
+        : Role.read(tx, ids);
+    })();
   }
 
   public async access(
-    tx: ClientBase,
+    tx: Pool | ClientBase | DataLoaderExecutor,
     values: {
       currentAuthorizationId: null | string;
       currentUserId: null | string;
       currentGrantId: null | string;
       currentClientId: null | string;
-    },
-    refresh: boolean = false
+    }
   ): Promise<string[]> {
     return this.enabled
       ? simplify(
-          (await this.roles(tx, refresh))
+          (await this.roles(tx))
             .map(role => role.access(values))
             .reduce((a, b) => a.concat(b), [])
         )
@@ -244,21 +259,23 @@ export class User implements UserData {
   }
 
   public async can(
-    tx: ClientBase,
+    tx: Pool | ClientBase | DataLoaderExecutor,
     values: {
       currentAuthorizationId: null | string;
       currentUserId: null | string;
       currentGrantId: null | string;
       currentClientId: null | string;
     },
-    scope: string[] | string,
-    refresh: boolean = false
+    scope: string[] | string
   ): Promise<boolean> {
-    return isSuperset(await this.access(tx, values, refresh), scope);
+    return isSuperset(await this.access(tx, values), scope);
   }
 
   public async records(tx: ClientBase): Promise<UserRecord[]> {
-    const result = await tx.query(
+    const connection: Pool | ClientBase =
+      tx instanceof DataLoaderExecutor ? tx.connection : tx;
+
+    const result = await connection.query(
       `
       SELECT
         record_id as id,
@@ -286,21 +303,49 @@ export class User implements UserData {
     );
   }
 
+  // Read using an executor.
   public static read(
-    tx: ClientBase,
+    tx: DataLoaderExecutor,
     id: string,
-    options?: { forUpdate: boolean }
+    options?: { forUpdate?: false }
   ): Promise<User>;
+
   public static read(
-    tx: ClientBase,
-    id: string[],
-    options?: { forUpdate: boolean }
+    tx: DataLoaderExecutor,
+    id: readonly string[],
+    options?: { forUpdate?: false }
   ): Promise<User[]>;
+
+  // Read using a connection.
+  public static read(
+    tx: Pool | ClientBase,
+    id: string,
+    options?: { forUpdate?: boolean }
+  ): Promise<User>;
+
+  public static read(
+    tx: Pool | ClientBase,
+    id: readonly string[],
+    options?: { forUpdate?: boolean }
+  ): Promise<User[]>;
+
   public static async read(
-    tx: ClientBase,
-    id: string[] | string,
-    options: { forUpdate: boolean } = { forUpdate: false }
+    tx: Pool | ClientBase | DataLoaderExecutor,
+    id: readonly string[] | string,
+    options?: { forUpdate?: boolean }
   ): Promise<User[] | User> {
+    if (tx instanceof DataLoaderExecutor) {
+      const loader = cache.get(tx);
+
+      // Load a single instance.
+      if (typeof id === "string") {
+        return loader.load(id);
+      }
+
+      // Load multiple instances.
+      return Promise.all(id.map(i => loader.load(i)));
+    }
+
     if (typeof id !== "string" && !id.length) {
       return [];
     }
@@ -317,7 +362,7 @@ export class User implements UserData {
       WHERE
         entity_id = ANY($1)
         AND replacement_record_id IS NULL
-      ${options.forUpdate ? "FOR UPDATE" : ""}
+      ${options?.forUpdate ? "FOR UPDATE" : ""}
       `,
       [typeof id === "string" ? [id] : id]
     );
@@ -344,7 +389,7 @@ export class User implements UserData {
   }
 
   public static async write(
-    tx: ClientBase,
+    tx: Pool | ClientBase,
     data: UserData,
     metadata: {
       recordId: string;
@@ -426,4 +471,27 @@ export class User implements UserData {
       recordId: row.record_id
     });
   }
+
+  public static clear(executor: DataLoaderExecutor, id: string): void {
+    cache.get(executor).clear(id);
+  }
+
+  public static prime(
+    executor: DataLoaderExecutor,
+    id: string,
+    value: User
+  ): void {
+    cache.get(executor).prime(id, value);
+  }
 }
+
+const cache = new DataLoaderCache(
+  async (
+    executor: DataLoaderExecutor,
+    ids: readonly string[]
+  ): Promise<User[]> => {
+    return User.read(executor.connection, ids);
+  }
+);
+
+const queryCache = new QueryCache<{ id: string }>();

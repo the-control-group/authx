@@ -1,7 +1,7 @@
 import { Pool } from "pg";
 import { Authorization } from "./model";
-import { StrategyCollection } from "./StrategyCollection";
 import { Explanation } from "./util/explanations";
+import { ReadonlyDataLoaderExecutor } from "./loader";
 
 export interface Context {
   readonly realm: string;
@@ -17,8 +17,7 @@ export interface Context {
     readonly html: string;
     readonly from?: string;
   }) => Promise<any>;
-  readonly pool: Pool;
-  readonly strategies: StrategyCollection;
   readonly explanations: ReadonlyArray<Explanation>;
+  executor: ReadonlyDataLoaderExecutor<Pool>;
   authorization: null | Authorization;
 }

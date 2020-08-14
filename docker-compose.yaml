@@ -1,19 +1,86 @@
-version: "3"
+version: "3.7"
+
+volumes:
+  postgres:
+  server_node_modules:
+
 services:
-  authx:
-    build: .
-    ports:
-    - "80:80"
-    - "9229:9229"
+
+  postgres:
+    image: postgres:9.6.17
+    restart: always
     environment:
+      POSTGRES_PASSWORD: postgres
+    volumes:
+      - type: volume
+        source: postgres
+        target: /var/lib/postgres
+    ports:
+      - target: 5432
+        protocol: tcp
+        mode: localhost
+
+  # This container doesn't do anything by itself, but can be used to run tests
+  # or issue one-off commands.
+  runner:
+    build:
+      context: .
+      target: base
+    environment:
+      NODE_ENV: development
       PGHOST: postgres
       PGUSER: postgres
-      PGPASSWORD: authx
-    links:
-    - postgres
-  postgres:
-    image: postgres:11
+      PGPASSWORD: postgres
+    volumes:
+      - type: bind
+        source: .
+        target: /workspace
+      - type: volume
+        source: server_node_modules
+        target: /workspace/node_modules
     ports:
-    - "5432:5432"
+      - target: 80
+        protocol: tcp
+        mode: localhost
+
+  # This container builds the server.
+  builder:
+    build:
+      context: .
+      target: base
+    command: yarn build:development
     environment:
-      POSTGRES_PASSWORD: authx
+      NODE_ENV: development
+    volumes:
+      - type: bind
+        source: .
+        target: /workspace
+      - type: volume
+        source: server_node_modules
+        target: /workspace/node_modules
+
+  # This container runs the server.
+  server:
+    depends_on:
+      - builder
+      - postgres
+    build:
+      context: .
+      target: base
+    command: yarn start:development
+    environment:
+      NODE_ENV: development
+      PGHOST: postgres
+      PGUSER: postgres
+      PGPASSWORD: postgres
+    volumes:
+      - type: bind
+        source: .
+        target: /workspace
+      - type: volume
+        source: server_node_modules
+        target: /workspace/node_modules
+    ports:
+      - target: 80
+        protocol: tcp
+        mode: localhost

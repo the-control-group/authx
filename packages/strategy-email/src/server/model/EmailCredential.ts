@@ -1,5 +1,5 @@
-import { ClientBase } from "pg";
-import { Credential } from "@authx/authx";
+import { Pool, ClientBase } from "pg";
+import { Credential, DataLoaderExecutor } from "@authx/authx";
 import { EmailAuthority } from "./EmailAuthority";
 
 // Credential
@@ -8,17 +8,12 @@ import { EmailAuthority } from "./EmailAuthority";
 // eslint-disable-next-line
 export interface EmailCredentialDetails {}
 
-export class EmailCredential extends Credential<{}> {
-  private _authority: null | Promise<EmailAuthority> = null;
-
+export class EmailCredential extends Credential<EmailCredentialDetails> {
   public authority(
-    tx: ClientBase,
-    refresh: boolean = false
+    tx: Pool | ClientBase | DataLoaderExecutor
   ): Promise<EmailAuthority> {
-    if (!refresh && this._authority) {
-      return this._authority;
-    }
-
-    return (this._authority = EmailAuthority.read(tx, this.authorityId));
+    return tx instanceof DataLoaderExecutor
+      ? EmailAuthority.read(tx, this.authorityId)
+      : EmailAuthority.read(tx, this.authorityId);
   }
 }

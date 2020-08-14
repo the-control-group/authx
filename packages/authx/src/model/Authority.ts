@@ -1,8 +1,9 @@
-import { ClientBase } from "pg";
+import { Pool, ClientBase } from "pg";
 import { Credential } from "./Credential";
 import { Authorization } from "./Authorization";
 import { NotFoundError } from "../errors";
 import { AuthorityAction, createV2AuthXScope } from "../util/scopes";
+import { DataLoaderExecutor, DataLoaderCache } from "../loader";
 
 export interface AuthorityRecordData {
   readonly id: string;
@@ -37,6 +38,14 @@ export interface AuthorityData<A> {
   readonly details: A;
 }
 
+export type AuthorityInstanceMap = {
+  [key: string]: {
+    new (data: AuthorityData<any> & { readonly recordId: string }): Authority<
+      any
+    >;
+  };
+};
+
 export abstract class Authority<A> implements AuthorityData<A> {
   public readonly id: string;
   public readonly recordId: string;
@@ -59,7 +68,7 @@ export abstract class Authority<A> implements AuthorityData<A> {
   public async isAccessibleBy(
     realm: string,
     a: Authorization,
-    tx: ClientBase,
+    tx: Pool | ClientBase | DataLoaderExecutor,
     action: AuthorityAction = {
       basic: "r",
       details: ""
@@ -85,17 +94,19 @@ export abstract class Authority<A> implements AuthorityData<A> {
   }
 
   public abstract credentials(
-    tx: ClientBase,
-    refresh?: boolean
+    tx: Pool | ClientBase | DataLoaderExecutor
   ): Promise<Credential<any>[]>;
 
   public abstract credential(
-    tx: ClientBase,
+    tx: Pool | ClientBase | DataLoaderExecutor,
     authorityUserId: string
   ): Promise<Credential<any> | null>;
 
   public async records(tx: ClientBase): Promise<AuthorityRecord[]> {
-    const result = await tx.query(
+    const connection: Pool | ClientBase =
+      tx instanceof DataLoaderExecutor ? tx.connection : tx;
+
+    const result = await connection.query(
       `
       SELECT
         record_id as id,
@@ -123,67 +134,115 @@ export abstract class Authority<A> implements AuthorityData<A> {
     );
   }
 
-  public static read<T extends Authority<any>>(
+  // Read from a concrete Authority sub-class with an executor.
+  public static read<C, T extends Authority<C>>(
     this: new (data: AuthorityData<any> & { readonly recordId: string }) => T,
-    tx: ClientBase,
+    tx: DataLoaderExecutor,
     id: string,
-    options?: { forUpdate: boolean }
+    strategies?: undefined,
+    options?: { forUpdate?: false }
   ): Promise<T>;
 
-  public static read<T extends Authority<any>>(
-    this: new (data: AuthorityData<any> & { readonly recordId: string }) => T,
-    tx: ClientBase,
-    id: string[],
-    options?: { forUpdate: boolean }
+  public static read<C, T extends Authority<C>>(
+    this: new (data: AuthorityData<C> & { readonly recordId: string }) => T,
+    tx: DataLoaderExecutor,
+    id: readonly string[],
+    strategies?: undefined,
+    options?: { forUpdate?: false }
   ): Promise<T[]>;
 
-  public static read<
-    M extends {
-      [key: string]: {
-        new (
-          data: AuthorityData<any> & { readonly recordId: string }
-        ): Authority<any>;
-      };
-    },
-    K extends keyof M
-  >(
-    tx: ClientBase,
+  // Read from a concrete Authority sub-class.
+  public static read<C, T extends Authority<C>>(
+    this: new (data: AuthorityData<any> & { readonly recordId: string }) => T,
+    tx: Pool | ClientBase,
     id: string,
-    map: M,
-    options?: { forUpdate: boolean }
+    strategies?: undefined,
+    options?: { forUpdate?: boolean }
+  ): Promise<T>;
+
+  public static read<C, T extends Authority<C>>(
+    this: new (data: AuthorityData<C> & { readonly recordId: string }) => T,
+    tx: Pool | ClientBase,
+    id: readonly string[],
+    strategies?: undefined,
+    options?: { forUpdate?: boolean }
+  ): Promise<T[]>;
+
+  // Read from the Authority abstract class using an executor.
+  public static read<M extends AuthorityInstanceMap, K extends keyof M>(
+    tx: DataLoaderExecutor,
+    id: string,
+    strategies?: undefined,
+    options?: { forUpdate?: false }
   ): Promise<InstanceType<M[K]>>;
 
-  public static read<
-    M extends {
-      [key: string]: {
-        new (
-          data: AuthorityData<any> & { readonly recordId: string }
-        ): Authority<any>;
-      };
-    },
-    K extends keyof M
-  >(
-    tx: ClientBase,
-    id: string[],
-    map: M,
-    options?: { forUpdate: boolean }
+  public static read<M extends AuthorityInstanceMap, K extends keyof M>(
+    tx: DataLoaderExecutor,
+    id: readonly string[],
+    strategies?: undefined,
+    options?: { forUpdate?: false }
+  ): Promise<InstanceType<M[K]>[]>;
+
+  // Read from the Authority abstract class using a connection and strategy map.
+  public static read<M extends AuthorityInstanceMap, K extends keyof M>(
+    tx: Pool | ClientBase,
+    id: string,
+    strategies: { authorityMap: M },
+    options?: { forUpdate?: boolean }
+  ): Promise<InstanceType<M[K]>>;
+
+  public static read<M extends AuthorityInstanceMap, K extends keyof M>(
+    tx: Pool | ClientBase,
+    id: readonly string[],
+    strategies: { authorityMap: M },
+    options?: { forUpdate?: boolean }
   ): Promise<InstanceType<M[K]>[]>;
 
   public static async read<
-    T,
-    M extends {
-      [key: string]: any;
-    },
+    A,
+    T extends Authority<A>,
+    M extends AuthorityInstanceMap,
     K extends keyof M
   >(
     this: {
-      new (data: AuthorityData<any> & { readonly recordId: string }): T;
+      new (data: AuthorityData<A> & { readonly recordId: string }): T;
     },
-    tx: ClientBase,
-    id: string[] | string,
-    map?: M,
-    options: { forUpdate: boolean } = { forUpdate: false }
+    tx: Pool | ClientBase | DataLoaderExecutor,
+    id: readonly string[] | string,
+    strategies?: { authorityMap: M },
+    options?: { forUpdate?: boolean }
   ): Promise<InstanceType<M[K]>[] | InstanceType<M[K]> | T | T[]> {
+    if (tx instanceof DataLoaderExecutor) {
+      const loader = cache.get(tx);
+
+      if (typeof id === "string") {
+        const authority = await loader.load(id);
+        // Address a scenario in which the loader could return a authority from
+        // a different sub-class.
+        if (!(authority instanceof this)) {
+          throw new NotFoundError();
+        }
+
+        return authority;
+      }
+
+      const authorities = await Promise.all(
+        id.map(id => loader.load(id) as Promise<InstanceType<M[K]>>)
+      );
+
+      // Address a scenario in which the loader could return a authority from a
+      // different sub-class.
+      for (const authority of authorities) {
+        if (!(authority instanceof this)) {
+          throw new NotFoundError();
+        }
+      }
+
+      return authorities;
+    }
+
+    const map = strategies?.authorityMap;
+
     if (typeof id !== "string" && !id.length) {
       return [];
     }
@@ -202,7 +261,7 @@ export abstract class Authority<A> implements AuthorityData<A> {
       WHERE
         entity_id = ANY($1)
         AND replacement_record_id IS NULL
-      ${options.forUpdate ? "FOR UPDATE" : ""}
+      ${options?.forUpdate ? "FOR UPDATE" : ""}
       `,
       [typeof id === "string" ? [id] : id]
     );
@@ -242,15 +301,17 @@ export abstract class Authority<A> implements AuthorityData<A> {
       return new Class(data);
     });
 
-    return typeof id === "string" ? instances[0] : instances;
+    return typeof id === "string"
+      ? (instances[0] as InstanceType<M[K]>)
+      : (instances as InstanceType<M[K]>[]);
   }
 
-  public static async write<T extends Authority<any>>(
+  public static async write<A, T extends Authority<A>>(
     this: {
-      new (data: AuthorityData<any> & { readonly recordId: string }): T;
+      new (data: AuthorityData<A> & { readonly recordId: string }): T;
     },
-    tx: ClientBase,
-    data: AuthorityData<any>,
+    tx: Pool | ClientBase,
+    data: AuthorityData<A>,
     metadata: {
       recordId: string;
       createdByAuthorizationId: string;
@@ -338,6 +399,27 @@ export abstract class Authority<A> implements AuthorityData<A> {
       ...row,
       recordId: row.record_id,
       baseUrls: row.base_urls
-    });
+    }) as T;
+  }
+
+  public static clear(executor: DataLoaderExecutor, id: string): void {
+    cache.get(executor).clear(id);
+  }
+
+  public static prime(
+    executor: DataLoaderExecutor,
+    id: string,
+    value: Authority<any>
+  ): void {
+    cache.get(executor).prime(id, value);
   }
 }
+
+const cache = new DataLoaderCache(
+  async (
+    executor: DataLoaderExecutor,
+    ids: readonly string[]
+  ): Promise<Authority<any>[]> => {
+    return Authority.read(executor.connection, ids, executor.strategies);
+  }
+);

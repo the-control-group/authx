@@ -1,10 +1,12 @@
 import { v4 } from "uuid";
+import { Pool, PoolClient } from "pg";
 import { URL } from "url";
 import { randomBytes } from "crypto";
 import { GraphQLFieldConfig, GraphQLList, GraphQLNonNull } from "graphql";
 import { Context } from "../../Context";
 import { GraphQLClient } from "../GraphQLClient";
 import { Client } from "../../model";
+import { DataLoaderExecutor, ReadonlyDataLoaderExecutor } from "../../loader";
 import { validateIdFormat } from "../../util/validateIdFormat";
 import { ForbiddenError, ValidationError } from "../../errors";
 import { GraphQLUpdateClientInput } from "./GraphQLUpdateClientInput";
@@ -35,10 +37,18 @@ export const updateClients: GraphQLFieldConfig<
     }
   },
   async resolve(source, args, context): Promise<Promise<Client>[]> {
-    const { pool, authorization: a, realm } = context;
+    const { executor, authorization: a, realm } = context;
 
     if (!a) {
       throw new ForbiddenError("You must be authenticated to update a client.");
+    }
+
+    const strategies = executor.strategies;
+    const pool = executor.connection;
+    if (!(pool instanceof Pool)) {
+      throw new Error(
+        "INVARIANT: The executor connection is expected to be an instance of Pool."
+      );
     }
 
     return args.clients.map(async input => {
@@ -62,6 +72,12 @@ export const updateClients: GraphQLFieldConfig<
 
       const tx = await pool.connect();
       try {
+        // Make sure this transaction is used for queries made by the executor.
+        const executor = new DataLoaderExecutor<Pool | PoolClient>(
+          tx,
+          strategies
+        );
+
         await tx.query("BEGIN DEFERRABLE");
         const before = await Client.read(tx, input.id, {
           forUpdate: true
@@ -69,7 +85,7 @@ export const updateClients: GraphQLFieldConfig<
 
         // w.... -----------------------------------------------------------
         if (
-          !(await before.isAccessibleBy(realm, a, tx, {
+          !(await before.isAccessibleBy(realm, a, executor, {
             basic: "w",
             secrets: ""
           }))
@@ -94,7 +110,7 @@ export const updateClients: GraphQLFieldConfig<
 
         // w...w. ---------------------------------------------------------
         if (
-          !(await before.isAccessibleBy(realm, a, tx, {
+          !(await before.isAccessibleBy(realm, a, executor, {
             basic: "w",
             secrets: "w"
           }))
@@ -140,6 +156,16 @@ export const updateClients: GraphQLFieldConfig<
         );
 
         await tx.query("COMMIT");
+
+        // Clear and prime the loader.
+        Client.clear(executor, client.id);
+        Client.prime(executor, client.id, client);
+
+        // Update the context to use a new executor primed with the results of
+        // this mutation, using the original connection pool.
+        executor.connection = pool;
+        context.executor = executor as ReadonlyDataLoaderExecutor<Pool>;
+
         return client;
       } catch (error) {
         await tx.query("ROLLBACK");

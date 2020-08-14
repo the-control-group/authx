@@ -18,15 +18,10 @@ export const role: GraphQLFieldConfig<
     }
   },
   async resolve(source, args, context): Promise<null | Role> {
-    const { pool, authorization: a, realm } = context;
+    const { executor, authorization: a, realm } = context;
     if (!a) return null;
 
-    const tx = await pool.connect();
-    try {
-      const role = await Role.read(tx, args.id);
-      return (await role.isAccessibleBy(realm, a, tx)) ? role : null;
-    } finally {
-      tx.release();
-    }
+    const role = await Role.read(executor, args.id);
+    return (await role.isAccessibleBy(realm, a, executor)) ? role : null;
   }
 };

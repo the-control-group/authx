@@ -24,7 +24,7 @@ import { filter } from "../util/filter";
 export const GraphQLRole = new GraphQLObjectType<Role, Context>({
   name: "Role",
   interfaces: () => [GraphQLNode],
-  fields: (): GraphQLFieldConfigMap<Role, Context, any> => ({
+  fields: (): GraphQLFieldConfigMap<Role, Context> => ({
     id: { type: new GraphQLNonNull(GraphQLID) },
     enabled: {
       type: new GraphQLNonNull(GraphQLBoolean)
@@ -40,26 +40,21 @@ export const GraphQLRole = new GraphQLObjectType<Role, Context>({
       async resolve(
         role,
         args: ConnectionArguments,
-        { realm, authorization: a, pool }: Context
+        { realm, authorization: a, executor }: Context
       ) {
-        const tx = await pool.connect();
-        try {
-          return a &&
-            (await role.isAccessibleBy(realm, a, tx, {
-              basic: "r",
-              scopes: "",
-              users: "r"
-            }))
-            ? connectionFromArray(
-                await filter(await role.users(tx), user =>
-                  user.isAccessibleBy(realm, a, tx)
-                ),
-                args
-              )
-            : null;
-        } finally {
-          tx.release();
-        }
+        return a &&
+          (await role.isAccessibleBy(realm, a, executor, {
+            basic: "r",
+            scopes: "",
+            users: "r"
+          }))
+          ? connectionFromArray(
+              await filter(await role.users(executor), user =>
+                user.isAccessibleBy(realm, a, executor)
+              ),
+              args
+            )
+          : null;
       }
     },
     scopes: {
@@ -67,21 +62,16 @@ export const GraphQLRole = new GraphQLObjectType<Role, Context>({
       async resolve(
         role,
         args,
-        { realm, authorization: a, pool }: Context
+        { realm, authorization: a, executor }: Context
       ): Promise<null | string[]> {
-        const tx = await pool.connect();
-        try {
-          return a &&
-            (await role.isAccessibleBy(realm, a, tx, {
-              basic: "r",
-              scopes: "r",
-              users: ""
-            }))
-            ? role.scopes
-            : null;
-        } finally {
-          tx.release();
-        }
+        return a &&
+          (await role.isAccessibleBy(realm, a, executor, {
+            basic: "r",
+            scopes: "r",
+            users: ""
+          }))
+          ? role.scopes
+          : null;
       }
     }
   })

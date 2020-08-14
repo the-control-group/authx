@@ -1,8 +1,9 @@
-import { ClientBase } from "pg";
+import { Pool, ClientBase } from "pg";
 import { Grant } from "./Grant";
 import { Authorization } from "./Authorization";
 import { NotFoundError } from "../errors";
 import { ClientAction, createV2AuthXScope } from "../util/scopes";
+import { DataLoaderExecutor, DataLoaderCache, QueryCache } from "../loader";
 
 export interface ClientInvocationData {
   readonly id: string;
@@ -67,8 +68,6 @@ export class Client implements ClientData {
   public readonly secrets: Set<string>;
   public readonly urls: Set<string>;
 
-  private _grants: null | Promise<Grant[]> = null;
-
   public constructor(data: ClientData & { readonly recordId: string }) {
     this.id = data.id;
     this.recordId = data.recordId;
@@ -82,7 +81,7 @@ export class Client implements ClientData {
   public async isAccessibleBy(
     realm: string,
     a: Authorization,
-    tx: ClientBase,
+    tx: Pool | ClientBase | DataLoaderExecutor,
     action: ClientAction = {
       basic: "r",
       secrets: ""
@@ -107,31 +106,35 @@ export class Client implements ClientData {
     return false;
   }
 
-  public grants(tx: ClientBase, refresh: boolean = true): Promise<Grant[]> {
-    if (!refresh && this._grants) {
-      return this._grants;
-    }
-
-    return (this._grants = (async () =>
-      Grant.read(
+  public async grants(
+    tx: Pool | ClientBase | DataLoaderExecutor
+  ): Promise<Grant[]> {
+    const ids = (
+      await queryCache.query(
         tx,
-        (
-          await tx.query(
-            `
-            SELECT entity_id AS id
-            FROM authx.grant_record
-            WHERE
-              client_id = $1
-              AND replacement_record_id IS NULL
-            `,
-            [this.id]
-          )
-        ).rows.map(({ id }) => id)
-      ))());
+        `
+          SELECT entity_id AS id
+          FROM authx.grant_record
+          WHERE
+            client_id = $1
+            AND replacement_record_id IS NULL
+          ORDER BY id ASC
+          `,
+        [this.id]
+      )
+    ).rows.map(({ id }) => id);
+
+    return tx instanceof DataLoaderExecutor
+      ? Grant.read(tx, ids)
+      : Grant.read(tx, ids);
   }
 
-  public async grant(tx: ClientBase, userId: string): Promise<null | Grant> {
-    const result = await tx.query(
+  public async grant(
+    tx: Pool | ClientBase | DataLoaderExecutor,
+    userId: string
+  ): Promise<null | Grant> {
+    const result = await queryCache.query(
+      tx,
       `
       SELECT entity_id AS id
       FROM authx.grant_record
@@ -145,19 +148,24 @@ export class Client implements ClientData {
 
     if (result.rows.length > 1) {
       throw new Error(
-        "INVARIANT: It must be impossible for the same user and client to have multiple enabled grants.."
+        "INVARIANT: It must be impossible for the same user and client to have multiple enabled grants."
       );
     }
 
     if (result.rows.length) {
-      return Grant.read(tx, result.rows[0].id);
+      return tx instanceof DataLoaderExecutor
+        ? Grant.read(tx, result.rows[0].id)
+        : Grant.read(tx, result.rows[0].id);
     }
 
     return null;
   }
 
   public async records(tx: ClientBase): Promise<ClientRecord[]> {
-    const result = await tx.query(
+    const connection: Pool | ClientBase =
+      tx instanceof DataLoaderExecutor ? tx.connection : tx;
+
+    const result = await connection.query(
       `
       SELECT
         record_id as id,
@@ -186,14 +194,17 @@ export class Client implements ClientData {
   }
 
   public async invoke(
-    tx: ClientBase,
+    tx: Pool | ClientBase | DataLoaderExecutor,
     data: {
       id: string;
       createdAt: Date;
     }
   ): Promise<ClientInvocation> {
     // insert the new invocation
-    const result = await tx.query(
+    const result = await (tx instanceof DataLoaderExecutor
+      ? tx.connection
+      : tx
+    ).query(
       `
       INSERT INTO authx.client_invocation
       (
@@ -228,7 +239,10 @@ export class Client implements ClientData {
   }
 
   public async invocations(tx: ClientBase): Promise<ClientInvocation[]> {
-    const result = await tx.query(
+    const connection: Pool | ClientBase =
+      tx instanceof DataLoaderExecutor ? tx.connection : tx;
+
+    const result = await connection.query(
       `
       SELECT
         invocation_id as id,
@@ -253,21 +267,49 @@ export class Client implements ClientData {
     );
   }
 
+  // Read using an executor.
   public static read(
-    tx: ClientBase,
+    tx: DataLoaderExecutor,
     id: string,
-    options?: { forUpdate: boolean }
+    options?: { forUpdate?: false }
   ): Promise<Client>;
+
   public static read(
-    tx: ClientBase,
-    id: string[],
-    options?: { forUpdate: boolean }
+    tx: DataLoaderExecutor,
+    id: readonly string[],
+    options?: { forUpdate?: false }
   ): Promise<Client[]>;
+
+  // Read using a connection.
+  public static read(
+    tx: Pool | ClientBase,
+    id: string,
+    options?: { forUpdate?: boolean }
+  ): Promise<Client>;
+
+  public static read(
+    tx: Pool | ClientBase,
+    id: readonly string[],
+    options?: { forUpdate?: boolean }
+  ): Promise<Client[]>;
+
   public static async read(
-    tx: ClientBase,
-    id: string[] | string,
-    options: { forUpdate: boolean } = { forUpdate: false }
+    tx: Pool | ClientBase | DataLoaderExecutor,
+    id: readonly string[] | string,
+    options?: { forUpdate?: boolean }
   ): Promise<Client[] | Client> {
+    if (tx instanceof DataLoaderExecutor) {
+      const loader = cache.get(tx);
+
+      // Load a single instance.
+      if (typeof id === "string") {
+        return loader.load(id);
+      }
+
+      // Load multiple instances.
+      return Promise.all(id.map(i => loader.load(i)));
+    }
+
     if (typeof id !== "string" && !id.length) {
       return [];
     }
@@ -288,7 +330,7 @@ export class Client implements ClientData {
         WHERE
           entity_id = ANY($1)
           AND replacement_record_id IS NULL
-        ${options.forUpdate ? "FOR UPDATE" : ""}
+        ${options?.forUpdate ? "FOR UPDATE" : ""}
       ) AS client_record
       `,
       [typeof id === "string" ? [id] : id]
@@ -318,7 +360,7 @@ export class Client implements ClientData {
   }
 
   public static async write(
-    tx: ClientBase,
+    tx: Pool | ClientBase,
     data: ClientData,
     metadata: {
       recordId: string;
@@ -406,4 +448,27 @@ export class Client implements ClientData {
       urls: row.urls
     });
   }
+
+  public static clear(executor: DataLoaderExecutor, id: string): void {
+    cache.get(executor).clear(id);
+  }
+
+  public static prime(
+    executor: DataLoaderExecutor,
+    id: string,
+    value: Client
+  ): void {
+    cache.get(executor).prime(id, value);
+  }
 }
+
+const cache = new DataLoaderCache(
+  async (
+    executor: DataLoaderExecutor,
+    ids: readonly string[]
+  ): Promise<Client[]> => {
+    return Client.read(executor.connection, ids);
+  }
+);
+
+const queryCache = new QueryCache<{ id: string }>();

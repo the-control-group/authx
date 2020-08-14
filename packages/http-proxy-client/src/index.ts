@@ -510,13 +510,13 @@ export default class AuthXClientProxy extends EventEmitter {
               "Content-Type": "application/json"
             },
             body: JSON.stringify({
-              /* eslint-disable @typescript-eslint/camelcase */
+              /* eslint-disable camelcase */
               grant_type: "refresh_token",
               client_id: this._config.clientId,
               client_secret: this._config.clientSecret,
               refresh_token: refreshToken,
               scope: scopes.join(" ")
-              /* eslint-enable @typescript-eslint/camelcase */
+              /* eslint-enable camelcase */
             })
           } as any);
 

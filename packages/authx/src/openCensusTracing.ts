@@ -1,13 +1,17 @@
 import { Tracer, Span, SpanKind } from "@opencensus/core";
-import { GraphQLResolveInfo, ResponsePath } from "graphql";
+import {
+  GraphQLResolveInfo,
+  ResponsePath,
+  GraphQLFieldResolver
+} from "graphql";
 
 export const openCensusTracer = Symbol("OpenCensus Tracer");
 export const openCensusSpanMap = Symbol("OpenCensus Span Map");
 
 export async function openCensusTracingGraphQLMiddleware(
-  resolve: Function,
-  parent: any,
-  args: any,
+  resolve: GraphQLFieldResolver<any, any, any>,
+  parent: unknown,
+  args: unknown,
   context: {
     [openCensusTracer]?: Tracer;
     [openCensusSpanMap]?: Map<ResponsePath, Span>;
@@ -30,7 +34,16 @@ export async function openCensusTracingGraphQLMiddleware(
       childOf: parentSpan
     });
 
-    span.addAttribute("parentId", (parent && parent.id) || null);
+    const parentId =
+      (typeof parent === "object" &&
+        parent &&
+        typeof (parent as { [key: string]: unknown }).id === "string" &&
+        (parent as { id: string }).id) ||
+      null;
+
+    if (parentId) {
+      span.addAttribute("parentId", parentId);
+    }
     span.addAttribute("parentType", info.parentType.toString());
     span.addAttribute("fieldName", info.fieldName);
     span.addAttribute("returnType", info.returnType.toString());

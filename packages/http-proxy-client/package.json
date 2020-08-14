@@ -5,23 +5,23 @@
   },
   "bugs": "https://github.com/the-control-group/authx/issues",
   "dependencies": {
-    "@types/http-proxy": "^1.17.2",
-    "@types/jsonwebtoken": "^8.3.8",
-    "@types/node-fetch": "^2.5.5",
+    "@types/http-proxy": "^1.17.4",
+    "@types/jsonwebtoken": "^8.5.0",
+    "@types/node-fetch": "^2.5.7",
     "abort-controller": "^3.0.0",
-    "http-proxy": "^1.18.0",
+    "http-proxy": "^1.18.1",
     "jsonwebtoken": "^8.5.1",
     "node-fetch": "^2.5.0"
   },
   "description": "",
   "devDependencies": {
-    "@typescript-eslint/eslint-plugin": "^2.22.0",
-    "@typescript-eslint/parser": "^2.22.0",
-    "ava": "^3.5.0",
-    "eslint": "^6.7.2",
-    "eslint-config-prettier": "^6.10.0",
+    "@typescript-eslint/eslint-plugin": "^3.9.0",
+    "@typescript-eslint/parser": "^3.9.0",
+    "ava": "^3.5.2",
+    "eslint": "^7.6.0",
+    "eslint-config-prettier": "^6.10.1",
     "eslint-plugin-prettier": "^3.1.1",
-    "prettier": "^1.19.1",
+    "prettier": "^2.0.2",
     "typescript": "^3.8.3"
   },
   "engines": {

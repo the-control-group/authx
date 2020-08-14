@@ -18,16 +18,7 @@ export const authority: GraphQLFieldConfig<
     }
   },
   async resolve(source, args, context): Promise<null | Authority<any>> {
-    const {
-      pool,
-      strategies: { authorityMap }
-    } = context;
-
-    const tx = await pool.connect();
-    try {
-      return await Authority.read(tx, args.id, authorityMap);
-    } finally {
-      tx.release();
-    }
+    const { executor } = context;
+    return await Authority.read(executor, args.id);
   }
 };

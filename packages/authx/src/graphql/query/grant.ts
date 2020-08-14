@@ -18,15 +18,10 @@ export const grant: GraphQLFieldConfig<
     }
   },
   async resolve(source, args, context): Promise<null | Grant> {
-    const { pool, authorization: a, realm } = context;
+    const { executor, authorization: a, realm } = context;
     if (!a) return null;
 
-    const tx = await pool.connect();
-    try {
-      const grant = await Grant.read(tx, args.id);
-      return (await grant.isAccessibleBy(realm, a, tx)) ? grant : null;
-    } finally {
-      tx.release();
-    }
+    const grant = await Grant.read(executor, args.id);
+    return (await grant.isAccessibleBy(realm, a, executor)) ? grant : null;
   }
 };

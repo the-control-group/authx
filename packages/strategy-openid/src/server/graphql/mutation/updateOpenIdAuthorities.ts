@@ -1,4 +1,5 @@
 import { v4 } from "uuid";
+import { Pool, PoolClient } from "pg";
 import { GraphQLFieldConfig, GraphQLNonNull, GraphQLList } from "graphql";
 
 import {
@@ -7,7 +8,9 @@ import {
   ForbiddenError,
   NotFoundError,
   ValidationError,
-  validateIdFormat
+  validateIdFormat,
+  DataLoaderExecutor,
+  ReadonlyDataLoaderExecutor
 } from "@authx/authx";
 import { OpenIdAuthority } from "../../model";
 import { GraphQLOpenIdAuthority } from "../GraphQLOpenIdAuthority";
@@ -44,16 +47,19 @@ export const updateOpenIdAuthorities: GraphQLFieldConfig<
     }
   },
   async resolve(source, args, context): Promise<Promise<OpenIdAuthority>[]> {
-    const {
-      pool,
-      authorization: a,
-      realm,
-      strategies: { authorityMap }
-    } = context;
+    const { executor, authorization: a, realm } = context;
 
     if (!a) {
       throw new ForbiddenError(
         "You must be authenticated to update an authority."
+      );
+    }
+
+    const strategies = executor.strategies;
+    const pool = executor.connection;
+    if (!(pool instanceof Pool)) {
+      throw new Error(
+        "INVARIANT: The executor connection is expected to be an instance of Pool."
       );
     }
 
@@ -75,9 +81,15 @@ export const updateOpenIdAuthorities: GraphQLFieldConfig<
 
       const tx = await pool.connect();
       try {
+        // Make sure this transaction is used for queries made by the executor.
+        const executor = new DataLoaderExecutor<Pool | PoolClient>(
+          tx,
+          strategies
+        );
+
         await tx.query("BEGIN DEFERRABLE");
 
-        const before = await Authority.read(tx, input.id, authorityMap, {
+        const before = await Authority.read(tx, input.id, strategies, {
           forUpdate: true
         });
 
@@ -86,7 +98,7 @@ export const updateOpenIdAuthorities: GraphQLFieldConfig<
         }
 
         if (
-          !(await before.isAccessibleBy(realm, a, tx, {
+          !(await before.isAccessibleBy(realm, a, executor, {
             basic: "w",
             details: ""
           }))
@@ -99,7 +111,7 @@ export const updateOpenIdAuthorities: GraphQLFieldConfig<
         if (
           (typeof input.clientId === "string" ||
             typeof input.clientSecret === "string") &&
-          !(await before.isAccessibleBy(realm, a, tx, {
+          !(await before.isAccessibleBy(realm, a, executor, {
             basic: "w",
             details: "w"
           }))
@@ -172,6 +184,16 @@ export const updateOpenIdAuthorities: GraphQLFieldConfig<
         );
 
         await tx.query("COMMIT");
+
+        // Clear and prime the loader.
+        Authority.clear(executor, authority.id);
+        Authority.prime(executor, authority.id, authority);
+
+        // Update the context to use a new executor primed with the results of
+        // this mutation, using the original connection pool.
+        executor.connection = pool;
+        context.executor = executor as ReadonlyDataLoaderExecutor<Pool>;
+
         return authority;
       } catch (error) {
         await tx.query("ROLLBACK");

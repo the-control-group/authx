@@ -76,12 +76,12 @@ export function match(
     const templateSegmentCount = template.scope.split("{").length - 1;
     if (templateSegmentCount) {
       const injection = inject(template.scope, {
-        /* eslint-disable @typescript-eslint/camelcase */
+        /* eslint-disable camelcase */
         current_authorization_id: substitutions.currentAuthorizationId,
         current_user_id: substitutions.currentUserId,
         current_grant_id: substitutions.currentGrantId,
         current_client_id: substitutions.currentClientId
-        /* eslint-enable @typescript-eslint/camelcase */
+        /* eslint-enable camelcase */
       });
 
       if (injection === null) {

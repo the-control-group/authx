@@ -1,9 +1,11 @@
 import { v4 } from "uuid";
+import { Pool, PoolClient } from "pg";
 import { randomBytes } from "crypto";
 import { GraphQLFieldConfig, GraphQLList, GraphQLNonNull } from "graphql";
 import { Context } from "../../Context";
 import { GraphQLGrant } from "../GraphQLGrant";
 import { Grant } from "../../model";
+import { DataLoaderExecutor, ReadonlyDataLoaderExecutor } from "../../loader";
 import { validateIdFormat } from "../../util/validateIdFormat";
 import { ForbiddenError, ValidationError } from "../../errors";
 import { GraphQLUpdateGrantInput } from "./GraphQLUpdateGrantInput";
@@ -33,10 +35,18 @@ export const updateGrants: GraphQLFieldConfig<
     }
   },
   async resolve(source, args, context): Promise<Promise<Grant>[]> {
-    const { pool, authorization: a, realm, codeValidityDuration } = context;
+    const { executor, authorization: a, realm, codeValidityDuration } = context;
 
     if (!a) {
       throw new ForbiddenError("You must be authenticated to update a grant.");
+    }
+
+    const strategies = executor.strategies;
+    const pool = executor.connection;
+    if (!(pool instanceof Pool)) {
+      throw new Error(
+        "INVARIANT: The executor connection is expected to be an instance of Pool."
+      );
     }
 
     return args.grants.map(async input => {
@@ -47,13 +57,19 @@ export const updateGrants: GraphQLFieldConfig<
 
       const tx = await pool.connect();
       try {
+        // Make sure this transaction is used for queries made by the executor.
+        const executor = new DataLoaderExecutor<Pool | PoolClient>(
+          tx,
+          strategies
+        );
+
         await tx.query("BEGIN DEFERRABLE");
         const before = await Grant.read(tx, input.id, {
           forUpdate: true
         });
 
         if (
-          !(await before.isAccessibleBy(realm, a, tx, {
+          !(await before.isAccessibleBy(realm, a, executor, {
             basic: "w",
             scopes: "",
             secrets: ""
@@ -66,7 +82,7 @@ export const updateGrants: GraphQLFieldConfig<
 
         if (
           input.scopes &&
-          !(await before.isAccessibleBy(realm, a, tx, {
+          !(await before.isAccessibleBy(realm, a, executor, {
             basic: "w",
             scopes: "w",
             secrets: ""
@@ -82,7 +98,7 @@ export const updateGrants: GraphQLFieldConfig<
             input.removeSecrets ||
             input.generateCodes ||
             input.removeCodes) &&
-          !(await before.isAccessibleBy(realm, a, tx, {
+          !(await before.isAccessibleBy(realm, a, executor, {
             basic: "w",
             scopes: "",
             secrets: "w"
@@ -170,6 +186,16 @@ export const updateGrants: GraphQLFieldConfig<
         );
 
         await tx.query("COMMIT");
+
+        // Clear and prime the loader.
+        Grant.clear(executor, grant.id);
+        Grant.prime(executor, grant.id, grant);
+
+        // Update the context to use a new executor primed with the results of
+        // this mutation, using the original connection pool.
+        executor.connection = pool;
+        context.executor = executor as ReadonlyDataLoaderExecutor<Pool>;
+
         return grant;
       } catch (error) {
         await tx.query("ROLLBACK");

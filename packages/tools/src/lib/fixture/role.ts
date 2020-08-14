@@ -5,7 +5,7 @@ import { createV2AuthXScope } from "@authx/authx/scopes";
 export const role = [
   {
     id: "ee37605c-5834-40c9-bd80-bac16d9e62a4",
-    insert: (tx: ClientBase) =>
+    insert: (tx: ClientBase): Promise<Role> =>
       Role.write(
         tx,
         {
@@ -26,7 +26,7 @@ export const role = [
   },
   {
     id: "e833c8b8-acf1-42a1-9809-2bedab7d58c7",
-    insert: (tx: ClientBase) =>
+    insert: (tx: ClientBase): Promise<Role> =>
       Role.write(
         tx,
         {
@@ -152,7 +152,7 @@ export const role = [
   },
   {
     id: "2ec2118e-9c49-474f-9f44-da35c4420ef6",
-    insert: (tx: ClientBase) =>
+    insert: (tx: ClientBase): Promise<Role> =>
       Role.write(
         tx,
         {
@@ -176,7 +176,7 @@ export const role = [
   },
   {
     id: "e3e67ba0-626a-4fb6-ad86-6520d4acfaf6",
-    insert: (tx: ClientBase) =>
+    insert: (tx: ClientBase): Promise<Role> =>
       Role.write(
         tx,
         {
@@ -199,7 +199,7 @@ export const role = [
   },
   {
     id: "08e2b39e-ba9f-4de2-8dca-aef460793566",
-    insert: (tx: ClientBase) =>
+    insert: (tx: ClientBase): Promise<Role> =>
       Role.write(
         tx,
         {

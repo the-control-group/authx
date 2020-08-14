@@ -27,37 +27,28 @@ export const authorities: GraphQLFieldConfig<
     }
   },
   async resolve(source, args, context) {
-    const {
-      pool,
-      strategies: { authorityMap }
-    } = context;
+    const { executor } = context;
 
-    const tx = await pool.connect();
-    try {
-      const ids = await tx.query(
-        `
-          SELECT entity_id AS id
-          FROM authx.authority_record
-          WHERE
-            replacement_record_id IS NULL
-            ${args.includeDisabled ? "" : "AND enabled = true"}
-          `
-      );
+    const ids = await executor.connection.query(
+      `
+      SELECT entity_id AS id
+      FROM authx.authority_record
+      WHERE
+        replacement_record_id IS NULL
+        ${args.includeDisabled ? "" : "AND enabled = true"}
+      `
+    );
 
-      if (!ids.rows.length) {
-        return [];
-      }
-
-      return connectionFromArray(
-        await Authority.read(
-          tx,
-          ids.rows.map(({ id }) => id),
-          authorityMap
-        ),
-        args
-      );
-    } finally {
-      tx.release();
+    if (!ids.rows.length) {
+      return [];
     }
+
+    return connectionFromArray(
+      await Authority.read(
+        executor,
+        ids.rows.map(({ id }) => id)
+      ),
+      args
+    );
   }
 };

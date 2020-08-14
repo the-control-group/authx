@@ -1,10 +1,12 @@
 import { v4 } from "uuid";
+import { Pool, PoolClient } from "pg";
 import { randomBytes } from "crypto";
 import { isSuperset, simplify } from "@authx/scopes";
 import { GraphQLFieldConfig, GraphQLList, GraphQLNonNull } from "graphql";
 import { Context } from "../../Context";
 import { GraphQLGrant } from "../GraphQLGrant";
 import { Grant, Role } from "../../model";
+import { DataLoaderExecutor, ReadonlyDataLoaderExecutor } from "../../loader";
 import { validateIdFormat } from "../../util/validateIdFormat";
 import { createV2AuthXScope } from "../../util/scopes";
 import {
@@ -42,10 +44,18 @@ export const createGrants: GraphQLFieldConfig<
     }
   },
   async resolve(source, args, context): Promise<Promise<Grant>[]> {
-    const { pool, authorization: a, realm } = context;
+    const { executor, authorization: a, realm } = context;
 
     if (!a) {
       throw new ForbiddenError("You must be authenticated to create a grant.");
+    }
+
+    const strategies = executor.strategies;
+    const pool = executor.connection;
+    if (!(pool instanceof Pool)) {
+      throw new Error(
+        "INVARIANT: The executor connection is expected to be an instance of Pool."
+      );
     }
 
     return args.grants.map(async input => {
@@ -75,9 +85,15 @@ export const createGrants: GraphQLFieldConfig<
 
       const tx = await pool.connect();
       try {
+        // Make sure this transaction is used for queries made by the executor.
+        const executor = new DataLoaderExecutor<Pool | PoolClient>(
+          tx,
+          strategies
+        );
+
         if (
           !(await a.can(
-            tx,
+            executor,
             createV2AuthXScope(
               realm,
               {
@@ -143,14 +159,14 @@ export const createGrants: GraphQLFieldConfig<
           );
 
           const grantScopeContext = {
-            type: "grant" as "grant",
+            type: "grant" as const,
             clientId: input.clientId,
             grantId: id,
             userId: input.userId
           };
 
           const authorizationScopeContext = {
-            type: "authorization" as "authorization",
+            type: "authorization" as const,
             authorizationId: "*",
             clientId: input.clientId,
             grantId: id,
@@ -239,41 +255,65 @@ export const createGrants: GraphQLFieldConfig<
           ];
 
           // Add administration scopes.
-          for (const { roleId, scopes } of input.administration) {
-            const role = await Role.read(tx, roleId, { forUpdate: true });
+          const administrationResults = await Promise.allSettled(
+            input.administration.map(async ({ roleId, scopes }) => {
+              const administrationRoleBefore = await Role.read(tx, roleId, {
+                forUpdate: true
+              });
 
-            if (
-              !role.isAccessibleBy(realm, a, tx, {
-                basic: "w",
-                scopes: "w",
-                users: ""
-              })
-            ) {
-              throw new ForbiddenError(
-                `You do not have permission to modify the scopes of role ${roleId}.`
-              );
-            }
-
-            await Role.write(
-              tx,
-              {
-                ...role,
-                scopes: simplify([
-                  ...role.scopes,
-                  ...possibleAdministrationScopes.filter(possible =>
-                    isSuperset(scopes, possible)
-                  )
-                ])
-              },
-              {
-                recordId: v4(),
-                createdByAuthorizationId: a.id,
-                createdAt: new Date()
+              if (
+                !administrationRoleBefore.isAccessibleBy(realm, a, executor, {
+                  basic: "w",
+                  scopes: "w",
+                  users: ""
+                })
+              ) {
+                throw new ForbiddenError(
+                  `You do not have permission to modify the scopes of role ${roleId}.`
+                );
               }
-            );
+
+              const administrationRole = await Role.write(
+                tx,
+                {
+                  ...administrationRoleBefore,
+                  scopes: simplify([
+                    ...administrationRoleBefore.scopes,
+                    ...possibleAdministrationScopes.filter(possible =>
+                      isSuperset(scopes, possible)
+                    )
+                  ])
+                },
+                {
+                  recordId: v4(),
+                  createdByAuthorizationId: a.id,
+                  createdAt: new Date()
+                }
+              );
+
+              // Clear and prime the loader.
+              Role.clear(executor, administrationRole.id);
+              Role.prime(executor, administrationRole.id, administrationRole);
+            })
+          );
+
+          for (const result of administrationResults) {
+            if (result.status === "rejected") {
+              throw new Error(result.reason);
+            }
           }
 
           await tx.query("COMMIT");
+
+          // Clear and prime the loader.
+          Grant.clear(executor, grant.id);
+          Grant.prime(executor, grant.id, grant);
+
+          // Update the context to use a new executor primed with the results of
+          // this mutation, using the original connection pool.
+          executor.connection = pool;
+          context.executor = executor as ReadonlyDataLoaderExecutor<Pool>;
+
           return grant;
         } catch (error) {
           await tx.query("ROLLBACK");

@@ -34,20 +34,15 @@ export const GraphQLEmailAuthority = new GraphQLObjectType<
       async resolve(
         authority,
         args,
-        { realm, authorization: a, pool }: Context
+        { realm, authorization: a, executor }: Context
       ): Promise<null | string> {
-        const tx = await pool.connect();
-        try {
-          return a &&
-            (await authority.isAccessibleBy(realm, a, tx, {
-              basic: "r",
-              details: "r"
-            }))
-            ? authority.details.privateKey
-            : null;
-        } finally {
-          tx.release();
-        }
+        return a &&
+          (await authority.isAccessibleBy(realm, a, executor, {
+            basic: "r",
+            details: "r"
+          }))
+          ? authority.details.privateKey
+          : null;
       }
     },
     publicKeys: {
@@ -57,20 +52,15 @@ export const GraphQLEmailAuthority = new GraphQLObjectType<
       async resolve(
         authority,
         args,
-        { realm, authorization: a, pool }: Context
+        { realm, authorization: a, executor }: Context
       ): Promise<null | string[]> {
-        const tx = await pool.connect();
-        try {
-          return a &&
-            (await authority.isAccessibleBy(realm, a, tx, {
-              basic: "r",
-              details: "r"
-            }))
-            ? authority.details.publicKeys
-            : null;
-        } finally {
-          tx.release();
-        }
+        return a &&
+          (await authority.isAccessibleBy(realm, a, executor, {
+            basic: "r",
+            details: "r"
+          }))
+          ? authority.details.publicKeys
+          : null;
       }
     },
     proofValidityDuration: {
@@ -79,20 +69,15 @@ export const GraphQLEmailAuthority = new GraphQLObjectType<
       async resolve(
         authority,
         args,
-        { realm, authorization: a, pool }: Context
+        { realm, authorization: a, executor }: Context
       ): Promise<null | number> {
-        const tx = await pool.connect();
-        try {
-          return a &&
-            (await authority.isAccessibleBy(realm, a, tx, {
-              basic: "r",
-              details: "r"
-            }))
-            ? authority.details.proofValidityDuration
-            : null;
-        } finally {
-          tx.release();
-        }
+        return a &&
+          (await authority.isAccessibleBy(realm, a, executor, {
+            basic: "r",
+            details: "r"
+          }))
+          ? authority.details.proofValidityDuration
+          : null;
       }
     },
     authenticationEmailSubject: {
@@ -102,20 +87,15 @@ export const GraphQLEmailAuthority = new GraphQLObjectType<
       async resolve(
         authority,
         args,
-        { realm, authorization: a, pool }: Context
+        { realm, authorization: a, executor }: Context
       ): Promise<null | string> {
-        const tx = await pool.connect();
-        try {
-          return a &&
-            (await authority.isAccessibleBy(realm, a, tx, {
-              basic: "r",
-              details: "r"
-            }))
-            ? authority.details.authenticationEmailSubject
-            : null;
-        } finally {
-          tx.release();
-        }
+        return a &&
+          (await authority.isAccessibleBy(realm, a, executor, {
+            basic: "r",
+            details: "r"
+          }))
+          ? authority.details.authenticationEmailSubject
+          : null;
       }
     },
     authenticationEmailText: {
@@ -125,20 +105,15 @@ export const GraphQLEmailAuthority = new GraphQLObjectType<
       async resolve(
         authority,
         args,
-        { realm, authorization: a, pool }: Context
+        { realm, authorization: a, executor }: Context
       ): Promise<null | string> {
-        const tx = await pool.connect();
-        try {
-          return a &&
-            (await authority.isAccessibleBy(realm, a, tx, {
-              basic: "r",
-              details: "r"
-            }))
-            ? authority.details.authenticationEmailText
-            : null;
-        } finally {
-          tx.release();
-        }
+        return a &&
+          (await authority.isAccessibleBy(realm, a, executor, {
+            basic: "r",
+            details: "r"
+          }))
+          ? authority.details.authenticationEmailText
+          : null;
       }
     },
     authenticationEmailHtml: {
@@ -148,20 +123,15 @@ export const GraphQLEmailAuthority = new GraphQLObjectType<
       async resolve(
         authority,
         args,
-        { realm, authorization: a, pool }: Context
+        { realm, authorization: a, executor }: Context
       ): Promise<null | string> {
-        const tx = await pool.connect();
-        try {
-          return a &&
-            (await authority.isAccessibleBy(realm, a, tx, {
-              basic: "r",
-              details: "r"
-            }))
-            ? authority.details.authenticationEmailHtml
-            : null;
-        } finally {
-          tx.release();
-        }
+        return a &&
+          (await authority.isAccessibleBy(realm, a, executor, {
+            basic: "r",
+            details: "r"
+          }))
+          ? authority.details.authenticationEmailHtml
+          : null;
       }
     },
     verificationEmailSubject: {
@@ -171,20 +141,15 @@ export const GraphQLEmailAuthority = new GraphQLObjectType<
       async resolve(
         authority,
         args,
-        { realm, authorization: a, pool }: Context
+        { realm, authorization: a, executor }: Context
       ): Promise<null | string> {
-        const tx = await pool.connect();
-        try {
-          return a &&
-            (await authority.isAccessibleBy(realm, a, tx, {
-              basic: "r",
-              details: "r"
-            }))
-            ? authority.details.verificationEmailSubject
-            : null;
-        } finally {
-          tx.release();
-        }
+        return a &&
+          (await authority.isAccessibleBy(realm, a, executor, {
+            basic: "r",
+            details: "r"
+          }))
+          ? authority.details.verificationEmailSubject
+          : null;
       }
     },
     verificationEmailText: {
@@ -194,20 +159,15 @@ export const GraphQLEmailAuthority = new GraphQLObjectType<
       async resolve(
         authority,
         args,
-        { realm, authorization: a, pool }: Context
+        { realm, authorization: a, executor }: Context
       ): Promise<null | string> {
-        const tx = await pool.connect();
-        try {
-          return a &&
-            (await authority.isAccessibleBy(realm, a, tx, {
-              basic: "r",
-              details: "r"
-            }))
-            ? authority.details.verificationEmailText
-            : null;
-        } finally {
-          tx.release();
-        }
+        return a &&
+          (await authority.isAccessibleBy(realm, a, executor, {
+            basic: "r",
+            details: "r"
+          }))
+          ? authority.details.verificationEmailText
+          : null;
       }
     },
     verificationEmailHtml: {
@@ -217,20 +177,15 @@ export const GraphQLEmailAuthority = new GraphQLObjectType<
       async resolve(
         authority,
         args,
-        { realm, authorization: a, pool }: Context
+        { realm, authorization: a, executor }: Context
       ): Promise<null | string> {
-        const tx = await pool.connect();
-        try {
-          return a &&
-            (await authority.isAccessibleBy(realm, a, tx, {
-              basic: "r",
-              details: "r"
-            }))
-            ? authority.details.verificationEmailHtml
-            : null;
-        } finally {
-          tx.release();
-        }
+        return a &&
+          (await authority.isAccessibleBy(realm, a, executor, {
+            basic: "r",
+            details: "r"
+          }))
+          ? authority.details.verificationEmailHtml
+          : null;
       }
     }
   })

@@ -62,10 +62,7 @@ function s(winners: Scope[], candidate: Scope): Scope[] {
 
 // returns a de-duplicated array of scope rules
 export function simplify(collection: Scope[]): Scope[] {
-  return collection
-    .reduce(s, [])
-    .reduceRight(s, [])
-    .sort(compare);
+  return collection.reduce(s, []).reduceRight(s, []).sort(compare);
 }
 
 export function getIntersection(

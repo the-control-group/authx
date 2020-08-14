@@ -5,8 +5,8 @@ before_install:
   - sudo /etc/init.d/postgresql stop
   - sudo service mysql stop
 install:
-  - docker-compose up -d
+  - docker-compose up -d postgres
 script:
-  - docker-compose exec authx yarn build
-  - docker-compose exec authx yarn lint
-  - docker-compose exec authx yarn test
+  - docker-compose run runner yarn build
+  - docker-compose run runner yarn lint
+  - docker-compose run runner yarn test

@@ -8,7 +8,7 @@ export const credential: {
 }[] = [
   {
     id: "540128ad-7a55-423e-a85c-103677df333c",
-    insert: (tx: ClientBase) =>
+    insert: (tx: ClientBase): Promise<EmailCredential> =>
       EmailCredential.write(
         tx,
         {
@@ -17,9 +17,7 @@ export const credential: {
           authorityId: "0d765613-e813-40e5-9aa7-89f96531364e",
           authorityUserId: "michael.scott@dundermifflin.com",
           userId: "a6a0946d-eeb4-45cd-83c6-c7920f2272eb",
-          details: {
-            proof: null
-          }
+          details: {}
         },
         {
           recordId: "43f7df35-4c00-4baf-b175-1914869897d5",
@@ -30,7 +28,7 @@ export const credential: {
   },
   {
     id: "d92a642f-70ca-465c-9130-c25fdad16a6d",
-    insert: (tx: ClientBase) =>
+    insert: (tx: ClientBase): Promise<EmailCredential> =>
       EmailCredential.write(
         tx,
         {
@@ -39,9 +37,7 @@ export const credential: {
           authorityId: "0d765613-e813-40e5-9aa7-89f96531364e",
           authorityUserId: "dwight.schrute@dundermifflin.com",
           userId: "0cbd3783-0424-4f35-be51-b42f07a2a987",
-          details: {
-            proof: null
-          }
+          details: {}
         },
         {
           recordId: "a773bff0-ada1-43b9-b724-85b85dfcd2e3",
@@ -52,7 +48,7 @@ export const credential: {
   },
   {
     id: "42b27b88-672c-4649-9afa-77e114e6ad98",
-    insert: (tx: ClientBase) =>
+    insert: (tx: ClientBase): Promise<EmailCredential> =>
       EmailCredential.write(
         tx,
         {
@@ -61,9 +57,7 @@ export const credential: {
           authorityId: "0d765613-e813-40e5-9aa7-89f96531364e",
           authorityUserId: "jim.halpert@dundermifflin.com",
           userId: "d0fc4c64-a3d6-4d97-9341-07de24439bb1",
-          details: {
-            proof: null
-          }
+          details: {}
         },
         {
           recordId: "d6e44a92-8841-48f1-8d9b-0f1d54ee1262",
@@ -74,7 +68,7 @@ export const credential: {
   },
   {
     id: "2caedd2e-fff6-4df9-952e-34d807f21cab",
-    insert: (tx: ClientBase) =>
+    insert: (tx: ClientBase): Promise<EmailCredential> =>
       EmailCredential.write(
         tx,
         {
@@ -83,9 +77,7 @@ export const credential: {
           authorityId: "0d765613-e813-40e5-9aa7-89f96531364e",
           authorityUserId: "pam.beesly-halpert@dundermifflin.com",
           userId: "eaa9fa5e-088a-4ae2-a6ab-f120006b20a9",
-          details: {
-            proof: null
-          }
+          details: {}
         },
         {
           recordId: "80a5449b-c08e-4ee5-8f4f-bd6f16b716af",
@@ -96,7 +88,7 @@ export const credential: {
   },
   {
     id: "02e588b0-60a7-4af5-a0c7-b78ed43957b4",
-    insert: (tx: ClientBase) =>
+    insert: (tx: ClientBase): Promise<EmailCredential> =>
       EmailCredential.write(
         tx,
         {
@@ -105,9 +97,7 @@ export const credential: {
           authorityId: "0d765613-e813-40e5-9aa7-89f96531364e",
           authorityUserId: "toby.flenderson@dundermifflin.com",
           userId: "306eabbb-cc2b-4f88-be19-4bb6ec98e5c3",
-          details: {
-            proof: null
-          }
+          details: {}
         },
         {
           recordId: "4c33b324-6b53-4163-8e25-d3ebaa863913",
@@ -118,7 +108,7 @@ export const credential: {
   },
   {
     id: "d08302e7-6b48-4eb9-83a3-4f49ef4b6647",
-    insert: (tx: ClientBase) =>
+    insert: (tx: ClientBase): Promise<EmailCredential> =>
       EmailCredential.write(
         tx,
         {
@@ -127,9 +117,7 @@ export const credential: {
           authorityId: "0d765613-e813-40e5-9aa7-89f96531364e",
           authorityUserId: "jan.levinson@dundermifflin.com",
           userId: "dc396449-2c7d-4a23-a159-e6415ded71d2",
-          details: {
-            proof: null
-          }
+          details: {}
         },
         {
           recordId: "f3601f1e-2af0-4454-b30c-4658746d1be4",
@@ -140,7 +128,7 @@ export const credential: {
   },
   {
     id: "74501d3e-b319-4c84-b5a6-4135fc595fb1",
-    insert: (tx: ClientBase) =>
+    insert: (tx: ClientBase): Promise<EmailCredential> =>
       EmailCredential.write(
         tx,
         {
@@ -149,9 +137,7 @@ export const credential: {
           authorityId: "0d765613-e813-40e5-9aa7-89f96531364e",
           authorityUserId: "darryl.philbin@dundermifflin.com",
           userId: "51192909-3664-44d5-be62-c6b45f0b0ee6",
-          details: {
-            proof: null
-          }
+          details: {}
         },
         {
           recordId: "8579853d-db37-4212-8cac-3fe42f1e8c42",
@@ -162,7 +148,7 @@ export const credential: {
   },
   {
     id: "fee2e658-ddca-46d8-a75c-114b36325e35",
-    insert: (tx: ClientBase) =>
+    insert: (tx: ClientBase): Promise<EmailCredential> =>
       EmailCredential.write(
         tx,
         {
@@ -171,9 +157,7 @@ export const credential: {
           authorityId: "0d765613-e813-40e5-9aa7-89f96531364e",
           authorityUserId: "roy.anderson@dundermifflin.com",
           userId: "9ad4b34b-781d-44fe-ac39-9b7ac43dde21",
-          details: {
-            proof: null
-          }
+          details: {}
         },
         {
           recordId: "af713259-e3a6-4a66-96a7-284cb3bac2cb",
@@ -184,7 +168,7 @@ export const credential: {
   },
   {
     id: "c1a8cc41-66d5-4aef-8b97-e5f97d2bc699",
-    insert: (tx: ClientBase) =>
+    insert: (tx: ClientBase): Promise<PasswordCredential> =>
       PasswordCredential.write(
         tx,
         {
@@ -206,7 +190,7 @@ export const credential: {
   },
   {
     id: "f1937f99-4c17-4b10-a745-345288727c1a",
-    insert: (tx: ClientBase) =>
+    insert: (tx: ClientBase): Promise<PasswordCredential> =>
       PasswordCredential.write(
         tx,
         {
@@ -228,7 +212,7 @@ export const credential: {
   },
   {
     id: "8d5d1c50-cba2-4afe-83fa-3b8d784b607c",
-    insert: (tx: ClientBase) =>
+    insert: (tx: ClientBase): Promise<PasswordCredential> =>
       PasswordCredential.write(
         tx,
         {
@@ -250,7 +234,7 @@ export const credential: {
   },
   {
     id: "6b33db96-05e5-4ade-8ac7-2959b96ce7db",
-    insert: (tx: ClientBase) =>
+    insert: (tx: ClientBase): Promise<PasswordCredential> =>
       PasswordCredential.write(
         tx,
         {
@@ -272,7 +256,7 @@ export const credential: {
   },
   {
     id: "03e69b4c-3f73-4b15-866c-17efeeed1678",
-    insert: (tx: ClientBase) =>
+    insert: (tx: ClientBase): Promise<PasswordCredential> =>
       PasswordCredential.write(
         tx,
         {
@@ -294,7 +278,7 @@ export const credential: {
   },
   {
     id: "a941a36d-a3d3-4c8b-a03a-f549dac3871e",
-    insert: (tx: ClientBase) =>
+    insert: (tx: ClientBase): Promise<PasswordCredential> =>
       PasswordCredential.write(
         tx,
         {
@@ -316,7 +300,7 @@ export const credential: {
   },
   {
     id: "2e933e24-072f-41dd-b5f2-75d27f11a8b4",
-    insert: (tx: ClientBase) =>
+    insert: (tx: ClientBase): Promise<PasswordCredential> =>
       PasswordCredential.write(
         tx,
         {
@@ -338,7 +322,7 @@ export const credential: {
   },
   {
     id: "0bae2fed-26ac-4fa2-8879-a226c9fb859a",
-    insert: (tx: ClientBase) =>
+    insert: (tx: ClientBase): Promise<PasswordCredential> =>
       PasswordCredential.write(
         tx,
         {
@@ -360,7 +344,7 @@ export const credential: {
   },
   {
     id: "e1381b64-b0df-4e81-9b31-38ae2f1325fc",
-    insert: (tx: ClientBase) =>
+    insert: (tx: ClientBase): Promise<PasswordCredential> =>
       PasswordCredential.write(
         tx,
         {
@@ -370,8 +354,7 @@ export const credential: {
           authorityUserId: "1691f38d-92c8-4d86-9a89-da99528cfcb5",
           userId: "1691f38d-92c8-4d86-9a89-da99528cfcb5",
           details: {
-            secret:
-              "$2a$04$SPRITTeZvQ9hI.TPkvoE0Op19wAgBlObKRQ6sz.ahjVVDFBajjFrO" // password: da8ad1c19e0f
+            hash: "$2a$04$SPRITTeZvQ9hI.TPkvoE0Op19wAgBlObKRQ6sz.ahjVVDFBajjFrO" // password: da8ad1c19e0f
           }
         },
         {

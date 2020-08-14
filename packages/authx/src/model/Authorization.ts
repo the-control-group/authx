@@ -1,9 +1,10 @@
-import { ClientBase } from "pg";
+import { Pool, ClientBase } from "pg";
 import { User } from "./User";
 import { Grant } from "./Grant";
 import { simplify, getIntersection, isSuperset } from "@authx/scopes";
 import { NotFoundError } from "../errors";
 import { AuthorizationAction, createV2AuthXScope } from "../util/scopes";
+import { DataLoaderExecutor, DataLoaderCache } from "../loader";
 
 export interface AuthorizationInvocationData {
   readonly id: string;
@@ -74,10 +75,6 @@ export class Authorization implements AuthorizationData {
   public readonly secret: string;
   public readonly scopes: string[];
 
-  private _user: null | Promise<User> = null;
-  private _grant: null | Promise<Grant> = null;
-  private _authorization: null | Promise<Grant> = null;
-
   public constructor(data: AuthorizationData & { readonly recordId: string }) {
     this.id = data.id;
     this.recordId = data.recordId;
@@ -91,7 +88,7 @@ export class Authorization implements AuthorizationData {
   public async isAccessibleBy(
     realm: string,
     a: Authorization,
-    tx: ClientBase,
+    tx: Pool | ClientBase | DataLoaderExecutor,
     action: AuthorizationAction = {
       basic: "r",
       scopes: "",
@@ -120,34 +117,34 @@ export class Authorization implements AuthorizationData {
     return false;
   }
 
-  public user(tx: ClientBase, refresh: boolean = false): Promise<User> {
-    if (!refresh && this._user) {
-      return this._user;
-    }
-
-    return (this._user = User.read(tx, this.userId));
+  public user(tx: Pool | ClientBase | DataLoaderExecutor): Promise<User> {
+    return (
+      // Some silliness to help typescript...
+      tx instanceof DataLoaderExecutor
+        ? User.read(tx, this.userId)
+        : User.read(tx, this.userId)
+    );
   }
 
   public async grant(
-    tx: ClientBase,
-    refresh: boolean = false
+    tx: Pool | ClientBase | DataLoaderExecutor
   ): Promise<null | Grant> {
     if (!this.grantId) {
       return null;
     }
 
-    if (!refresh && this._grant) {
-      return this._grant;
-    }
-
-    return (this._grant = Grant.read(tx, this.grantId));
+    return (
+      // Some silliness to help typescript...
+      tx instanceof DataLoaderExecutor
+        ? Grant.read(tx, this.grantId)
+        : Grant.read(tx, this.grantId)
+    );
   }
 
   public async access(
-    tx: ClientBase,
-    refresh: boolean = false
+    tx: Pool | ClientBase | DataLoaderExecutor
   ): Promise<string[]> {
-    const grant = await this.grant(tx, refresh);
+    const grant = await this.grant(tx);
     const values = {
       currentAuthorizationId: this.id,
       currentUserId: this.userId,
@@ -157,26 +154,28 @@ export class Authorization implements AuthorizationData {
 
     if (grant) {
       return grant.enabled
-        ? getIntersection(this.scopes, await grant.access(tx, values, refresh))
+        ? getIntersection(this.scopes, await grant.access(tx, values))
         : [];
     }
 
-    const user = await this.user(tx, refresh);
+    const user = await this.user(tx);
     return user.enabled
-      ? getIntersection(this.scopes, await user.access(tx, values, refresh))
+      ? getIntersection(this.scopes, await user.access(tx, values))
       : [];
   }
 
   public async can(
-    tx: ClientBase,
-    scope: string[] | string,
-    refresh: boolean = false
+    tx: Pool | ClientBase | DataLoaderExecutor,
+    scope: string[] | string
   ): Promise<boolean> {
-    return isSuperset(await this.access(tx, refresh), scope);
+    return isSuperset(await this.access(tx), scope);
   }
 
   public async records(tx: ClientBase): Promise<AuthorizationRecord[]> {
-    const result = await tx.query(
+    const connection: Pool | ClientBase =
+      tx instanceof DataLoaderExecutor ? tx.connection : tx;
+
+    const result = await connection.query(
       `
       SELECT
         record_id as id,
@@ -206,7 +205,7 @@ export class Authorization implements AuthorizationData {
   }
 
   public async invoke(
-    tx: ClientBase,
+    tx: Pool | ClientBase | DataLoaderExecutor,
     data: {
       id: string;
       format: string;
@@ -214,7 +213,10 @@ export class Authorization implements AuthorizationData {
     }
   ): Promise<AuthorizationInvocation> {
     // insert the new invocation
-    const result = await tx.query(
+    const result = await (tx instanceof DataLoaderExecutor
+      ? tx.connection
+      : tx
+    ).query(
       `
       INSERT INTO authx.authorization_invocation
       (
@@ -252,7 +254,10 @@ export class Authorization implements AuthorizationData {
   }
 
   public async invocations(tx: ClientBase): Promise<AuthorizationInvocation[]> {
-    const result = await tx.query(
+    const connection: Pool | ClientBase =
+      tx instanceof DataLoaderExecutor ? tx.connection : tx;
+
+    const result = await connection.query(
       `
       SELECT
         invocation_id as id,
@@ -278,21 +283,44 @@ export class Authorization implements AuthorizationData {
     );
   }
 
+  // Read using an executor.
   public static read(
-    tx: ClientBase,
+    tx: DataLoaderExecutor,
     id: string,
-    options?: { forUpdate: boolean }
+    options?: { forUpdate?: false }
   ): Promise<Authorization>;
+
   public static read(
-    tx: ClientBase,
-    id: string[],
-    options?: { forUpdate: boolean }
+    tx: DataLoaderExecutor,
+    id: readonly string[],
+    options?: { forUpdate?: false }
   ): Promise<Authorization[]>;
+
+  // Read using a connection.
+  public static read(
+    tx: Pool | ClientBase,
+    id: string,
+    options?: { forUpdate?: boolean }
+  ): Promise<Authorization>;
+
+  public static read(
+    tx: Pool | ClientBase,
+    id: readonly string[],
+    options?: { forUpdate?: boolean }
+  ): Promise<Authorization[]>;
+
   public static async read(
-    tx: ClientBase,
-    id: string[] | string,
-    options: { forUpdate: boolean } = { forUpdate: false }
+    tx: Pool | ClientBase | DataLoaderExecutor,
+    id: readonly string[] | string,
+    options?: { forUpdate?: boolean }
   ): Promise<Authorization[] | Authorization> {
+    if (tx instanceof DataLoaderExecutor) {
+      const loader = cache.get(tx);
+      return Promise.all(
+        typeof id === "string" ? [loader.load(id)] : id.map(i => loader.load(i))
+      );
+    }
+
     if (typeof id !== "string" && !id.length) {
       return [];
     }
@@ -311,7 +339,7 @@ export class Authorization implements AuthorizationData {
       WHERE
         entity_id = ANY($1)
         AND replacement_record_id IS NULL
-      ${options.forUpdate ? "FOR UPDATE" : ""}
+      ${options?.forUpdate ? "FOR UPDATE" : ""}
       `,
       [typeof id === "string" ? [id] : id]
     );
@@ -350,7 +378,7 @@ export class Authorization implements AuthorizationData {
   }
 
   public static async write(
-    tx: ClientBase,
+    tx: Pool | ClientBase,
     data: AuthorizationData,
     metadata: {
       recordId: string;
@@ -483,4 +511,25 @@ export class Authorization implements AuthorizationData {
       grantId: row.grant_id
     });
   }
+
+  public static clear(executor: DataLoaderExecutor, id: string): void {
+    cache.get(executor).clear(id);
+  }
+
+  public static prime(
+    executor: DataLoaderExecutor,
+    id: string,
+    value: Authorization
+  ): void {
+    cache.get(executor).prime(id, value);
+  }
 }
+
+const cache = new DataLoaderCache(
+  async (
+    executor: DataLoaderExecutor,
+    ids: readonly string[]
+  ): Promise<Authorization[]> => {
+    return Authorization.read(executor.connection, ids);
+  }
+);

@@ -18,22 +18,11 @@ export const credential: GraphQLFieldConfig<
     }
   },
   async resolve(source, args, context): Promise<null | Credential<any>> {
-    const {
-      pool,
-      authorization: a,
-      realm,
-      strategies: { credentialMap }
-    } = context;
+    const { executor, authorization: a, realm } = context;
     if (!a) return null;
-
-    const tx = await pool.connect();
-    try {
-      const credential = await Credential.read(tx, args.id, credentialMap);
-      return (await credential.isAccessibleBy(realm, a, tx))
-        ? credential
-        : null;
-    } finally {
-      tx.release();
-    }
+    const credential = await Credential.read(executor, args.id);
+    return (await credential.isAccessibleBy(realm, a, executor))
+      ? credential
+      : null;
   }
 };

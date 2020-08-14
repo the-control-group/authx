@@ -37,14 +37,14 @@ test.before(async () => {
         response.setHeader("Content-Type", "application/json");
         response.end(
           JSON.stringify({
-            /* eslint-disable @typescript-eslint/camelcase */
+            /* eslint-disable camelcase */
             authorization_type: "bearer",
             access_token:
               "eyJhbGciOiJSUzUxMiIsInR5cCI6IkpXVCJ9.eyJzY29wZXMiOlsiQXV0aFg6dXNlci5lcXVhbC5zZWxmOnJlYWQuYmFzaWMiXSwiaWF0IjoxNTU2NjAzOTU5LCJleHAiOjQ3MTAyMDM5NTksImF1ZCI6ImZlMjQ3OGI1LTdiNjAtNGNlZC1hYWY4LTZjOWI0YTJlNzNmNiIsImlzcyI6ImF1dGh4Iiwic3ViIjoiMTZhNjA3MjItZjcyZi00MmExLTg0ZjgtNWFmODBiYWFjMjg5In0.hB7N3Ibdc-LX9gTkarWPXpjr6gFPRpFVnKND2CXS1XHq6ePzhLIs-Bn3ksHOvkpDzx96z7x_8pQwgHXg_DgUNcpUP-eFuk156wxJ7rpuG5aV-wUmAAg-yLnMjXWx65VUf7J-JvVtRVHlkzahLA1n0drf4Fll-hoTJ6qaOHidUlo",
             refresh_token: "c89900b6a34123900274e90f87f7adc0c1ab8d93",
             expires_in: 3600,
             scope: "AuthX:user.equal.self:read.basic"
-            /* eslint-enabme @typescript-eslint/camelcase */
+            /* eslint-enabme camelcase */
           })
         );
       });
@@ -205,8 +205,9 @@ test("anonymous - 401", async t => {
   // - authx.d = referer (since this is a POST request)
   t.is(
     response.headers.get("set-cookie"),
-    `authx.s=${url.searchParams.get("state") ||
-      ""}; path=/; httponly, authx.d=/foo; path=/; httponly`
+    `authx.s=${
+      url.searchParams.get("state") || ""
+    }; path=/; httponly, authx.d=/foo; path=/; httponly`
   );
 });
 
@@ -241,8 +242,9 @@ test("anonymous - 303", async t => {
   // - authx.d = referer (since this is a POST request)
   t.is(
     response.headers.get("set-cookie"),
-    `authx.s=${url.searchParams.get("state") ||
-      ""}; path=/; httponly, authx.d=/admin; path=/; httponly`
+    `authx.s=${
+      url.searchParams.get("state") || ""
+    }; path=/; httponly, authx.d=/admin; path=/; httponly`
   );
 });
 
