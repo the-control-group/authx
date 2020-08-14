@@ -4,7 +4,7 @@ import React, {
   useEffect,
   useContext,
   ReactElement,
-  FormEvent
+  FormEvent,
 } from "react";
 
 import { v4 } from "uuid";
@@ -17,7 +17,7 @@ interface Props {
 
 export function OpenIdAuthority({
   authority,
-  setAuthorization
+  setAuthorization,
 }: Props): ReactElement<Props> {
   // Focus the openid field on mount
   const focusElement = useRef<HTMLInputElement>(null);
@@ -73,9 +73,9 @@ export function OpenIdAuthority({
           `,
             variables: {
               authorityId: authority.id,
-              code
-            }
-          }
+              code,
+            },
+          },
         });
 
         const result = await operation.cacheValuePromise;
@@ -96,14 +96,14 @@ export function OpenIdAuthority({
         }
 
         if (result.graphQLErrors && result.graphQLErrors.length) {
-          setErrors(result.graphQLErrors.map(e => e.message));
+          setErrors(result.graphQLErrors.map((e) => e.message));
           return;
         }
 
         const authorization = result.data && result.data.authenticateOpenId;
         if (!authorization || !authorization.secret) {
           setErrors([
-            "No authorization was returned. Contact your administrator to ensure you have sufficient access to read your own authorizations and authorization secrets."
+            "No authorization was returned. Contact your administrator to ensure you have sufficient access to read your own authorizations and authorization secrets.",
           ]);
           return;
         }
@@ -115,7 +115,7 @@ export function OpenIdAuthority({
         // Set the authorization.
         setAuthorization({
           id: authorization.id,
-          secret: authorization.secret
+          secret: authorization.secret,
         });
       } catch (error) {
         setErrors([error.message]);

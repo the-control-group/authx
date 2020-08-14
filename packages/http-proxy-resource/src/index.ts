@@ -6,11 +6,11 @@ import { AuthXKeyCache } from "./AuthXKeyCache";
 export { AuthXKeyCache } from "./AuthXKeyCache";
 import {
   validateAuthorizationHeader,
-  NotAuthorizedError
+  NotAuthorizedError,
 } from "./validateAuthorizationHeader";
 export {
   validateAuthorizationHeader,
-  NotAuthorizedError
+  NotAuthorizedError,
 } from "./validateAuthorizationHeader";
 
 interface Behavior {
@@ -191,7 +191,7 @@ export default class AuthXResourceProxy extends EventEmitter {
       message: "Request received.",
       authorizationId: undefined,
       authorizationSubject: undefined,
-      authorizationScopes: undefined
+      authorizationScopes: undefined,
     };
 
     // Emit meta on request start.
@@ -261,7 +261,7 @@ export default class AuthXResourceProxy extends EventEmitter {
           const {
             authorizationId,
             authorizationSubject,
-            authorizationScopes
+            authorizationScopes,
           } = await validateAuthorizationHeader(
             this._config.authxUrl,
             keys,
@@ -359,7 +359,7 @@ export default class AuthXResourceProxy extends EventEmitter {
       meta.message = "Request proxied." + (warning ? ` (${warning})` : "");
       meta.rule = rule;
       meta.behavior = behavior;
-      this._proxy.web(request, response, behavior.proxyOptions, error => {
+      this._proxy.web(request, response, behavior.proxyOptions, (error) => {
         if (!response.headersSent) {
           const code = (error as any).code;
           const statusCode =
@@ -416,7 +416,7 @@ export default class AuthXResourceProxy extends EventEmitter {
       throw new Error("Proxy cannot listen because it is closing.");
     }
 
-    return new Promise(resolve => {
+    return new Promise((resolve) => {
       this.server.once("listening", resolve);
       this.server.listen(options);
     });
@@ -430,7 +430,7 @@ export default class AuthXResourceProxy extends EventEmitter {
     this._closing = true;
 
     // Close the proxy.
-    return new Promise(resolve => {
+    return new Promise((resolve) => {
       setTimeout(() => {
         this.server.close(() => {
           resolve();

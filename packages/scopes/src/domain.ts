@@ -59,7 +59,7 @@ function intersect(left: Domain, rightA: Domain, rightB: Domain): Domain[] {
         ? restB.length // CONTINUE
           ? ([
               ...intersect([...left, b], [a, ...restA], restB),
-              ...(restA.length ? intersect([...left, b], restA, restB) : [])
+              ...(restA.length ? intersect([...left, b], restA, restB) : []),
             ] as Domain[])
           : !restA.length || b === AnyMultiple // DONE
           ? [[...left, b, ...restA]]
@@ -70,12 +70,12 @@ function intersect(left: Domain, rightA: Domain, rightB: Domain): Domain[] {
         ? restA.length // CONTINUE
           ? ([
               ...intersect([...left, a], restA, [b, ...restB]),
-              ...(restB.length ? intersect([...left, a], restA, restB) : [])
+              ...(restB.length ? intersect([...left, a], restA, restB) : []),
             ] as Domain[])
           : !restB.length || a === AnyMultiple // DONE
           ? [[...left, a, ...restB]]
           : []
-        : [])
+        : []),
     ] as Domain[];
   }
 
@@ -108,7 +108,7 @@ function intersect(left: Domain, rightA: Domain, rightB: Domain): Domain[] {
 function s(winners: Domain[], candidate: Domain): Domain[] {
   if (
     candidate.length < 1 ||
-    winners.some(domain => isSuperset(domain, candidate))
+    winners.some((domain) => isSuperset(domain, candidate))
   ) {
     return winners;
   }
@@ -117,10 +117,7 @@ function s(winners: Domain[], candidate: Domain): Domain[] {
 }
 
 function simplify(collection: Domain[]): Domain[] {
-  return collection
-    .map(normalize)
-    .reduce(s, [])
-    .reduceRight(s, []);
+  return collection.map(normalize).reduce(s, []).reduceRight(s, []);
 }
 
 export function compare(a: Domain, b: Domain): 0 | -1 | 1 {

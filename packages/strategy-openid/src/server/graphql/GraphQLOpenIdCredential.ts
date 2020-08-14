@@ -3,7 +3,7 @@ import {
   GraphQLNonNull,
   GraphQLBoolean,
   GraphQLString,
-  GraphQLObjectType
+  GraphQLObjectType,
 } from "graphql";
 
 import {
@@ -11,7 +11,7 @@ import {
   GraphQLCredential,
   GraphQLUser,
   GraphQLNode,
-  Context
+  Context,
 } from "@authx/authx";
 import { OpenIdCredential, OpenIdAuthority } from "../model";
 import { GraphQLOpenIdAuthority } from "./GraphQLOpenIdAuthority";
@@ -29,7 +29,7 @@ export const GraphQLOpenIdCredential = new GraphQLObjectType<
   fields: () => ({
     id: { type: new GraphQLNonNull(GraphQLID) },
     enabled: {
-      type: new GraphQLNonNull(GraphQLBoolean)
+      type: new GraphQLNonNull(GraphQLBoolean),
     },
     user: {
       type: GraphQLUser,
@@ -41,7 +41,7 @@ export const GraphQLOpenIdCredential = new GraphQLObjectType<
         if (!a) return null;
         const user = await credential.user(executor);
         return user.isAccessibleBy(realm, a, executor) ? user : null;
-      }
+      },
     },
     authority: {
       type: GraphQLOpenIdAuthority,
@@ -51,13 +51,13 @@ export const GraphQLOpenIdCredential = new GraphQLObjectType<
         { executor }: Context
       ): Promise<null | OpenIdAuthority> {
         return credential.authority(executor);
-      }
+      },
     },
     subject: {
       type: GraphQLString,
       resolve(credential): string {
         return credential.authorityUserId;
-      }
-    }
-  })
+      },
+    },
+  }),
 });

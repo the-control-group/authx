@@ -3,7 +3,7 @@ import { ClientBase } from "pg";
 import { User, Role, Authorization } from "@authx/authx";
 import {
   PasswordAuthority,
-  PasswordCredential
+  PasswordCredential,
 } from "@authx/strategy-password";
 
 interface Metadata {
@@ -19,7 +19,7 @@ export async function bootstrap(
     authority,
     credential,
     role,
-    authorization
+    authorization,
   }: {
     user: { data: User; metadata: Metadata };
     authority: { data: PasswordAuthority; metadata: Metadata };
@@ -35,15 +35,15 @@ export async function bootstrap(
   await Promise.all([
     tx.query("INSERT INTO authx.user (id) VALUES ($1)", [user.data.id]),
     tx.query("INSERT INTO authx.authority (id) VALUES ($1)", [
-      authority.data.id
+      authority.data.id,
     ]),
     tx.query("INSERT INTO authx.credential (id) VALUES ($1)", [
-      credential.data.id
+      credential.data.id,
     ]),
     tx.query("INSERT INTO authx.role (id) VALUES ($1)", [role.data.id]),
     tx.query("INSERT INTO authx.authorization (id) VALUES ($1)", [
-      authorization.data.id
-    ])
+      authorization.data.id,
+    ]),
   ]);
 
   // insert the records
@@ -52,6 +52,6 @@ export async function bootstrap(
     PasswordAuthority.write(tx, authority.data, authority.metadata),
     PasswordCredential.write(tx, credential.data, credential.metadata),
     Role.write(tx, role.data, role.metadata),
-    Authorization.write(tx, authorization.data, authorization.metadata)
+    Authorization.write(tx, authorization.data, authorization.metadata),
   ]);
 }

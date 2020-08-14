@@ -1,6 +1,6 @@
 import { loader } from "webpack";
 
-export default function(
+export default function (
   this: loader.LoaderContext,
   source: string | Buffer
 ): string {
@@ -10,7 +10,7 @@ export default function(
   return source.replace(
     "__STRATEGIES__",
     `[${strategies
-      .map(s => `require(${JSON.stringify(s)}).default`)
+      .map((s) => `require(${JSON.stringify(s)}).default`)
       .join(", ")}]`
   );
 }

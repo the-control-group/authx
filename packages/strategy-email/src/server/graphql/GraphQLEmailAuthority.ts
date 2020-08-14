@@ -5,7 +5,7 @@ import {
   GraphQLString,
   GraphQLList,
   GraphQLBoolean,
-  GraphQLObjectType
+  GraphQLObjectType,
 } from "graphql";
 
 import { Context, GraphQLAuthority, GraphQLNode } from "@authx/authx";
@@ -23,7 +23,7 @@ export const GraphQLEmailAuthority = new GraphQLObjectType<
   fields: () => ({
     id: { type: new GraphQLNonNull(GraphQLID) },
     enabled: {
-      type: new GraphQLNonNull(GraphQLBoolean)
+      type: new GraphQLNonNull(GraphQLBoolean),
     },
     name: { type: GraphQLString },
     description: { type: GraphQLString },
@@ -39,11 +39,11 @@ export const GraphQLEmailAuthority = new GraphQLObjectType<
         return a &&
           (await authority.isAccessibleBy(realm, a, executor, {
             basic: "r",
-            details: "r"
+            details: "r",
           }))
           ? authority.details.privateKey
           : null;
-      }
+      },
     },
     publicKeys: {
       type: new GraphQLList(new GraphQLNonNull(GraphQLString)),
@@ -57,11 +57,11 @@ export const GraphQLEmailAuthority = new GraphQLObjectType<
         return a &&
           (await authority.isAccessibleBy(realm, a, executor, {
             basic: "r",
-            details: "r"
+            details: "r",
           }))
           ? authority.details.publicKeys
           : null;
-      }
+      },
     },
     proofValidityDuration: {
       type: GraphQLInt,
@@ -74,11 +74,11 @@ export const GraphQLEmailAuthority = new GraphQLObjectType<
         return a &&
           (await authority.isAccessibleBy(realm, a, executor, {
             basic: "r",
-            details: "r"
+            details: "r",
           }))
           ? authority.details.proofValidityDuration
           : null;
-      }
+      },
     },
     authenticationEmailSubject: {
       type: GraphQLString,
@@ -92,11 +92,11 @@ export const GraphQLEmailAuthority = new GraphQLObjectType<
         return a &&
           (await authority.isAccessibleBy(realm, a, executor, {
             basic: "r",
-            details: "r"
+            details: "r",
           }))
           ? authority.details.authenticationEmailSubject
           : null;
-      }
+      },
     },
     authenticationEmailText: {
       type: GraphQLString,
@@ -110,11 +110,11 @@ export const GraphQLEmailAuthority = new GraphQLObjectType<
         return a &&
           (await authority.isAccessibleBy(realm, a, executor, {
             basic: "r",
-            details: "r"
+            details: "r",
           }))
           ? authority.details.authenticationEmailText
           : null;
-      }
+      },
     },
     authenticationEmailHtml: {
       type: GraphQLString,
@@ -128,11 +128,11 @@ export const GraphQLEmailAuthority = new GraphQLObjectType<
         return a &&
           (await authority.isAccessibleBy(realm, a, executor, {
             basic: "r",
-            details: "r"
+            details: "r",
           }))
           ? authority.details.authenticationEmailHtml
           : null;
-      }
+      },
     },
     verificationEmailSubject: {
       type: GraphQLString,
@@ -146,11 +146,11 @@ export const GraphQLEmailAuthority = new GraphQLObjectType<
         return a &&
           (await authority.isAccessibleBy(realm, a, executor, {
             basic: "r",
-            details: "r"
+            details: "r",
           }))
           ? authority.details.verificationEmailSubject
           : null;
-      }
+      },
     },
     verificationEmailText: {
       type: GraphQLString,
@@ -164,11 +164,11 @@ export const GraphQLEmailAuthority = new GraphQLObjectType<
         return a &&
           (await authority.isAccessibleBy(realm, a, executor, {
             basic: "r",
-            details: "r"
+            details: "r",
           }))
           ? authority.details.verificationEmailText
           : null;
-      }
+      },
     },
     verificationEmailHtml: {
       type: GraphQLString,
@@ -182,11 +182,11 @@ export const GraphQLEmailAuthority = new GraphQLObjectType<
         return a &&
           (await authority.isAccessibleBy(realm, a, executor, {
             basic: "r",
-            details: "r"
+            details: "r",
           }))
           ? authority.details.verificationEmailHtml
           : null;
-      }
-    }
-  })
+      },
+    },
+  }),
 });

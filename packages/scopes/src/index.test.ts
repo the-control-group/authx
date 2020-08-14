@@ -9,10 +9,10 @@ import {
   isSuperset,
   isValidScopeLiteral,
   normalize,
-  simplify
+  simplify,
 } from "./index";
 
-t("getDifference (valid)", t => {
+t("getDifference (valid)", (t) => {
   t.deepEqual(
     getDifference(
       ["realm.b:resource:action", "realm.a:resource:action"],
@@ -21,7 +21,7 @@ t("getDifference (valid)", t => {
     ["realm.*:resource:action"]
   );
 });
-t("getDifference (template)", t => {
+t("getDifference (template)", (t) => {
   t.deepEqual(
     getDifference(
       ["realm.b:{resource}:action", "realm.a:{resource}:action"],
@@ -30,7 +30,7 @@ t("getDifference (template)", t => {
     ["realm.*:{resource}:action"]
   );
 });
-t("getDifference (invalid a)", t => {
+t("getDifference (invalid a)", (t) => {
   t.throws(
     () =>
       getDifference(
@@ -40,7 +40,7 @@ t("getDifference (invalid a)", t => {
     { instanceOf: InvalidScopeError }
   );
 });
-t("getDifference (invalid b)", t => {
+t("getDifference (invalid b)", (t) => {
   t.throws(
     () =>
       getDifference(
@@ -51,7 +51,7 @@ t("getDifference (invalid b)", t => {
   );
 });
 
-t("getIntersection (valid)", t => {
+t("getIntersection (valid)", (t) => {
   t.deepEqual(
     getIntersection(
       ["realm.b:resource:action", "realm.a:resource:action"],
@@ -61,7 +61,7 @@ t("getIntersection (valid)", t => {
   );
 });
 
-t("getIntersection (template)", t => {
+t("getIntersection (template)", (t) => {
   t.deepEqual(
     getIntersection(
       ["realm.b:{resource}:action", "realm.a:{resource}:action"],
@@ -70,7 +70,7 @@ t("getIntersection (template)", t => {
     ["realm.a:{resource}:action", "realm.b:{resource}:action"]
   );
 });
-t("getIntersection (invalid a)", t => {
+t("getIntersection (invalid a)", (t) => {
   t.throws(
     () =>
       getIntersection(
@@ -80,7 +80,7 @@ t("getIntersection (invalid a)", t => {
     { instanceOf: InvalidScopeError }
   );
 });
-t("getIntersection (invalid b)", t => {
+t("getIntersection (invalid b)", (t) => {
   t.throws(
     () =>
       getIntersection(
@@ -91,7 +91,7 @@ t("getIntersection (invalid b)", t => {
   );
 });
 
-t("hasIntersection (valid)", t => {
+t("hasIntersection (valid)", (t) => {
   t.deepEqual(
     hasIntersection(
       ["realm.b:resource:action", "realm.a:resource:action"],
@@ -100,7 +100,7 @@ t("hasIntersection (valid)", t => {
     true
   );
 });
-t("hasIntersection (template)", t => {
+t("hasIntersection (template)", (t) => {
   t.deepEqual(
     hasIntersection(
       ["realm.b:{resource}:action", "realm.a:{resource}:action"],
@@ -109,7 +109,7 @@ t("hasIntersection (template)", t => {
     true
   );
 });
-t("hasIntersection (invalid a)", t => {
+t("hasIntersection (invalid a)", (t) => {
   t.throws(
     () =>
       hasIntersection(
@@ -119,7 +119,7 @@ t("hasIntersection (invalid a)", t => {
     { instanceOf: InvalidScopeError }
   );
 });
-t("hasIntersection (invalid b)", t => {
+t("hasIntersection (invalid b)", (t) => {
   t.throws(
     () =>
       hasIntersection(
@@ -130,11 +130,11 @@ t("hasIntersection (invalid b)", t => {
   );
 });
 
-t("isSuperset (valid string, valid string) false", t => {
+t("isSuperset (valid string, valid string) false", (t) => {
   t.deepEqual(isEqual("realm:**:**", "realm.dev:**:**"), false);
 });
 
-t("isSuperset (valid string, valid string) true", t => {
+t("isSuperset (valid string, valid string) true", (t) => {
   t.deepEqual(
     isEqual("realm.**:resource:action", "realm.**:resource:action"),
     true
@@ -147,25 +147,25 @@ t("isSuperset (valid string, valid string) true", t => {
 
 // TODO: isSubset
 
-t("isSuperset (valid)", t => {
+t("isSuperset (valid)", (t) => {
   t.deepEqual(
     isSuperset("realm.**:resource:action", "realm.a:resource:action"),
     true
   );
 });
-t("isSuperset (template)", t => {
+t("isSuperset (template)", (t) => {
   t.deepEqual(
     isSuperset("realm.**:{resource}:action", "realm.a:{resource}:action"),
     true
   );
 });
-t("isSuperset (invalid a)", t => {
+t("isSuperset (invalid a)", (t) => {
   t.throws(
     () => isSuperset("realm.**:resource:act:ion", "realm.a:resource:action"),
     { instanceOf: InvalidScopeError }
   );
 });
-t("isSuperset (invalid b)", t => {
+t("isSuperset (invalid b)", (t) => {
   t.throws(
     () => isSuperset("realm.**:resource:action", "realm.a:resource:act:ion"),
     { instanceOf: InvalidScopeError }
@@ -187,48 +187,48 @@ t("isSuperset (invalid b)", t => {
   { args: ["**.b.c:d.**.f:g.h.**"], result: true },
   { args: ["*:*:*"], result: true },
   { args: ["**:**:**"], result: true },
-  { args: ["***:**:**"], result: false }
+  { args: ["***:**:**"], result: false },
 ] as { args: [string]; result: boolean }[]).forEach(({ args, result }) => {
-  t(`isValidScopeLiteral ${args[0]} => ${result}`, t =>
+  t(`isValidScopeLiteral ${args[0]} => ${result}`, (t) =>
     t.is(isValidScopeLiteral(...args), result)
   );
 });
 
-t("isValidScopeLiteral (valid)", t => {
+t("isValidScopeLiteral (valid)", (t) => {
   t.is(isValidScopeLiteral("client:resource:action."), true);
 });
-t("isValidScopeLiteral (template)", t => {
+t("isValidScopeLiteral (template)", (t) => {
   t.is(isValidScopeLiteral("client:resource:action.{foo}"), false);
 });
-t("isValidScopeLiteral (invalid)", t => {
+t("isValidScopeLiteral (invalid)", (t) => {
   t.is(isValidScopeLiteral("client:resource:act:ion."), false);
 });
 
-t("normalize (valid)", t => {
+t("normalize (valid)", (t) => {
   t.is(normalize("**.**.c:resource:action"), "*.**.c:resource:action");
 });
-t("normalize (template)", t => {
+t("normalize (template)", (t) => {
   t.is(normalize("**.**.c:{resource}:action"), "*.**.c:{resource}:action");
 });
-t("normalize (invalid)", t => {
+t("normalize (invalid)", (t) => {
   t.throws(() => normalize("**.**.c:resource:act:ion"), {
-    instanceOf: InvalidScopeError
+    instanceOf: InvalidScopeError,
   });
 });
 
-t("simplify (valid)", t => {
+t("simplify (valid)", (t) => {
   t.deepEqual(
     simplify(["realm.b:resource:action", "realm.*:resource:action"]),
     ["realm.*:resource:action"]
   );
 });
-t("simplify (template)", t => {
+t("simplify (template)", (t) => {
   t.deepEqual(
     simplify(["realm.b:{resource}:action", "realm.*:{resource}:action"]),
     ["realm.*:{resource}:action"]
   );
 });
-t("simplify (invalid)", t => {
+t("simplify (invalid)", (t) => {
   t.throws(
     () => simplify(["realm.a:resource:action", "realm.b:resource:act:ion"]),
     { instanceOf: InvalidScopeError }
