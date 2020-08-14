@@ -7,6 +7,6 @@ before_install:
 install:
   - docker-compose up -d postgres
 script:
-  - docker-compose run server-builder yarn build
-  - docker-compose run server-builder yarn lint
-  - docker-compose run server yarn test
+  - docker-compose run runner yarn build
+  - docker-compose run runner yarn lint
+  - docker-compose run runner yarn test

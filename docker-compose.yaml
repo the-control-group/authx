@@ -20,8 +20,31 @@ services:
         protocol: tcp
         mode: localhost
 
+  # This container doesn't do anything by itself, but can be used to run tests
+  # or issue one-off commands.
+  runner:
+    build:
+      context: .
+      target: base
+    environment:
+      NODE_ENV: development
+      PGHOST: postgres
+      PGUSER: postgres
+      PGPASSWORD: postgres
+    volumes:
+      - type: bind
+        source: .
+        target: /workspace
+      - type: volume
+        source: server_node_modules
+        target: /workspace/node_modules
+    ports:
+      - target: 80
+        protocol: tcp
+        mode: localhost
+
   # This container builds the server.
-  server-builder:
+  builder:
     build:
       context: .
       target: base
@@ -39,7 +62,7 @@ services:
   # This container runs the server.
   server:
     depends_on:
-      - server-builder
+      - builder
       - postgres
     build:
       context: .
