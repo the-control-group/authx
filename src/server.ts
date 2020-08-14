@@ -18,7 +18,7 @@ const __DEV__ = process.env.NODE_ENV !== "production";
     const interfaceMiddleware = await createAuthXInterface("authx", [
       "@authx/strategy-email/interface",
       "@authx/strategy-password/interface",
-      "@authx/strategy-openid/interface"
+      "@authx/strategy-openid/interface",
     ]);
 
     // Add the AuthX user interface.
@@ -57,7 +57,7 @@ MIGfMA0GCSqGSIb3DQEBAQUAA4GNADCBiQKBgQCfb+nyTPFCntEXbrFPU5DeE0gC
 UEVIBMF0upDJMA53AFFx+0Fb/i76JFPTY7SxzvioIFeKRwY8evIRWQWYO95Os6gK
 Bac/x5qiUn5fh2xM+wIDAQAB
 -----END PUBLIC KEY-----`,
-        ...(process.env.KEYPUBLIC2 ? [process.env.KEYPUBLIC2] : [])
+        ...(process.env.KEYPUBLIC2 ? [process.env.KEYPUBLIC2] : []),
       ],
       async sendMail(options: {
         to: string;
@@ -76,8 +76,8 @@ Bac/x5qiUn5fh2xM+wIDAQAB
         password: process.env.PGPASSWORD ?? undefined,
         port: process.env.PGPORT ? parseInt(process.env.PGPORT, 10) : undefined,
         ssl: process.env.PGSSL === "true" ? true : false,
-        user: process.env.PGUSER ?? undefined
-      }
+        user: process.env.PGUSER ?? undefined,
+      },
     });
 
     // Apply the AuthX routes to the app.
@@ -107,7 +107,7 @@ Bac/x5qiUn5fh2xM+wIDAQAB
                     {
                       level: "error",
                       message: error.message,
-                      stack: error.stack
+                      stack: error.stack,
                     },
                     error
                   )

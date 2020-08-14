@@ -27,13 +27,13 @@
     "root:lint": "prettier -c '**/*.{json,yml,md,ts}' && eslint src --ext ts",
     "root:test": "ava --verbose dist/*.test.js",
     "root:test:development": "ava --verbose --watch dist/*.test.js",
-    "build": "yarn packages:build && yarn root:build",
+    "build": "yarn packages:build && echo '  ---------- ' && yarn root:build",
     "build:development": "yarn packages:build:development & yarn root:build:development",
-    "format": "yarn packages:format && yarn root:format",
-    "lint": "yarn packages:lint && yarn root:lint",
+    "format": "yarn packages:format && echo '  ---------- ' && yarn root:format",
+    "lint": "yarn packages:lint && echo '  ---------- ' && yarn root:lint",
     "start": "node dist/server",
     "start:development": "nodemon --delay 2 --inspect dist/server",
-    "test": "yarn packages:test && yarn root:test"
+    "test": "yarn packages:test && echo '  ---------- ' && yarn root:test"
   },
   "devDependencies": {
     "@typescript-eslint/eslint-plugin": "^3.9.0",
