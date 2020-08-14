@@ -320,7 +320,7 @@ export abstract class Credential<C> implements CredentialData<C> {
       if (typeof id === "string") {
         const credential = await loader.load(id);
         // Address a scenario in which the loader could return a credential from
-        // a sub-class.
+        // a different sub-class.
         if (!(credential instanceof this)) {
           throw new NotFoundError();
         }
@@ -333,8 +333,14 @@ export abstract class Credential<C> implements CredentialData<C> {
       );
 
       // Address a scenario in which the loader could return a credential from a
-      // sub-class.
-      return credentials.filter((credential) => credential instanceof this);
+      // different sub-class.
+      for (const credential of credentials) {
+        if (!(credential instanceof this)) {
+          throw new NotFoundError();
+        }
+      }
+
+      return credentials;
     }
 
     const map = strategies?.credentialMap;

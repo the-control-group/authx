@@ -323,11 +323,14 @@ export class Grant implements GrantData {
   ): Promise<Grant[] | Grant> {
     if (tx instanceof DataLoaderExecutor) {
       const loader = cache.get(tx);
-      return Promise.all(
-        typeof id === "string"
-          ? [loader.load(id)]
-          : id.map((i) => loader.load(i))
-      );
+
+      // Load a single instance.
+      if (typeof id === "string") {
+        return loader.load(id);
+      }
+
+      // Load multiple instances.
+      return Promise.all(id.map((i) => loader.load(i)));
     }
 
     if (typeof id !== "string" && !id.length) {

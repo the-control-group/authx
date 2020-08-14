@@ -219,7 +219,7 @@ export abstract class Authority<A> implements AuthorityData<A> {
       if (typeof id === "string") {
         const authority = await loader.load(id);
         // Address a scenario in which the loader could return a authority from
-        // a sub-class.
+        // a different sub-class.
         if (!(authority instanceof this)) {
           throw new NotFoundError();
         }
@@ -227,13 +227,19 @@ export abstract class Authority<A> implements AuthorityData<A> {
         return authority;
       }
 
-      const authoritys = await Promise.all(
+      const authorities = await Promise.all(
         id.map((id) => loader.load(id) as Promise<InstanceType<M[K]>>)
       );
 
       // Address a scenario in which the loader could return a authority from a
-      // sub-class.
-      return authoritys.filter((authority) => authority instanceof this);
+      // different sub-class.
+      for (const authority of authorities) {
+        if (!(authority instanceof this)) {
+          throw new NotFoundError();
+        }
+      }
+
+      return authorities;
     }
 
     const map = strategies?.authorityMap;
