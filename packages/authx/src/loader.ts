@@ -1,7 +1,8 @@
-import { Pool, ClientBase } from "pg";
+import { Pool, ClientBase, QueryResult, QueryConfig } from "pg";
 import DataLoader from "dataloader";
 import { NotFoundError } from "./errors";
 import { StrategyCollection } from "./StrategyCollection";
+import createHash from "object-hash";
 
 export class DataLoaderExecutor<
   T extends ClientBase | Pool = ClientBase | Pool
@@ -67,5 +68,42 @@ export class DataLoaderCache<M extends { id: string }> {
     });
     this._map.set(executor, loader);
     return loader;
+  }
+}
+
+export class QueryCache<T> {
+  private _map = new WeakMap<
+    DataLoaderExecutor,
+    Map<string, Promise<QueryResult<T>>>
+  >();
+
+  query(
+    tx: Pool | ClientBase | DataLoaderExecutor,
+    query: string | QueryConfig<unknown[]>,
+    parameters: unknown[]
+  ): Promise<QueryResult<T>> {
+    // Queries using a direct connection or connection pool bypass the cache.
+    if (!(tx instanceof DataLoaderExecutor)) {
+      return tx.query(query, parameters);
+    }
+
+    // Load a cache map keyed by the executor.
+    let cache = this._map.get(tx);
+    if (!cache) {
+      cache = new Map();
+      this._map.set(tx, cache);
+    }
+
+    // A hash of the entire query and parameters is used as the key.
+    const hash = createHash({ query, parameters });
+
+    // Return cached results or populate the cache with new pending results.
+    let result = cache.get(hash);
+    if (!result) {
+      result = tx.connection.query(query, parameters);
+      cache.set(hash, result);
+    }
+
+    return result;
   }
 }

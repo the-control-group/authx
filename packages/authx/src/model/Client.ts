@@ -3,7 +3,7 @@ import { Grant } from "./Grant";
 import { Authorization } from "./Authorization";
 import { NotFoundError } from "../errors";
 import { ClientAction, createV2AuthXScope } from "../util/scopes";
-import { DataLoaderExecutor, DataLoaderCache } from "../loader";
+import { DataLoaderExecutor, DataLoaderCache, QueryCache } from "../loader";
 
 export interface ClientInvocationData {
   readonly id: string;
@@ -106,36 +106,35 @@ export class Client implements ClientData {
     return false;
   }
 
-  public grants(tx: Pool | ClientBase | DataLoaderExecutor): Promise<Grant[]> {
-    return (async () => {
-      const ids = (
-        await (tx instanceof DataLoaderExecutor ? tx.connection : tx).query(
-          `
-            SELECT entity_id AS id
-            FROM authx.grant_record
-            WHERE
-              client_id = $1
-              AND replacement_record_id IS NULL
-            ORDER BY id ASC
-            `,
-          [this.id]
-        )
-      ).rows.map(({ id }) => id);
+  public async grants(
+    tx: Pool | ClientBase | DataLoaderExecutor
+  ): Promise<Grant[]> {
+    const ids = (
+      await queryCache.query(
+        tx,
+        `
+          SELECT entity_id AS id
+          FROM authx.grant_record
+          WHERE
+            client_id = $1
+            AND replacement_record_id IS NULL
+          ORDER BY id ASC
+          `,
+        [this.id]
+      )
+    ).rows.map(({ id }) => id);
 
-      return tx instanceof DataLoaderExecutor
-        ? Grant.read(tx, ids)
-        : Grant.read(tx, ids);
-    })();
+    return tx instanceof DataLoaderExecutor
+      ? Grant.read(tx, ids)
+      : Grant.read(tx, ids);
   }
 
   public async grant(
     tx: Pool | ClientBase | DataLoaderExecutor,
     userId: string
   ): Promise<null | Grant> {
-    const result = await (tx instanceof DataLoaderExecutor
-      ? tx.connection
-      : tx
-    ).query(
+    const result = await queryCache.query(
+      tx,
       `
       SELECT entity_id AS id
       FROM authx.grant_record
@@ -149,7 +148,7 @@ export class Client implements ClientData {
 
     if (result.rows.length > 1) {
       throw new Error(
-        "INVARIANT: It must be impossible for the same user and client to have multiple enabled grants.."
+        "INVARIANT: It must be impossible for the same user and client to have multiple enabled grants."
       );
     }
 
@@ -471,3 +470,5 @@ const cache = new DataLoaderCache(
     return Client.read(executor.connection, ids);
   }
 );
+
+const queryCache = new QueryCache<{ id: string }>();

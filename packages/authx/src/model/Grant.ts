@@ -5,7 +5,7 @@ import { Authorization } from "./Authorization";
 import { simplify, getIntersection, isSuperset } from "@authx/scopes";
 import { NotFoundError } from "../errors";
 import { GrantAction, createV2AuthXScope } from "../util/scopes";
-import { DataLoaderExecutor, DataLoaderCache } from "../loader";
+import { DataLoaderExecutor, DataLoaderCache, QueryCache } from "../loader";
 
 export interface GrantInvocationData {
   readonly id: string;
@@ -135,26 +135,25 @@ export class Grant implements GrantData {
   public async authorizations(
     tx: Pool | ClientBase | DataLoaderExecutor
   ): Promise<Authorization[]> {
-    return (async () => {
-      const ids = (
-        await (tx instanceof DataLoaderExecutor ? tx.connection : tx).query(
-          `
-          SELECT entity_id AS id
-          FROM authx.authorization_record
-          WHERE
-            grant_id = $1
-            AND replacement_record_id IS NULL
-          ORDER BY id ASC
-          `,
-          [this.id]
-        )
-      ).rows.map(({ id }) => id);
+    const ids = (
+      await queryCache.query(
+        tx,
+        `
+        SELECT entity_id AS id
+        FROM authx.authorization_record
+        WHERE
+          grant_id = $1
+          AND replacement_record_id IS NULL
+        ORDER BY id ASC
+        `,
+        [this.id]
+      )
+    ).rows.map(({ id }) => id);
 
-      // Some silliness to help typescript...
-      return tx instanceof DataLoaderExecutor
-        ? Authorization.read(tx, ids)
-        : Authorization.read(tx, ids);
-    })();
+    // Some silliness to help typescript...
+    return tx instanceof DataLoaderExecutor
+      ? Authorization.read(tx, ids)
+      : Authorization.read(tx, ids);
   }
 
   public async access(
@@ -497,3 +496,5 @@ const cache = new DataLoaderCache(
     return Grant.read(executor.connection, ids);
   }
 );
+
+const queryCache = new QueryCache<{ id: string }>();

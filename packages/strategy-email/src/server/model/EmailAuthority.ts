@@ -1,4 +1,5 @@
-import { Authority, DataLoaderExecutor } from "@authx/authx";
+import { Pool, ClientBase } from "pg";
+import { Authority, DataLoaderExecutor, QueryCache } from "@authx/authx";
 import { EmailCredential } from "./EmailCredential";
 
 // Authority
@@ -17,31 +18,35 @@ export interface EmailAuthorityDetails {
 }
 
 export class EmailAuthority extends Authority<EmailAuthorityDetails> {
-  public credentials(tx: DataLoaderExecutor): Promise<EmailCredential[]> {
-    return (async () =>
-      EmailCredential.read(
+  public async credentials(
+    tx: Pool | ClientBase | DataLoaderExecutor
+  ): Promise<EmailCredential[]> {
+    const ids = (
+      await queryCache.query(
         tx,
-        (
-          await tx.connection.query(
-            `
-            SELECT entity_id AS id
-            FROM authx.credential_records
-            WHERE
-              authority_id = $1
-              AND replacement_record_id IS NULL
-            ORDER BY id ASC
-            `,
-            [this.id]
-          )
-        ).rows.map(({ id }) => id)
-      ))();
+        `
+          SELECT entity_id AS id
+          FROM authx.credential_records
+          WHERE
+            authority_id = $1
+            AND replacement_record_id IS NULL
+          ORDER BY id ASC
+          `,
+        [this.id]
+      )
+    ).rows.map(({ id }) => id);
+
+    return tx instanceof DataLoaderExecutor
+      ? EmailCredential.read(tx, ids)
+      : EmailCredential.read(tx, ids);
   }
 
   public async credential(
-    tx: DataLoaderExecutor,
+    tx: Pool | ClientBase | DataLoaderExecutor,
     authorityUserId: string
   ): Promise<null | EmailCredential> {
-    const results = await tx.connection.query(
+    const results = await queryCache.query(
+      tx,
       `
       SELECT entity_id AS id
       FROM authx.credential_record
@@ -62,6 +67,10 @@ export class EmailAuthority extends Authority<EmailAuthorityDetails> {
 
     if (!results.rows[0]) return null;
 
-    return EmailCredential.read(tx, results.rows[0].id);
+    return tx instanceof DataLoaderExecutor
+      ? EmailCredential.read(tx, results.rows[0].id)
+      : EmailCredential.read(tx, results.rows[0].id);
   }
 }
+
+const queryCache = new QueryCache<{ id: string }>();

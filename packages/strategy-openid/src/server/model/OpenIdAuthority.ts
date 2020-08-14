@@ -1,4 +1,5 @@
-import { Authority, Role, DataLoaderExecutor } from "@authx/authx";
+import { Pool, ClientBase } from "pg";
+import { Authority, Role, DataLoaderExecutor, QueryCache } from "@authx/authx";
 import { EmailAuthority } from "@authx/strategy-email";
 import { OpenIdCredential } from "./OpenIdCredential";
 
@@ -21,31 +22,35 @@ export interface OpenIdAuthorityDetails {
 }
 
 export class OpenIdAuthority extends Authority<OpenIdAuthorityDetails> {
-  public credentials(tx: DataLoaderExecutor): Promise<OpenIdCredential[]> {
-    return (async () =>
-      OpenIdCredential.read(
+  public async credentials(
+    tx: Pool | ClientBase | DataLoaderExecutor
+  ): Promise<OpenIdCredential[]> {
+    const ids = (
+      await queryCache.query(
         tx,
-        (
-          await tx.connection.query(
-            `
-            SELECT entity_id AS id
-            FROM authx.credential_records
-            WHERE
-              authority_id = $1
-              AND replacement_record_id IS NULL
-            ORDER BY id ASC
-            `,
-            [this.id]
-          )
-        ).rows.map(({ id }) => id)
-      ))();
+        `
+          SELECT entity_id AS id
+          FROM authx.credential_records
+          WHERE
+            authority_id = $1
+            AND replacement_record_id IS NULL
+          ORDER BY id ASC
+          `,
+        [this.id]
+      )
+    ).rows.map(({ id }) => id);
+
+    return tx instanceof DataLoaderExecutor
+      ? OpenIdCredential.read(tx, ids)
+      : OpenIdCredential.read(tx, ids);
   }
 
   public async credential(
-    tx: DataLoaderExecutor,
+    tx: Pool | ClientBase | DataLoaderExecutor,
     authorityUserId: string
   ): Promise<null | OpenIdCredential> {
-    const results = await tx.connection.query(
+    const results = await queryCache.query(
+      tx,
       `
       SELECT entity_id AS id
       FROM authx.credential_record
@@ -66,7 +71,13 @@ export class OpenIdAuthority extends Authority<OpenIdAuthorityDetails> {
 
     if (!results.rows[0]) return null;
 
-    return OpenIdCredential.read(tx, results.rows[0].id);
+    return tx instanceof DataLoaderExecutor
+      ? (OpenIdCredential.read(tx, results.rows[0].id) as Promise<
+          OpenIdCredential
+        >)
+      : (OpenIdCredential.read(tx, results.rows[0].id) as Promise<
+          OpenIdCredential
+        >);
   }
 
   public async emailAuthority(
@@ -86,6 +97,10 @@ export class OpenIdAuthority extends Authority<OpenIdAuthorityDetails> {
       return [];
     }
 
-    return Role.read(tx, this.details.assignsCreatedUsersToRoleIds);
+    return tx instanceof DataLoaderExecutor
+      ? Role.read(tx, this.details.assignsCreatedUsersToRoleIds)
+      : Role.read(tx, this.details.assignsCreatedUsersToRoleIds);
   }
 }
+
+const queryCache = new QueryCache<{ id: string }>();

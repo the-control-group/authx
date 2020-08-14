@@ -1,3 +1,4 @@
+import { Pool, ClientBase } from "pg";
 import { Credential, DataLoaderExecutor } from "@authx/authx";
 import { EmailAuthority } from "./EmailAuthority";
 
@@ -8,7 +9,11 @@ import { EmailAuthority } from "./EmailAuthority";
 export interface EmailCredentialDetails {}
 
 export class EmailCredential extends Credential<EmailCredentialDetails> {
-  public authority(tx: DataLoaderExecutor): Promise<EmailAuthority> {
-    return EmailAuthority.read(tx, this.authorityId);
+  public authority(
+    tx: Pool | ClientBase | DataLoaderExecutor
+  ): Promise<EmailAuthority> {
+    return tx instanceof DataLoaderExecutor
+      ? EmailAuthority.read(tx, this.authorityId)
+      : EmailAuthority.read(tx, this.authorityId);
   }
 }

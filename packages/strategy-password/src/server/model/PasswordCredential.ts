@@ -1,3 +1,4 @@
+import { Pool, ClientBase } from "pg";
 import { Credential, DataLoaderExecutor } from "@authx/authx";
 import {
   PasswordAuthorityDetails,
@@ -12,7 +13,9 @@ export interface PasswordCredentialDetails {
 }
 
 export class PasswordCredential extends Credential<PasswordCredentialDetails> {
-  public authority(tx: DataLoaderExecutor): Promise<PasswordAuthority> {
+  public authority(
+    tx: Pool | ClientBase | DataLoaderExecutor
+  ): Promise<PasswordAuthority> {
     return tx instanceof DataLoaderExecutor
       ? // Some silliness to help typescript...
         PasswordAuthority.read<PasswordAuthorityDetails, PasswordAuthority>(

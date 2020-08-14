@@ -6,7 +6,7 @@ import { simplify, isSuperset } from "@authx/scopes";
 import { Authorization } from "./Authorization";
 import { NotFoundError } from "../errors";
 import { UserAction, createV2AuthXScope } from "../util/scopes";
-import { DataLoaderExecutor, DataLoaderCache } from "../loader";
+import { DataLoaderExecutor, DataLoaderCache, QueryCache } from "../loader";
 
 export interface UserRecordData {
   readonly id: string;
@@ -88,7 +88,8 @@ export class User implements UserData {
   ): Promise<Authorization[]> {
     return (async () => {
       const ids: readonly string[] = (
-        await (tx instanceof DataLoaderExecutor ? tx.connection : tx).query(
+        await queryCache.query(
+          tx,
           `
           SELECT entity_id AS id
           FROM authx.authorization_record
@@ -129,10 +130,10 @@ export class User implements UserData {
       };
     }
   ): Promise<Credential<unknown>[]> {
-    return (async () => {
-      const ids: readonly string[] = (
-        await (tx instanceof DataLoaderExecutor ? tx.connection : tx).query(
-          `
+    const ids: readonly string[] = (
+      await queryCache.query(
+        tx,
+        `
           SELECT entity_id AS id
           FROM authx.credential_record
           WHERE
@@ -140,27 +141,26 @@ export class User implements UserData {
             AND replacement_record_id IS NULL
           ORDER BY id ASC
           `,
-          [this.id]
-        )
-      ).rows.map(({ id }) => id);
+        [this.id]
+      )
+    ).rows.map(({ id }) => id);
 
-      return tx instanceof DataLoaderExecutor
-        ? Credential.read(tx, ids)
-        : Credential.read(
-            tx,
-            ids,
-            strategies as typeof strategies & { [key: string]: unknown }
-          );
-    })();
+    return tx instanceof DataLoaderExecutor
+      ? Credential.read(tx, ids)
+      : Credential.read(
+          tx,
+          ids,
+          strategies as typeof strategies & { [key: string]: unknown }
+        );
   }
 
   public async grants(
     tx: Pool | ClientBase | DataLoaderExecutor
   ): Promise<Grant[]> {
-    return (async () => {
-      const ids = (
-        await (tx instanceof DataLoaderExecutor ? tx.connection : tx).query(
-          `
+    const ids = (
+      await queryCache.query(
+        tx,
+        `
           SELECT entity_id AS id
           FROM authx.grant_record
           WHERE
@@ -168,25 +168,22 @@ export class User implements UserData {
             AND replacement_record_id IS NULL
           ORDER BY id ASC
           `,
-          [this.id]
-        )
-      ).rows.map(({ id }) => id);
+        [this.id]
+      )
+    ).rows.map(({ id }) => id);
 
-      // Some silliness to help typescript...
-      return tx instanceof DataLoaderExecutor
-        ? Grant.read(tx, ids)
-        : Grant.read(tx, ids);
-    })();
+    // Some silliness to help typescript...
+    return tx instanceof DataLoaderExecutor
+      ? Grant.read(tx, ids)
+      : Grant.read(tx, ids);
   }
 
   public async grant(
     tx: Pool | ClientBase | DataLoaderExecutor,
     clientId: string
   ): Promise<null | Grant> {
-    const result = await (tx instanceof DataLoaderExecutor
-      ? tx.connection
-      : tx
-    ).query(
+    const result = await queryCache.query(
+      tx,
       `
       SELECT entity_id AS id
       FROM authx.grant_record
@@ -219,7 +216,8 @@ export class User implements UserData {
   ): Promise<Role[]> {
     return (async () => {
       const ids = (
-        await (tx instanceof DataLoaderExecutor ? tx.connection : tx).query(
+        await queryCache.query(
+          tx,
           `
         SELECT entity_id AS id
         FROM authx.role_record
@@ -495,3 +493,5 @@ const cache = new DataLoaderCache(
     return User.read(executor.connection, ids);
   }
 );
+
+const queryCache = new QueryCache<{ id: string }>();

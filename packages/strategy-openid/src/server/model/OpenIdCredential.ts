@@ -1,3 +1,4 @@
+import { Pool, ClientBase } from "pg";
 import { Credential, DataLoaderExecutor } from "@authx/authx";
 import { OpenIdAuthority } from "./OpenIdAuthority";
 
@@ -8,9 +9,13 @@ import { OpenIdAuthority } from "./OpenIdAuthority";
 export interface OpenIdCredentialDetails {}
 
 export class OpenIdCredential extends Credential<OpenIdCredentialDetails> {
-  public authority(tx: DataLoaderExecutor): Promise<OpenIdAuthority> {
-    return OpenIdAuthority.read(tx, this.authorityId) as Promise<
-      OpenIdAuthority
-    >;
+  public authority(
+    tx: Pool | ClientBase | DataLoaderExecutor
+  ): Promise<OpenIdAuthority> {
+    return tx instanceof DataLoaderExecutor
+      ? (OpenIdAuthority.read(tx, this.authorityId) as Promise<OpenIdAuthority>)
+      : (OpenIdAuthority.read(tx, this.authorityId) as Promise<
+          OpenIdAuthority
+        >);
   }
 }

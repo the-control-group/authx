@@ -1,4 +1,5 @@
-import { Authority, DataLoaderExecutor } from "@authx/authx";
+import { Pool, ClientBase } from "pg";
+import { Authority, DataLoaderExecutor, QueryCache } from "@authx/authx";
 import {
   PasswordCredentialDetails,
   PasswordCredential,
@@ -12,11 +13,13 @@ export interface PasswordAuthorityDetails {
 }
 
 export class PasswordAuthority extends Authority<PasswordAuthorityDetails> {
-  public credentials(tx: DataLoaderExecutor): Promise<PasswordCredential[]> {
-    return (async () => {
-      const ids = (
-        await tx.connection.query(
-          `
+  public async credentials(
+    tx: Pool | ClientBase | DataLoaderExecutor
+  ): Promise<PasswordCredential[]> {
+    const ids = (
+      await queryCache.query(
+        tx,
+        `
           SELECT entity_id AS id
           FROM authx.credential_records
           WHERE
@@ -24,21 +27,21 @@ export class PasswordAuthority extends Authority<PasswordAuthorityDetails> {
             AND replacement_record_id IS NULL
           ORDER BY id ASC
           `,
-          [this.id]
-        )
-      ).rows.map(({ id }) => id);
+        [this.id]
+      )
+    ).rows.map(({ id }) => id);
 
-      return tx instanceof DataLoaderExecutor
-        ? PasswordCredential.read(tx, ids)
-        : PasswordCredential.read(tx, ids);
-    })();
+    return tx instanceof DataLoaderExecutor
+      ? PasswordCredential.read(tx, ids)
+      : PasswordCredential.read(tx, ids);
   }
 
   public async credential(
-    tx: DataLoaderExecutor,
+    tx: Pool | ClientBase | DataLoaderExecutor,
     authorityUserId: string
   ): Promise<null | PasswordCredential> {
-    const results = await tx.connection.query(
+    const results = await queryCache.query(
+      tx,
       `
       SELECT entity_id AS id
       FROM authx.credential_record
@@ -71,3 +74,5 @@ export class PasswordAuthority extends Authority<PasswordAuthorityDetails> {
         );
   }
 }
+
+const queryCache = new QueryCache<{ id: string }>();
