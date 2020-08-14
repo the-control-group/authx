@@ -4,6 +4,8 @@ import {
   GraphQLNonNull,
   GraphQLString,
 } from "graphql";
+
+import { Pool, PoolClient } from "pg";
 import jwt from "jsonwebtoken";
 import { randomBytes } from "crypto";
 import { v4 } from "uuid";
@@ -17,6 +19,7 @@ import {
   AuthenticationError,
   User,
   DataLoaderExecutor,
+  ReadonlyDataLoaderExecutor,
 } from "@authx/authx";
 
 import { createV2AuthXScope } from "@authx/authx/scopes";
@@ -50,32 +53,32 @@ export const authenticateEmail: GraphQLFieldConfig<
     },
   },
   async resolve(source, args, context): Promise<Authorization> {
-    const {
-      pool,
-      authorization: a,
-      realm,
-      strategies: { authorityMap },
-      sendMail,
-      base,
-    } = context;
+    const { executor, authorization: a, realm, base, sendMail } = context;
 
     if (a) {
       throw new ForbiddenError("You area already authenticated.");
     }
 
+    const strategies = executor.strategies;
+    const pool = executor.connection;
+    if (!(pool instanceof Pool)) {
+      throw new Error(
+        "INVARIANT: The executor connection is expected to be an instance of Pool."
+      );
+    }
+
     const tx = await pool.connect();
     try {
       // Make sure this transaction is used for queries made by the executor.
-      const executor = new DataLoaderExecutor(tx);
+      const executor = new DataLoaderExecutor<Pool | PoolClient>(
+        tx,
+        strategies
+      );
 
       await tx.query("BEGIN DEFERRABLE");
 
       // fetch the authority
-      const authority = await Authority.read(
-        executor,
-        args.authorityId,
-        authorityMap
-      );
+      const authority = await Authority.read(tx, args.authorityId, strategies);
 
       if (!(authority instanceof EmailAuthority)) {
         throw new AuthenticationError(
@@ -215,9 +218,9 @@ export const authenticateEmail: GraphQLFieldConfig<
         );
       }
 
-      // create a new authorization
+      // Create a new authorization
       const authorization = await Authorization.write(
-        executor,
+        tx,
         {
           id: authorizationId,
           enabled: true,
@@ -244,12 +247,14 @@ export const authenticateEmail: GraphQLFieldConfig<
 
       await tx.query("COMMIT");
 
+      // Clear and prime the loader.
+      Authorization.clear(executor, authorization.id);
+      Authorization.prime(executor, authorization.id, authorization);
+
       // Update the context to use a new executor primed with the results of
       // this mutation, using the original connection pool.
-      context.executor = new DataLoaderExecutor(pool, executor.key);
-
-      // Use this authorization for the rest of the request.
-      context.authorization = authorization;
+      executor.connection = pool;
+      context.executor = executor as ReadonlyDataLoaderExecutor<Pool>;
 
       return authorization;
     } catch (error) {

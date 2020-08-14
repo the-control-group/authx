@@ -1,8 +1,10 @@
 import { v4 } from "uuid";
+import { Pool, PoolClient } from "pg";
 import jwt from "jsonwebtoken";
 import { GraphQLFieldConfig, GraphQLNonNull, GraphQLList } from "graphql";
 
 import {
+  Credential,
   Context,
   Authority,
   ForbiddenError,
@@ -11,12 +13,16 @@ import {
   ValidationError,
   Role,
   validateIdFormat,
-  DataLoaderExecutor
+  DataLoaderExecutor,
+  ReadonlyDataLoaderExecutor,
 } from "@authx/authx";
 
-import { createV2AuthXScope } from "@authx/authx/scopes";
+import {
+  createV2AuthXScope,
+  createV2CredentialAdministrationScopes,
+} from "@authx/authx/scopes";
 
-import { isSuperset, simplify, isValidScopeLiteral } from "@authx/scopes";
+import { isSuperset, simplify } from "@authx/scopes";
 import { EmailCredential, EmailAuthority } from "../../model";
 import { GraphQLEmailCredential } from "../GraphQLEmailCredential";
 import { substitute } from "../../substitute";
@@ -46,18 +52,11 @@ export const createEmailCredentials: GraphQLFieldConfig<
     credentials: {
       type: new GraphQLNonNull(
         new GraphQLList(new GraphQLNonNull(GraphQLCreateEmailCredentialInput))
-      )
-    }
+      ),
+    },
   },
   async resolve(source, args, context): Promise<Promise<EmailCredential>[]> {
-    const {
-      pool,
-      authorization: a,
-      realm,
-      strategies: { authorityMap },
-      sendMail,
-      base
-    } = context;
+    const { executor, authorization: a, realm, base, sendMail } = context;
 
     if (!a) {
       throw new ForbiddenError(
@@ -65,7 +64,15 @@ export const createEmailCredentials: GraphQLFieldConfig<
       );
     }
 
-    return args.credentials.map(async input => {
+    const strategies = executor.strategies;
+    const pool = executor.connection;
+    if (!(pool instanceof Pool)) {
+      throw new Error(
+        "INVARIANT: The executor connection is expected to be an instance of Pool."
+      );
+    }
+
+    return args.credentials.map(async (input) => {
       // Validate `id`.
       if (typeof input.id === "string" && !validateIdFormat(input.id)) {
         throw new ValidationError("The provided `id` is an invalid ID.");
@@ -84,33 +91,30 @@ export const createEmailCredentials: GraphQLFieldConfig<
       }
 
       // Validate `administration`.
-      for (const { roleId, scopes } of input.administration) {
+      for (const { roleId } of input.administration) {
         if (!validateIdFormat(roleId)) {
           throw new ValidationError(
             "The provided `administration` list contains a `roleId` that is an invalid ID."
           );
-        }
-
-        for (const scope of scopes) {
-          if (!isValidScopeLiteral(scope)) {
-            throw new ValidationError(
-              "The provided `administration` list contains a `scopes` list with an invalid scope."
-            );
-          }
         }
       }
 
       const tx = await pool.connect();
       try {
         // Make sure this transaction is used for queries made by the executor.
-        const executor = new DataLoaderExecutor(tx);
+        const executor = new DataLoaderExecutor<Pool | PoolClient>(
+          tx,
+          strategies
+        );
 
         await tx.query("BEGIN DEFERRABLE");
 
         // Make sure the ID isn't already in use.
         if (input.id) {
           try {
-            await EmailCredential.read(executor, input.id, { forUpdate: true });
+            await Credential.read(tx, input.id, strategies, {
+              forUpdate: true,
+            });
             throw new ConflictError();
           } catch (error) {
             if (!(error instanceof NotFoundError)) {
@@ -121,9 +125,9 @@ export const createEmailCredentials: GraphQLFieldConfig<
 
         const id = input.id || v4();
         const authority = await Authority.read(
-          executor,
+          tx,
           input.authorityId,
-          authorityMap,
+          strategies,
           { forUpdate: true }
         );
         if (!(authority instanceof EmailAuthority)) {
@@ -166,11 +170,11 @@ export const createEmailCredentials: GraphQLFieldConfig<
                 type: "credential",
                 credentialId: "",
                 authorityId: input.authorityId,
-                userId: input.userId
+                userId: input.userId,
               },
               {
                 basic: "*",
-                details: "*"
+                details: "*",
               }
             )
           ))
@@ -190,11 +194,11 @@ export const createEmailCredentials: GraphQLFieldConfig<
                 type: "credential",
                 credentialId: "",
                 authorityId: input.authorityId,
-                userId: "*"
+                userId: "*",
               },
               {
                 basic: "*",
-                details: "*"
+                details: "*",
               }
             )
           ))
@@ -205,10 +209,10 @@ export const createEmailCredentials: GraphQLFieldConfig<
           const { proof } = input;
           if (proof) {
             if (
-              !authority.details.publicKeys.some(key => {
+              !authority.details.publicKeys.some((key) => {
                 try {
                   const payload = jwt.verify(proof, key, {
-                    algorithms: ["RS512"]
+                    algorithms: ["RS512"],
                   });
 
                   // Make sure we're using the same email
@@ -247,14 +251,14 @@ export const createEmailCredentials: GraphQLFieldConfig<
             // Generate a new proof
             const proof = jwt.sign(
               {
-                email: input.email
+                email: input.email,
               },
               authority.details.privateKey,
               {
                 algorithm: "RS512",
                 expiresIn: authority.details.proofValidityDuration,
                 subject: a.userId,
-                jwtid: proofId
+                jwtid: proofId,
               }
             );
 
@@ -275,7 +279,7 @@ export const createEmailCredentials: GraphQLFieldConfig<
               html: substitute(
                 { proof, url },
                 authority.details.verificationEmailHtml
-              )
+              ),
             });
 
             throw new ForbiddenError(
@@ -287,170 +291,105 @@ export const createEmailCredentials: GraphQLFieldConfig<
         // Disable the conflicting credential
         if (existingCredentials.length === 1) {
           await EmailCredential.write(
-            executor,
+            tx,
             {
               ...existingCredentials[0],
-              enabled: false
+              enabled: false,
             },
             {
               recordId: v4(),
               createdByAuthorizationId: a.id,
-              createdAt: new Date()
+              createdAt: new Date(),
             }
           );
         }
 
         const credential = await EmailCredential.write(
-          executor,
+          tx,
           {
             id,
             enabled: input.enabled,
             authorityId: input.authorityId,
             userId: input.userId,
             authorityUserId: input.email,
-            details: {}
+            details: {},
           },
           {
             recordId: v4(),
             createdByAuthorizationId: a.id,
-            createdAt: new Date()
+            createdAt: new Date(),
           }
         );
 
-        const possibleAdministrationScopes = [
-          createV2AuthXScope(
-            realm,
-            {
-              type: "credential",
-              authorityId: credential.authorityId,
-              credentialId: id,
-              userId: credential.userId
-            },
-            {
-              basic: "r",
-              details: ""
-            }
-          ),
-          createV2AuthXScope(
-            realm,
-            {
-              type: "credential",
-              authorityId: credential.authorityId,
-              credentialId: id,
-              userId: credential.userId
-            },
-            {
-              basic: "r",
-              details: "r"
-            }
-          ),
-          createV2AuthXScope(
-            realm,
-            {
-              type: "credential",
-              authorityId: credential.authorityId,
-              credentialId: id,
-              userId: credential.userId
-            },
-            {
-              basic: "r",
-              details: "*"
-            }
-          ),
-          createV2AuthXScope(
-            realm,
-            {
-              type: "credential",
-              authorityId: credential.authorityId,
-              credentialId: id,
-              userId: credential.userId
-            },
-            {
-              basic: "w",
-              details: ""
-            }
-          ),
-          createV2AuthXScope(
-            realm,
-            {
-              type: "credential",
-              authorityId: credential.authorityId,
-              credentialId: id,
-              userId: credential.userId
-            },
-            {
-              basic: "w",
-              details: "w"
-            }
-          ),
-          createV2AuthXScope(
-            realm,
-            {
-              type: "credential",
-              authorityId: credential.authorityId,
-              credentialId: id,
-              userId: credential.userId
-            },
-            {
-              basic: "w",
-              details: "*"
-            }
-          ),
-          createV2AuthXScope(
-            realm,
-            {
-              type: "credential",
-              authorityId: credential.authorityId,
-              credentialId: id,
-              userId: credential.userId
-            },
-            {
-              basic: "*",
-              details: "*"
-            }
-          )
-        ];
+        const possibleAdministrationScopes = createV2CredentialAdministrationScopes(
+          realm,
+          {
+            type: "credential",
+            authorityId: credential.authorityId,
+            credentialId: id,
+            userId: credential.userId,
+          }
+        );
 
         // Add administration scopes.
-        for (const { roleId, scopes } of input.administration) {
-          const role = await Role.read(executor, roleId, { forUpdate: true });
+        const administrationResults = await Promise.allSettled(
+          input.administration.map(async ({ roleId, scopes }) => {
+            const administrationRoleBefore = await Role.read(tx, roleId, {
+              forUpdate: true,
+            });
 
-          if (
-            !role.isAccessibleBy(realm, a, executor, {
-              basic: "w",
-              scopes: "w",
-              users: ""
-            })
-          ) {
-            throw new ForbiddenError(
-              `You do not have permission to modify the scopes of role ${roleId}.`
-            );
-          }
-
-          await Role.write(
-            executor,
-            {
-              ...role,
-              scopes: simplify([
-                ...role.scopes,
-                ...possibleAdministrationScopes.filter(possible =>
-                  isSuperset(scopes, possible)
-                )
-              ])
-            },
-            {
-              recordId: v4(),
-              createdByAuthorizationId: a.id,
-              createdAt: new Date()
+            if (
+              !administrationRoleBefore.isAccessibleBy(realm, a, executor, {
+                basic: "w",
+                scopes: "w",
+                users: "",
+              })
+            ) {
+              throw new ForbiddenError(
+                `You do not have permission to modify the scopes of role ${roleId}.`
+              );
             }
-          );
+
+            const administrationRole = await Role.write(
+              tx,
+              {
+                ...administrationRoleBefore,
+                scopes: simplify([
+                  ...administrationRoleBefore.scopes,
+                  ...possibleAdministrationScopes.filter((possible) =>
+                    isSuperset(scopes, possible)
+                  ),
+                ]),
+              },
+              {
+                recordId: v4(),
+                createdByAuthorizationId: a.id,
+                createdAt: new Date(),
+              }
+            );
+
+            // Clear and prime the loader.
+            Role.clear(executor, administrationRole.id);
+            Role.prime(executor, administrationRole.id, administrationRole);
+          })
+        );
+
+        for (const result of administrationResults) {
+          if (result.status === "rejected") {
+            throw new Error(result.reason);
+          }
         }
 
         await tx.query("COMMIT");
 
+        // Clear and prime the loader.
+        Credential.clear(executor, credential.id);
+        Credential.prime(executor, credential.id, credential);
+
         // Update the context to use a new executor primed with the results of
         // this mutation, using the original connection pool.
-        context.executor = new DataLoaderExecutor(pool, executor.key);
+        executor.connection = pool;
+        context.executor = executor as ReadonlyDataLoaderExecutor<Pool>;
 
         return credential;
       } catch (error) {
@@ -460,5 +399,5 @@ export const createEmailCredentials: GraphQLFieldConfig<
         tx.release();
       }
     });
-  }
+  },
 };

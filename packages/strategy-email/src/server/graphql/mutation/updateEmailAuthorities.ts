@@ -1,4 +1,5 @@
 import { v4 } from "uuid";
+import { Pool, PoolClient } from "pg";
 import { GraphQLFieldConfig, GraphQLNonNull, GraphQLList } from "graphql";
 
 import {
@@ -8,7 +9,8 @@ import {
   NotFoundError,
   ValidationError,
   validateIdFormat,
-  DataLoaderExecutor
+  DataLoaderExecutor,
+  ReadonlyDataLoaderExecutor,
 } from "@authx/authx";
 import { EmailAuthority } from "../../model";
 import { GraphQLEmailAuthority } from "../GraphQLEmailAuthority";
@@ -42,16 +44,11 @@ export const updateEmailAuthorities: GraphQLFieldConfig<
     authorities: {
       type: new GraphQLNonNull(
         new GraphQLList(new GraphQLNonNull(GraphQLUpdateEmailAuthorityInput))
-      )
-    }
+      ),
+    },
   },
   async resolve(source, args, context): Promise<Promise<EmailAuthority>[]> {
-    const {
-      pool,
-      authorization: a,
-      realm,
-      strategies: { authorityMap }
-    } = context;
+    const { executor, authorization: a, realm } = context;
 
     if (!a) {
       throw new ForbiddenError(
@@ -59,7 +56,15 @@ export const updateEmailAuthorities: GraphQLFieldConfig<
       );
     }
 
-    return args.authorities.map(async input => {
+    const strategies = executor.strategies;
+    const pool = executor.connection;
+    if (!(pool instanceof Pool)) {
+      throw new Error(
+        "INVARIANT: The executor connection is expected to be an instance of Pool."
+      );
+    }
+
+    return args.authorities.map(async (input) => {
       // Validate `id`.
       if (!validateIdFormat(input.id)) {
         throw new ValidationError("The provided `id` is an invalid ID.");
@@ -68,12 +73,15 @@ export const updateEmailAuthorities: GraphQLFieldConfig<
       const tx = await pool.connect();
       try {
         // Make sure this transaction is used for queries made by the executor.
-        const executor = new DataLoaderExecutor(tx);
+        const executor = new DataLoaderExecutor<Pool | PoolClient>(
+          tx,
+          strategies
+        );
 
         await tx.query("BEGIN DEFERRABLE");
 
-        const before = await Authority.read(executor, input.id, authorityMap, {
-          forUpdate: true
+        const before = await Authority.read(tx, input.id, strategies, {
+          forUpdate: true,
         });
 
         if (!(before instanceof EmailAuthority)) {
@@ -85,7 +93,7 @@ export const updateEmailAuthorities: GraphQLFieldConfig<
         if (
           !(await before.isAccessibleBy(realm, a, executor, {
             basic: "w",
-            details: ""
+            details: "",
           }))
         ) {
           throw new ForbiddenError(
@@ -106,7 +114,7 @@ export const updateEmailAuthorities: GraphQLFieldConfig<
             typeof input.verificationEmailHtml === "string") &&
           !(await before.isAccessibleBy(realm, a, executor, {
             basic: "w",
-            details: "w"
+            details: "w",
           }))
         ) {
           throw new ForbiddenError(
@@ -123,11 +131,11 @@ export const updateEmailAuthorities: GraphQLFieldConfig<
 
         const { removePublicKeys } = input;
         if (removePublicKeys) {
-          publicKeys = publicKeys.filter(k => !removePublicKeys.includes(k));
+          publicKeys = publicKeys.filter((k) => !removePublicKeys.includes(k));
         }
 
         const authority = await EmailAuthority.write(
-          executor,
+          tx,
           {
             ...before,
             enabled:
@@ -172,21 +180,26 @@ export const updateEmailAuthorities: GraphQLFieldConfig<
               verificationEmailHtml:
                 typeof input.verificationEmailHtml === "string"
                   ? input.verificationEmailHtml
-                  : before.details.verificationEmailHtml
-            }
+                  : before.details.verificationEmailHtml,
+            },
           },
           {
             recordId: v4(),
             createdByAuthorizationId: a.id,
-            createdAt: new Date()
+            createdAt: new Date(),
           }
         );
 
         await tx.query("COMMIT");
 
+        // Clear and prime the loader.
+        Authority.clear(executor, authority.id);
+        Authority.prime(executor, authority.id, authority);
+
         // Update the context to use a new executor primed with the results of
         // this mutation, using the original connection pool.
-        context.executor = new DataLoaderExecutor(pool, executor.key);
+        executor.connection = pool;
+        context.executor = executor as ReadonlyDataLoaderExecutor<Pool>;
 
         return authority;
       } catch (error) {
@@ -196,5 +209,5 @@ export const updateEmailAuthorities: GraphQLFieldConfig<
         tx.release();
       }
     });
-  }
+  },
 };

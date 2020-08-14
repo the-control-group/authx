@@ -1,4 +1,5 @@
 import { v4 } from "uuid";
+import { Pool, PoolClient } from "pg";
 import { GraphQLFieldConfig, GraphQLNonNull, GraphQLList } from "graphql";
 
 import {
@@ -8,7 +9,8 @@ import {
   NotFoundError,
   ValidationError,
   validateIdFormat,
-  DataLoaderExecutor
+  DataLoaderExecutor,
+  ReadonlyDataLoaderExecutor,
 } from "@authx/authx";
 import { OpenIdCredential } from "../../model";
 import { GraphQLOpenIdCredential } from "../GraphQLOpenIdCredential";
@@ -30,24 +32,27 @@ export const updateOpenIdCredentials: GraphQLFieldConfig<
     credentials: {
       type: new GraphQLNonNull(
         new GraphQLList(new GraphQLNonNull(GraphQLUpdateOpenIdCredentialInput))
-      )
-    }
+      ),
+    },
   },
   async resolve(source, args, context): Promise<Promise<OpenIdCredential>[]> {
-    const {
-      pool,
-      authorization: a,
-      realm,
-      strategies: { credentialMap }
-    } = context;
+    const { executor, authorization: a, realm } = context;
 
     if (!a) {
       throw new ForbiddenError(
-        "You must be authenticated to update a credential."
+        "You must be authenticated to update an credential."
       );
     }
 
-    return args.credentials.map(async input => {
+    const strategies = executor.strategies;
+    const pool = executor.connection;
+    if (!(pool instanceof Pool)) {
+      throw new Error(
+        "INVARIANT: The executor connection is expected to be an instance of Pool."
+      );
+    }
+
+    return args.credentials.map(async (input) => {
       // Validate `id`.
       if (!validateIdFormat(input.id)) {
         throw new ValidationError("The provided `id` is an invalid ID.");
@@ -56,18 +61,16 @@ export const updateOpenIdCredentials: GraphQLFieldConfig<
       const tx = await pool.connect();
       try {
         // Make sure this transaction is used for queries made by the executor.
-        const executor = new DataLoaderExecutor(tx);
+        const executor = new DataLoaderExecutor<Pool | PoolClient>(
+          tx,
+          strategies
+        );
 
         await tx.query("BEGIN DEFERRABLE");
 
-        const before = await Credential.read(
-          executor,
-          input.id,
-          credentialMap,
-          {
-            forUpdate: true
-          }
-        );
+        const before = await Credential.read(tx, input.id, strategies, {
+          forUpdate: true,
+        });
 
         if (!(before instanceof OpenIdCredential)) {
           throw new NotFoundError("No openid credential exists with this ID.");
@@ -76,7 +79,7 @@ export const updateOpenIdCredentials: GraphQLFieldConfig<
         if (
           !(await before.isAccessibleBy(realm, a, executor, {
             basic: "w",
-            details: ""
+            details: "",
           }))
         ) {
           throw new ForbiddenError(
@@ -85,26 +88,31 @@ export const updateOpenIdCredentials: GraphQLFieldConfig<
         }
 
         const credential = await OpenIdCredential.write(
-          executor,
+          tx,
           {
             ...before,
             enabled:
               typeof input.enabled === "boolean"
                 ? input.enabled
-                : before.enabled
+                : before.enabled,
           },
           {
             recordId: v4(),
             createdByAuthorizationId: a.id,
-            createdAt: new Date()
+            createdAt: new Date(),
           }
         );
 
         await tx.query("COMMIT");
 
+        // Clear and prime the loader.
+        Credential.clear(executor, credential.id);
+        Credential.prime(executor, credential.id, credential);
+
         // Update the context to use a new executor primed with the results of
         // this mutation, using the original connection pool.
-        context.executor = new DataLoaderExecutor(pool, executor.key);
+        executor.connection = pool;
+        context.executor = executor as ReadonlyDataLoaderExecutor<Pool>;
 
         return credential;
       } catch (error) {
@@ -114,5 +122,5 @@ export const updateOpenIdCredentials: GraphQLFieldConfig<
         tx.release();
       }
     });
-  }
+  },
 };

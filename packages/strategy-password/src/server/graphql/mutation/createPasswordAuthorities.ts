@@ -208,8 +208,8 @@ export const createPasswordAuthorities: GraphQLFieldConfig<
           await tx.query("COMMIT");
 
           // Clear and prime the loader.
-          PasswordAuthority.clear(executor, authority.id);
-          PasswordAuthority.prime(executor, authority.id, authority);
+          Authority.clear(executor, authority.id);
+          Authority.prime(executor, authority.id, authority);
 
           // Update the context to use a new executor primed with the results of
           // this mutation, using the original connection pool.

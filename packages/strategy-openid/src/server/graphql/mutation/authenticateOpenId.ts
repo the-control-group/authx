@@ -2,8 +2,10 @@ import {
   GraphQLFieldConfig,
   GraphQLID,
   GraphQLNonNull,
-  GraphQLString
+  GraphQLString,
 } from "graphql";
+
+import { Pool, PoolClient } from "pg";
 import jwt from "jsonwebtoken";
 import { randomBytes } from "crypto";
 import { v4 } from "uuid";
@@ -19,7 +21,8 @@ import {
   Role,
   ForbiddenError,
   AuthenticationError,
-  DataLoaderExecutor
+  DataLoaderExecutor,
+  ReadonlyDataLoaderExecutor,
 } from "@authx/authx";
 
 import { createV2AuthXScope } from "@authx/authx/scopes";
@@ -40,40 +43,41 @@ export const authenticateOpenId: GraphQLFieldConfig<
   description: "Create a new authorization.",
   args: {
     authorityId: {
-      type: new GraphQLNonNull(GraphQLID)
+      type: new GraphQLNonNull(GraphQLID),
     },
     code: {
       type: new GraphQLNonNull(GraphQLString),
       description:
-        "The OAuth authorization code provided by the OpenID exchange."
-    }
+        "The OAuth authorization code provided by the OpenID exchange.",
+    },
   },
   async resolve(source, args, context): Promise<Authorization> {
-    const {
-      pool,
-      authorization: a,
-      realm,
-      strategies: { authorityMap },
-      base
-    } = context;
+    const { executor, authorization: a, realm, base } = context;
 
     if (a) {
       throw new ForbiddenError("You area already authenticated.");
     }
 
+    const strategies = executor.strategies;
+    const pool = executor.connection;
+    if (!(pool instanceof Pool)) {
+      throw new Error(
+        "INVARIANT: The executor connection is expected to be an instance of Pool."
+      );
+    }
+
     const tx = await pool.connect();
     try {
       // Make sure this transaction is used for queries made by the executor.
-      const executor = new DataLoaderExecutor(tx);
+      const executor = new DataLoaderExecutor<Pool | PoolClient>(
+        tx,
+        strategies
+      );
 
       await tx.query("BEGIN DEFERRABLE");
 
       // Fetch the authority.
-      const authority = await Authority.read(
-        executor,
-        args.authorityId,
-        authorityMap
-      );
+      const authority = await Authority.read(tx, args.authorityId, strategies);
 
       if (!(authority instanceof OpenIdAuthority)) {
         throw new AuthenticationError(
@@ -94,7 +98,7 @@ export const authenticateOpenId: GraphQLFieldConfig<
 
       const response = await fetch(authority.details.tokenUrl, {
         method: "POST",
-        body: requestBody
+        body: requestBody,
       });
 
       const responseBody = (await response.json()) as {
@@ -194,19 +198,19 @@ export const authenticateOpenId: GraphQLFieldConfig<
 
         if (emailCredential && emailCredential.enabled) {
           credential = await OpenIdCredential.write(
-            executor,
+            tx,
             {
               enabled: true,
               id: v4(),
               userId: emailCredential.userId,
               authorityId: authority.id,
               authorityUserId: token.sub,
-              details: {}
+              details: {},
             },
             {
               recordId: v4(),
               createdByAuthorizationId: authorizationId,
-              createdAt: new Date()
+              createdAt: new Date(),
             }
           );
         }
@@ -215,34 +219,34 @@ export const authenticateOpenId: GraphQLFieldConfig<
       // Create a new user.
       if (!credential && authority.details.createsUnmatchedUsers) {
         const user = await User.write(
-          executor,
+          tx,
           {
             id: v4(),
             enabled: true,
             type: "human",
-            name: token.name || ""
+            name: token.name || "",
           },
           {
             recordId: v4(),
             createdByAuthorizationId: authorizationId,
-            createdAt: new Date()
+            createdAt: new Date(),
           }
         );
 
         credential = await OpenIdCredential.write(
-          executor,
+          tx,
           {
             enabled: true,
             id: v4(),
             userId: user.id,
             authorityId: authority.id,
             authorityUserId: token.sub,
-            details: {}
+            details: {},
           },
           {
             recordId: v4(),
             createdByAuthorizationId: authorizationId,
-            createdAt: new Date()
+            createdAt: new Date(),
           }
         );
 
@@ -252,25 +256,33 @@ export const authenticateOpenId: GraphQLFieldConfig<
           authority.details.assignsCreatedUsersToRoleIds.length
         ) {
           const roles = await Promise.all(
-            authority.details.assignsCreatedUsersToRoleIds.map(id =>
+            authority.details.assignsCreatedUsersToRoleIds.map((id) =>
               Role.read(executor, id)
             )
           );
 
-          await roles.map(role =>
-            Role.write(
-              executor,
-              {
-                ...role,
-                userIds: [...role.userIds, user.id]
-              },
-              {
-                recordId: v4(),
-                createdByAuthorizationId: authorizationId,
-                createdAt: new Date()
-              }
+          const roleResults = await Promise.allSettled(
+            roles.map((role) =>
+              Role.write(
+                tx,
+                {
+                  ...role,
+                  userIds: [...role.userIds, user.id],
+                },
+                {
+                  recordId: v4(),
+                  createdByAuthorizationId: authorizationId,
+                  createdAt: new Date(),
+                }
+              )
             )
           );
+
+          for (const result of roleResults) {
+            if (result.status === "rejected") {
+              throw new Error(result.reason);
+            }
+          }
         }
       }
 
@@ -281,14 +293,14 @@ export const authenticateOpenId: GraphQLFieldConfig<
       // Invoke the credential.
       await credential.invoke(executor, {
         id: v4(),
-        createdAt: new Date()
+        createdAt: new Date(),
       });
 
       const values = {
         currentAuthorizationId: authorizationId,
         currentUserId: credential.userId,
         currentGrantId: null,
-        currentClientId: null
+        currentClientId: null,
       };
 
       // Make sure the user can create new authorizations.
@@ -303,12 +315,12 @@ export const authenticateOpenId: GraphQLFieldConfig<
               authorizationId: "",
               grantId: "",
               clientId: "",
-              userId: user.id
+              userId: user.id,
             },
             {
               basic: "*",
               scopes: "*",
-              secrets: "*"
+              secrets: "*",
             }
           )
         )
@@ -320,20 +332,20 @@ export const authenticateOpenId: GraphQLFieldConfig<
 
       // Create a new authorization.
       const authorization = await Authorization.write(
-        executor,
+        tx,
         {
           id: authorizationId,
           enabled: true,
           userId: credential.userId,
           grantId: null,
           secret: randomBytes(16).toString("hex"),
-          scopes: [`${realm}:**:**`]
+          scopes: [`${realm}:**:**`],
         },
         {
           recordId: v4(),
           createdByAuthorizationId: authorizationId,
           createdByCredentialId: credential.id,
-          createdAt: new Date()
+          createdAt: new Date(),
         }
       );
 
@@ -342,17 +354,19 @@ export const authenticateOpenId: GraphQLFieldConfig<
       await authorization.invoke(executor, {
         id: v4(),
         format: "basic",
-        createdAt: new Date()
+        createdAt: new Date(),
       });
 
       await tx.query("COMMIT");
 
+      // Clear and prime the loader.
+      Authorization.clear(executor, authorization.id);
+      Authorization.prime(executor, authorization.id, authorization);
+
       // Update the context to use a new executor primed with the results of
       // this mutation, using the original connection pool.
-      context.executor = new DataLoaderExecutor(pool, executor.key);
-
-      // Use this authorization for the rest of the request.
-      context.authorization = authorization;
+      executor.connection = pool;
+      context.executor = executor as ReadonlyDataLoaderExecutor<Pool>;
 
       return authorization;
     } catch (error) {
@@ -361,5 +375,5 @@ export const authenticateOpenId: GraphQLFieldConfig<
     } finally {
       tx.release();
     }
-  }
+  },
 };
