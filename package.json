@@ -1,5 +1,6 @@
 {
   "private": true,
+  "main": "dist/server",
   "workspaces": [
     "packages/authx",
     "packages/http-proxy-client",
@@ -25,7 +26,7 @@
     "root:build:development": "rm -rf dist && tsc --watch",
     "root:format": "prettier --list-different --write '**/*.{json,yml,md,ts}'",
     "root:lint": "prettier -c '**/*.{json,yml,md,ts}' && eslint src --ext ts",
-    "root:test": "ava --verbose dist/*.test.js",
+    "root:test": "ava --verbose",
     "root:test:development": "ava --verbose --watch dist/*.test.js",
     "build": "yarn packages:build && echo '\n\n  ---------- ' && yarn root:build",
     "build:development": "yarn packages:build:development & yarn root:build:development",
@@ -46,5 +47,11 @@
     "nodemon": "^2.0.4",
     "prettier": "^2.0.5",
     "typescript": "^3.9.7"
+  },
+  "ava": {
+    "files": [
+      "dist/**/*.test.js"
+    ],
+    "timeout": "60s"
   }
 }

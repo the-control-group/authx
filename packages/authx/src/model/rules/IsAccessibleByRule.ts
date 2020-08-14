@@ -1,0 +1,142 @@
+import { Rule } from "./Rule";
+import { Authorization } from "../Authorization";
+import { extract } from "@authx/scopes";
+
+/**
+ * Rule that handles pagination if the user is paging backwards through the data
+ * Always fetches one extra row from the data source so that the receiver can
+ * determine if there is another page.
+ *
+ * Note that this class only determines if the authorization has the right to see the entity
+ * at all. It doesn't check that the user has the right to see any specific fields of the
+ * entity, such as secrets or details. It is assumed that the class itself handles that.
+ */
+export class IsAccessibleByRule extends Rule {
+  constructor(
+    private readonly realm: string,
+    private readonly authorization: Authorization,
+    private readonly entityType: string
+  ) {
+    super();
+  }
+
+  private prepared = false;
+  private where = "";
+  private params: { [p: string]: any } = {};
+
+  private static readonly ENTITY_MAPPING_TABLE: {
+    [key: string]: { [key: string]: string };
+  } = {
+    user: {
+      userid: "entity_id"
+    },
+    authorization: {
+      userid: "user_id",
+      authorizationid: "entity_id",
+      grantid: "grant_id",
+      clientid:
+        "(SELECT client_id FROM authx.grant_record WHERE entity_id = grant_id AND replacement_record_id IS NULL)"
+    },
+    client: {
+      clientid: "entity_id"
+    },
+    credential: {
+      credentialid: "entity_id",
+      authorityid: "authority_id",
+      userid: "user_id"
+    },
+    grant: {
+      grantid: "entity_id",
+      userid: "user_id",
+      clientid: "client_id"
+    },
+    role: {
+      roleid: "entity_id"
+    }
+  };
+
+  private ensurePrepared(): void {
+    if (!this.prepared) {
+      const template = `${this.realm}:v2.${this.entityType}.(authorityid).(authorizationid).(clientid).(credentialid).(grantid).(roleid).(userid):r....`;
+
+      const fixedIds: { [key: string]: string }[] = [];
+      let allAccess = false;
+
+      for (const scope of this.authorization.scopes) {
+        const extracted = extract(template, [scope]);
+
+        if (extracted.length == 1) {
+          const fixedId: { [key: string]: string } = {};
+          let hasAtLeastOneStar = false;
+          let scopeCorrupted = false;
+
+          for (const key in extracted[0].parameters) {
+            if (
+              typeof IsAccessibleByRule.ENTITY_MAPPING_TABLE[this.entityType][
+                key
+              ] !== "undefined"
+            ) {
+              const value = extracted[0].parameters[key];
+              if (value == "*") {
+                hasAtLeastOneStar = true;
+              } else if (value) {
+                fixedId[
+                  IsAccessibleByRule.ENTITY_MAPPING_TABLE[this.entityType][key]
+                ] = value;
+              } else {
+                scopeCorrupted = true;
+              }
+            }
+          }
+
+          if (scopeCorrupted) continue;
+
+          if (hasAtLeastOneStar && Object.keys(fixedId).length == 0) {
+            allAccess = true;
+            break;
+          } else if (Object.keys(fixedId).length > 0) {
+            fixedIds.push(fixedId);
+          }
+        }
+      }
+
+      if (!allAccess && fixedIds.length == 0) {
+        // this authorization can't access this entity at all
+        this.where = "FALSE";
+      } else if (!allAccess) {
+        const sqlElements = [];
+
+        for (let i = 0; i < fixedIds.length; ++i) {
+          const fixedId = fixedIds[i];
+          sqlElements.push(
+            "(" +
+              Object.keys(fixedId)
+                .map(it => `${it} = :acc_list_${i}_${it}`)
+                .join(" AND ") +
+              ")"
+          );
+
+          for (const key in fixedId) {
+            this.params[`acc_list_${i}_${key}`] = fixedId[key];
+          }
+        }
+
+        this.where = "(" + sqlElements.join(" OR ") + ")";
+      }
+
+      this.prepared = true;
+    }
+  }
+
+  toSQLWhere(): string {
+    this.ensurePrepared();
+
+    return this.where;
+  }
+
+  toSQLParams(): { [p: string]: any } {
+    this.ensurePrepared();
+
+    return this.params;
+  }
+}

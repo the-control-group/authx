@@ -1,15 +1,16 @@
 import { GraphQLBoolean, GraphQLFieldConfig } from "graphql";
 
-import {
-  connectionFromArray,
-  connectionArgs,
-  ConnectionArguments
-} from "graphql-relay";
+import { connectionArgs, ConnectionArguments } from "graphql-relay";
 
 import { GraphQLRoleConnection } from "../GraphQLRoleConnection";
 import { Context } from "../../Context";
 import { Role } from "../../model";
-import { filter } from "../../util/filter";
+import { CursorRule } from "../../model/rules/CursorRule";
+import { NoReplacementRecord } from "../../model/rules/NoReplacementRecord";
+import { IsAccessibleByRule } from "../../model/rules/IsAccessibleByRule";
+import { FieldRule } from "../../model/rules/FieldRule";
+import { Rule } from "../../model/rules/Rule";
+import { CursorConnection } from "../connection/CursorConnection";
 
 export const roles: GraphQLFieldConfig<
   any,
@@ -32,14 +33,20 @@ export const roles: GraphQLFieldConfig<
     const { executor, authorization: a, realm } = context;
     if (!a) return [];
 
-    const ids = await executor.connection.query(
+    const rules = CursorRule.addToRuleListIfNeeded(
+      [new NoReplacementRecord(), new IsAccessibleByRule(realm, a, "role")],
+      args
+    );
+
+    if (!args.includeDisabled) rules.push(new FieldRule("enabled", true));
+
+    const ids = await Rule.runQuery(
+      executor,
       `
-      SELECT entity_id AS id
-      FROM authx.role_record
-      WHERE
-        replacement_record_id IS NULL
-        ${args.includeDisabled ? "" : "AND enabled = true"}
-      `
+        SELECT entity_id AS id
+        FROM authx.role_record
+        `,
+      rules
     );
 
     if (!ids.rows.length) {
@@ -51,9 +58,6 @@ export const roles: GraphQLFieldConfig<
       ids.rows.map(({ id }) => id)
     );
 
-    return connectionFromArray(
-      await filter(roles, role => role.isAccessibleBy(realm, a, executor)),
-      args
-    );
+    return CursorConnection.connectionFromRules(args, roles, rules);
   }
 };

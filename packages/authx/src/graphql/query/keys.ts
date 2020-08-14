@@ -1,8 +1,8 @@
 import {
+  GraphQLFieldConfig,
   GraphQLList,
   GraphQLNonNull,
-  GraphQLString,
-  GraphQLFieldConfig
+  GraphQLString
 } from "graphql";
 import { Context } from "../../Context";
 
