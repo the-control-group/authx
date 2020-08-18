@@ -74,20 +74,20 @@ export class IsAccessibleByRule extends Rule {
       let allAccess = false;
 
       for (const scope of this.authorization.scopes) {
-        const extracted = extract(template, [scope]);
+        const extractedScopes = extract(template, [scope]);
 
-        if (extracted.length == 1) {
+        for (const extracted of extractedScopes){
           const fixedId: { [key: string]: string } = {};
           let hasAtLeastOneStar = false;
           let scopeCorrupted = false;
 
-          for (const key in extracted[0].parameters) {
+          for (const key in extracted.parameters) {
             if (
               typeof IsAccessibleByRule.ENTITY_MAPPING_TABLE[this.entityType][
                 key
               ] !== "undefined"
             ) {
-              const value = extracted[0].parameters[key];
+              const value = extracted.parameters[key];
               if (value == "*") {
                 hasAtLeastOneStar = true;
               } else if (value) {

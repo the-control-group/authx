@@ -76,11 +76,21 @@ pagingTests({
 });
 
 pagingTests({
-  testName: "by client ID",
+  testName: "by client ID with wildcards",
   entityType: "authorization",
   ids: ["5387ece5-37a1-4573-a189-14333ebf8d88"],
   scopes: [
     createReadScope("*", "1fcb730e-f134-463a-b224-cab7e61c5ce0", "*", "*")
+  ],
+  ctx: ctx
+});
+
+pagingTests({
+  testName: "by client ID",
+  entityType: "authorization",
+  ids: ["5387ece5-37a1-4573-a189-14333ebf8d88"],
+  scopes: [
+    "authx:v2.authorization.*.5387ece5-37a1-4573-a189-14333ebf8d88.**.1fcb730e-f134-463a-b224-cab7e61c5ce0.**:r...."
   ],
   ctx: ctx
 });
