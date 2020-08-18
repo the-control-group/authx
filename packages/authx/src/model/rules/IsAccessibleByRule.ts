@@ -24,6 +24,17 @@ export class IsAccessibleByRule extends Rule {
   private where = "";
   private params: { [p: string]: any } = {};
 
+  /**
+   * Contains a mapping between the fields on scopes and actual DB column names
+   * The first level key is the entity name
+   * The second level key is the name of the field in the scope
+   * The final value is either the column name in the DB in most cases. In these cases the column name will be plugged
+   * into the WHERE clause like this "[field name] = [field value]"
+   * In some rarer cases it is a subquery. For optimization purposes, the values have to be hoisted into the subquery,
+   * so these are implemented as closures. In this case, the query builder will simply call the closure with the value
+   * that after parameter substitution contains the value the column must equal.
+   * @private
+   */
   private static readonly ENTITY_MAPPING_TABLE: {
     [key: string]: { [key: string]: string | ((v: string) => string) };
   } = {
