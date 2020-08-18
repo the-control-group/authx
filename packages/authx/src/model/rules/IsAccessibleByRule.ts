@@ -25,7 +25,7 @@ export class IsAccessibleByRule extends Rule {
   private params: { [p: string]: any } = {};
 
   private static readonly ENTITY_MAPPING_TABLE: {
-    [key: string]: { [key: string]: string };
+    [key: string]: { [key: string]: string | ((v: string) => string) };
   } = {
     user: {
       userid: "entity_id"
@@ -34,8 +34,8 @@ export class IsAccessibleByRule extends Rule {
       userid: "user_id",
       authorizationid: "entity_id",
       grantid: "grant_id",
-      clientid:
-        "(SELECT client_id FROM authx.grant_record WHERE entity_id = grant_id AND replacement_record_id IS NULL)"
+      clientid: it =>
+        `EXISTS(((SELECT 1 FROM authx.grant_record WHERE client_id = ${it} AND entity_id = grant_id AND replacement_record_id IS NULL)))`
     },
     client: {
       clientid: "entity_id"
@@ -80,9 +80,7 @@ export class IsAccessibleByRule extends Rule {
               if (value == "*") {
                 hasAtLeastOneStar = true;
               } else if (value) {
-                fixedId[
-                  IsAccessibleByRule.ENTITY_MAPPING_TABLE[this.entityType][key]
-                ] = value;
+                fixedId[key] = value;
               } else {
                 scopeCorrupted = true;
               }
@@ -111,7 +109,18 @@ export class IsAccessibleByRule extends Rule {
           sqlElements.push(
             "(" +
               Object.keys(fixedId)
-                .map(it => `${it} = :acc_list_${i}_${it}`)
+                .map(it => {
+                  const mapping =
+                    IsAccessibleByRule.ENTITY_MAPPING_TABLE[this.entityType][
+                      it
+                    ];
+
+                  if (typeof mapping === "string") {
+                    return `${mapping} = :acc_list_${i}_${it}`;
+                  } else {
+                    return mapping(`:acc_list_${i}_${it}`);
+                  }
+                })
                 .join(" AND ") +
               ")"
           );

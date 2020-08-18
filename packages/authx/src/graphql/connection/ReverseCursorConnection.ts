@@ -9,8 +9,7 @@ import { ReverseCursorRule } from "../../model/rules/ReverseCursorRule";
  * handles things like making sure it requests one more than the user
  * requested so we can tell if there's another page.
  */
-export class ReverseCursorConnection<T extends Node>
-  implements Connection<T> {
+export class ReverseCursorConnection<T extends Node> implements Connection<T> {
   edges: Array<Edge<T>>;
   pageInfo: PageInfo;
 
