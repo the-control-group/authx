@@ -1,5 +1,5 @@
 import { Connection, Edge, PageInfo } from "graphql-relay";
-import { EntityWithID } from "./EntityWithID";
+import { Node } from "./Node";
 import { CursorConnection } from "./CursorConnection";
 import { ReverseCursorRule } from "../../model/rules/ReverseCursorRule";
 
@@ -9,7 +9,7 @@ import { ReverseCursorRule } from "../../model/rules/ReverseCursorRule";
  * handles things like making sure it requests one more than the user
  * requested so we can tell if there's another page.
  */
-export class ReverseCursorConnection<T extends EntityWithID>
+export class ReverseCursorConnection<T extends Node>
   implements Connection<T> {
   edges: Array<Edge<T>>;
   pageInfo: PageInfo;

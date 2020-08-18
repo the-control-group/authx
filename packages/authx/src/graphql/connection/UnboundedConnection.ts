@@ -1,8 +1,8 @@
-import { EntityWithID } from "./EntityWithID";
+import { Node } from "./Node";
 import { Connection, Edge, PageInfo } from "graphql-relay";
 import { CursorConnection } from "./CursorConnection";
 
-export class UnboundedConnection<T extends EntityWithID>
+export class UnboundedConnection<T extends Node>
   implements Connection<T> {
   edges: Array<Edge<T>>;
   pageInfo: PageInfo;

@@ -1,4 +1,4 @@
-import { EntityWithID } from "./EntityWithID";
+import { Node } from "./Node";
 import { Connection, ConnectionArguments } from "graphql-relay";
 import { ForwardCursorConnection } from "./ForwardCursorConnection";
 import { ReverseCursorConnection } from "./ReverseCursorConnection";
@@ -26,7 +26,7 @@ export class CursorConnection {
    * @param elements
    * @param rules
    */
-  static connectionFromRules<T extends EntityWithID>(
+  static connectionFromRules<T extends Node>(
     args: ConnectionArguments,
     elements: T[],
     rules: Rule[]
