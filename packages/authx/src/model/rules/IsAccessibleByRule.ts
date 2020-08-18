@@ -76,7 +76,7 @@ export class IsAccessibleByRule extends Rule {
       for (const scope of this.authorization.scopes) {
         const extractedScopes = extract(template, [scope]);
 
-        for (const extracted of extractedScopes){
+        for (const extracted of extractedScopes) {
           const fixedId: { [key: string]: string } = {};
           let hasAtLeastOneStar = false;
           let scopeCorrupted = false;
