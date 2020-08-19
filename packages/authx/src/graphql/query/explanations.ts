@@ -1,4 +1,4 @@
-import { GraphQLFieldConfig, GraphQLNonNull, GraphQLList } from "graphql";
+import { GraphQLFieldConfig, GraphQLList, GraphQLNonNull } from "graphql";
 import { Context } from "../../Context";
 import { GraphQLExplanation } from "../GraphQLExplanation";
 

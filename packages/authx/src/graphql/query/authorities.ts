@@ -3,11 +3,12 @@ import { GraphQLAuthorityConnection } from "../GraphQLAuthorityConnection";
 import { Context } from "../../Context";
 import { Authority } from "../../model";
 
-import {
-  connectionFromArray,
-  connectionArgs,
-  ConnectionArguments
-} from "graphql-relay";
+import { connectionArgs, ConnectionArguments } from "graphql-relay";
+import { CursorRule } from "../../model/rules/CursorRule";
+import { NoReplacementRecord } from "../../model/rules/NoReplacementRecord";
+import { FieldRule } from "../../model/rules/FieldRule";
+import { Rule } from "../../model/rules/Rule";
+import { CursorConnection } from "../connection/CursorConnection";
 
 export const authorities: GraphQLFieldConfig<
   any,
@@ -29,26 +30,33 @@ export const authorities: GraphQLFieldConfig<
   async resolve(source, args, context) {
     const { executor } = context;
 
-    const ids = await executor.connection.query(
+    const rules = CursorRule.addToRuleListIfNeeded(
+      [new NoReplacementRecord()],
+      args
+    );
+
+    if (!args.includeDisabled) rules.push(new FieldRule("enabled", true));
+
+    const ids = await Rule.runQuery(
+      executor,
       `
-      SELECT entity_id AS id
-      FROM authx.authority_record
-      WHERE
-        replacement_record_id IS NULL
-        ${args.includeDisabled ? "" : "AND enabled = true"}
-      `
+        SELECT entity_id AS id
+        FROM authx.authority_record
+        `,
+      rules
     );
 
     if (!ids.rows.length) {
       return [];
     }
 
-    return connectionFromArray(
+    return CursorConnection.connectionFromRules(
+      args,
       await Authority.read(
         executor,
         ids.rows.map(({ id }) => id)
       ),
-      args
+      rules
     );
   }
 };
