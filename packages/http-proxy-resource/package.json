@@ -5,7 +5,7 @@
   },
   "bugs": "https://github.com/the-control-group/authx/issues",
   "dependencies": {
-    "@authx/scopes": "^3.1.0-alpha.14",
+    "@authx/scopes": "^3.1.0-alpha.15",
     "@types/http-proxy": "^1.17.4",
     "@types/jsonwebtoken": "^8.5.0",
     "@types/node-fetch": "^2.5.7",
@@ -54,5 +54,5 @@
     "prepublishOnly": "yarn build"
   },
   "types": "./dist/index.d.ts",
-  "version": "3.1.0-alpha.14"
+  "version": "3.1.0-alpha.15"
 }
