@@ -5,7 +5,7 @@
   },
   "bugs": "https://github.com/the-control-group/authx/issues",
   "dependencies": {
-    "@authx/scopes": "^3.1.0-alpha.10",
+    "@authx/scopes": "^3.1.0-alpha.12",
     "@types/auth-header": "^1.0.1",
     "@types/form-data": "^2.5.0",
     "@types/graphql-api-koa": "^2.0.2",
@@ -81,5 +81,5 @@
     "test:development": "ava --verbose --watch dist/**/*.test.js"
   },
   "types": "dist/index.d.ts",
-  "version": "3.1.0-alpha.10"
+  "version": "3.1.0-alpha.12"
 }
