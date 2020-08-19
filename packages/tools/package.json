@@ -8,8 +8,8 @@
   },
   "bugs": "https://github.com/the-control-group/authx/issues",
   "dependencies": {
-    "@authx/authx": "^3.1.0-alpha.12",
-    "@authx/strategy-password": "^3.1.0-alpha.12",
+    "@authx/authx": "^3.1.0-alpha.13",
+    "@authx/strategy-password": "^3.1.0-alpha.13",
     "@types/pg": "^7.14.4",
     "@types/uuid": "^8.3.0",
     "pg": "^8.3.0",
@@ -53,8 +53,9 @@
     "build": "rm -rf dist && tsc && chmod +x dist/authx.js",
     "build:development": "rm -rf dist && tsc --watch",
     "test": "ava --verbose dist/*.test.js",
-    "test:development": "ava --verbose --watch dist/*.test.js"
+    "test:development": "ava --verbose --watch dist/*.test.js",
+    "prepublishOnly": "yarn build"
   },
   "types": "dist/index.d.ts",
-  "version": "3.1.0-alpha.12"
+  "version": "3.1.0-alpha.13"
 }

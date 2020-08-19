@@ -5,7 +5,7 @@
   },
   "bugs": "https://github.com/the-control-group/authx/issues",
   "dependencies": {
-    "@authx/scopes": "^3.1.0-alpha.12",
+    "@authx/scopes": "^3.1.0-alpha.13",
     "@types/auth-header": "^1.0.1",
     "@types/form-data": "^2.5.0",
     "@types/graphql-api-koa": "^2.0.2",
@@ -78,8 +78,9 @@
     "build": "rm -rf dist && tsc",
     "build:development": "rm -rf dist && tsc --watch",
     "test": "ava --verbose dist/**/*.test.js",
-    "test:development": "ava --verbose --watch dist/**/*.test.js"
+    "test:development": "ava --verbose --watch dist/**/*.test.js",
+    "prepublishOnly": "yarn build"
   },
   "types": "dist/index.d.ts",
-  "version": "3.1.0-alpha.12"
+  "version": "3.1.0-alpha.13"
 }

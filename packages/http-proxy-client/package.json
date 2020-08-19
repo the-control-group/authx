@@ -49,8 +49,9 @@
     "build": "rm -rf dist && tsc",
     "build:development": "rm -rf dist && tsc --watch",
     "test": "ava --verbose dist/*.test.js",
-    "test:development": "ava --verbose dist/*.test.js --watch"
+    "test:development": "ava --verbose dist/*.test.js --watch",
+    "prepublishOnly": "yarn build"
   },
   "types": "./dist/index.d.ts",
-  "version": "3.1.0-alpha.12"
+  "version": "3.1.0-alpha.13"
 }

@@ -5,7 +5,7 @@
   },
   "bugs": "https://github.com/the-control-group/authx/issues",
   "dependencies": {
-    "@authx/scopes": "^3.1.0-alpha.12",
+    "@authx/scopes": "^3.1.0-alpha.13",
     "@types/graphql-react": "^8.1.1",
     "@types/html-webpack-plugin": "^3.2.3",
     "@types/memory-fs": "^0.3.2",
@@ -54,7 +54,7 @@
   "main": "dist/server/index.js",
   "name": "@authx/interface",
   "peerDependencies": {
-    "@authx/authx": "3.1.0-alpha.12",
+    "@authx/authx": "3.1.0-alpha.13",
     "koa": "^2.7.0"
   },
   "repository": "https://github.com/the-control-group/authx",
@@ -66,8 +66,9 @@
     "start": "NODE_ENV=production node dist/server/server",
     "start:development": "NODE_ENV=development nodemon --inspect dist/server/server",
     "test": "ava --verbose dist/*.test.js",
-    "test:development": "ava --verbose --watch dist/*.test.js"
+    "test:development": "ava --verbose --watch dist/*.test.js",
+    "prepublishOnly": "yarn build"
   },
   "types": "dist/server/index.d.ts",
-  "version": "3.1.0-alpha.12"
+  "version": "3.1.0-alpha.13"
 }

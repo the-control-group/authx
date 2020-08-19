@@ -5,7 +5,7 @@
   },
   "bugs": "https://github.com/the-control-group/authx/issues",
   "dependencies": {
-    "@authx/scopes": "^3.1.0-alpha.12",
+    "@authx/scopes": "^3.1.0-alpha.13",
     "@types/cookies": "^0.7.4",
     "@types/http-proxy": "^1.17.4",
     "@types/jsonwebtoken": "^8.5.0",
@@ -52,8 +52,9 @@
     "build": "rm -rf dist && tsc",
     "build:development": "rm -rf dist && tsc --watch",
     "test": "ava --verbose dist/*.test.js",
-    "test:development": "ava --verbose dist/*.test.js --watch"
+    "test:development": "ava --verbose dist/*.test.js --watch",
+    "prepublishOnly": "yarn build"
   },
   "types": "./dist/index.d.ts",
-  "version": "3.1.0-alpha.12"
+  "version": "3.1.0-alpha.13"
 }
