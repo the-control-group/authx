@@ -23,7 +23,17 @@ export class Rule {
     return [];
   }
 
-  private static buildQuery(root: string, rules: Rule[]): BuiltQuery {
+  /**
+   * Generates a query that applies the passed in rules to the specified entity type
+   *
+   * Note that for the rules engine to work, there are two assumptions about the underlying data
+   * that must hold true:
+   * - Every entity must have an id, called "entity_id" in the database and "id" on the object
+   * - The data processing rules must never result in multiple entities with the same ID
+   * @param root The SELECT and FROM part of the query
+   * @param rules
+   */
+  public static buildQuery(root: string, rules: Rule[]): BuiltQuery {
     let ret = root;
 
     const whereClause = rules
