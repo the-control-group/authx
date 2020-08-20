@@ -80,9 +80,11 @@ export default async function createInterface(
 
   return (ctx: any, next: () => Promise<any>) => {
     // Remove any prefix of a koa router.
-    const path = ctx._matchedRoute
-      ? ctx.request.path.replace(RegExp(`^${ctx._matchedRoute}`), "")
-      : ctx.request.path;
+    const path = decodeURIComponent(
+      ctx._matchedRoute
+        ? ctx.request.path.replace(RegExp(`^${ctx._matchedRoute}`), "")
+        : ctx.request.path
+    );
 
     // Don't serve TypeScript definitions or test files.
     if (/\.d\.ts$/.test(path) || /test\.js(\.map)?$/.test(path)) {
