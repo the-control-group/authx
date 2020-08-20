@@ -9,6 +9,15 @@ export class UnboundedConnection<T extends Node> implements Connection<T> {
   constructor(elements: T[]) {
     this.pageInfo = {};
 
+    this.pageInfo.hasNextPage = false;
+    this.pageInfo.hasPreviousPage = false;
+    if (elements.length > 0) {
+      this.pageInfo.startCursor = CursorConnection.toCursor(elements[0].id);
+      this.pageInfo.endCursor = CursorConnection.toCursor(
+        elements[elements.length - 1].id
+      );
+    }
+
     this.edges = elements.map(it => {
       return {
         node: it,

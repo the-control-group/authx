@@ -37,6 +37,8 @@ export function pagingTests(config: PagingTestsConfig): void {
                         pageInfo {
                             hasNextPage
                             hasPreviousPage
+                            startCursor
+                            endCursor
                         }
                     }
                 }
@@ -61,6 +63,17 @@ export function pagingTests(config: PagingTestsConfig): void {
       const expectNextPage = i < config.ids.length - 1;
 
       t.assert(data.pageInfo.hasNextPage == expectNextPage);
+      t.assert(!data.pageInfo.hasPreviousPage);
+      t.assert(
+        data.pageInfo.startCursor == data.edges[0].cursor,
+        `Expecting ${data.pageInfo.startCursor} == ${data.edges[0].cursor}`
+      );
+      t.assert(
+        data.pageInfo.endCursor == data.edges[data.edges.length - 1].cursor,
+        `Expected ${data.pageInfo.endCursor} == ${
+          data.edges[data.edges.length - 1].cursor
+        }`
+      );
     }
   });
 
@@ -85,6 +98,8 @@ export function pagingTests(config: PagingTestsConfig): void {
                         pageInfo {
                             hasNextPage
                             hasPreviousPage
+                            startCursor
+                            endCursor
                         }
                     }
                 }
@@ -109,6 +124,17 @@ export function pagingTests(config: PagingTestsConfig): void {
       const expectNextPage = i > 0;
 
       t.assert(data.pageInfo.hasPreviousPage == expectNextPage);
+      t.assert(!data.pageInfo.hasNextPage);
+      t.assert(
+        data.pageInfo.startCursor == data.edges[0].cursor,
+        `Expecting ${data.pageInfo.startCursor} == ${data.edges[0].cursor}`
+      );
+      t.assert(
+        data.pageInfo.endCursor == data.edges[data.edges.length - 1].cursor,
+        `Expected ${data.pageInfo.endCursor} == ${
+          data.edges[data.edges.length - 1].cursor
+        }`
+      );
     }
   });
 }

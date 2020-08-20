@@ -20,9 +20,17 @@ export class ReverseCursorConnection<T extends Node> implements Connection<T> {
 
     if (typeof cursorRule.last === "number") {
       this.pageInfo.hasPreviousPage = elements.length > cursorRule.last;
+      this.pageInfo.hasNextPage = false;
 
       if (elements.length > cursorRule.last) {
         elements = elements.slice(0, cursorRule.last);
+      }
+
+      if (elements.length > 0) {
+        this.pageInfo.startCursor = CursorConnection.toCursor(elements[0].id);
+        this.pageInfo.endCursor = CursorConnection.toCursor(
+          elements[elements.length - 1].id
+        );
       }
     }
 

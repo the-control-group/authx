@@ -20,9 +20,17 @@ export class ForwardCursorConnection<T extends Node> implements Connection<T> {
 
     if (typeof cursorRule.first === "number") {
       this.pageInfo.hasNextPage = elements.length > cursorRule.first;
+      this.pageInfo.hasPreviousPage = false;
 
       if (elements.length > cursorRule.first) {
         elements = elements.slice(0, cursorRule.first);
+      }
+
+      if (elements.length > 0) {
+        this.pageInfo.startCursor = CursorConnection.toCursor(elements[0].id);
+        this.pageInfo.endCursor = CursorConnection.toCursor(
+          elements[elements.length - 1].id
+        );
       }
     }
 
