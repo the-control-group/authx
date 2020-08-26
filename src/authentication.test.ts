@@ -154,6 +154,21 @@ test("Successful authentication.", async t => {
     null,
     "expected authenticatePassword.user to not be null"
   );
+  t.is(
+    typeof json.data.authenticatePassword.user.authorizations,
+    "object",
+    "expected authenticatePassword.user.authorizations to be an object"
+  );
+  t.not(
+    json.data.authenticatePassword.user.authorizations,
+    null,
+    "expected authenticatePassword.user.authorizations to not be null"
+  );
+  t.is(
+    Array.isArray(json.data.authenticatePassword.user.authorizations.edges),
+    true,
+    "expected authenticatePassword.user.authorizations.edges to be an array"
+  );
 
   // Make sure a new authentication is present...
   t.is(
@@ -169,15 +184,15 @@ test("Successful authentication.", async t => {
 
   // Make sure we are authenticated as the correct user...
   t.is(
-    typeof json.data.authenticatePassword.user.id,
-    "0d765613-e813-40e5-9aa7-89f96531364e",
+    json.data.authenticatePassword.user.id,
+    "a6a0946d-eeb4-45cd-83c6-c7920f2272eb",
     "expected to be authenticated as a different user"
   );
 
   // Make sure the new ID is available in the list of user IDs...
   t.is(
-    json.data.authenticatePassword.user.edges.some(
-      (e: any) => e.node.id === json.data.authenticatePassword.id
+    json.data.authenticatePassword.user.authorizations.edges.some(
+      (e: any) => e.node?.id === json.data.authenticatePassword.id
     ),
     true
   );

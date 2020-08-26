@@ -256,6 +256,9 @@ export const authenticateEmail: GraphQLFieldConfig<
       executor.connection = pool;
       context.executor = executor as ReadonlyDataLoaderExecutor<Pool>;
 
+      // Use this authorization for the rest of the request.
+      context.authorization = authorization;
+
       return authorization;
     } catch (error) {
       await tx.query("ROLLBACK");
