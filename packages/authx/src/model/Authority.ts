@@ -279,8 +279,7 @@ export abstract class Authority<A> implements AuthorityData<A> {
     const data = result.rows.map(row => {
       return {
         ...row,
-        recordId: row.record_id,
-        baseUrls: row.base_urls
+        recordId: row.record_id
       };
     });
 
@@ -397,8 +396,7 @@ export abstract class Authority<A> implements AuthorityData<A> {
     const row = next.rows[0];
     return new this({
       ...row,
-      recordId: row.record_id,
-      baseUrls: row.base_urls
+      recordId: row.record_id
     }) as T;
   }
 
