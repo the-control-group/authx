@@ -3,7 +3,7 @@ import { Pool } from "pg";
 import jwt from "jsonwebtoken";
 import { randomBytes } from "crypto";
 import { Context } from "./Context";
-import { Client, Grant, Authorization } from "./model";
+import { Client, Grant, Authorization, User } from "./model";
 import { NotFoundError } from "./errors";
 import { createV2AuthXScope } from "./util/scopes";
 import { DataLoaderExecutor } from "./loader";
@@ -315,6 +315,7 @@ async function oAuth2Middleware(
         nonce?: unknown;
         refresh_token?: unknown;
         scope?: unknown;
+        token_format?: unknown;
       } = (ctx.request as any).body;
       if (!request || typeof request !== "object") {
         throw new OAuthError(
@@ -344,6 +345,10 @@ async function oAuth2Middleware(
             typeof request.code === "string" ? request.code : undefined;
           const paramsNonce: undefined | string =
             typeof request.nonce === "string" ? request.nonce : undefined;
+          const tokenFormat =
+            typeof request.token_format === "string"
+              ? request.token_format
+              : undefined;
 
           if (!paramsClientId || !paramsClientSecret || !paramsCode) {
             throw new OAuthError(
@@ -573,38 +578,18 @@ async function oAuth2Middleware(
             }
           );
 
-          const scopes = await requestedAuthorization.access(executor);
-          const tokenId = v4();
-          await requestedAuthorization.invoke(executor, {
-            id: tokenId,
-            format: "bearer",
-            createdAt: new Date()
-          });
-
-          const body = {
-            /* eslint-disable camelcase */
-            token_type: "bearer",
-            access_token: jwt.sign(
-              {
-                aid: requestedAuthorization.id,
-                scopes,
-                nonce: paramsNonce
-              },
-              privateKey,
-              {
-                jwtid: tokenId,
-                algorithm: "RS512",
-                expiresIn: jwtValidityDuration,
-                audience: client.id,
-                subject: user.id,
-                issuer: realm
-              }
-            ),
-            refresh_token: getRefreshToken(grant.secrets),
-            expires_in: jwtValidityDuration,
-            scope: scopes.join(" ")
-            /* eslint-enable camelcase */
-          };
+          const body = await prepareOAuthResponse(
+            requestedAuthorization,
+            user,
+            client,
+            grant,
+            executor,
+            tokenFormat,
+            paramsNonce,
+            privateKey,
+            jwtValidityDuration,
+            realm
+          );
 
           await tx.query("COMMIT");
 
@@ -637,6 +622,11 @@ async function oAuth2Middleware(
             typeof request.scope === "string" ? request.scope : undefined;
           const paramsNonce: undefined | string =
             typeof request.nonce === "string" ? request.nonce : undefined;
+          const tokenFormat =
+            typeof request.token_format === "string"
+              ? request.token_format
+              : undefined;
+
           if (!paramsClientId || !paramsClientSecret || !paramsRefreshToken) {
             throw new OAuthError(
               "invalid_request",
@@ -872,39 +862,18 @@ async function oAuth2Middleware(
             );
           }
 
-          const scopes = await requestedAuthorization.access(executor);
-
-          const tokenId = v4();
-          await requestedAuthorization.invoke(executor, {
-            id: tokenId,
-            format: "bearer",
-            createdAt: new Date()
-          });
-
-          const body = {
-            /* eslint-disable camelcase */
-            token_type: "bearer",
-            access_token: jwt.sign(
-              {
-                aid: requestedAuthorization.id,
-                scopes,
-                nonce: paramsNonce
-              },
-              privateKey,
-              {
-                jwtid: tokenId,
-                algorithm: "RS512",
-                expiresIn: jwtValidityDuration,
-                audience: client.id,
-                subject: user.id,
-                issuer: realm
-              }
-            ),
-            refresh_token: getRefreshToken(grant.secrets),
-            expires_in: jwtValidityDuration,
-            scope: scopes.join(" ")
-            /* eslint-enabme camelcase */
-          };
+          const body = await prepareOAuthResponse(
+            requestedAuthorization,
+            user,
+            client,
+            grant,
+            executor,
+            tokenFormat,
+            paramsNonce,
+            privateKey,
+            jwtValidityDuration,
+            realm
+          );
 
           await tx.query("COMMIT");
           ctx.response.body = body;
@@ -941,6 +910,70 @@ async function oAuth2Middleware(
     ctx.response.status = error.statusCode;
     ctx.response.body = body;
     ctx.app.emit("error", error, ctx);
+  }
+}
+
+async function prepareOAuthResponse(
+  requestedAuthorization: Authorization,
+  user: User,
+  client: Client,
+  grant: Grant,
+  executor: DataLoaderExecutor,
+  tokenFormat: string | undefined,
+  paramsNonce: string | undefined,
+  privateKey: string,
+  jwtValidityDuration: number,
+  realm: string
+): Promise<any> {
+  if (typeof tokenFormat == "undefined") tokenFormat = "BEARER";
+
+  const scopes = await requestedAuthorization.access(executor);
+  const tokenId = v4();
+  await requestedAuthorization.invoke(executor, {
+    id: tokenId,
+    format: tokenFormat.toLowerCase(),
+    createdAt: new Date()
+  });
+
+  if (tokenFormat == "BEARER") {
+    return {
+      /* eslint-disable camelcase */
+      token_type: "bearer",
+      access_token: jwt.sign(
+        {
+          aid: requestedAuthorization.id,
+          scopes,
+          nonce: paramsNonce
+        },
+        privateKey,
+        {
+          jwtid: tokenId,
+          algorithm: "RS512",
+          expiresIn: jwtValidityDuration,
+          audience: client.id,
+          subject: user.id,
+          issuer: realm
+        }
+      ),
+      refresh_token: getRefreshToken(grant.secrets),
+      expires_in: jwtValidityDuration,
+      scope: scopes.join(" ")
+      /* eslint-enable camelcase */
+    };
+  } else if (tokenFormat == "BASIC") {
+    const tokenRaw = `${requestedAuthorization.id}:${requestedAuthorization.secret}`;
+
+    return {
+      /* eslint-disable camelcase */
+      token_type: "basic",
+      access_token: Buffer.from(tokenRaw, "utf8").toString("base64"),
+      refresh_token: getRefreshToken(grant.secrets),
+      expires_in: jwtValidityDuration,
+      scope: scopes.join(" ")
+      /* eslint-enable camelcase */
+    };
+  } else {
+    throw "Invalid token_format";
   }
 }
 
