@@ -142,6 +142,13 @@ interface Config {
   readonly evictDormantCachedTokensThreshold?: number;
 
   /**
+   * Format of tokens that we will request from AuthX and use.
+   * Can be either BEARER or BASIC.
+   * If not set, assumes BEARER.
+   */
+  readonly tokenFormat?: string;
+
+  /**
    * The rules the proxy will use to handle a request.
    */
   readonly rules: Rule[];
@@ -316,7 +323,9 @@ export default class AuthXClientProxy extends EventEmitter {
       // Inject the access token into the request.
       if (behavior.refreshToken) {
         try {
-          request.headers.authorization = `Bearer ${await this._getAccessToken(
+          request.headers.authorization = `${
+            this.tokenPrefix
+          } ${await this._getAccessToken(
             behavior.refreshToken,
             behavior.sendTokenToTargetWithScopes || []
           )}`;
@@ -514,6 +523,7 @@ export default class AuthXClientProxy extends EventEmitter {
               grant_type: "refresh_token",
               client_id: this._config.clientId,
               client_secret: this._config.clientSecret,
+              token_format: this._config.tokenFormat,
               refresh_token: refreshToken,
               scope: scopes.join(" ")
               /* eslint-enable camelcase */
@@ -727,5 +737,15 @@ export default class AuthXClientProxy extends EventEmitter {
         });
       }, delay);
     });
+  }
+
+  /**
+   * Gets the type of token we are using to communicate with the backend, in the context
+   * where undefined is not a valid value.
+   * @private
+   */
+  private get tokenPrefix(): string {
+    if (this._config.tokenFormat == "BASIC") return "Basic";
+    return "Bearer";
   }
 }

@@ -106,6 +106,13 @@ interface Config {
    */
   readonly requestGrantedScopes: string[];
 
+  /**
+   * Format of tokens that we will request from AuthX and use.
+   * Can be either BEARER or BASIC.
+   * If not set, assumes BEARER.
+   */
+  readonly tokenFormat?: string;
+
   // TODO: eventually we will want the ability to _require_ that certain scopes
   // are granted. Take, for example, an app that required scopes A and B. Now it
   // also wants C. Without checking the _granted_ scopes, there is no way to
@@ -358,6 +365,7 @@ export default class AuthXWebProxy extends EventEmitter {
             client_id: this._config.clientId,
             client_secret: this._config.clientSecret,
             code: code,
+            token_format: this._config.tokenFormat,
             scope: "**:**:**"
             /* eslint-enable camelcase */
           })
@@ -461,7 +469,7 @@ export default class AuthXWebProxy extends EventEmitter {
             Date.now() / 1000 + (this._config.tokenMinimumRemainingLife || 30)
         ) {
           // We already have a valid token.
-          request.headers.authorization = `Bearer ${token}`;
+          request.headers.authorization = `${this.tokenPrefix} ${token}`;
           forward(behavior.proxyOptions, rule, behavior);
           return;
         }
@@ -483,6 +491,7 @@ export default class AuthXWebProxy extends EventEmitter {
               client_id: this._config.clientId,
               client_secret: this._config.clientSecret,
               refresh_token: refreshToken,
+              token_format: this._config.tokenFormat,
               scope: scopes.join(" ")
               /* eslint-enabme camelcase */
             })
@@ -512,7 +521,7 @@ export default class AuthXWebProxy extends EventEmitter {
           // Use the new access token.
           if (refreshResponseBody.access_token) {
             cookies.set(`authx.t.${hash}`, refreshResponseBody.access_token);
-            request.headers.authorization = `Bearer ${refreshResponseBody.access_token}`;
+            request.headers.authorization = `${this.tokenPrefix} ${refreshResponseBody.access_token}`;
 
             forward(behavior.proxyOptions, rule, behavior);
             return;
@@ -610,5 +619,15 @@ export default class AuthXWebProxy extends EventEmitter {
         });
       }, delay);
     });
+  }
+
+  /**
+   * Gets the type of token we are using to communicate with the backend, in the context
+   * where undefined is not a valid value.
+   * @private
+   */
+  private get tokenPrefix(): string {
+    if (this._config.tokenFormat == "BASIC") return "Basic";
+    return "Bearer";
   }
 }
