@@ -42,3 +42,14 @@ jobs:
           PGPASSWORD: postgres
           PGPORT: 5432
           PGSSL: false
+
+      - name: Version
+        run: 'scripts/run-in-packages.sh yarn version --no-git-tag-version --new-version $GITHUB_REF'
+      - name: Repush
+        run: |
+          git config --global user.name 'Github Actions'
+          git config --global user.email 'githubactions'
+          git commit -am "v$GITHUB_REF"
+          git tag -a "v$GITHUB_REF"
+          git branch
+#          git push
