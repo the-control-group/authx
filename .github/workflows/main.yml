@@ -8,6 +8,14 @@ jobs:
   build:
     runs-on: ubuntu-latest
 
+    services:
+      postgres:
+        image: postgres:9.6.17
+        env:
+          POSTGRES_PASSWORD: postgres
+        ports:
+          - 5432:5432
+
     steps:
       - uses: actions/checkout@v2
       - name: Use Node 12
@@ -19,13 +27,23 @@ jobs:
         env:
           cache-name: cache-node-modules
         with:
-          path: ~/.npm # npm cache files are stored in `~/.npm` on Linux/macOS
+          path: "**/node_modules"
           key: ${{ runner.os }}-build-${{ env.cache-name }}-${{ hashFiles('**/yarn.lock') }}
-          restore-keys: |
-            ${{ runner.os }}-build-${{ env.cache-name }}-
-            ${{ runner.os }}-build-
-            ${{ runner.os }}-
       - name: Install Dependencies and Test
-        run: yarn
+        run: yarn install
       - name: Build
         run: yarn run build
+      - name: Lint
+        run: yarn run lint
+      - name: Test
+        run: yarn run test
+        env:
+          PORT: 12000
+          PGHOST: 127.0.0.1
+          PGUSER: postgres
+          PGPASSWORD: postgres
+          PGPORT: 5432
+          PGSSL: false
+      - name: Version
+        run: 'scripts/run-in-packages.sh yarn version --no-git-tag-version --new-version $GITHUB_REF'
+
