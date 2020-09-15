@@ -11,6 +11,8 @@ jobs:
         image: postgres:9.6.17
         env:
           POSTGRES_PASSWORD: postgres
+        ports:
+          - 5432:5432
 
     steps:
       - uses: actions/checkout@v2
@@ -35,7 +37,7 @@ jobs:
         run: yarn run test
         env:
           PORT: 12000
-          PGHOST: postgres
+          PGHOST: 127.0.0.1
           PGUSER: postgres
           PGPASSWORD: postgres
           PGPORT: 5432
