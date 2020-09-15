@@ -4,27 +4,26 @@ on: [push, pull_request]
 
 jobs:
   build:
-
     runs-on: ubuntu-latest
 
     steps:
-    - uses: actions/checkout@v2
-    - name: Use Node 12
-      uses: actions/setup-node@v1
-      with:
-        node-version: '12.x'
-    - name: Cache node modules
-      uses: actions/cache@v1
-      env:
-        cache-name: cache-node-modules
-      with:
-        path: "**/node_modules"
-        key: ${{ runner.os }}-build-${{ env.cache-name }}-${{ hashFiles('**/yarn.lock') }}
-    - name: Install Dependencies and Test
-      run: yarn install
-    - name: Build
-      run: yarn run build
-    - name: Lint
-      run: yarn run lint
-    - name: Test
-      run: yarn run test
+      - uses: actions/checkout@v2
+      - name: Use Node 12
+        uses: actions/setup-node@v1
+        with:
+          node-version: "12.x"
+      - name: Cache node modules
+        uses: actions/cache@v1
+        env:
+          cache-name: cache-node-modules
+        with:
+          path: "**/node_modules"
+          key: ${{ runner.os }}-build-${{ env.cache-name }}-${{ hashFiles('**/yarn.lock') }}
+      - name: Install Dependencies and Test
+        run: yarn install
+      - name: Build
+        run: yarn run build
+      - name: Lint
+        run: yarn run lint
+      - name: Test
+        run: yarn run test
