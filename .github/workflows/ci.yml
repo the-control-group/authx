@@ -21,6 +21,6 @@ jobs:
         path: "**/node_modules"
         key: ${{ runner.os }}-build-${{ env.cache-name }}-${{ hashFiles('**/yarn.lock') }}
     - name: Install Dependencies and Test
-      run: yarn
+      run: yarn install
     - name: Build
       run: yarn run build
