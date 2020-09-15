@@ -9,7 +9,7 @@ jobs:
     services:
       postgres:
         image: postgres:9.6.17
-        environment:
+        env:
           POSTGRES_PASSWORD: postgres
 
     steps:
