@@ -6,6 +6,12 @@ jobs:
   build:
     runs-on: ubuntu-latest
 
+    services:
+      postgres:
+        image: postgres:9.6.17
+        environment:
+          POSTGRES_PASSWORD: postgres
+
     steps:
       - uses: actions/checkout@v2
       - name: Use Node 12
@@ -29,3 +35,8 @@ jobs:
         run: yarn run test
         env:
           PORT: 12000
+          PGHOST: postgres
+          PGUSER: postgres
+          PGPASSWORD: postgres
+          PGPORT: 5432
+          PGSSL: false
