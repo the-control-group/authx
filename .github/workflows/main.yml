@@ -45,7 +45,7 @@ jobs:
           PGPORT: 5432
           PGSSL: false
       - name: Version
-        run: 'scripts/run-in-packages.sh yarn version --no-git-tag-version --new-version $GITHUB_REF'
+        run: "scripts/run-in-packages.sh yarn version --no-git-tag-version --new-version $GITHUB_REF"
       - name: Repush
         run: |
           git config --global user.name 'Github Actions'
