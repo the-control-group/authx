@@ -44,8 +44,12 @@ jobs:
           PGSSL: false
 
       - name: Version
+        env:
+          GITHUB_REF: 0.0.99
         run: "scripts/run-in-packages.sh yarn version --no-git-tag-version --new-version $GITHUB_REF"
       - name: Repush
+        env:
+          GITHUB_REF: 0.0.99
         run: |
           git config --global user.name 'Github Actions'
           git config --global user.email 'githubactions'
