@@ -973,7 +973,7 @@ async function prepareOAuthResponse(
       /* eslint-enable camelcase */
     };
   } else {
-    throw "Invalid token_format";
+    throw new Error("Invalid token_format.");
   }
 }
 
