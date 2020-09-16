@@ -4,7 +4,6 @@
     "name": "Mike Marcacci"
   },
   "bugs": "https://github.com/the-control-group/authx/issues",
-  "dependencies": {},
   "description": "",
   "devDependencies": {
     "@typescript-eslint/eslint-plugin": "^3.9.1",

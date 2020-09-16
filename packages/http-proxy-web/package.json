@@ -44,7 +44,6 @@
   "license": "MIT",
   "main": "dist",
   "name": "@authx/http-proxy-web",
-  "peerDependencies": {},
   "repository": "https://github.com/the-control-group/authx",
   "scripts": {
     "format": "prettier --list-different --write '**/*.{json,yml,md,ts}'",
