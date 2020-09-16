@@ -51,6 +51,6 @@ jobs:
           git config --global user.email 'githubactions'
           git commit -am "v0.0.99"
           git tag -a "v0.0.99" -m "v0.0.99"
-          git branch
+          git branch -va
 
 #          git push
