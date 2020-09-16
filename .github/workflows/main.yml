@@ -49,7 +49,9 @@ jobs:
           export VERSION=`echo "$BASE_VERSION" | grep -Po '[0-9].*'`
           echo "::set-env name=VERSION::$VERSION"
       - name: Version
-        run: "scripts/run-in-packages.sh yarn version --no-git-tag-version --new-version $VERSION"
+        run: |
+          yarn run lerna version --no-git-tag-version -y "$VERSION"
+          yarn format
       - name: Repush
         run: |
           git config --global user.name 'Github Actions'
@@ -58,6 +60,7 @@ jobs:
           git tag -f -a "v$VERSION" -m "v$VERSION"
           git branch -va
           git push -f --tags
+          git push origin HEAD:master
       - name: Publish
         env:
           NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
