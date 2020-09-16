@@ -46,7 +46,7 @@ jobs:
       - name: GenerateVersion
         run: |
           export BASE_VERSION="v0.0.97"
-          export VERSION=`echo "$BASE_VERSION" | grep -P '[0-9].*'`
+          export VERSION=`echo "$BASE_VERSION" | grep -Po '[0-9].*'`
           echo "::set-env name=VERSION::$VERSION"
       - name: Version
         run: "scripts/run-in-packages.sh yarn version --no-git-tag-version --new-version $VERSION"
