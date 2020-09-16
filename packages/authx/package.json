@@ -22,7 +22,7 @@
     "form-data": "^3.0.0",
     "graphql": "15.3.0",
     "graphql-api-koa": "^6.0.0",
-    "graphql-playground-middleware-koa": "^1.6.17",
+    "graphql-playground-middleware-koa": "^1.6.20",
     "graphql-relay": "^0.6.0",
     "jsonwebtoken": "^8.5.0",
     "koa": "^2.13.0",
