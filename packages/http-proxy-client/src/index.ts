@@ -142,6 +142,13 @@ interface Config {
   readonly evictDormantCachedTokensThreshold?: number;
 
   /**
+   * Format of tokens that we will request from AuthX and use.
+   * Can be either BEARER or BASIC.
+   * If not set, assumes BEARER.
+   */
+  readonly tokenFormat?: string;
+
+  /**
    * The rules the proxy will use to handle a request.
    */
   readonly rules: Rule[];
@@ -316,7 +323,9 @@ export default class AuthXClientProxy extends EventEmitter {
       // Inject the access token into the request.
       if (behavior.refreshToken) {
         try {
-          request.headers.authorization = `Bearer ${await this._getAccessToken(
+          request.headers.authorization = `${
+            this.tokenPrefix
+          } ${await this._getAccessToken(
             behavior.refreshToken,
             behavior.sendTokenToTargetWithScopes || []
           )}`;
@@ -514,6 +523,7 @@ export default class AuthXClientProxy extends EventEmitter {
               grant_type: "refresh_token",
               client_id: this._config.clientId,
               client_secret: this._config.clientSecret,
+              token_format: this._config.tokenFormat,
               refresh_token: refreshToken,
               scope: scopes.join(" ")
               /* eslint-enable camelcase */
@@ -544,50 +554,54 @@ export default class AuthXClientProxy extends EventEmitter {
             throw new Error("No access token returned.");
           }
 
-          const payload = decode(accessToken);
-          if (!payload || typeof payload !== "object") {
-            throw new Error("Invalid token payload.");
-          }
-
-          const expiration = payload.exp;
-          if (typeof expiration !== "number") {
-            throw new Error("Invalid token expiration.");
-          }
-
-          const expiresInSeconds = expiration - Math.floor(Date.now() / 1000);
-          const refreshInSeconds =
-            expiresInSeconds -
-            (this._config.refreshCachedTokensAtRemainingLife || 60);
-
-          if (refreshInSeconds < 0) {
-            throw new Error("Token is too close to its expiration.");
-          }
-
-          // Set an expiration timeout.
-          this._expirationTimeouts[refreshToken] =
-            this._expirationTimeouts[refreshToken] || {};
-          if (this._expirationTimeouts[refreshToken][hash]) {
-            clearTimeout(this._expirationTimeouts[refreshToken][hash]);
-          }
-          this._expirationTimeouts[refreshToken][hash] = setTimeout(() => {
-            if (
-              this._accessTokens[refreshToken] &&
-              this._accessTokens[refreshToken][hash] === accessToken
-            ) {
-              delete this._accessTokens[refreshToken][hash];
+          // This code is designed to make sure we keep track of when tokens will expire, and refresh them before they do.
+          // BASIC tokens never expire, so this is not applicable to them.
+          if (refreshResponseBody.token_type?.toLowerCase() == "bearer") {
+            const payload = decode(accessToken);
+            if (!payload || typeof payload !== "object") {
+              throw new Error("Invalid token payload.");
             }
-          }, refreshInSeconds * 1000);
 
-          // Set a refresh timeout.
-          this._refreshTimeouts[refreshToken] =
-            this._refreshTimeouts[refreshToken] || {};
-          if (this._refreshTimeouts[refreshToken][hash]) {
-            clearTimeout(this._refreshTimeouts[refreshToken][hash]);
+            const expiration = payload.exp;
+            if (typeof expiration !== "number") {
+              throw new Error("Invalid token expiration.");
+            }
+
+            const expiresInSeconds = expiration - Math.floor(Date.now() / 1000);
+            const refreshInSeconds =
+              expiresInSeconds -
+              (this._config.refreshCachedTokensAtRemainingLife || 60);
+
+            if (refreshInSeconds < 0) {
+              throw new Error("Token is too close to its expiration.");
+            }
+
+            // Set an expiration timeout.
+            this._expirationTimeouts[refreshToken] =
+              this._expirationTimeouts[refreshToken] || {};
+            if (this._expirationTimeouts[refreshToken][hash]) {
+              clearTimeout(this._expirationTimeouts[refreshToken][hash]);
+            }
+            this._expirationTimeouts[refreshToken][hash] = setTimeout(() => {
+              if (
+                this._accessTokens[refreshToken] &&
+                this._accessTokens[refreshToken][hash] === accessToken
+              ) {
+                delete this._accessTokens[refreshToken][hash];
+              }
+            }, refreshInSeconds * 1000);
+
+            // Set a refresh timeout.
+            this._refreshTimeouts[refreshToken] =
+              this._refreshTimeouts[refreshToken] || {};
+            if (this._refreshTimeouts[refreshToken][hash]) {
+              clearTimeout(this._refreshTimeouts[refreshToken][hash]);
+            }
+            this._refreshTimeouts[refreshToken][hash] = setTimeout(
+              () => this._fetchAccessToken(refreshToken, scopes, true),
+              refreshInSeconds * 1000
+            );
           }
-          this._refreshTimeouts[refreshToken][hash] = setTimeout(
-            () => this._fetchAccessToken(refreshToken, scopes, true),
-            refreshInSeconds * 1000
-          );
 
           // Cache the access token.
           this._accessTokens[refreshToken] =
@@ -727,5 +741,15 @@ export default class AuthXClientProxy extends EventEmitter {
         });
       }, delay);
     });
+  }
+
+  /**
+   * Gets the type of token we are using to communicate with the backend, in the context
+   * where undefined is not a valid value.
+   * @private
+   */
+  private get tokenPrefix(): string {
+    if (this._config.tokenFormat == "BASIC") return "Basic";
+    return "Bearer";
   }
 }
