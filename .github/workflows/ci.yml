@@ -43,13 +43,18 @@ jobs:
           PGPORT: 5432
           PGSSL: false
 
+      - name: GenerateVersion
+        run: |
+          export BASE_VERSION="v0.0.97"
+          export VERSION=`echo "$BASE_VERSION" | grep -P '[0-9].*'`
+          echo "::set-env name=VERSION::$VERSION"
       - name: Version
-        run: "scripts/run-in-packages.sh yarn version --no-git-tag-version --new-version 0.0.99"
+        run: "scripts/run-in-packages.sh yarn version --no-git-tag-version --new-version $VERSION"
       - name: Repush
         run: |
           git config --global user.name 'Github Actions'
           git config --global user.email 'githubactions'
-          git commit -am "v0.0.99"
-          git tag -a "v0.0.99" -m "v0.0.99"
+          git commit -am "v$VERSION"
+          git tag -a "v$VERSION" -m "v$VERSION"
           git branch -va
           git push
