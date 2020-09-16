@@ -5,7 +5,7 @@
   },
   "bugs": "https://github.com/the-control-group/authx/issues",
   "dependencies": {
-    "@authx/scopes": "^3.1.0-alpha.18",
+    "@authx/scopes": "^3.1.0-alpha.19",
     "@types/graphql-react": "^8.1.1",
     "@types/html-webpack-plugin": "^3.2.3",
     "@types/memory-fs": "^0.3.2",
@@ -70,5 +70,5 @@
     "prepublishOnly": "yarn build"
   },
   "types": "dist/server/index.d.ts",
-  "version": "3.1.0-alpha.18"
+  "version": "3.1.0-alpha.19"
 }
