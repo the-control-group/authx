@@ -42,6 +42,7 @@
     "lint": "prettier -c '**/*.{json,yml,md,ts}' && eslint src --ext ts",
     "build": "rm -rf dist && tsc",
     "build:development": "rm -rf dist && tsc --watch",
+    "build:development:chained": "tsc --watch --preserveWatchOutput",
     "test": "ava --verbose dist/*.test.js",
     "test:development": "ava --verbose --watch dist/*.test.js",
     "prepublishOnly": "yarn build"

@@ -52,6 +52,7 @@
     "lint": "prettier -c '**/*.{json,yml,md,ts,tsx}' && eslint src --ext ts --ext tsx",
     "build": "rm -rf dist && tsc && chmod +x dist/authx.js",
     "build:development": "rm -rf dist && tsc --watch",
+    "build:development:chained": "tsc --watch --preserveWatchOutput",
     "test": "ava --verbose dist/*.test.js",
     "test:development": "ava --verbose --watch dist/*.test.js",
     "prepublishOnly": "yarn build"
