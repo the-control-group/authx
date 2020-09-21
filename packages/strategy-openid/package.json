@@ -6,6 +6,7 @@
   "bugs": "https://github.com/the-control-group/authx/issues",
   "dependencies": {
     "@authx/scopes": "^3.1.0-alpha.19",
+    "@authx/strategy-email": "^3.1.0-alpha.19",
     "@types/pg": "^7.14.4",
     "@types/uuid": "^8.3.0",
     "graphql": "15.3.0",
@@ -54,6 +55,7 @@
     "lint": "prettier -c '**/*.{json,yml,md,ts,tsx}' && eslint src --ext ts --ext tsx",
     "build": "rm -rf dist && tsc",
     "build:development": "rm -rf dist && tsc --watch",
+    "build:development:chained": "tsc --watch --preserveWatchOutput",
     "start": "NODE_ENV=production node dist/server",
     "start:development": "NODE_ENV=development nodemon --delay 2 --inspect dist/server",
     "test": "ava --verbose dist/*.test.js",
