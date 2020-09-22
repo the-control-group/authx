@@ -23,7 +23,7 @@
     chalk "^2.0.0"
     js-tokens "^4.0.0"
 
-"@babel/runtime@^7.10.5":
+"@babel/runtime@^7.11.2":
   version "7.11.2"
   resolved "https://registry.yarnpkg.com/@babel/runtime/-/runtime-7.11.2.tgz#f549c13c754cc40b87644b9fa9f09a6a95fe0736"
   integrity sha512-TeWkU52so0mPtDcaCTxNBI/IHiz0pZgr8VEFqXFtZWpYD08ZB6FaSwVAS8MKRQAP3bYKiVjwysOJgMFY28o6Tw==
@@ -4469,11 +4469,11 @@ graphql-playground-middleware-koa@^1.6.17:
     graphql-playground-html "^1.6.28"
 
 graphql-react@^11.0.4:
-  version "11.0.4"
-  resolved "https://registry.yarnpkg.com/graphql-react/-/graphql-react-11.0.4.tgz#32fab69b27d7f0c4d6eb2474be9fcc8509619756"
-  integrity sha512-EE2zrQ2E5QukBs50ftFz/0/UdrqbEPey98sqhqq81hLFDmUDi+QMU+qNpFpNfDyAcBE9c+aoOLykc3taWD7M9g==
+  version "11.1.0"
+  resolved "https://registry.yarnpkg.com/graphql-react/-/graphql-react-11.1.0.tgz#6ef0d6e7efc68b88476dda927b65216796c7e220"
+  integrity sha512-bfyUWXc9qFyrxbhyrlNgjIfGznuXJv2rHhJpP+uNh1ynTj1cWgyW/tmquXAashJWF3YTVjLWKdFdbxEjymuBLw==
   dependencies:
-    "@babel/runtime" "^7.10.5"
+    "@babel/runtime" "^7.11.2"
     extract-files "^9.0.0"
     fnv1a "^1.0.1"
     mitt "^2.1.0"
