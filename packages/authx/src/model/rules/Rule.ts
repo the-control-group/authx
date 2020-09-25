@@ -46,7 +46,7 @@ export class Rule {
       .map(it => it.toSQLOrder())
       .filter(it => it);
 
-    if (orderByClauseElements.length == 1) {
+    if (orderByClauseElements.length === 1) {
       ret += ` ${orderByClauseElements[0]}`;
     } else if (orderByClauseElements.length > 1) {
       throw "Only one ORDER BY element is allowed in rules";
@@ -56,7 +56,7 @@ export class Rule {
       .map(it => it.toSQLLimit())
       .filter(it => it);
 
-    if (limitClauseElements.length == 1) {
+    if (limitClauseElements.length === 1) {
       ret += ` LIMIT ${limitClauseElements[0]}`;
     } else if (limitClauseElements.length > 1) {
       throw "Only one LIMIT element is allowed in rules";

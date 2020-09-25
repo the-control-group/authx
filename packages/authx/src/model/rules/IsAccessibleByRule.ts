@@ -88,7 +88,7 @@ export class IsAccessibleByRule extends Rule {
               ] !== "undefined"
             ) {
               const value = extracted.parameters[key];
-              if (value == "*") {
+              if (value === "*") {
                 hasAtLeastOneStar = true;
               } else if (value) {
                 fixedId[key] = value;
@@ -100,7 +100,7 @@ export class IsAccessibleByRule extends Rule {
 
           if (scopeCorrupted) continue;
 
-          if (hasAtLeastOneStar && Object.keys(fixedId).length == 0) {
+          if (hasAtLeastOneStar && Object.keys(fixedId).length === 0) {
             allAccess = true;
             break;
           } else if (Object.keys(fixedId).length > 0) {
@@ -109,7 +109,7 @@ export class IsAccessibleByRule extends Rule {
         }
       }
 
-      if (!allAccess && fixedIds.length == 0) {
+      if (!allAccess && fixedIds.length === 0) {
         // this authorization can't access this entity at all
         this.where = "FALSE";
       } else if (!allAccess) {
