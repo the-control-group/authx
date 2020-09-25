@@ -925,7 +925,7 @@ async function prepareOAuthResponse(
   jwtValidityDuration: number,
   realm: string
 ): Promise<any> {
-  if (typeof tokenFormat == "undefined") tokenFormat = "BEARER";
+  if (typeof tokenFormat === "undefined") tokenFormat = "BEARER";
 
   const scopes = await requestedAuthorization.access(executor);
   const tokenId = v4();
@@ -935,7 +935,7 @@ async function prepareOAuthResponse(
     createdAt: new Date()
   });
 
-  if (tokenFormat == "BEARER") {
+  if (tokenFormat === "BEARER") {
     return {
       /* eslint-disable camelcase */
       token_type: "bearer",
@@ -960,7 +960,7 @@ async function prepareOAuthResponse(
       scope: scopes.join(" ")
       /* eslint-enable camelcase */
     };
-  } else if (tokenFormat == "BASIC") {
+  } else if (tokenFormat === "BASIC") {
     const tokenRaw = `${requestedAuthorization.id}:${requestedAuthorization.secret}`;
 
     return {

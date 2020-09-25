@@ -5,10 +5,10 @@ import { ReverseCursorRule } from "./ReverseCursorRule";
 
 export class CursorRule {
   static create(args: ConnectionArguments): Rule | null {
-    if (typeof args.after == "string" || typeof args.first == "number") {
+    if (typeof args.after === "string" || typeof args.first === "number") {
       return new ForwardCursorRule(args);
     }
-    if (typeof args.before == "string" || typeof args.last == "number") {
+    if (typeof args.before === "string" || typeof args.last === "number") {
       return new ReverseCursorRule(args);
     }
 

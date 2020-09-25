@@ -6,7 +6,7 @@ import { createServer, Server, IncomingMessage, ServerResponse } from "http";
 import { createProxyServer, ServerOptions } from "http-proxy";
 import { decode } from "jsonwebtoken";
 
-interface Behavior {
+export interface Behavior {
   /**
    * The options to pass to node-proxy.
    *
@@ -51,7 +51,7 @@ interface Behavior {
   readonly sendTokenToTargetWithScopes?: string[];
 }
 
-interface Rule {
+export interface Rule {
   /**
    * Each rule is tested in order, with the first to return `true` used to
    * handle the request. This function MUST NOT manipulate the `request` object.
@@ -78,7 +78,7 @@ interface Rule {
       ) => Behavior | undefined);
 }
 
-interface Config {
+export interface Config {
   /**
    * The root URL to AuthX server.
    */
