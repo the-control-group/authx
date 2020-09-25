@@ -8,7 +8,7 @@ import { createProxyServer, ServerOptions } from "http-proxy";
 import { decode } from "jsonwebtoken";
 import { simplify } from "@authx/scopes";
 
-interface Behavior {
+export interface Behavior {
   /**
    * The options to pass to node-proxy.
    */
@@ -53,7 +53,7 @@ interface Behavior {
   readonly sendTokenToTargetWithScopes?: string[];
 }
 
-interface Rule {
+export interface Rule {
   /**
    * Each rule is tested in order, with the first to return `true` used to
    * handle the request. This function MUST NOT manipulate the `request` object.
@@ -80,7 +80,7 @@ interface Rule {
       ) => Behavior | undefined);
 }
 
-interface Config {
+export interface Config {
   /**
    * The root URL to AuthX server.
    */
@@ -111,7 +111,7 @@ interface Config {
    * Can be either BEARER or BASIC.
    * If not set, assumes BEARER.
    */
-  readonly tokenFormat?: string;
+  readonly tokenFormat?: "BASIC" | "BEARER";
 
   // TODO: eventually we will want the ability to _require_ that certain scopes
   // are granted. Take, for example, an app that required scopes A and B. Now it
@@ -229,7 +229,8 @@ export default class AuthXWebProxy extends EventEmitter {
     const forward = (
       options: ServerOptions,
       rule: Rule,
-      behavior: Behavior
+      behavior: Behavior,
+      hash?: string
     ): void => {
       // Merge `set-cookie` header values with those set by the proxy.
       const setHeader = response.setHeader;
@@ -248,6 +249,22 @@ export default class AuthXWebProxy extends EventEmitter {
 
         return setHeader.call(response, name, value);
       };
+
+      // If the resource returns with a 401 and hash is provided, it typically
+      // means that the authorization has insufficient priviliges or has been
+      // revoked. Either way, it should be removed from cache.
+      let statusCode = 404;
+      Object.defineProperty(response, "statusCode", {
+        get: () => statusCode,
+        set: (code: number) => {
+          if (code === 401 && hash) {
+            cookies.set(`authx.t.${hash}`);
+          }
+
+          statusCode = code;
+          return statusCode;
+        }
+      });
 
       // Strip out cookies belonging to the proxy.
       if (request.headers.cookie) {
@@ -460,6 +477,15 @@ export default class AuthXWebProxy extends EventEmitter {
 
       try {
         const token = cookies.get(`authx.t.${hash}`);
+
+        // Use a BASIC token.
+        if (token && this._config.tokenFormat == "BASIC") {
+          request.headers.authorization = `${this.tokenPrefix} ${token}`;
+          forward(behavior.proxyOptions, rule, behavior, hash);
+          return;
+        }
+
+        // Use a BEARER token.
         const payload = token && decode(token);
         if (
           payload &&
@@ -468,7 +494,6 @@ export default class AuthXWebProxy extends EventEmitter {
           payload.exp >
             Date.now() / 1000 + (this._config.tokenMinimumRemainingLife || 30)
         ) {
-          // We already have a valid token.
           request.headers.authorization = `${this.tokenPrefix} ${token}`;
           forward(behavior.proxyOptions, rule, behavior);
           return;

@@ -1,7 +1,7 @@
 import test from "ava";
 import { URL } from "url";
 import { createServer, Server, IncomingMessage } from "http";
-import AuthXWebProxy from ".";
+import AuthXWebProxy, { Config } from ".";
 import fetch, { Headers } from "node-fetch";
 
 // These static values are derived as such:
@@ -22,8 +22,11 @@ let mockTarget: {
   port: number;
 };
 
-let proxy: AuthXWebProxy;
-let port: number;
+let bearerProxy: AuthXWebProxy;
+let bearerProxyPort: number;
+
+let basicProxy: AuthXWebProxy;
+let basicProxyPort: number;
 
 test.before(async () => {
   const mocks = await Promise.all([
@@ -33,20 +36,32 @@ test.before(async () => {
       port: number;
     }>((resolve, reject) => {
       const server = createServer((request, response) => {
-        response.statusCode = 200;
-        response.setHeader("Content-Type", "application/json");
-        response.end(
-          JSON.stringify({
-            /* eslint-disable camelcase */
-            authorization_type: "bearer",
-            access_token:
-              "eyJhbGciOiJSUzUxMiIsInR5cCI6IkpXVCJ9.eyJzY29wZXMiOlsiQXV0aFg6dXNlci5lcXVhbC5zZWxmOnJlYWQuYmFzaWMiXSwiaWF0IjoxNTU2NjAzOTU5LCJleHAiOjQ3MTAyMDM5NTksImF1ZCI6ImZlMjQ3OGI1LTdiNjAtNGNlZC1hYWY4LTZjOWI0YTJlNzNmNiIsImlzcyI6ImF1dGh4Iiwic3ViIjoiMTZhNjA3MjItZjcyZi00MmExLTg0ZjgtNWFmODBiYWFjMjg5In0.hB7N3Ibdc-LX9gTkarWPXpjr6gFPRpFVnKND2CXS1XHq6ePzhLIs-Bn3ksHOvkpDzx96z7x_8pQwgHXg_DgUNcpUP-eFuk156wxJ7rpuG5aV-wUmAAg-yLnMjXWx65VUf7J-JvVtRVHlkzahLA1n0drf4Fll-hoTJ6qaOHidUlo",
-            refresh_token: "c89900b6a34123900274e90f87f7adc0c1ab8d93",
-            expires_in: 3600,
-            scope: "AuthX:user.equal.self:read.basic"
-            /* eslint-enabme camelcase */
-          })
-        );
+        const chunks: Buffer[] = [];
+        request.on("data", (chunk: Buffer) => chunks.push(chunk));
+        request.on("error", error => {
+          throw error;
+        });
+        request.on("end", () => {
+          const requestBody = JSON.parse(
+            Buffer.concat(chunks).toString("utf8")
+          );
+
+          response.statusCode = 200;
+          response.setHeader("Content-Type", "application/json");
+          response.end(
+            JSON.stringify({
+              /* eslint-disable camelcase */
+              access_token:
+                requestBody.token_format === "BASIC"
+                  ? "NjM3MmRmZjMtMzcwOC00MWMyLWE5ZjQtNjMyZWExNDg1MTZkOjkwNDg5OTExN2M3ZDgwNWE4NGYxM2ZiYzEwNWYxMDhjMDIzMGFhOGM="
+                  : "eyJhbGciOiJSUzUxMiIsInR5cCI6IkpXVCJ9.eyJzY29wZXMiOlsiQXV0aFg6dXNlci5lcXVhbC5zZWxmOnJlYWQuYmFzaWMiXSwiaWF0IjoxNTU2NjAzOTU5LCJleHAiOjQ3MTAyMDM5NTksImF1ZCI6ImZlMjQ3OGI1LTdiNjAtNGNlZC1hYWY4LTZjOWI0YTJlNzNmNiIsImlzcyI6ImF1dGh4Iiwic3ViIjoiMTZhNjA3MjItZjcyZi00MmExLTg0ZjgtNWFmODBiYWFjMjg5In0.hB7N3Ibdc-LX9gTkarWPXpjr6gFPRpFVnKND2CXS1XHq6ePzhLIs-Bn3ksHOvkpDzx96z7x_8pQwgHXg_DgUNcpUP-eFuk156wxJ7rpuG5aV-wUmAAg-yLnMjXWx65VUf7J-JvVtRVHlkzahLA1n0drf4Fll-hoTJ6qaOHidUlo",
+              refresh_token: "c89900b6a34123900274e90f87f7adc0c1ab8d93",
+              expires_in: 3600,
+              scope: "AuthX:user.equal.self:read.basic"
+              /* eslint-enabme camelcase */
+            })
+          );
+        });
       });
 
       server.once("listening", async () => {
@@ -68,7 +83,15 @@ test.before(async () => {
       port: number;
     }>((resolve, reject) => {
       const server = createServer((request, response) => {
-        response.statusCode = 200;
+        if (
+          request.headers.authorization ===
+          "Basic YWRhMTJhZDQtYWRmZi00YzU1LTkzOTQtYTAxNWFkZjdlNzE1OmExNjJlZDY2NmRkZmY3NjI1MDQxOTg0ZDI1MGZlYjFkY2YwNWQyNzA="
+        ) {
+          response.statusCode = 401;
+        } else {
+          response.statusCode = 200;
+        }
+
         response.setHeader("Content-Type", "application/json");
         response.end(
           JSON.stringify({
@@ -96,7 +119,7 @@ test.before(async () => {
   mockAuthX = mocks[0];
   mockTarget = mocks[1];
 
-  proxy = new AuthXWebProxy({
+  const config: Config = {
     authxUrl: `http://127.0.0.1:${mockAuthX.port}`,
     readinessEndpoint: "/_ready",
 
@@ -160,31 +183,48 @@ test.before(async () => {
         }
       }
     ]
-  });
+  };
 
-  await proxy.listen({ port: 5734, host: "localhost" });
-  const address = proxy && proxy.server.address();
-  if (!address || typeof address === "string" || !address.port) {
+  // Set up the bearer proxy.
+  bearerProxy = new AuthXWebProxy({ ...config, tokenFormat: "BEARER" });
+  await bearerProxy.listen({ port: 0, host: "localhost" });
+  const bearerAddress = bearerProxy && bearerProxy.server.address();
+  if (
+    !bearerAddress ||
+    typeof bearerAddress === "string" ||
+    !bearerAddress.port
+  ) {
     throw new Error("No address for mock server.");
   }
+  bearerProxyPort = bearerAddress.port;
 
-  port = address.port;
+  // Set up the basic proxy.
+  basicProxy = new AuthXWebProxy({ ...config, tokenFormat: "BASIC" });
+  await basicProxy.listen({ port: 0, host: "localhost" });
+  const basicAddress = basicProxy && basicProxy.server.address();
+  if (!basicAddress || typeof basicAddress === "string" || !basicAddress.port) {
+    throw new Error("No address for mock server.");
+  }
+  basicProxyPort = basicAddress.port;
 });
 
 test("readiness endpoint", async t => {
-  const response = await fetch(`http://127.0.0.1:${port}/_ready`);
+  const response = await fetch(`http://127.0.0.1:${bearerProxyPort}/_ready`);
   t.is(response.status, 200);
   t.is(await response.text(), "READY");
 });
 
 test("anonymous - 401", async t => {
-  const response = await fetch(`http://127.0.0.1:${port}/api/authx`, {
-    method: "POST",
-    redirect: "manual",
-    headers: {
-      referer: "/foo"
+  const response = await fetch(
+    `http://127.0.0.1:${bearerProxyPort}/api/authx`,
+    {
+      method: "POST",
+      redirect: "manual",
+      headers: {
+        referer: "/foo"
+      }
     }
-  });
+  );
   t.is(response.status, 401);
   const location = response.headers.get("Location");
   t.assert(location, "Location header must be in response.");
@@ -212,14 +252,17 @@ test("anonymous - 401", async t => {
 });
 
 test("anonymous - 200", async t => {
-  const response = await fetch(`http://127.0.0.1:${port}/static/logo`, {
-    redirect: "manual"
-  });
+  const response = await fetch(
+    `http://127.0.0.1:${bearerProxyPort}/static/logo`,
+    {
+      redirect: "manual"
+    }
+  );
   t.is(response.status, 200);
 });
 
 test("anonymous - 303", async t => {
-  const response = await fetch(`http://127.0.0.1:${port}/admin`, {
+  const response = await fetch(`http://127.0.0.1:${bearerProxyPort}/admin`, {
     redirect: "manual"
   });
   t.is(response.status, 303);
@@ -248,14 +291,14 @@ test("anonymous - 303", async t => {
   );
 });
 
-test("use token from cookie", async t => {
+test("use token from cookie (bearer)", async t => {
   const headers = new Headers();
   headers.append("cookie", "authx.r=9a64774762a4cdece006b0007e7795eaa1709a34");
   headers.append(
     "cookie",
     `authx.t.2jmj7l5rSw0yVb_vlWAYkK_YBwk=eyJhbGciOiJSUzUxMiIsInR5cCI6IkpXVCJ9.eyJzY29wZXMiOltdLCJpYXQiOjE1NTY2MDMxMTAsImV4cCI6NDcxMDIwMzExMCwiYXVkIjoiZmUyNDc4YjUtN2I2MC00Y2VkLWFhZjgtNmM5YjRhMmU3M2Y2IiwiaXNzIjoiYXV0aHgiLCJzdWIiOiIxNmE2MDcyMi1mNzJmLTQyYTEtODRmOC01YWY4MGJhYWMyODkifQ.GEd75BHZP3c4NGv3te9bDLQ9hPV0B6lFxydfuBw-4k9KNP5330xQjrAY4Wu-S9thAGS2cXfHyFWR2cKfBDDno6_NivSJHszBs_ErDSAHCJsZ4Ej1VJmPXpePfXbdAmMd6Ug6dEsmmV1lO_gpICHqnVwj2KWGUPvwbN7VVdufy7g`
   );
-  const response = await fetch(`http://127.0.0.1:${port}/admin`, {
+  const response = await fetch(`http://127.0.0.1:${bearerProxyPort}/admin`, {
     redirect: "manual",
     headers
   });
@@ -270,18 +313,68 @@ test("use token from cookie", async t => {
   });
 });
 
-test("fetch token from authx", async t => {
+test("use token from cookie (basic, valid)", async t => {
+  const headers = new Headers();
+  headers.append("cookie", "authx.r=9a64774762a4cdece006b0007e7795eaa1709a34");
+  headers.append(
+    "cookie",
+    `authx.t.2jmj7l5rSw0yVb_vlWAYkK_YBwk=ODNkY2VmYzUtZWIyYi00YTJhLTk1NjMtYjJmZjJmMjEyYzYwOjRmOTk1YTdiMjQzNWNhNWM5YjZjNTQ3MGVjNTZhMjZiYjY4MzMyM2E=`
+  );
+  const response = await fetch(`http://127.0.0.1:${basicProxyPort}/admin`, {
+    redirect: "manual",
+    headers
+  });
+
+  t.is(response.status, 200);
+  t.false(response.headers.has("set-cookie"));
+
+  t.deepEqual(await response.json(), {
+    url: "/admin",
+    Authorization:
+      "Basic ODNkY2VmYzUtZWIyYi00YTJhLTk1NjMtYjJmZjJmMjEyYzYwOjRmOTk1YTdiMjQzNWNhNWM5YjZjNTQ3MGVjNTZhMjZiYjY4MzMyM2E="
+  });
+});
+
+test("use token from cookie (basic, invalid)", async t => {
+  const headers = new Headers();
+  headers.append("cookie", "authx.r=9a64774762a4cdece006b0007e7795eaa1709a34");
+  headers.append(
+    "cookie",
+    `authx.t.2jmj7l5rSw0yVb_vlWAYkK_YBwk=YWRhMTJhZDQtYWRmZi00YzU1LTkzOTQtYTAxNWFkZjdlNzE1OmExNjJlZDY2NmRkZmY3NjI1MDQxOTg0ZDI1MGZlYjFkY2YwNWQyNzA=`
+  );
+  const response = await fetch(`http://127.0.0.1:${basicProxyPort}/admin`, {
+    redirect: "manual",
+    headers
+  });
+
+  t.is(response.status, 401);
+  t.is(
+    response.headers.get("set-cookie"),
+    "authx.t.2jmj7l5rSw0yVb_vlWAYkK_YBwk=; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT; httponly"
+  );
+
+  t.deepEqual(await response.json(), {
+    url: "/admin",
+    Authorization:
+      "Basic YWRhMTJhZDQtYWRmZi00YzU1LTkzOTQtYTAxNWFkZjdlNzE1OmExNjJlZDY2NmRkZmY3NjI1MDQxOTg0ZDI1MGZlYjFkY2YwNWQyNzA="
+  });
+});
+
+test("fetch token from authx (bearer)", async t => {
   const headers = new Headers();
   headers.append("cookie", "authx.r=9a64774762a4cdece006b0007e7795eaa1709a34");
   headers.append(
     "cookie",
     `authx.t.2jmj7l5rSw0yVb_vlWAYkK_YBwk=eyJhbGciOiJSUzUxMiIsInR5cCI6IkpXVCJ9.eyJzY29wZXMiOltdLCJpYXQiOjE1NTY2MDMxMTAsImV4cCI6NDcxMDIwMzExMCwiYXVkIjoiZmUyNDc4YjUtN2I2MC00Y2VkLWFhZjgtNmM5YjRhMmU3M2Y2IiwiaXNzIjoiYXV0aHgiLCJzdWIiOiIxNmE2MDcyMi1mNzJmLTQyYTEtODRmOC01YWY4MGJhYWMyODkifQ.GEd75BHZP3c4NGv3te9bDLQ9hPV0B6lFxydfuBw-4k9KNP5330xQjrAY4Wu-S9thAGS2cXfHyFWR2cKfBDDno6_NivSJHszBs_ErDSAHCJsZ4Ej1VJmPXpePfXbdAmMd6Ug6dEsmmV1lO_gpICHqnVwj2KWGUPvwbN7VVdufy7g`
   );
-  const response = await fetch(`http://127.0.0.1:${port}/api/authx`, {
-    method: "POST",
-    redirect: "manual",
-    headers
-  });
+  const response = await fetch(
+    `http://127.0.0.1:${bearerProxyPort}/api/authx`,
+    {
+      method: "POST",
+      redirect: "manual",
+      headers
+    }
+  );
 
   t.is(response.status, 200);
   t.is(
@@ -292,5 +385,30 @@ test("fetch token from authx", async t => {
     url: "/graphql",
     Authorization:
       "Bearer eyJhbGciOiJSUzUxMiIsInR5cCI6IkpXVCJ9.eyJzY29wZXMiOlsiQXV0aFg6dXNlci5lcXVhbC5zZWxmOnJlYWQuYmFzaWMiXSwiaWF0IjoxNTU2NjAzOTU5LCJleHAiOjQ3MTAyMDM5NTksImF1ZCI6ImZlMjQ3OGI1LTdiNjAtNGNlZC1hYWY4LTZjOWI0YTJlNzNmNiIsImlzcyI6ImF1dGh4Iiwic3ViIjoiMTZhNjA3MjItZjcyZi00MmExLTg0ZjgtNWFmODBiYWFjMjg5In0.hB7N3Ibdc-LX9gTkarWPXpjr6gFPRpFVnKND2CXS1XHq6ePzhLIs-Bn3ksHOvkpDzx96z7x_8pQwgHXg_DgUNcpUP-eFuk156wxJ7rpuG5aV-wUmAAg-yLnMjXWx65VUf7J-JvVtRVHlkzahLA1n0drf4Fll-hoTJ6qaOHidUlo"
+  });
+});
+
+test("fetch token from authx (basic)", async t => {
+  const headers = new Headers();
+  headers.append("cookie", "authx.r=9a64774762a4cdece006b0007e7795eaa1709a34");
+  headers.append(
+    "cookie",
+    `authx.t.2jmj7l5rSw0yVb_vlWAYkK_YBwk=ODNkY2VmYzUtZWIyYi00YTJhLTk1NjMtYjJmZjJmMjEyYzYwOjRmOTk1YTdiMjQzNWNhNWM5YjZjNTQ3MGVjNTZhMjZiYjY4MzMyM2E=`
+  );
+  const response = await fetch(`http://127.0.0.1:${basicProxyPort}/api/authx`, {
+    method: "POST",
+    redirect: "manual",
+    headers
+  });
+
+  t.is(response.status, 200);
+  t.is(
+    response.headers.get("set-cookie"),
+    "authx.r=c89900b6a34123900274e90f87f7adc0c1ab8d93; path=/; httponly, authx.t.JvVNJVB5EzHJcWVP-FqK-nxVIa4=NjM3MmRmZjMtMzcwOC00MWMyLWE5ZjQtNjMyZWExNDg1MTZkOjkwNDg5OTExN2M3ZDgwNWE4NGYxM2ZiYzEwNWYxMDhjMDIzMGFhOGM=; path=/; httponly"
+  );
+  t.deepEqual(await response.json(), {
+    url: "/graphql",
+    Authorization:
+      "Basic NjM3MmRmZjMtMzcwOC00MWMyLWE5ZjQtNjMyZWExNDg1MTZkOjkwNDg5OTExN2M3ZDgwNWE4NGYxM2ZiYzEwNWYxMDhjMDIzMGFhOGM="
   });
 });
