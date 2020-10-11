@@ -20,7 +20,7 @@
     "react-dom": "^16.13.1",
     "source-map-loader": "^1.0.2",
     "uuid": "^8.3.0",
-    "webpack": "^4.44.1"
+    "webpack": "^5.0.0"
   },
   "description": "",
   "devDependencies": {
