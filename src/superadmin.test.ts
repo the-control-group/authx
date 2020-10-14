@@ -48,6 +48,7 @@ test("Root query fields.", async t => {
               secrets
               codes
               scopes
+              access
               authorizations {
                 pageInfo {
                   startCursor
@@ -243,6 +244,7 @@ test("Root query fields.", async t => {
             ],
             codes: [],
             scopes: ["**:**:**"],
+            access: ["**:**:**"],
             authorizations: {
               edges: [
                 {
