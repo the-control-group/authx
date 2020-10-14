@@ -10,7 +10,7 @@ import {
   ValidationError,
   validateIdFormat,
   DataLoaderExecutor,
-  ReadonlyDataLoaderExecutor
+  ReadonlyDataLoaderExecutor,
 } from "@authx/authx";
 import { PasswordAuthority } from "../../model";
 import { GraphQLPasswordAuthority } from "../GraphQLPasswordAuthority";
@@ -35,8 +35,8 @@ export const updatePasswordAuthorities: GraphQLFieldConfig<
     authorities: {
       type: new GraphQLNonNull(
         new GraphQLList(new GraphQLNonNull(GraphQLUpdatePasswordAuthorityInput))
-      )
-    }
+      ),
+    },
   },
   async resolve(source, args, context): Promise<Promise<PasswordAuthority>[]> {
     const { executor, authorization: a, realm } = context;
@@ -55,7 +55,7 @@ export const updatePasswordAuthorities: GraphQLFieldConfig<
       );
     }
 
-    return args.authorities.map(async input => {
+    return args.authorities.map(async (input) => {
       // Validate `id`.
       if (!validateIdFormat(input.id)) {
         throw new ValidationError("The provided `id` is an invalid ID.");
@@ -72,7 +72,7 @@ export const updatePasswordAuthorities: GraphQLFieldConfig<
         await tx.query("BEGIN DEFERRABLE");
 
         const before = await Authority.read(tx, input.id, strategies, {
-          forUpdate: true
+          forUpdate: true,
         });
 
         if (!(before instanceof PasswordAuthority)) {
@@ -82,7 +82,7 @@ export const updatePasswordAuthorities: GraphQLFieldConfig<
         if (
           !(await before.isAccessibleBy(realm, a, executor, {
             basic: "w",
-            details: ""
+            details: "",
           }))
         ) {
           throw new ForbiddenError(
@@ -94,7 +94,7 @@ export const updatePasswordAuthorities: GraphQLFieldConfig<
           typeof input.rounds === "number" &&
           !(await before.isAccessibleBy(realm, a, executor, {
             basic: "w",
-            details: "w"
+            details: "w",
           }))
         ) {
           throw new ForbiddenError(
@@ -120,13 +120,13 @@ export const updatePasswordAuthorities: GraphQLFieldConfig<
               rounds:
                 typeof input.rounds === "number"
                   ? input.rounds
-                  : before.details.rounds
-            }
+                  : before.details.rounds,
+            },
           },
           {
             recordId: v4(),
             createdByAuthorizationId: a.id,
-            createdAt: new Date()
+            createdAt: new Date(),
           }
         );
 
@@ -149,5 +149,5 @@ export const updatePasswordAuthorities: GraphQLFieldConfig<
         tx.release();
       }
     });
-  }
+  },
 };

@@ -3,7 +3,7 @@ import {
   GraphQLContext,
   GraphQLCacheValue,
   GraphQLFetchOptions,
-  GraphQLFetchOptionsOverride
+  GraphQLFetchOptionsOverride,
 } from "graphql-react";
 
 interface Authorization {
@@ -26,7 +26,7 @@ export function useAuthenticatedEndpoint(
     if (!authorization) return;
 
     async function onCache({
-      cacheValue
+      cacheValue,
     }: {
       cacheValue: GraphQLCacheValue<any>;
     }): Promise<void> {

@@ -14,8 +14,8 @@ export const authorization: GraphQLFieldConfig<
   description: "Fetch a authorization by ID.",
   args: {
     id: {
-      type: new GraphQLNonNull(GraphQLID)
-    }
+      type: new GraphQLNonNull(GraphQLID),
+    },
   },
   async resolve(source, args, context): Promise<null | Authorization> {
     const { executor, authorization: a, realm } = context;
@@ -25,5 +25,5 @@ export const authorization: GraphQLFieldConfig<
     return (await authorization.isAccessibleBy(realm, a, executor))
       ? authorization
       : null;
-  }
+  },
 };

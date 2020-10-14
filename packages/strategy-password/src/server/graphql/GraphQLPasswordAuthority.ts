@@ -4,7 +4,7 @@ import {
   GraphQLNonNull,
   GraphQLString,
   GraphQLBoolean,
-  GraphQLObjectType
+  GraphQLObjectType,
 } from "graphql";
 
 import { PasswordAuthority } from "../model";
@@ -23,7 +23,7 @@ export const GraphQLPasswordAuthority = new GraphQLObjectType<
   fields: () => ({
     id: { type: new GraphQLNonNull(GraphQLID) },
     enabled: {
-      type: new GraphQLNonNull(GraphQLBoolean)
+      type: new GraphQLNonNull(GraphQLBoolean),
     },
     name: { type: GraphQLString },
     description: { type: GraphQLString },
@@ -37,11 +37,11 @@ export const GraphQLPasswordAuthority = new GraphQLObjectType<
         return a &&
           (await authority.isAccessibleBy(realm, a, executor, {
             basic: "r",
-            details: "r"
+            details: "r",
           }))
           ? authority.details.rounds
           : null;
-      }
-    }
-  })
+      },
+    },
+  }),
 });

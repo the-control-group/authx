@@ -33,8 +33,8 @@ export const updateClients: GraphQLFieldConfig<
     clients: {
       type: new GraphQLNonNull(
         new GraphQLList(new GraphQLNonNull(GraphQLUpdateClientInput))
-      )
-    }
+      ),
+    },
   },
   async resolve(source, args, context): Promise<Promise<Client>[]> {
     const { executor, authorization: a, realm } = context;
@@ -51,7 +51,7 @@ export const updateClients: GraphQLFieldConfig<
       );
     }
 
-    return args.clients.map(async input => {
+    return args.clients.map(async (input) => {
       // Validate `id`.
       if (!validateIdFormat(input.id)) {
         throw new ValidationError("The provided `id` is an invalid ID.");
@@ -80,14 +80,14 @@ export const updateClients: GraphQLFieldConfig<
 
         await tx.query("BEGIN DEFERRABLE");
         const before = await Client.read(tx, input.id, {
-          forUpdate: true
+          forUpdate: true,
         });
 
         // w.... -----------------------------------------------------------
         if (
           !(await before.isAccessibleBy(realm, a, executor, {
             basic: "w",
-            secrets: ""
+            secrets: "",
           }))
         ) {
           throw new ForbiddenError(
@@ -105,14 +105,14 @@ export const updateClients: GraphQLFieldConfig<
         // Remove URLs
         if (input.removeUrls) {
           const removeUrls = new Set(input.removeUrls);
-          urls = urls.filter(id => !removeUrls.has(id));
+          urls = urls.filter((id) => !removeUrls.has(id));
         }
 
         // w...w. ---------------------------------------------------------
         if (
           !(await before.isAccessibleBy(realm, a, executor, {
             basic: "w",
-            secrets: "w"
+            secrets: "w",
           }))
         ) {
           throw new ForbiddenError(
@@ -132,7 +132,7 @@ export const updateClients: GraphQLFieldConfig<
         // Remove secrets
         if (input.removeSecrets) {
           const removeSecrets = new Set(input.removeSecrets);
-          secrets = secrets.filter(id => !removeSecrets.has(id));
+          secrets = secrets.filter((id) => !removeSecrets.has(id));
         }
 
         const client = await Client.write(
@@ -146,12 +146,12 @@ export const updateClients: GraphQLFieldConfig<
             name: input.name || before.name,
             description: input.description || before.description,
             urls,
-            secrets
+            secrets,
           },
           {
             recordId: v4(),
             createdByAuthorizationId: a.id,
-            createdAt: new Date()
+            createdAt: new Date(),
           }
         );
 
@@ -174,5 +174,5 @@ export const updateClients: GraphQLFieldConfig<
         tx.release();
       }
     });
-  }
+  },
 };

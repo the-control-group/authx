@@ -26,8 +26,8 @@ export const roles: GraphQLFieldConfig<
     includeDisabled: {
       type: GraphQLBoolean,
       defaultValue: false,
-      description: "Include disabled roles in results."
-    }
+      description: "Include disabled roles in results.",
+    },
   },
   async resolve(source, args, context) {
     const { executor, authorization: a, realm } = context;
@@ -59,5 +59,5 @@ export const roles: GraphQLFieldConfig<
     );
 
     return CursorConnection.connectionFromRules(args, roles, rules);
-  }
+  },
 };

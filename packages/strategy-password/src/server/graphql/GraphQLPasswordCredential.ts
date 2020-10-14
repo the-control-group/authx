@@ -3,7 +3,7 @@ import {
   GraphQLNonNull,
   GraphQLString,
   GraphQLBoolean,
-  GraphQLObjectType
+  GraphQLObjectType,
 } from "graphql";
 
 import { PasswordCredential, PasswordAuthority } from "../model";
@@ -13,7 +13,7 @@ import {
   GraphQLCredential,
   GraphQLUser,
   GraphQLNode,
-  Context
+  Context,
 } from "@authx/authx";
 
 // Credential
@@ -29,7 +29,7 @@ export const GraphQLPasswordCredential = new GraphQLObjectType<
   fields: () => ({
     id: { type: new GraphQLNonNull(GraphQLID) },
     enabled: {
-      type: new GraphQLNonNull(GraphQLBoolean)
+      type: new GraphQLNonNull(GraphQLBoolean),
     },
     user: {
       type: GraphQLUser,
@@ -41,7 +41,7 @@ export const GraphQLPasswordCredential = new GraphQLObjectType<
         if (!a) return null;
         const user = await credential.user(executor);
         return user.isAccessibleBy(realm, a, executor) ? user : null;
-      }
+      },
     },
     authority: {
       type: GraphQLPasswordAuthority,
@@ -51,13 +51,13 @@ export const GraphQLPasswordCredential = new GraphQLObjectType<
         { executor }: Context
       ): Promise<null | PasswordAuthority> {
         return credential.authority(executor);
-      }
+      },
     },
     subject: {
       type: GraphQLString,
       resolve(credential): string {
         return credential.authorityUserId;
-      }
+      },
     },
     hash: {
       type: GraphQLString,
@@ -69,11 +69,11 @@ export const GraphQLPasswordCredential = new GraphQLObjectType<
         return a &&
           (await credential.isAccessibleBy(realm, a, executor, {
             basic: "r",
-            details: "r"
+            details: "r",
           }))
           ? credential.details.hash
           : null;
-      }
-    }
-  })
+      },
+    },
+  }),
 });

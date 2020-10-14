@@ -5,7 +5,7 @@ import {
   GraphQLString,
   GraphQLBoolean,
   GraphQLObjectType,
-  GraphQLFieldConfigMap
+  GraphQLFieldConfigMap,
 } from "graphql";
 
 import { connectionFromArray, connectionArgs } from "graphql-relay";
@@ -24,7 +24,7 @@ export const GraphQLClient = new GraphQLObjectType<Client, Context>({
   fields: (): GraphQLFieldConfigMap<Client, Context> => ({
     id: { type: new GraphQLNonNull(GraphQLID) },
     enabled: {
-      type: new GraphQLNonNull(GraphQLBoolean)
+      type: new GraphQLNonNull(GraphQLBoolean),
     },
     name: { type: GraphQLString },
     description: { type: GraphQLString },
@@ -38,11 +38,11 @@ export const GraphQLClient = new GraphQLObjectType<Client, Context>({
         return a &&
           (await client.isAccessibleBy(realm, a, executor, {
             basic: "r",
-            secrets: "r"
+            secrets: "r",
           }))
           ? [...client.secrets]
           : null;
-      }
+      },
     },
     urls: { type: new GraphQLList(GraphQLString) },
     grants: {
@@ -59,21 +59,21 @@ export const GraphQLClient = new GraphQLObjectType<Client, Context>({
       ) {
         return a
           ? connectionFromArray(
-              await filter(await client.grants(executor), grant =>
+              await filter(await client.grants(executor), (grant) =>
                 grant.isAccessibleBy(realm, a, executor)
               ),
               args
             )
           : null;
-      }
+      },
     },
     grant: {
       type: GraphQLGrant,
       args: {
         userId: {
           type: new GraphQLNonNull(GraphQLID),
-          description: "The ID of a user."
-        }
+          description: "The ID of a user.",
+        },
       },
       description: "Look for a grant between this user and a client.",
       async resolve(
@@ -84,7 +84,7 @@ export const GraphQLClient = new GraphQLObjectType<Client, Context>({
         if (!a) return null;
         const grant = await client.grant(executor, args.userId);
         return grant && grant.isAccessibleBy(realm, a, executor) ? grant : null;
-      }
-    }
-  })
+      },
+    },
+  }),
 });

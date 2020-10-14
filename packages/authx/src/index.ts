@@ -78,7 +78,7 @@ export class AuthX extends Router<any, { [x]: Context }> {
           await authorization.invoke(tx, {
             id: v4(),
             format: "basic",
-            createdAt: new Date()
+            createdAt: new Date(),
           });
         }
 
@@ -107,7 +107,7 @@ export class AuthX extends Router<any, { [x]: Context }> {
           ...config,
           authorization,
           explanations: explanations,
-          executor: new DataLoaderExecutor(this.pool, strategies)
+          executor: new DataLoaderExecutor(this.pool, strategies),
         };
 
         ctx[x] = context;
@@ -150,9 +150,9 @@ export class AuthX extends Router<any, { [x]: Context }> {
           const contextValue: Context = ctx[x];
 
           return {
-            contextValue
+            contextValue,
           };
-        }
+        },
       })
     );
 

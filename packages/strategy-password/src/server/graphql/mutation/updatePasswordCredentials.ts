@@ -11,7 +11,7 @@ import {
   ValidationError,
   validateIdFormat,
   DataLoaderExecutor,
-  ReadonlyDataLoaderExecutor
+  ReadonlyDataLoaderExecutor,
 } from "@authx/authx";
 import { PasswordCredential } from "../../model";
 import { GraphQLPasswordCredential } from "../GraphQLPasswordCredential";
@@ -36,8 +36,8 @@ export const updatePasswordCredentials: GraphQLFieldConfig<
         new GraphQLList(
           new GraphQLNonNull(GraphQLUpdatePasswordCredentialInput)
         )
-      )
-    }
+      ),
+    },
   },
   async resolve(source, args, context): Promise<Promise<PasswordCredential>[]> {
     const { executor, authorization: a, realm } = context;
@@ -56,7 +56,7 @@ export const updatePasswordCredentials: GraphQLFieldConfig<
       );
     }
 
-    return args.credentials.map(async input => {
+    return args.credentials.map(async (input) => {
       // Validate `id`.
       if (!validateIdFormat(input.id)) {
         throw new ValidationError("The provided `id` is an invalid ID.");
@@ -73,7 +73,7 @@ export const updatePasswordCredentials: GraphQLFieldConfig<
         await tx.query("BEGIN DEFERRABLE");
 
         const before = await Credential.read(tx, input.id, strategies, {
-          forUpdate: true
+          forUpdate: true,
         });
 
         if (!(before instanceof PasswordCredential)) {
@@ -85,7 +85,7 @@ export const updatePasswordCredentials: GraphQLFieldConfig<
         if (
           !(await before.isAccessibleBy(realm, a, executor, {
             basic: "w",
-            details: ""
+            details: "",
           }))
         ) {
           throw new ForbiddenError(
@@ -97,7 +97,7 @@ export const updatePasswordCredentials: GraphQLFieldConfig<
           typeof input.password === "string" &&
           !(await before.isAccessibleBy(realm, a, executor, {
             basic: "w",
-            details: "w"
+            details: "w",
           }))
         ) {
           throw new ForbiddenError(
@@ -121,13 +121,13 @@ export const updatePasswordCredentials: GraphQLFieldConfig<
                       input.password,
                       (await before.authority(executor)).details.rounds
                     )
-                  : before.details.hash
-            }
+                  : before.details.hash,
+            },
           },
           {
             recordId: v4(),
             createdByAuthorizationId: a.id,
-            createdAt: new Date()
+            createdAt: new Date(),
           }
         );
 
@@ -150,5 +150,5 @@ export const updatePasswordCredentials: GraphQLFieldConfig<
         tx.release();
       }
     });
-  }
+  },
 };

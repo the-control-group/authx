@@ -3,7 +3,7 @@ import { pagingTests } from "./generic";
 import {
   AuthorizationAction,
   AuthorizationContext,
-  createV2AuthXScope
+  createV2AuthXScope,
 } from "@authx/authx/dist/util/scopes";
 
 const ctx = registerHooks(__filename);
@@ -17,7 +17,7 @@ function createReadScope(
   const action: AuthorizationAction = {
     basic: "r",
     scopes: "",
-    secrets: ""
+    secrets: "",
   };
 
   const context: AuthorizationContext = {
@@ -25,7 +25,7 @@ function createReadScope(
     authorizationId: authorizationId,
     clientId: clientId,
     grantId: grantId,
-    userId: userId
+    userId: userId,
   };
 
   const scope = createV2AuthXScope("authx", context, action);
@@ -38,13 +38,13 @@ pagingTests({
   entityType: "authorization",
   ids: [
     "5387ece5-37a1-4573-a189-14333ebf8d88",
-    "f0e54748-c7bb-4724-ad8b-7dabb66aafa9"
+    "f0e54748-c7bb-4724-ad8b-7dabb66aafa9",
   ],
   scopes: [
     createReadScope("5387ece5-37a1-4573-a189-14333ebf8d88", "*", "*", "*"),
-    createReadScope("f0e54748-c7bb-4724-ad8b-7dabb66aafa9", "*", "*", "*")
+    createReadScope("f0e54748-c7bb-4724-ad8b-7dabb66aafa9", "*", "*", "*"),
   ],
-  ctx: ctx
+  ctx: ctx,
 });
 
 pagingTests({
@@ -52,13 +52,13 @@ pagingTests({
   entityType: "authorization",
   ids: [
     "5387ece5-37a1-4573-a189-14333ebf8d88",
-    "f0e54748-c7bb-4724-ad8b-7dabb66aafa9"
+    "f0e54748-c7bb-4724-ad8b-7dabb66aafa9",
   ],
   scopes: [
     createReadScope("*", "*", "*", "e165cbb0-86b0-4e11-9db7-eb5f742161b8"),
-    createReadScope("*", "*", "*", "51192909-3664-44d5-be62-c6b45f0b0ee6")
+    createReadScope("*", "*", "*", "51192909-3664-44d5-be62-c6b45f0b0ee6"),
   ],
-  ctx: ctx
+  ctx: ctx,
 });
 
 pagingTests({
@@ -66,13 +66,13 @@ pagingTests({
   entityType: "authorization",
   ids: [
     "5387ece5-37a1-4573-a189-14333ebf8d88",
-    "f0e54748-c7bb-4724-ad8b-7dabb66aafa9"
+    "f0e54748-c7bb-4724-ad8b-7dabb66aafa9",
   ],
   scopes: [
     createReadScope("*", "*", "d8dcaf12-b744-4d2d-b223-09e7e5eaa922", "*"),
-    createReadScope("*", "*", "4e76cb13-ab24-4dc1-ad96-abcbb89f5529", "*")
+    createReadScope("*", "*", "4e76cb13-ab24-4dc1-ad96-abcbb89f5529", "*"),
   ],
-  ctx: ctx
+  ctx: ctx,
 });
 
 pagingTests({
@@ -80,9 +80,9 @@ pagingTests({
   entityType: "authorization",
   ids: ["5387ece5-37a1-4573-a189-14333ebf8d88"],
   scopes: [
-    createReadScope("*", "1fcb730e-f134-463a-b224-cab7e61c5ce0", "*", "*")
+    createReadScope("*", "1fcb730e-f134-463a-b224-cab7e61c5ce0", "*", "*"),
   ],
-  ctx: ctx
+  ctx: ctx,
 });
 
 pagingTests({
@@ -90,9 +90,9 @@ pagingTests({
   entityType: "authorization",
   ids: ["5387ece5-37a1-4573-a189-14333ebf8d88"],
   scopes: [
-    "authx:v2.authorization.*.5387ece5-37a1-4573-a189-14333ebf8d88.**.1fcb730e-f134-463a-b224-cab7e61c5ce0.**:r...."
+    "authx:v2.authorization.*.5387ece5-37a1-4573-a189-14333ebf8d88.**.1fcb730e-f134-463a-b224-cab7e61c5ce0.**:r....",
   ],
-  ctx: ctx
+  ctx: ctx,
 });
 
 pagingTests({
@@ -111,7 +111,7 @@ pagingTests({
       "1fcb730e-f134-463a-b224-cab7e61c5ce0",
       "4e76cb13-ab24-4dc1-ad96-abcbb89f5529",
       "*"
-    )
+    ),
   ],
-  ctx: ctx
+  ctx: ctx,
 });

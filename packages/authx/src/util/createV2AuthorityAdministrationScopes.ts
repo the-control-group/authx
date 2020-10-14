@@ -7,31 +7,31 @@ export function createV2AuthorityAdministrationScopes(
   return [
     createV2AuthXScope(realm, authorityContext, {
       basic: "r",
-      details: ""
+      details: "",
     }),
     createV2AuthXScope(realm, authorityContext, {
       basic: "r",
-      details: "r"
+      details: "r",
     }),
     createV2AuthXScope(realm, authorityContext, {
       basic: "r",
-      details: "*"
+      details: "*",
     }),
     createV2AuthXScope(realm, authorityContext, {
       basic: "w",
-      details: ""
+      details: "",
     }),
     createV2AuthXScope(realm, authorityContext, {
       basic: "w",
-      details: "w"
+      details: "w",
     }),
     createV2AuthXScope(realm, authorityContext, {
       basic: "w",
-      details: "*"
+      details: "*",
     }),
     createV2AuthXScope(realm, authorityContext, {
       basic: "*",
-      details: "*"
-    })
+      details: "*",
+    }),
   ];
 }

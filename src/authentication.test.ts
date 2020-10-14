@@ -14,14 +14,14 @@ test.before(async () => {
   teardown = s.teardown;
 });
 
-test("Failed authentication.", async t => {
+test("Failed authentication.", async (t) => {
   const graphqlUrl = new URL(url.href);
   graphqlUrl.pathname = "/graphql";
 
   const result = await fetch(graphqlUrl.href, {
     method: "POST",
     headers: {
-      "content-type": "application/json"
+      "content-type": "application/json",
     },
     body: JSON.stringify({
       query: `
@@ -53,40 +53,40 @@ test("Failed authentication.", async t => {
         identityAuthorityId: "0d765613-e813-40e5-9aa7-89f96531364e",
         identityAuthorityUserId: "michael.scott@dundermifflin.com",
         passwordAuthorityId: "725f9c3b-4a72-4021-9066-c89e534df5be",
-        password: "wrong-password"
-      }
-    })
+        password: "wrong-password",
+      },
+    }),
   });
 
   const json = await result.json();
 
   t.deepEqual(json, {
     data: {
-      authenticatePassword: null
+      authenticatePassword: null,
     },
     errors: [
       {
         locations: [
           {
             column: 11,
-            line: 3
-          }
+            line: 3,
+          },
         ],
         message: "The password is incorrect.",
-        path: ["authenticatePassword"]
-      }
-    ]
+        path: ["authenticatePassword"],
+      },
+    ],
   });
 });
 
-test("Successful authentication.", async t => {
+test("Successful authentication.", async (t) => {
   const graphqlUrl = new URL(url.href);
   graphqlUrl.pathname = "/graphql";
 
   const result = await fetch(graphqlUrl.href, {
     method: "POST",
     headers: {
-      "content-type": "application/json"
+      "content-type": "application/json",
     },
     body: JSON.stringify({
       query: `
@@ -118,9 +118,9 @@ test("Successful authentication.", async t => {
         identityAuthorityId: "0d765613-e813-40e5-9aa7-89f96531364e",
         identityAuthorityUserId: "michael.scott@dundermifflin.com",
         passwordAuthorityId: "725f9c3b-4a72-4021-9066-c89e534df5be",
-        password: "123456"
-      }
-    })
+        password: "123456",
+      },
+    }),
   });
 
   const json = await result.json();

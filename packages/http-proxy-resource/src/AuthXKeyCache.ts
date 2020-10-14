@@ -63,17 +63,15 @@ export class AuthXKeyCache extends EventEmitter {
 
     try {
       // Fetch the keys from AuthX.
-      // FIXME: This should not need to be cast through any. See:
-      // https://github.com/DefinitelyTyped/DefinitelyTyped/pull/35636
       const response = await (
         await fetch(this._config.authxUrl + "/graphql", {
           signal: this._fetchAbortController.signal,
           method: "POST",
           headers: {
-            "Content-Type": "application/json"
+            "Content-Type": "application/json",
           },
-          body: '{"query": "query { keys }"}'
-        } as any)
+          body: '{"query": "query { keys }"}',
+        })
       ).json();
 
       // Make sure we don't have any errors.
@@ -91,7 +89,7 @@ export class AuthXKeyCache extends EventEmitter {
         !keys ||
         !Array.isArray(keys) ||
         !keys.length ||
-        !keys.every(k => typeof k === "string")
+        !keys.every((k) => typeof k === "string")
       ) {
         throw new Error("An array of least one key must be returned by AuthX.");
       }

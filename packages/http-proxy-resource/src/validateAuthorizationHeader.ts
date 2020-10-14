@@ -2,7 +2,7 @@ import {
   verify,
   JsonWebTokenError,
   NotBeforeError,
-  TokenExpiredError
+  TokenExpiredError,
 } from "jsonwebtoken";
 import fetch from "node-fetch";
 import { isValidScopeLiteral } from "@authx/scopes";
@@ -30,7 +30,7 @@ export async function validateAuthorizationHeader(
       try {
         // Verify the token against the key.
         const payload = verify(token, key, {
-          algorithms: ["RS512"]
+          algorithms: ["RS512"],
         }) as string | { sub: string; aid: string; scopes: string[] };
 
         // Ensure the token payload is correctly formatted.
@@ -43,7 +43,7 @@ export async function validateAuthorizationHeader(
         if (
           !Array.isArray(payload.scopes) ||
           !payload.scopes.every(
-            scope => typeof scope === "string" && isValidScopeLiteral(scope)
+            (scope) => typeof scope === "string" && isValidScopeLiteral(scope)
           )
         ) {
           throw new Error(
@@ -66,7 +66,7 @@ export async function validateAuthorizationHeader(
         return {
           authorizationId: payload.aid,
           authorizationSubject: payload.sub,
-          authorizationScopes: payload.scopes
+          authorizationScopes: payload.scopes,
         };
       } catch (error) {
         // Keep trying public keys.
@@ -99,7 +99,7 @@ export async function validateAuthorizationHeader(
         method: "POST",
         headers: {
           authorization: authorizationHeader,
-          "content-type": "application/json"
+          "content-type": "application/json",
         },
         body: JSON.stringify({
           query: `
@@ -113,8 +113,8 @@ export async function validateAuthorizationHeader(
               }
             }
           }
-        `
-        })
+        `,
+        }),
       })
     ).json();
 
@@ -155,7 +155,7 @@ export async function validateAuthorizationHeader(
     if (
       !Array.isArray(viewer.access) ||
       !viewer.access.every(
-        scope => typeof scope === "string" && isValidScopeLiteral(scope)
+        (scope) => typeof scope === "string" && isValidScopeLiteral(scope)
       )
     ) {
       throw new Error("The AuthX response contained a malformed scope.");
@@ -176,7 +176,7 @@ export async function validateAuthorizationHeader(
     return {
       authorizationId: viewer.id,
       authorizationSubject: viewer.user.id,
-      authorizationScopes: viewer.access
+      authorizationScopes: viewer.access,
     };
   }
 

@@ -10,7 +10,7 @@ import {
   ValidationError,
   validateIdFormat,
   DataLoaderExecutor,
-  ReadonlyDataLoaderExecutor
+  ReadonlyDataLoaderExecutor,
 } from "@authx/authx";
 import { OpenIdAuthority } from "../../model";
 import { GraphQLOpenIdAuthority } from "../GraphQLOpenIdAuthority";
@@ -43,8 +43,8 @@ export const updateOpenIdAuthorities: GraphQLFieldConfig<
     authorities: {
       type: new GraphQLNonNull(
         new GraphQLList(new GraphQLNonNull(GraphQLUpdateOpenIdAuthorityInput))
-      )
-    }
+      ),
+    },
   },
   async resolve(source, args, context): Promise<Promise<OpenIdAuthority>[]> {
     const { executor, authorization: a, realm } = context;
@@ -63,7 +63,7 @@ export const updateOpenIdAuthorities: GraphQLFieldConfig<
       );
     }
 
-    return args.authorities.map(async input => {
+    return args.authorities.map(async (input) => {
       // Validate `id`.
       if (!validateIdFormat(input.id)) {
         throw new ValidationError("The provided `id` is an invalid ID.");
@@ -90,7 +90,7 @@ export const updateOpenIdAuthorities: GraphQLFieldConfig<
         await tx.query("BEGIN DEFERRABLE");
 
         const before = await Authority.read(tx, input.id, strategies, {
-          forUpdate: true
+          forUpdate: true,
         });
 
         if (!(before instanceof OpenIdAuthority)) {
@@ -100,7 +100,7 @@ export const updateOpenIdAuthorities: GraphQLFieldConfig<
         if (
           !(await before.isAccessibleBy(realm, a, executor, {
             basic: "w",
-            details: ""
+            details: "",
           }))
         ) {
           throw new ForbiddenError(
@@ -113,7 +113,7 @@ export const updateOpenIdAuthorities: GraphQLFieldConfig<
             typeof input.clientSecret === "string") &&
           !(await before.isAccessibleBy(realm, a, executor, {
             basic: "w",
-            details: "w"
+            details: "w",
           }))
         ) {
           throw new ForbiddenError(
@@ -173,13 +173,13 @@ export const updateOpenIdAuthorities: GraphQLFieldConfig<
                 input.assignsCreatedUsersToRoleIds
               )
                 ? input.assignsCreatedUsersToRoleIds
-                : before.details.assignsCreatedUsersToRoleIds
-            }
+                : before.details.assignsCreatedUsersToRoleIds,
+            },
           },
           {
             recordId: v4(),
             createdByAuthorizationId: a.id,
-            createdAt: new Date()
+            createdAt: new Date(),
           }
         );
 
@@ -202,5 +202,5 @@ export const updateOpenIdAuthorities: GraphQLFieldConfig<
         tx.release();
       }
     });
-  }
+  },
 };

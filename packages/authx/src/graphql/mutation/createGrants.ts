@@ -13,7 +13,7 @@ import {
   ForbiddenError,
   ConflictError,
   NotFoundError,
-  ValidationError
+  ValidationError,
 } from "../../errors";
 import { GraphQLCreateGrantInput } from "./GraphQLCreateGrantInput";
 
@@ -40,8 +40,8 @@ export const createGrants: GraphQLFieldConfig<
     grants: {
       type: new GraphQLNonNull(
         new GraphQLList(new GraphQLNonNull(GraphQLCreateGrantInput))
-      )
-    }
+      ),
+    },
   },
   async resolve(source, args, context): Promise<Promise<Grant>[]> {
     const { executor, authorization: a, realm } = context;
@@ -58,7 +58,7 @@ export const createGrants: GraphQLFieldConfig<
       );
     }
 
-    return args.grants.map(async input => {
+    return args.grants.map(async (input) => {
       // Validate `id`.
       if (typeof input.id === "string" && !validateIdFormat(input.id)) {
         throw new ValidationError("The provided `id` is an invalid ID.");
@@ -100,12 +100,12 @@ export const createGrants: GraphQLFieldConfig<
                 type: "grant",
                 clientId: input.clientId,
                 grantId: "",
-                userId: input.userId
+                userId: input.userId,
               },
               {
                 basic: "*",
                 scopes: "*",
-                secrets: "*"
+                secrets: "*",
               }
             )
           ))
@@ -142,19 +142,19 @@ export const createGrants: GraphQLFieldConfig<
               secrets: [
                 Buffer.from(
                   [id, now, randomBytes(16).toString("hex")].join(":")
-                ).toString("base64")
+                ).toString("base64"),
               ],
               codes: [
                 Buffer.from(
                   [id, now, randomBytes(16).toString("hex")].join(":")
-                ).toString("base64")
+                ).toString("base64"),
               ],
-              scopes: input.scopes
+              scopes: input.scopes,
             },
             {
               recordId: v4(),
               createdByAuthorizationId: a.id,
-              createdAt: new Date()
+              createdAt: new Date(),
             }
           );
 
@@ -162,7 +162,7 @@ export const createGrants: GraphQLFieldConfig<
             type: "grant" as const,
             clientId: input.clientId,
             grantId: id,
-            userId: input.userId
+            userId: input.userId,
           };
 
           const authorizationScopeContext = {
@@ -170,7 +170,7 @@ export const createGrants: GraphQLFieldConfig<
             authorizationId: "*",
             clientId: input.clientId,
             grantId: id,
-            userId: input.userId
+            userId: input.userId,
           };
 
           const possibleAdministrationScopes = [
@@ -178,94 +178,94 @@ export const createGrants: GraphQLFieldConfig<
             createV2AuthXScope(realm, grantScopeContext, {
               basic: "r",
               scopes: "",
-              secrets: ""
+              secrets: "",
             }),
             createV2AuthXScope(realm, grantScopeContext, {
               basic: "r",
               scopes: "r",
-              secrets: ""
+              secrets: "",
             }),
             createV2AuthXScope(realm, grantScopeContext, {
               basic: "r",
               scopes: "",
-              secrets: "r"
+              secrets: "r",
             }),
             createV2AuthXScope(realm, grantScopeContext, {
               basic: "r",
               scopes: "*",
-              secrets: "*"
+              secrets: "*",
             }),
             createV2AuthXScope(realm, grantScopeContext, {
               basic: "w",
               scopes: "",
-              secrets: ""
+              secrets: "",
             }),
             createV2AuthXScope(realm, grantScopeContext, {
               basic: "w",
               scopes: "w",
-              secrets: ""
+              secrets: "",
             }),
             createV2AuthXScope(realm, grantScopeContext, {
               basic: "w",
               scopes: "",
-              secrets: "w"
+              secrets: "w",
             }),
             createV2AuthXScope(realm, grantScopeContext, {
               basic: "w",
               scopes: "*",
-              secrets: "*"
+              secrets: "*",
             }),
             createV2AuthXScope(realm, grantScopeContext, {
               basic: "*",
               scopes: "*",
-              secrets: "*"
+              secrets: "*",
             }),
 
             // authorization ---------------------------------------------------
             createV2AuthXScope(realm, authorizationScopeContext, {
               basic: "r",
               scopes: "",
-              secrets: ""
+              secrets: "",
             }),
             createV2AuthXScope(realm, authorizationScopeContext, {
               basic: "r",
               scopes: "r",
-              secrets: ""
+              secrets: "",
             }),
             createV2AuthXScope(realm, authorizationScopeContext, {
               basic: "r",
               scopes: "",
-              secrets: "r"
+              secrets: "r",
             }),
             createV2AuthXScope(realm, authorizationScopeContext, {
               basic: "r",
               scopes: "*",
-              secrets: "*"
+              secrets: "*",
             }),
             createV2AuthXScope(realm, authorizationScopeContext, {
               basic: "w",
               scopes: "",
-              secrets: ""
+              secrets: "",
             }),
             createV2AuthXScope(realm, authorizationScopeContext, {
               basic: "*",
               scopes: "*",
-              secrets: "*"
-            })
+              secrets: "*",
+            }),
           ];
 
           // Add administration scopes.
           const administrationResults = await Promise.allSettled(
             input.administration.map(async ({ roleId, scopes }) => {
               const administrationRoleBefore = await Role.read(tx, roleId, {
-                forUpdate: true
+                forUpdate: true,
               });
 
               if (
                 !administrationRoleBefore.isAccessibleBy(realm, a, executor, {
                   basic: "w",
                   scopes: "w",
-                  users: ""
+                  users: "",
                 })
               ) {
                 throw new ForbiddenError(
@@ -279,15 +279,15 @@ export const createGrants: GraphQLFieldConfig<
                   ...administrationRoleBefore,
                   scopes: simplify([
                     ...administrationRoleBefore.scopes,
-                    ...possibleAdministrationScopes.filter(possible =>
+                    ...possibleAdministrationScopes.filter((possible) =>
                       isSuperset(scopes, possible)
-                    )
-                  ])
+                    ),
+                  ]),
                 },
                 {
                   recordId: v4(),
                   createdByAuthorizationId: a.id,
-                  createdAt: new Date()
+                  createdAt: new Date(),
                 }
               );
 
@@ -323,5 +323,5 @@ export const createGrants: GraphQLFieldConfig<
         tx.release();
       }
     });
-  }
+  },
 };

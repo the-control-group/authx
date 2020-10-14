@@ -49,6 +49,14 @@ export interface Behavior {
    * * @defaultValue `[]`
    */
   readonly sendTokenToTargetWithScopes?: string[];
+
+  /**
+   * Format (BEARER or BASIC) of tokens that the proxy will request from AuthX and pass to the
+   * the resource.
+   *
+   * If unspecified, the format BEARER will be used.
+   */
+  readonly tokenFormat?: "BASIC" | "BEARER";
 }
 
 export interface Rule {
@@ -263,7 +271,7 @@ export default class AuthXClientProxy extends EventEmitter {
       response: response,
       rule: undefined,
       behavior: undefined,
-      message: "Request received."
+      message: "Request received.",
     };
 
     // Emit meta on request start.
@@ -349,7 +357,7 @@ export default class AuthXClientProxy extends EventEmitter {
       meta.message = "Request proxied.";
       meta.rule = rule;
       meta.behavior = behavior;
-      this._proxy.web(request, response, behavior.proxyOptions, error => {
+      this._proxy.web(request, response, behavior.proxyOptions, (error) => {
         if (!response.headersSent) {
           const code = (error as any).code;
           const statusCode =
@@ -510,13 +518,11 @@ export default class AuthXClientProxy extends EventEmitter {
       timeout,
       promise: (async () => {
         try {
-          // FIXME: This should not need to be cast through any. See:
-          // https://github.com/DefinitelyTyped/DefinitelyTyped/pull/35636
           const refreshResponse = await fetch(this._config.authxUrl, {
             method: "POST",
             signal: controller.signal,
             headers: {
-              "Content-Type": "application/json"
+              "Content-Type": "application/json",
             },
             body: JSON.stringify({
               /* eslint-disable camelcase */
@@ -525,10 +531,10 @@ export default class AuthXClientProxy extends EventEmitter {
               client_secret: this._config.clientSecret,
               token_format: this._config.tokenFormat,
               refresh_token: refreshToken,
-              scope: scopes.join(" ")
+              scope: scopes.join(" "),
               /* eslint-enable camelcase */
-            })
-          } as any);
+            }),
+          });
 
           if (refreshResponse.status !== 200) {
             throw new Error(
@@ -556,7 +562,7 @@ export default class AuthXClientProxy extends EventEmitter {
 
           // This code is designed to make sure we keep track of when tokens will expire, and refresh them before they do.
           // BASIC tokens never expire, so this is not applicable to them.
-          if (refreshResponseBody.token_type?.toLowerCase() == "bearer") {
+          if (refreshResponseBody.token_type?.toLowerCase() === "bearer") {
             const payload = decode(accessToken);
             if (!payload || typeof payload !== "object") {
               throw new Error("Invalid token payload.");
@@ -654,7 +660,7 @@ export default class AuthXClientProxy extends EventEmitter {
             }
           }
         }
-      })()
+      })(),
     };
 
     // Store the request.
@@ -685,7 +691,7 @@ export default class AuthXClientProxy extends EventEmitter {
       throw new Error("Proxy cannot listen because it is closing.");
     }
 
-    return new Promise(resolve => {
+    return new Promise((resolve) => {
       this.server.once("listening", resolve);
       this.server.listen(options);
     });
@@ -734,7 +740,7 @@ export default class AuthXClientProxy extends EventEmitter {
     this._expirationTimeouts = {};
 
     // Close the proxy.
-    return new Promise(resolve => {
+    return new Promise((resolve) => {
       setTimeout(() => {
         this.server.close(() => {
           resolve();

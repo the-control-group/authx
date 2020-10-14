@@ -1,10 +1,5 @@
 import { useState, useMemo, useEffect, useCallback } from "react";
 
-interface Authorization {
-  id: string;
-  secret: string;
-}
-
 // Get the current authorization from localStorage.
 export function useAuthorization(): {
   authorization: null | { id: string; secret: string };
@@ -42,7 +37,7 @@ export function useAuthorization(): {
         ) {
           setAuthorization({
             id: authorizationId,
-            secret: authorizationSecret
+            secret: authorizationSecret,
           });
         }
       }
@@ -61,7 +56,7 @@ export function useAuthorization(): {
       setAuthorization(null);
     }, [setAuthorization]),
     setAuthorization: useCallback(
-      authorization => {
+      (authorization) => {
         window.localStorage.setItem(
           "authx-interface.authorization",
           `${authorization.id}:${authorization.secret}`
@@ -69,6 +64,6 @@ export function useAuthorization(): {
         setAuthorization(authorization);
       },
       [setAuthorization]
-    )
+    ),
   };
 }

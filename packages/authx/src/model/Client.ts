@@ -84,7 +84,7 @@ export class Client implements ClientData {
     tx: Pool | ClientBase | DataLoaderExecutor,
     action: ClientAction = {
       basic: "r",
-      secrets: ""
+      secrets: "",
     }
   ): Promise<boolean> {
     if (
@@ -94,7 +94,7 @@ export class Client implements ClientData {
           realm,
           {
             type: "client",
-            clientId: this.id
+            clientId: this.id,
           },
           action
         )
@@ -182,13 +182,13 @@ export class Client implements ClientData {
     );
 
     return result.rows.map(
-      row =>
+      (row) =>
         new ClientRecord({
           ...row,
           replacementRecordId: row.replacement_record_id,
           createdByAuthorizationId: row.created_by_authorization_id,
           createdAt: row.created_at,
-          entityId: row.entity_id
+          entityId: row.entity_id,
         })
     );
   }
@@ -234,7 +234,7 @@ export class Client implements ClientData {
       id: row.id,
       entityId: row.entity_id,
       recordId: row.record_id,
-      createdAt: row.created_at
+      createdAt: row.created_at,
     });
   }
 
@@ -257,12 +257,12 @@ export class Client implements ClientData {
     );
 
     return result.rows.map(
-      row =>
+      (row) =>
         new ClientInvocation({
           ...row,
           recordId: row.record_id,
           entityId: row.entity_id,
-          createdAt: row.created_at
+          createdAt: row.created_at,
         })
     );
   }
@@ -307,7 +307,7 @@ export class Client implements ClientData {
       }
 
       // Load multiple instances.
-      return Promise.all(id.map(i => loader.load(i)));
+      return Promise.all(id.map((i) => loader.load(i)));
     }
 
     if (typeof id !== "string" && !id.length) {
@@ -347,12 +347,12 @@ export class Client implements ClientData {
     }
 
     const clients = result.rows.map(
-      row =>
+      (row) =>
         new Client({
           ...row,
           recordId: row.record_id,
           secrets: row.secrets,
-          urls: row.urls
+          urls: row.urls,
         })
     );
 
@@ -432,7 +432,7 @@ export class Client implements ClientData {
         data.name,
         data.description,
         [...new Set(data.secrets)],
-        [...new Set(data.urls)]
+        [...new Set(data.urls)],
       ]
     );
 
@@ -445,7 +445,7 @@ export class Client implements ClientData {
       ...row,
       recordId: row.record_id,
       secrets: row.secrets,
-      urls: row.urls
+      urls: row.urls,
     });
   }
 

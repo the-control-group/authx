@@ -14,8 +14,8 @@ export const credential: GraphQLFieldConfig<
   description: "Fetch a credential by ID.",
   args: {
     id: {
-      type: new GraphQLNonNull(GraphQLID)
-    }
+      type: new GraphQLNonNull(GraphQLID),
+    },
   },
   async resolve(source, args, context): Promise<null | Credential<any>> {
     const { executor, authorization: a, realm } = context;
@@ -24,5 +24,5 @@ export const credential: GraphQLFieldConfig<
     return (await credential.isAccessibleBy(realm, a, executor))
       ? credential
       : null;
-  }
+  },
 };

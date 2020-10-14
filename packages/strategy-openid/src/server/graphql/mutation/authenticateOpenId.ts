@@ -2,7 +2,7 @@ import {
   GraphQLFieldConfig,
   GraphQLID,
   GraphQLNonNull,
-  GraphQLString
+  GraphQLString,
 } from "graphql";
 
 import { Pool, PoolClient } from "pg";
@@ -22,7 +22,7 @@ import {
   ForbiddenError,
   AuthenticationError,
   DataLoaderExecutor,
-  ReadonlyDataLoaderExecutor
+  ReadonlyDataLoaderExecutor,
 } from "@authx/authx";
 
 import { createV2AuthXScope } from "@authx/authx/scopes";
@@ -43,13 +43,13 @@ export const authenticateOpenId: GraphQLFieldConfig<
   description: "Create a new authorization.",
   args: {
     authorityId: {
-      type: new GraphQLNonNull(GraphQLID)
+      type: new GraphQLNonNull(GraphQLID),
     },
     code: {
       type: new GraphQLNonNull(GraphQLString),
       description:
-        "The OAuth authorization code provided by the OpenID exchange."
-    }
+        "The OAuth authorization code provided by the OpenID exchange.",
+    },
   },
   async resolve(source, args, context): Promise<Authorization> {
     const { executor, authorization: a, realm, base } = context;
@@ -98,7 +98,7 @@ export const authenticateOpenId: GraphQLFieldConfig<
 
       const response = await fetch(authority.details.tokenUrl, {
         method: "POST",
-        body: requestBody
+        body: requestBody,
       });
 
       const responseBody = (await response.json()) as {
@@ -205,12 +205,12 @@ export const authenticateOpenId: GraphQLFieldConfig<
               userId: emailCredential.userId,
               authorityId: authority.id,
               authorityUserId: token.sub,
-              details: {}
+              details: {},
             },
             {
               recordId: v4(),
               createdByAuthorizationId: authorizationId,
-              createdAt: new Date()
+              createdAt: new Date(),
             }
           );
         }
@@ -224,12 +224,12 @@ export const authenticateOpenId: GraphQLFieldConfig<
             id: v4(),
             enabled: true,
             type: "human",
-            name: token.name || ""
+            name: token.name || "",
           },
           {
             recordId: v4(),
             createdByAuthorizationId: authorizationId,
-            createdAt: new Date()
+            createdAt: new Date(),
           }
         );
 
@@ -241,12 +241,12 @@ export const authenticateOpenId: GraphQLFieldConfig<
             userId: user.id,
             authorityId: authority.id,
             authorityUserId: token.sub,
-            details: {}
+            details: {},
           },
           {
             recordId: v4(),
             createdByAuthorizationId: authorizationId,
-            createdAt: new Date()
+            createdAt: new Date(),
           }
         );
 
@@ -256,23 +256,23 @@ export const authenticateOpenId: GraphQLFieldConfig<
           authority.details.assignsCreatedUsersToRoleIds.length
         ) {
           const roles = await Promise.all(
-            authority.details.assignsCreatedUsersToRoleIds.map(id =>
+            authority.details.assignsCreatedUsersToRoleIds.map((id) =>
               Role.read(executor, id)
             )
           );
 
           const roleResults = await Promise.allSettled(
-            roles.map(role =>
+            roles.map((role) =>
               Role.write(
                 tx,
                 {
                   ...role,
-                  userIds: [...role.userIds, user.id]
+                  userIds: [...role.userIds, user.id],
                 },
                 {
                   recordId: v4(),
                   createdByAuthorizationId: authorizationId,
-                  createdAt: new Date()
+                  createdAt: new Date(),
                 }
               )
             )
@@ -293,14 +293,14 @@ export const authenticateOpenId: GraphQLFieldConfig<
       // Invoke the credential.
       await credential.invoke(executor, {
         id: v4(),
-        createdAt: new Date()
+        createdAt: new Date(),
       });
 
       const values = {
         currentAuthorizationId: authorizationId,
         currentUserId: credential.userId,
         currentGrantId: null,
-        currentClientId: null
+        currentClientId: null,
       };
 
       // Make sure the user can create new authorizations.
@@ -315,12 +315,12 @@ export const authenticateOpenId: GraphQLFieldConfig<
               authorizationId: "",
               grantId: "",
               clientId: "",
-              userId: user.id
+              userId: user.id,
             },
             {
               basic: "*",
               scopes: "*",
-              secrets: "*"
+              secrets: "*",
             }
           )
         )
@@ -339,13 +339,13 @@ export const authenticateOpenId: GraphQLFieldConfig<
           userId: credential.userId,
           grantId: null,
           secret: randomBytes(16).toString("hex"),
-          scopes: [`${realm}:**:**`]
+          scopes: [`${realm}:**:**`],
         },
         {
           recordId: v4(),
           createdByAuthorizationId: authorizationId,
           createdByCredentialId: credential.id,
-          createdAt: new Date()
+          createdAt: new Date(),
         }
       );
 
@@ -354,7 +354,7 @@ export const authenticateOpenId: GraphQLFieldConfig<
       await authorization.invoke(executor, {
         id: v4(),
         format: "basic",
-        createdAt: new Date()
+        createdAt: new Date(),
       });
 
       await tx.query("COMMIT");
@@ -378,5 +378,5 @@ export const authenticateOpenId: GraphQLFieldConfig<
     } finally {
       tx.release();
     }
-  }
+  },
 };

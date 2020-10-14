@@ -6,7 +6,7 @@ import { bootstrap } from "../lib/bootstrap";
 import { User, Role, Authorization } from "@authx/authx";
 import {
   PasswordAuthority,
-  PasswordCredential
+  PasswordCredential,
 } from "@authx/strategy-password";
 
 export default async (): Promise<void> => {
@@ -18,7 +18,7 @@ export default async (): Promise<void> => {
     recordId: v4(),
     enabled: true,
     type: "human",
-    name: "AuthX Root User"
+    name: "AuthX Root User",
   });
 
   const authority = new PasswordAuthority({
@@ -29,8 +29,8 @@ export default async (): Promise<void> => {
     name: "Password",
     description: "The password authority.",
     details: {
-      rounds: 12
-    }
+      rounds: 12,
+    },
   });
 
   const password = randomBytes(16).toString("hex");
@@ -42,8 +42,8 @@ export default async (): Promise<void> => {
     authorityUserId: user.id,
     userId: user.id,
     details: {
-      hash: await hash(password, authority.details.rounds)
-    }
+      hash: await hash(password, authority.details.rounds),
+    },
   });
 
   const role = new Role({
@@ -53,7 +53,7 @@ export default async (): Promise<void> => {
     name: "Super Administrator",
     description: "A super administrator has full access to all resources.",
     scopes: ["**:**:**"],
-    userIds: [user.id]
+    userIds: [user.id],
   });
 
   const authorization = new Authorization({
@@ -63,7 +63,7 @@ export default async (): Promise<void> => {
     scopes: ["**:**:**"],
     userId: user.id,
     grantId: null,
-    secret: randomBytes(16).toString("hex")
+    secret: randomBytes(16).toString("hex"),
   });
 
   console.log(JSON.stringify({ id: user.id, password: password }));
@@ -77,32 +77,32 @@ export default async (): Promise<void> => {
         metadata: {
           recordId: user.recordId,
           createdByAuthorizationId: authorization.id,
-          createdAt: new Date()
-        }
+          createdAt: new Date(),
+        },
       },
       authority: {
         data: authority,
         metadata: {
           recordId: authority.recordId,
           createdByAuthorizationId: authorization.id,
-          createdAt: new Date()
-        }
+          createdAt: new Date(),
+        },
       },
       credential: {
         data: credential,
         metadata: {
           recordId: credential.recordId,
           createdByAuthorizationId: authorization.id,
-          createdAt: new Date()
-        }
+          createdAt: new Date(),
+        },
       },
       role: {
         data: role,
         metadata: {
           recordId: role.recordId,
           createdByAuthorizationId: authorization.id,
-          createdAt: new Date()
-        }
+          createdAt: new Date(),
+        },
       },
       authorization: {
         data: authorization,
@@ -110,9 +110,9 @@ export default async (): Promise<void> => {
           recordId: authorization.recordId,
           createdByAuthorizationId: authorization.id,
           createdAt: new Date(),
-          createdByCredentialId: null
-        }
-      }
+          createdByCredentialId: null,
+        },
+      },
     });
 
     await tx.query("COMMIT");

@@ -26,8 +26,8 @@ export const credentials: GraphQLFieldConfig<
     includeDisabled: {
       type: GraphQLBoolean,
       defaultValue: false,
-      description: "Include disabled credentials in results."
-    }
+      description: "Include disabled credentials in results.",
+    },
   },
   async resolve(source, args, context) {
     const { executor, authorization: a, realm } = context;
@@ -36,7 +36,7 @@ export const credentials: GraphQLFieldConfig<
     const rules = CursorRule.addToRuleListIfNeeded(
       [
         new NoReplacementRecord(),
-        new IsAccessibleByRule(realm, a, "credential")
+        new IsAccessibleByRule(realm, a, "credential"),
       ],
       args
     );
@@ -62,5 +62,5 @@ export const credentials: GraphQLFieldConfig<
     );
 
     return CursorConnection.connectionFromRules(args, credentials, rules);
-  }
+  },
 };

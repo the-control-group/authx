@@ -4,7 +4,7 @@ import React, {
   useEffect,
   useContext,
   ReactElement,
-  FormEvent
+  FormEvent,
 } from "react";
 
 import { GraphQL, GraphQLContext } from "graphql-react";
@@ -16,7 +16,7 @@ interface Props {
 
 export function EmailAuthority({
   authority,
-  setAuthorization
+  setAuthorization,
 }: Props): ReactElement<Props> {
   // Focus the email field on mount
   const focusElement = useRef<HTMLInputElement>(null);
@@ -105,9 +105,9 @@ export function EmailAuthority({
           variables: {
             authorityId: authority.id,
             email,
-            proof
-          }
-        }
+            proof,
+          },
+        },
       });
 
       const result = await operation.cacheValuePromise;
@@ -122,14 +122,14 @@ export function EmailAuthority({
       // make it more difficult for an attacker to query for valid email
       // addresses, user IDs, or other information.
       if (result.graphQLErrors && result.graphQLErrors.length) {
-        setErrors(result.graphQLErrors.map(e => e.message));
+        setErrors(result.graphQLErrors.map((e) => e.message));
         return;
       }
 
       const authorization = result.data && result.data.authenticateEmail;
       if (!authorization || !authorization.secret) {
         setErrors([
-          "No authorization was returned. Contact your administrator to ensure you have sufficient access to read your own authorizations and authorization secrets."
+          "No authorization was returned. Contact your administrator to ensure you have sufficient access to read your own authorizations and authorization secrets.",
         ]);
         return;
       }
@@ -161,7 +161,7 @@ export function EmailAuthority({
           name="email"
           type="email"
           value={email}
-          onChange={e => setEmail(e.target.value)}
+          onChange={(e) => setEmail(e.target.value)}
           required
         />
       </label>
@@ -173,7 +173,7 @@ export function EmailAuthority({
           name="proof"
           type="text"
           value={proof}
-          onChange={e => setProof(e.target.value)}
+          onChange={(e) => setProof(e.target.value)}
         />
       </label>
       <p>

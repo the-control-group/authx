@@ -240,6 +240,7 @@ export function Authorize({
   const paramsClientId = url.searchParams.get("client_id") || null;
   const paramsRedirectUri = url.searchParams.get("redirect_uri") || null;
   const paramsScope = url.searchParams.get("scope") || null;
+  const paramsPrompt = url.searchParams.get("prompt") || null;
 
   // If we end up creating a new grant, this is the ID we'll use.
   const [speculativeGrantId, setSpeculativeGrantId] = useState(() => v4());
@@ -568,14 +569,12 @@ export function Authorize({
         requestedScopeTemplates &&
         isSuperset(grantedScopes, requestedScopeTemplates)
       ) {
-        // TODO: We need to allow the app to force us to show a confirmation
-        // screen. IIRC this is part of the OpenID Connect spec, but I have
-        // useless airplane wifi right now. This should be an easy thing to
-        // implement here, so we can enable automatic redirection.
-        //
-        // Found the spec: https://openid.net/specs/openid-connect-core-1_0.html#rfc.section.3.1.2.1
-        //
-        // onGrantAccess();
+        // TODO: This does NOT fully follow the OpenID Connect spec here, which
+        // should be considered instead of the current behavior.
+        // https://openid.net/specs/openid-connect-core-1_0.html#rfc.section.3.1.2.1
+        if (!paramsPrompt || paramsPrompt === "none") {
+          onGrantAccess();
+        }
       }
     }
   }, [

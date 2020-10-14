@@ -37,14 +37,14 @@ export class Rule {
     let ret = root;
 
     const whereClause = rules
-      .map(it => it.toSQLWhere())
-      .filter(it => it)
+      .map((it) => it.toSQLWhere())
+      .filter((it) => it)
       .join(" AND ");
     if (whereClause) ret += ` WHERE ${whereClause} `;
 
     const orderByClauseElements = rules
-      .map(it => it.toSQLOrder())
-      .filter(it => it);
+      .map((it) => it.toSQLOrder())
+      .filter((it) => it);
 
     if (orderByClauseElements.length === 1) {
       ret += ` ${orderByClauseElements[0]}`;
@@ -53,8 +53,8 @@ export class Rule {
     }
 
     const limitClauseElements = rules
-      .map(it => it.toSQLLimit())
-      .filter(it => it);
+      .map((it) => it.toSQLLimit())
+      .filter((it) => it);
 
     if (limitClauseElements.length === 1) {
       ret += ` LIMIT ${limitClauseElements[0]}`;
@@ -85,7 +85,7 @@ export class Rule {
 
     return {
       query: ret,
-      params: paramPairs.map(it => it[1])
+      params: paramPairs.map((it) => it[1]),
     };
   }
 
@@ -103,7 +103,7 @@ export class Rule {
    * @param root
    * @param rules
    */
-  static async runQuery<T>(
+  static async runQuery(
     tx: ReadonlyDataLoaderExecutor,
     root: string,
     rules: Rule[]

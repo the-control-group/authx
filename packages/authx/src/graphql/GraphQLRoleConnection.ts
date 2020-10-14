@@ -8,6 +8,6 @@ export const GraphQLRoleConnection = new GraphQLObjectType({
   interfaces: () => [GraphQLConnection],
   fields: () => ({
     pageInfo: { type: new GraphQLNonNull(GraphQLPageInfo) },
-    edges: { type: new GraphQLList(GraphQLRoleEdge) }
-  })
+    edges: { type: new GraphQLList(GraphQLRoleEdge) },
+  }),
 });

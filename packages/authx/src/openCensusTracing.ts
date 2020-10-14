@@ -2,7 +2,7 @@ import { Tracer, Span, SpanKind } from "@opencensus/core";
 import {
   GraphQLResolveInfo,
   ResponsePath,
-  GraphQLFieldResolver
+  GraphQLFieldResolver,
 } from "graphql";
 
 export const openCensusTracer = Symbol("OpenCensus Tracer");
@@ -31,7 +31,7 @@ export async function openCensusTracingGraphQLMiddleware(
     span = tracer.startChildSpan({
       name: info.fieldName,
       kind: SpanKind.UNSPECIFIED,
-      childOf: parentSpan
+      childOf: parentSpan,
     });
 
     const parentId =

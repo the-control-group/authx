@@ -14,15 +14,15 @@ export const authorization = [
           grantId: "d8dcaf12-b744-4d2d-b223-09e7e5eaa922",
           secret:
             "c8ad0dd621b819dceb95baac0d3f2e106b438bfbc5b1c811009c763de5dea1a4",
-          scopes: ["AuthX:**:**"]
+          scopes: ["AuthX:**:**"],
         },
         {
           recordId: "b741401e-fb12-4964-bbc7-0d32e3a35781",
           createdByAuthorizationId: "f0e54748-c7bb-4724-ad8b-7dabb66aafa9",
           createdByCredentialId: null,
-          createdAt: new Date("2019-03-06T21:07:59.814Z")
+          createdAt: new Date("2019-03-06T21:07:59.814Z"),
         }
-      )
+      ),
   },
   {
     id: "c70da498-27ed-4c3b-a318-38bb220cef48",
@@ -36,15 +36,15 @@ export const authorization = [
           grantId: "e4670762-beb7-435c-94af-055b951f97e6",
           secret:
             "8f57395ecd9d6fcb884145f8f6feff357fead2fbd83607e87d71a7c372cf37ad",
-          scopes: ["**:**:**"]
+          scopes: ["**:**:**"],
         },
         {
           recordId: "ce1a45cd-af9c-42fb-9879-aec6bc8b12a1",
           createdByAuthorizationId: "f0e54748-c7bb-4724-ad8b-7dabb66aafa9",
           createdByCredentialId: null,
-          createdAt: new Date("2019-03-06T21:07:59.814Z")
+          createdAt: new Date("2019-03-06T21:07:59.814Z"),
         }
-      )
+      ),
   },
   {
     id: "f0e54748-c7bb-4724-ad8b-7dabb66aafa9",
@@ -58,14 +58,14 @@ export const authorization = [
           grantId: "4e76cb13-ab24-4dc1-ad96-abcbb89f5529",
           secret:
             "6fac10e63eaed0835a9c263273dcf274b6751fd356d6bea04694510757d1646d",
-          scopes: ["**:**:**"]
+          scopes: ["**:**:**"],
         },
         {
           recordId: "b1f8e470-4b3e-4470-a99b-f8bc235c71dd",
           createdByAuthorizationId: "f0e54748-c7bb-4724-ad8b-7dabb66aafa9",
           createdByCredentialId: null,
-          createdAt: new Date("2019-03-06T21:07:59.814Z")
+          createdAt: new Date("2019-03-06T21:07:59.814Z"),
         }
-      )
-  }
+      ),
+  },
 ];

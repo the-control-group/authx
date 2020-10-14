@@ -8,6 +8,6 @@ export const GraphQLPageInfo = new GraphQLObjectType({
     hasPreviousPage: { type: GraphQLBoolean },
     hasNextPage: { type: GraphQLBoolean },
     startCursor: { type: GraphQLString },
-    endCursor: { type: GraphQLString }
-  })
+    endCursor: { type: GraphQLString },
+  }),
 });

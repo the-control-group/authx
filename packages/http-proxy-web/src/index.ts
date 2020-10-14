@@ -107,9 +107,10 @@ export interface Config {
   readonly requestGrantedScopes: string[];
 
   /**
-   * Format of tokens that we will request from AuthX and use.
-   * Can be either BEARER or BASIC.
-   * If not set, assumes BEARER.
+   * Format (BEARER or BASIC) of tokens that the proxy will request from AuthX and pass to the
+   * the resource.
+   *
+   * If unspecified, the format BEARER will be used.
    */
   readonly tokenFormat?: "BASIC" | "BEARER";
 
@@ -204,7 +205,7 @@ export default class AuthXWebProxy extends EventEmitter {
       response: response,
       rule: undefined,
       behavior: undefined,
-      message: "Request received."
+      message: "Request received.",
     };
 
     // Emit meta on request start.
@@ -263,14 +264,14 @@ export default class AuthXWebProxy extends EventEmitter {
 
           statusCode = code;
           return statusCode;
-        }
+        },
       });
 
       // Strip out cookies belonging to the proxy.
       if (request.headers.cookie) {
         request.headers.cookie = request.headers.cookie
           .split("; ")
-          .filter(cookie => !/^authx\./.test(cookie.split("=")[0]))
+          .filter((cookie) => !/^authx\./.test(cookie.split("=")[0]))
           .join("; ");
 
         if (!request.headers.cookie) delete request.headers.cookie;
@@ -279,7 +280,7 @@ export default class AuthXWebProxy extends EventEmitter {
       meta.message = "Request proxied.";
       meta.rule = rule;
       meta.behavior = behavior;
-      this._proxy.web(request, response, options, error => {
+      this._proxy.web(request, response, options, (error) => {
         if (!response.headersSent) {
           const code = (error as any).code;
           const statusCode =
@@ -340,7 +341,7 @@ export default class AuthXWebProxy extends EventEmitter {
                 ? errorDescriptions
                 : errors
               ).map(
-                message =>
+                (message) =>
                   `<div>${message
                     .replace(/&/g, "&amp;")
                     .replace(/</g, "&lt;")
@@ -374,7 +375,7 @@ export default class AuthXWebProxy extends EventEmitter {
         const tokenResponse = await fetch(this._config.authxUrl, {
           method: "POST",
           headers: {
-            "Content-Type": "application/json"
+            "Content-Type": "application/json",
           },
           body: JSON.stringify({
             /* eslint-disable camelcase */
@@ -383,9 +384,9 @@ export default class AuthXWebProxy extends EventEmitter {
             client_secret: this._config.clientSecret,
             code: code,
             token_format: this._config.tokenFormat,
-            scope: "**:**:**"
+            scope: "**:**:**",
             /* eslint-enable camelcase */
-          })
+          }),
         });
 
         if (tokenResponse.status !== 200) {
@@ -508,7 +509,7 @@ export default class AuthXWebProxy extends EventEmitter {
           const refreshResponse = await fetch(this._config.authxUrl, {
             method: "POST",
             headers: {
-              "Content-Type": "application/json"
+              "Content-Type": "application/json",
             },
             body: JSON.stringify({
               /* eslint-disable camelcase */
@@ -517,9 +518,9 @@ export default class AuthXWebProxy extends EventEmitter {
               client_secret: this._config.clientSecret,
               refresh_token: refreshToken,
               token_format: this._config.tokenFormat,
-              scope: scopes.join(" ")
+              scope: scopes.join(" "),
               /* eslint-enabme camelcase */
-            })
+            }),
           });
 
           if (refreshResponse.status !== 200) {
@@ -620,7 +621,7 @@ export default class AuthXWebProxy extends EventEmitter {
       throw new Error("Proxy cannot listen because it is closing.");
     }
 
-    return new Promise(resolve => {
+    return new Promise((resolve) => {
       this.server.once("listening", () => {
         this.emit("ready");
         resolve();
@@ -637,7 +638,7 @@ export default class AuthXWebProxy extends EventEmitter {
     this._closing = true;
 
     // Close the proxy.
-    return new Promise(resolve => {
+    return new Promise((resolve) => {
       setTimeout(() => {
         this.server.close(() => {
           resolve();

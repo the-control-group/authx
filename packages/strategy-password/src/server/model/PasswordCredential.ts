@@ -2,7 +2,7 @@ import { Pool, ClientBase } from "pg";
 import { Credential, DataLoaderExecutor } from "@authx/authx";
 import {
   PasswordAuthorityDetails,
-  PasswordAuthority
+  PasswordAuthority,
 } from "./PasswordAuthority";
 
 // Credential

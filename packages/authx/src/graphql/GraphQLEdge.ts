@@ -5,6 +5,6 @@ export const GraphQLEdge = new GraphQLInterfaceType({
   name: "Edge",
   fields: () => ({
     cursor: { type: new GraphQLNonNull(GraphQLString) },
-    node: { type: GraphQLNode }
-  })
+    node: { type: GraphQLNode },
+  }),
 });

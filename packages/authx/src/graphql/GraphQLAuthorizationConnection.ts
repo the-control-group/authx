@@ -8,6 +8,6 @@ export const GraphQLAuthorizationConnection = new GraphQLObjectType({
   interfaces: () => [GraphQLConnection],
   fields: () => ({
     pageInfo: { type: new GraphQLNonNull(GraphQLPageInfo) },
-    edges: { type: new GraphQLList(GraphQLAuthorizationEdge) }
-  })
+    edges: { type: new GraphQLList(GraphQLAuthorizationEdge) },
+  }),
 });

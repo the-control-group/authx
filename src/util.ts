@@ -18,7 +18,7 @@ export class FunctionalTestContext {
     graphqlUrl.pathname = "/graphql";
 
     const headers: { [key: string]: string } = {
-      "content-type": "application/json"
+      "content-type": "application/json",
     };
 
     if (basicAuthString) headers["authorization"] = `Basic ${basicAuthString}`;
@@ -27,8 +27,8 @@ export class FunctionalTestContext {
       method: "POST",
       headers: headers,
       body: JSON.stringify({
-        query: query
-      })
+        query: query,
+      }),
     });
 
     const ret = await result.json();

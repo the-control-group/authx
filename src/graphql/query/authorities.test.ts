@@ -9,8 +9,8 @@ pagingTests({
   endpointName: "authorities",
   ids: [
     "0d765613-e813-40e5-9aa7-89f96531364e",
-    "725f9c3b-4a72-4021-9066-c89e534df5be"
+    "725f9c3b-4a72-4021-9066-c89e534df5be",
   ],
   scopes: [],
-  ctx: ctx
+  ctx: ctx,
 });

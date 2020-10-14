@@ -2,7 +2,7 @@ import {
   GraphQLScalarType,
   GraphQLString,
   GraphQLError,
-  ValueNode
+  ValueNode,
 } from "graphql";
 import { isValidScopeTemplate } from "@authx/scopes";
 
@@ -36,5 +36,5 @@ export const GraphQLScopeTemplate = new GraphQLScalarType({
     }
 
     return string;
-  }
+  },
 });
