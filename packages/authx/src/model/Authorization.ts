@@ -98,6 +98,7 @@ export class Authorization implements AuthorizationData {
     if (
       await a.can(
         tx,
+        realm,
         createV2AuthXScope(
           realm,
           {
@@ -142,7 +143,8 @@ export class Authorization implements AuthorizationData {
   }
 
   public async access(
-    tx: Pool | ClientBase | DataLoaderExecutor
+    tx: Pool | ClientBase | DataLoaderExecutor,
+    realm: string
   ): Promise<string[]> {
     const grant = await this.grant(tx);
     const values = {
@@ -160,15 +162,33 @@ export class Authorization implements AuthorizationData {
 
     const user = await this.user(tx);
     return user.enabled
-      ? getIntersection(this.scopes, await user.access(tx, values))
+      ? simplify([
+          ...getIntersection(this.scopes, await user.access(tx, values)),
+          createV2AuthXScope(
+            realm,
+            {
+              type: "authorization",
+              authorizationId: this.id,
+              grantId: this.grantId ?? "",
+              clientId: (await this.grant(tx))?.clientId ?? "",
+              userId: this.userId,
+            },
+            {
+              basic: "r",
+              scopes: "*",
+              secrets: "",
+            }
+          ),
+        ])
       : [];
   }
 
   public async can(
     tx: Pool | ClientBase | DataLoaderExecutor,
+    realm: string,
     scope: string[] | string
   ): Promise<boolean> {
-    return isSuperset(await this.access(tx), scope);
+    return isSuperset(await this.access(tx, realm), scope);
   }
 
   public async records(tx: ClientBase): Promise<AuthorizationRecord[]> {

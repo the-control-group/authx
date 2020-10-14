@@ -96,6 +96,7 @@ export class Grant implements GrantData {
     if (
       await a.can(
         tx,
+        realm,
         createV2AuthXScope(
           realm,
           {

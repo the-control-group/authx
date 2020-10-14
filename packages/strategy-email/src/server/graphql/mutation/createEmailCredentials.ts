@@ -164,6 +164,7 @@ export const createEmailCredentials: GraphQLFieldConfig<
         if (
           !(await a.can(
             executor,
+            realm,
             createV2AuthXScope(
               realm,
               {
@@ -188,6 +189,7 @@ export const createEmailCredentials: GraphQLFieldConfig<
         if (
           !(await a.can(
             executor,
+            realm,
             createV2AuthXScope(
               realm,
               {

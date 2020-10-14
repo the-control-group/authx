@@ -99,6 +99,7 @@ export abstract class Credential<C> implements CredentialData<C> {
     if (
       await a.can(
         tx,
+        realm,
         createV2AuthXScope(
           realm,
           {

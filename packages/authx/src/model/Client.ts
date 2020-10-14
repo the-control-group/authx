@@ -90,6 +90,7 @@ export class Client implements ClientData {
     if (
       await a.can(
         tx,
+        realm,
         createV2AuthXScope(
           realm,
           {

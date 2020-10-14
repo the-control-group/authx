@@ -927,7 +927,7 @@ async function prepareOAuthResponse(
 ): Promise<any> {
   if (typeof tokenFormat === "undefined") tokenFormat = "BEARER";
 
-  const scopes = await requestedAuthorization.access(executor);
+  const scopes = await requestedAuthorization.access(executor, realm);
   const tokenId = v4();
   await requestedAuthorization.invoke(executor, {
     id: tokenId,
