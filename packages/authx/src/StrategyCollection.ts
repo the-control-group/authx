@@ -105,7 +105,7 @@ export class StrategyCollection {
     this.credentialMap = credentialMap;
     this.queryFields = queryFields;
     this.mutationFields = mutationFields;
-    this.types = this.types.filter(t => !s.types.includes(t));
+    this.types = this.types.filter((t) => !s.types.includes(t));
 
     return true;
   }

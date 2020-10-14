@@ -21,37 +21,37 @@ export default async function createInterface(
     output: {
       filename: "$authx-[contenthash].js",
       chunkFilename: "$authx-[id]-[contenthash].js",
-      path: join(__dirname, "../client")
+      path: join(__dirname, "../client"),
     },
     devtool: "source-map",
     resolve: {
-      extensions: [".js", ".json"]
+      extensions: [".js", ".json"],
     },
     module: {
       rules: [
         {
           test: /\.js$/,
           use: ["source-map-loader"],
-          enforce: "pre"
+          enforce: "pre",
         },
         {
           test: join(__dirname, "../client/index.js"),
           loader: join(__dirname, "loader.js"),
           options: {
-            strategies
-          }
-        }
-      ]
+            strategies,
+          },
+        },
+      ],
     },
     plugins: [
       new DefinePlugin({
-        __REALM__: JSON.stringify(realm)
+        __REALM__: JSON.stringify(realm),
       }),
       new HtmlWebpackPlugin({
         template: join(__dirname, "../client/index.html"),
-        filename: "index.html"
-      })
-    ]
+        filename: "index.html",
+      }),
+    ],
   });
 
   // FIXME: While the code is compatible here, the types are not (allowing

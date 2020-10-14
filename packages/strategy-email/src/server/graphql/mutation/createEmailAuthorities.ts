@@ -11,12 +11,12 @@ import {
   Role,
   validateIdFormat,
   DataLoaderExecutor,
-  Authority
+  Authority,
 } from "@authx/authx";
 
 import {
   createV2AuthXScope,
-  createV2AuthorityAdministrationScopes
+  createV2AuthorityAdministrationScopes,
 } from "@authx/authx/scopes";
 
 import { isSuperset, simplify } from "@authx/scopes";
@@ -55,8 +55,8 @@ export const createEmailAuthorities: GraphQLFieldConfig<
     authorities: {
       type: new GraphQLNonNull(
         new GraphQLList(new GraphQLNonNull(GraphQLCreateEmailAuthorityInput))
-      )
-    }
+      ),
+    },
   },
   async resolve(source, args, context): Promise<Promise<EmailAuthority>[]> {
     const { executor, authorization: a, realm } = context;
@@ -75,7 +75,7 @@ export const createEmailAuthorities: GraphQLFieldConfig<
       );
     }
 
-    return args.authorities.map(async input => {
+    return args.authorities.map(async (input) => {
       // Validate `id`.
       if (typeof input.id === "string" && !validateIdFormat(input.id)) {
         throw new ValidationError("The provided `id` is an invalid ID.");
@@ -105,11 +105,11 @@ export const createEmailAuthorities: GraphQLFieldConfig<
               realm,
               {
                 type: "authority",
-                authorityId: ""
+                authorityId: "",
               },
               {
                 basic: "*",
-                details: "*"
+                details: "*",
               }
             )
           ))
@@ -126,7 +126,7 @@ export const createEmailAuthorities: GraphQLFieldConfig<
           if (input.id) {
             try {
               await Authority.read(tx, input.id, strategies, {
-                forUpdate: true
+                forUpdate: true,
               });
               throw new ConflictError();
             } catch (error) {
@@ -154,13 +154,13 @@ export const createEmailAuthorities: GraphQLFieldConfig<
                 authenticationEmailHtml: input.authenticationEmailHtml,
                 verificationEmailSubject: input.verificationEmailSubject,
                 verificationEmailText: input.verificationEmailText,
-                verificationEmailHtml: input.verificationEmailHtml
-              }
+                verificationEmailHtml: input.verificationEmailHtml,
+              },
             },
             {
               recordId: v4(),
               createdByAuthorizationId: a.id,
-              createdAt: new Date()
+              createdAt: new Date(),
             }
           );
 
@@ -168,7 +168,7 @@ export const createEmailAuthorities: GraphQLFieldConfig<
             realm,
             {
               type: "authority",
-              authorityId: id
+              authorityId: id,
             }
           );
 
@@ -176,14 +176,14 @@ export const createEmailAuthorities: GraphQLFieldConfig<
           const administrationResults = await Promise.allSettled(
             input.administration.map(async ({ roleId, scopes }) => {
               const administrationRoleBefore = await Role.read(tx, roleId, {
-                forUpdate: true
+                forUpdate: true,
               });
 
               if (
                 !administrationRoleBefore.isAccessibleBy(realm, a, executor, {
                   basic: "w",
                   scopes: "w",
-                  users: ""
+                  users: "",
                 })
               ) {
                 throw new ForbiddenError(
@@ -197,15 +197,15 @@ export const createEmailAuthorities: GraphQLFieldConfig<
                   ...administrationRoleBefore,
                   scopes: simplify([
                     ...administrationRoleBefore.scopes,
-                    ...possibleAdministrationScopes.filter(possible =>
+                    ...possibleAdministrationScopes.filter((possible) =>
                       isSuperset(scopes, possible)
-                    )
-                  ])
+                    ),
+                  ]),
                 },
                 {
                   recordId: v4(),
                   createdByAuthorizationId: a.id,
-                  createdAt: new Date()
+                  createdAt: new Date(),
                 }
               );
 
@@ -241,5 +241,5 @@ export const createEmailAuthorities: GraphQLFieldConfig<
         tx.release();
       }
     });
-  }
+  },
 };

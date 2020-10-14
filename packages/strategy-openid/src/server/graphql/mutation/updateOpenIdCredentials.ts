@@ -10,7 +10,7 @@ import {
   ValidationError,
   validateIdFormat,
   DataLoaderExecutor,
-  ReadonlyDataLoaderExecutor
+  ReadonlyDataLoaderExecutor,
 } from "@authx/authx";
 import { OpenIdCredential } from "../../model";
 import { GraphQLOpenIdCredential } from "../GraphQLOpenIdCredential";
@@ -32,8 +32,8 @@ export const updateOpenIdCredentials: GraphQLFieldConfig<
     credentials: {
       type: new GraphQLNonNull(
         new GraphQLList(new GraphQLNonNull(GraphQLUpdateOpenIdCredentialInput))
-      )
-    }
+      ),
+    },
   },
   async resolve(source, args, context): Promise<Promise<OpenIdCredential>[]> {
     const { executor, authorization: a, realm } = context;
@@ -52,7 +52,7 @@ export const updateOpenIdCredentials: GraphQLFieldConfig<
       );
     }
 
-    return args.credentials.map(async input => {
+    return args.credentials.map(async (input) => {
       // Validate `id`.
       if (!validateIdFormat(input.id)) {
         throw new ValidationError("The provided `id` is an invalid ID.");
@@ -69,7 +69,7 @@ export const updateOpenIdCredentials: GraphQLFieldConfig<
         await tx.query("BEGIN DEFERRABLE");
 
         const before = await Credential.read(tx, input.id, strategies, {
-          forUpdate: true
+          forUpdate: true,
         });
 
         if (!(before instanceof OpenIdCredential)) {
@@ -79,7 +79,7 @@ export const updateOpenIdCredentials: GraphQLFieldConfig<
         if (
           !(await before.isAccessibleBy(realm, a, executor, {
             basic: "w",
-            details: ""
+            details: "",
           }))
         ) {
           throw new ForbiddenError(
@@ -94,12 +94,12 @@ export const updateOpenIdCredentials: GraphQLFieldConfig<
             enabled:
               typeof input.enabled === "boolean"
                 ? input.enabled
-                : before.enabled
+                : before.enabled,
           },
           {
             recordId: v4(),
             createdByAuthorizationId: a.id,
-            createdAt: new Date()
+            createdAt: new Date(),
           }
         );
 
@@ -122,5 +122,5 @@ export const updateOpenIdCredentials: GraphQLFieldConfig<
         tx.release();
       }
     });
-  }
+  },
 };

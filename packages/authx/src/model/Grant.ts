@@ -90,7 +90,7 @@ export class Grant implements GrantData {
     action: GrantAction = {
       basic: "r",
       scopes: "",
-      secrets: ""
+      secrets: "",
     }
   ): Promise<boolean> {
     if (
@@ -102,7 +102,7 @@ export class Grant implements GrantData {
             type: "grant",
             grantId: this.id,
             userId: this.userId,
-            clientId: this.clientId
+            clientId: this.clientId,
           },
           action
         )
@@ -205,13 +205,13 @@ export class Grant implements GrantData {
     );
 
     return result.rows.map(
-      row =>
+      (row) =>
         new GrantRecord({
           ...row,
           replacementRecordId: row.replacement_record_id,
           createdByAuthorizationId: row.created_by_authorization_id,
           createdAt: row.created_at,
-          entityId: row.entity_id
+          entityId: row.entity_id,
         })
     );
   }
@@ -257,7 +257,7 @@ export class Grant implements GrantData {
       id: row.id,
       entityId: row.entity_id,
       recordId: row.record_id,
-      createdAt: row.created_at
+      createdAt: row.created_at,
     });
   }
 
@@ -280,12 +280,12 @@ export class Grant implements GrantData {
     );
 
     return result.rows.map(
-      row =>
+      (row) =>
         new GrantInvocation({
           ...row,
           recordId: row.record_id,
           entityId: row.entity_id,
-          createdAt: row.created_at
+          createdAt: row.created_at,
         })
     );
   }
@@ -330,7 +330,7 @@ export class Grant implements GrantData {
       }
 
       // Load multiple instances.
-      return Promise.all(id.map(i => loader.load(i)));
+      return Promise.all(id.map((i) => loader.load(i)));
     }
 
     if (typeof id !== "string" && !id.length) {
@@ -368,12 +368,12 @@ export class Grant implements GrantData {
     }
 
     const grants = result.rows.map(
-      row =>
+      (row) =>
         new Grant({
           ...row,
           recordId: row.record_id,
           clientId: row.client_id,
-          userId: row.user_id
+          userId: row.user_id,
         })
     );
 
@@ -458,7 +458,7 @@ export class Grant implements GrantData {
         data.userId,
         [...new Set(data.secrets)],
         [...new Set(data.codes)],
-        simplify([...data.scopes])
+        simplify([...data.scopes]),
       ]
     );
 
@@ -471,7 +471,7 @@ export class Grant implements GrantData {
       ...row,
       recordId: row.record_id,
       clientId: row.client_id,
-      userId: row.user_id
+      userId: row.user_id,
     });
   }
 

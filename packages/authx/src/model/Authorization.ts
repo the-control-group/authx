@@ -92,7 +92,7 @@ export class Authorization implements AuthorizationData {
     action: AuthorizationAction = {
       basic: "r",
       scopes: "",
-      secrets: ""
+      secrets: "",
     }
   ): Promise<boolean> {
     if (
@@ -105,7 +105,7 @@ export class Authorization implements AuthorizationData {
             authorizationId: this.id,
             grantId: this.grantId ?? "",
             clientId: (await this.grant(tx))?.clientId ?? "",
-            userId: this.userId
+            userId: this.userId,
           },
           action
         )
@@ -149,7 +149,7 @@ export class Authorization implements AuthorizationData {
       currentAuthorizationId: this.id,
       currentUserId: this.userId,
       currentGrantId: grant?.id ?? null,
-      currentClientId: grant?.clientId ?? null
+      currentClientId: grant?.clientId ?? null,
     };
 
     if (grant) {
@@ -192,14 +192,14 @@ export class Authorization implements AuthorizationData {
     );
 
     return result.rows.map(
-      row =>
+      (row) =>
         new AuthorizationRecord({
           ...row,
           replacementRecordId: row.replacement_record_id,
           createdByAuthorizationId: row.created_by_authorization_id,
           createdByCredentialId: row.created_by_credential_id,
           createdAt: row.created_at,
-          entityId: row.entity_id
+          entityId: row.entity_id,
         })
     );
   }
@@ -249,7 +249,7 @@ export class Authorization implements AuthorizationData {
       entityId: row.entity_id,
       recordId: row.record_id,
       format: row.format,
-      createdAt: row.created_at
+      createdAt: row.created_at,
     });
   }
 
@@ -273,12 +273,12 @@ export class Authorization implements AuthorizationData {
     );
 
     return result.rows.map(
-      row =>
+      (row) =>
         new AuthorizationInvocation({
           ...row,
           recordId: row.record_id,
           entityId: row.entity_id,
-          createdAt: row.created_at
+          createdAt: row.created_at,
         })
     );
   }
@@ -317,7 +317,9 @@ export class Authorization implements AuthorizationData {
     if (tx instanceof DataLoaderExecutor) {
       const loader = cache.get(tx);
       return Promise.all(
-        typeof id === "string" ? [loader.load(id)] : id.map(i => loader.load(i))
+        typeof id === "string"
+          ? [loader.load(id)]
+          : id.map((i) => loader.load(i))
       );
     }
 
@@ -365,12 +367,12 @@ export class Authorization implements AuthorizationData {
     }
 
     const authorizations = result.rows.map(
-      row =>
+      (row) =>
         new Authorization({
           ...row,
           recordId: row.record_id,
           userId: row.user_id,
-          grantId: row.grant_id
+          grantId: row.grant_id,
         })
     );
 
@@ -495,7 +497,7 @@ export class Authorization implements AuthorizationData {
         data.userId,
         data.grantId,
         data.secret,
-        simplify([...data.scopes])
+        simplify([...data.scopes]),
       ]
     );
 
@@ -508,7 +510,7 @@ export class Authorization implements AuthorizationData {
       ...row,
       recordId: row.record_id,
       userId: row.user_id,
-      grantId: row.grant_id
+      grantId: row.grant_id,
     });
   }
 

@@ -2,17 +2,17 @@ import {
   GraphQLID,
   GraphQLNonNull,
   GraphQLBoolean,
-  GraphQLInputObjectType
+  GraphQLInputObjectType,
 } from "graphql";
 
 export const GraphQLUpdateAuthorizationInput = new GraphQLInputObjectType({
   name: "UpdateAuthorizationInput",
   fields: () => ({
     id: {
-      type: new GraphQLNonNull(GraphQLID)
+      type: new GraphQLNonNull(GraphQLID),
     },
     enabled: {
-      type: GraphQLBoolean
-    }
-  })
+      type: GraphQLBoolean,
+    },
+  }),
 });

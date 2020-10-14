@@ -32,11 +32,11 @@ export class CursorConnection {
     rules: Rule[]
   ): Connection<T> {
     const forwardCursorRule = rules.find(
-      it => it instanceof ForwardCursorRule
+      (it) => it instanceof ForwardCursorRule
     ) as ForwardCursorRule | undefined;
 
     const reverseCursorRule = rules.find(
-      it => it instanceof ReverseCursorRule
+      (it) => it instanceof ReverseCursorRule
     ) as ReverseCursorRule | undefined;
 
     if (forwardCursorRule) {

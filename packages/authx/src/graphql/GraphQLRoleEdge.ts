@@ -7,6 +7,6 @@ export const GraphQLRoleEdge = new GraphQLObjectType({
   interfaces: () => [GraphQLEdge],
   fields: () => ({
     cursor: { type: new GraphQLNonNull(GraphQLString) },
-    node: { type: GraphQLRole }
-  })
+    node: { type: GraphQLRole },
+  }),
 });

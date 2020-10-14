@@ -14,12 +14,12 @@ import {
   Role,
   validateIdFormat,
   DataLoaderExecutor,
-  ReadonlyDataLoaderExecutor
+  ReadonlyDataLoaderExecutor,
 } from "@authx/authx";
 
 import {
   createV2AuthXScope,
-  createV2CredentialAdministrationScopes
+  createV2CredentialAdministrationScopes,
 } from "@authx/authx/scopes";
 
 import { isSuperset, simplify } from "@authx/scopes";
@@ -52,8 +52,8 @@ export const createPasswordCredentials: GraphQLFieldConfig<
         new GraphQLList(
           new GraphQLNonNull(GraphQLCreatePasswordCredentialInput)
         )
-      )
-    }
+      ),
+    },
   },
   async resolve(source, args, context): Promise<Promise<PasswordCredential>[]> {
     const { executor, authorization: a, realm } = context;
@@ -72,7 +72,7 @@ export const createPasswordCredentials: GraphQLFieldConfig<
       );
     }
 
-    return args.credentials.map(async input => {
+    return args.credentials.map(async (input) => {
       // Validate `id`.
       if (typeof input.id === "string" && !validateIdFormat(input.id)) {
         throw new ValidationError("The provided `id` is an invalid ID.");
@@ -117,11 +117,11 @@ export const createPasswordCredentials: GraphQLFieldConfig<
                 type: "credential",
                 credentialId: "",
                 authorityId: input.authorityId,
-                userId: input.userId
+                userId: input.userId,
               },
               {
                 basic: "*",
-                details: "*"
+                details: "*",
               }
             )
           ))
@@ -138,7 +138,7 @@ export const createPasswordCredentials: GraphQLFieldConfig<
           if (input.id) {
             try {
               await Credential.read(tx, input.id, strategies, {
-                forUpdate: true
+                forUpdate: true,
               });
               throw new ConflictError();
             } catch (error) {
@@ -169,13 +169,13 @@ export const createPasswordCredentials: GraphQLFieldConfig<
               userId: input.userId,
               authorityUserId: input.userId,
               details: {
-                hash: await hash(input.password, authority.details.rounds)
-              }
+                hash: await hash(input.password, authority.details.rounds),
+              },
             },
             {
               recordId: v4(),
               createdByAuthorizationId: a.id,
-              createdAt: new Date()
+              createdAt: new Date(),
             }
           );
 
@@ -185,7 +185,7 @@ export const createPasswordCredentials: GraphQLFieldConfig<
               type: "credential",
               authorityId: credential.authorityId,
               credentialId: id,
-              userId: credential.userId
+              userId: credential.userId,
             }
           );
 
@@ -193,14 +193,14 @@ export const createPasswordCredentials: GraphQLFieldConfig<
           const administrationResults = await Promise.allSettled(
             input.administration.map(async ({ roleId, scopes }) => {
               const administrationRoleBefore = await Role.read(tx, roleId, {
-                forUpdate: true
+                forUpdate: true,
               });
 
               if (
                 !administrationRoleBefore.isAccessibleBy(realm, a, executor, {
                   basic: "w",
                   scopes: "w",
-                  users: ""
+                  users: "",
                 })
               ) {
                 throw new ForbiddenError(
@@ -214,15 +214,15 @@ export const createPasswordCredentials: GraphQLFieldConfig<
                   ...administrationRoleBefore,
                   scopes: simplify([
                     ...administrationRoleBefore.scopes,
-                    ...possibleAdministrationScopes.filter(possible =>
+                    ...possibleAdministrationScopes.filter((possible) =>
                       isSuperset(scopes, possible)
-                    )
-                  ])
+                    ),
+                  ]),
                 },
                 {
                   recordId: v4(),
                   createdByAuthorizationId: a.id,
-                  createdAt: new Date()
+                  createdAt: new Date(),
                 }
               );
 
@@ -258,5 +258,5 @@ export const createPasswordCredentials: GraphQLFieldConfig<
         tx.release();
       }
     });
-  }
+  },
 };

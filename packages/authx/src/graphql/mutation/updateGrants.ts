@@ -31,8 +31,8 @@ export const updateGrants: GraphQLFieldConfig<
     grants: {
       type: new GraphQLNonNull(
         new GraphQLList(new GraphQLNonNull(GraphQLUpdateGrantInput))
-      )
-    }
+      ),
+    },
   },
   async resolve(source, args, context): Promise<Promise<Grant>[]> {
     const { executor, authorization: a, realm, codeValidityDuration } = context;
@@ -49,7 +49,7 @@ export const updateGrants: GraphQLFieldConfig<
       );
     }
 
-    return args.grants.map(async input => {
+    return args.grants.map(async (input) => {
       // Validate `id`.
       if (!validateIdFormat(input.id)) {
         throw new ValidationError("The provided `id` is an invalid ID.");
@@ -65,14 +65,14 @@ export const updateGrants: GraphQLFieldConfig<
 
         await tx.query("BEGIN DEFERRABLE");
         const before = await Grant.read(tx, input.id, {
-          forUpdate: true
+          forUpdate: true,
         });
 
         if (
           !(await before.isAccessibleBy(realm, a, executor, {
             basic: "w",
             scopes: "",
-            secrets: ""
+            secrets: "",
           }))
         ) {
           throw new ForbiddenError(
@@ -85,7 +85,7 @@ export const updateGrants: GraphQLFieldConfig<
           !(await before.isAccessibleBy(realm, a, executor, {
             basic: "w",
             scopes: "w",
-            secrets: ""
+            secrets: "",
           }))
         ) {
           throw new ForbiddenError(
@@ -101,7 +101,7 @@ export const updateGrants: GraphQLFieldConfig<
           !(await before.isAccessibleBy(realm, a, executor, {
             basic: "w",
             scopes: "",
-            secrets: "w"
+            secrets: "w",
           }))
         ) {
           throw new ForbiddenError(
@@ -127,7 +127,7 @@ export const updateGrants: GraphQLFieldConfig<
         // Remove secrets.
         if (input.removeSecrets) {
           const removeSecrets = new Set(input.removeSecrets);
-          secrets = secrets.filter(id => !removeSecrets.has(id));
+          secrets = secrets.filter((id) => !removeSecrets.has(id));
         }
 
         // Make sure we have at least one secret.
@@ -153,12 +153,12 @@ export const updateGrants: GraphQLFieldConfig<
         // Remove codes.
         if (input.removeCodes) {
           const removeCodes = new Set(input.removeCodes);
-          codes = codes.filter(id => !removeCodes.has(id));
+          codes = codes.filter((id) => !removeCodes.has(id));
         }
 
         // Prune expired codes.
         if (input.generateCodes || input.removeCodes) {
-          codes = codes.filter(code => {
+          codes = codes.filter((code) => {
             const issued = Buffer.from(code, "base64")
               .toString("utf8")
               .split(":")[1];
@@ -176,12 +176,12 @@ export const updateGrants: GraphQLFieldConfig<
                 : before.enabled,
             secrets,
             codes,
-            scopes: input.scopes || before.scopes
+            scopes: input.scopes || before.scopes,
           },
           {
             recordId: v4(),
             createdByAuthorizationId: a.id,
-            createdAt: new Date()
+            createdAt: new Date(),
           }
         );
 
@@ -204,5 +204,5 @@ export const updateGrants: GraphQLFieldConfig<
         tx.release();
       }
     });
-  }
+  },
 };

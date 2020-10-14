@@ -24,8 +24,8 @@ export const updateAuthorizations: GraphQLFieldConfig<
     authorizations: {
       type: new GraphQLNonNull(
         new GraphQLList(new GraphQLNonNull(GraphQLUpdateAuthorizationInput))
-      )
-    }
+      ),
+    },
   },
   async resolve(source, args, context): Promise<Promise<Authorization>[]> {
     const { executor, authorization: a, realm } = context;
@@ -44,7 +44,7 @@ export const updateAuthorizations: GraphQLFieldConfig<
       );
     }
 
-    return args.authorizations.map(async input => {
+    return args.authorizations.map(async (input) => {
       const tx = await pool.connect();
       try {
         // Make sure this transaction is used for queries made by the executor.
@@ -55,14 +55,14 @@ export const updateAuthorizations: GraphQLFieldConfig<
 
         await tx.query("BEGIN DEFERRABLE");
         const before = await Authorization.read(tx, input.id, {
-          forUpdate: true
+          forUpdate: true,
         });
 
         if (
           !(await before.isAccessibleBy(realm, a, executor, {
             basic: "w",
             scopes: "",
-            secrets: ""
+            secrets: "",
           }))
         ) {
           throw new ForbiddenError(
@@ -77,13 +77,13 @@ export const updateAuthorizations: GraphQLFieldConfig<
             enabled:
               typeof input.enabled === "boolean"
                 ? input.enabled
-                : before.enabled
+                : before.enabled,
           },
           {
             recordId: v4(),
             createdByAuthorizationId: a.id,
             createdByCredentialId: null,
-            createdAt: new Date()
+            createdAt: new Date(),
           }
         );
 
@@ -106,5 +106,5 @@ export const updateAuthorizations: GraphQLFieldConfig<
         tx.release();
       }
     });
-  }
+  },
 };

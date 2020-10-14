@@ -23,7 +23,7 @@ export function generateScopeTables(
       const table = (data[rk] = data[rk] || {
         title: rv,
         header: new Set(),
-        rows: Object.create(null)
+        rows: Object.create(null),
       });
 
       for (const [ck, cv] of Object.entries(context)) {

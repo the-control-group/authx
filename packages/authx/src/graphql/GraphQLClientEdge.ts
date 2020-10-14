@@ -7,6 +7,6 @@ export const GraphQLClientEdge = new GraphQLObjectType({
   interfaces: () => [GraphQLEdge],
   fields: () => ({
     cursor: { type: new GraphQLNonNull(GraphQLString) },
-    node: { type: GraphQLClient }
-  })
+    node: { type: GraphQLClient },
+  }),
 });

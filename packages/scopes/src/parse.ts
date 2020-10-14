@@ -4,7 +4,7 @@ import {
   Segment,
   AnySingle,
   AnyMultiple,
-  normalize
+  normalize,
 } from "./scope";
 import { ParameterizedScope } from "./parameter";
 
@@ -60,7 +60,7 @@ function parseScope(scopeString: string, allowTemplateSegments = false): Scope {
     );
   }
 
-  return normalize(domainStrings.map(domain => domain.split(".").map(parse)));
+  return normalize(domainStrings.map((domain) => domain.split(".").map(parse)));
 }
 
 export function parseScopeLiteral(scopeString: string): Scope {
@@ -169,7 +169,7 @@ function parseParameterizedScope(
 
   return {
     scope: normalize(scope),
-    positions: positions
+    positions: positions,
   };
 }
 
@@ -242,7 +242,7 @@ export function inject(
 ): null | string | string[] {
   if (Array.isArray(scopeString)) {
     return scopeString
-      .map(template => inject(template, values))
+      .map((template) => inject(template, values))
       .filter((scope): scope is string => typeof scope === "string");
   }
 
@@ -252,10 +252,10 @@ export function inject(
   }
 
   return domains
-    .map(domainString =>
+    .map((domainString) =>
       domainString
         .split(".")
-        .map(segmentString => {
+        .map((segmentString) => {
           if (!isValidInjectionSegment(segmentString)) {
             throw new InvalidScopeError(
               "A scope in templateOrCollection is invalid."

@@ -14,8 +14,8 @@ export const grant: GraphQLFieldConfig<
   description: "Fetch a grant by ID.",
   args: {
     id: {
-      type: new GraphQLNonNull(GraphQLID)
-    }
+      type: new GraphQLNonNull(GraphQLID),
+    },
   },
   async resolve(source, args, context): Promise<null | Grant> {
     const { executor, authorization: a, realm } = context;
@@ -23,5 +23,5 @@ export const grant: GraphQLFieldConfig<
 
     const grant = await Grant.read(executor, args.id);
     return (await grant.isAccessibleBy(realm, a, executor)) ? grant : null;
-  }
+  },
 };

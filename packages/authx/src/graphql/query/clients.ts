@@ -26,8 +26,8 @@ export const clients: GraphQLFieldConfig<
     includeDisabled: {
       type: GraphQLBoolean,
       defaultValue: false,
-      description: "Include disabled clients in results."
-    }
+      description: "Include disabled clients in results.",
+    },
   },
   async resolve(source, args, context) {
     const { executor, authorization: a, realm } = context;
@@ -59,5 +59,5 @@ export const clients: GraphQLFieldConfig<
     );
 
     return CursorConnection.connectionFromRules(args, clients, rules);
-  }
+  },
 };

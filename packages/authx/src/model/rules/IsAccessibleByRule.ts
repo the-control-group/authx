@@ -39,31 +39,31 @@ export class IsAccessibleByRule extends Rule {
     [key: string]: { [key: string]: string | ((v: string) => string) };
   } = {
     user: {
-      userid: "entity_id"
+      userid: "entity_id",
     },
     authorization: {
       userid: "user_id",
       authorizationid: "entity_id",
       grantid: "grant_id",
-      clientid: it =>
-        `EXISTS(((SELECT 1 FROM authx.grant_record WHERE client_id = ${it} AND entity_id = grant_id AND replacement_record_id IS NULL)))`
+      clientid: (it) =>
+        `EXISTS(((SELECT 1 FROM authx.grant_record WHERE client_id = ${it} AND entity_id = grant_id AND replacement_record_id IS NULL)))`,
     },
     client: {
-      clientid: "entity_id"
+      clientid: "entity_id",
     },
     credential: {
       credentialid: "entity_id",
       authorityid: "authority_id",
-      userid: "user_id"
+      userid: "user_id",
     },
     grant: {
       grantid: "entity_id",
       userid: "user_id",
-      clientid: "client_id"
+      clientid: "client_id",
     },
     role: {
-      roleid: "entity_id"
-    }
+      roleid: "entity_id",
+    },
   };
 
   private ensurePrepared(): void {
@@ -120,7 +120,7 @@ export class IsAccessibleByRule extends Rule {
           sqlElements.push(
             "(" +
               Object.keys(fixedId)
-                .map(it => {
+                .map((it) => {
                   const mapping =
                     IsAccessibleByRule.ENTITY_MAPPING_TABLE[this.entityType][
                       it

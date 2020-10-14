@@ -16,7 +16,7 @@ export function pagingTests(config: PagingTestsConfig): void {
   const endpointName = config.endpointName;
   if (!endpointName) throw "Need an endpoint name";
 
-  test(`Forward paging for ${config.endpointName}, ${config.testName}`, async t => {
+  test(`Forward paging for ${config.endpointName}, ${config.testName}`, async (t) => {
     const token = await config.ctx.createLimitedAuthorization(config.scopes);
 
     let lastCursor: string | null = null;
@@ -77,7 +77,7 @@ export function pagingTests(config: PagingTestsConfig): void {
     }
   });
 
-  test(`Reverse paging for ${config.endpointName}, ${config.testName}`, async t => {
+  test(`Reverse paging for ${config.endpointName}, ${config.testName}`, async (t) => {
     const token = await config.ctx.createLimitedAuthorization(config.scopes);
 
     let lastCursor: string | null = null;

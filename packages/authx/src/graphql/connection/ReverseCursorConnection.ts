@@ -36,10 +36,10 @@ export class ReverseCursorConnection<T extends Node> implements Connection<T> {
 
     elements = elements.reverse();
 
-    this.edges = elements.map(it => {
+    this.edges = elements.map((it) => {
       return {
         node: it,
-        cursor: CursorConnection.toCursor(it.id)
+        cursor: CursorConnection.toCursor(it.id),
       };
     });
   }

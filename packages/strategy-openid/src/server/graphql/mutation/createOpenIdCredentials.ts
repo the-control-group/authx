@@ -17,12 +17,12 @@ import {
   Role,
   validateIdFormat,
   DataLoaderExecutor,
-  ReadonlyDataLoaderExecutor
+  ReadonlyDataLoaderExecutor,
 } from "@authx/authx";
 
 import {
   createV2AuthXScope,
-  createV2CredentialAdministrationScopes
+  createV2CredentialAdministrationScopes,
 } from "@authx/authx/scopes";
 
 import { isSuperset, simplify } from "@authx/scopes";
@@ -54,8 +54,8 @@ export const createOpenIdCredentials: GraphQLFieldConfig<
     credentials: {
       type: new GraphQLNonNull(
         new GraphQLList(new GraphQLNonNull(GraphQLCreateOpenIdCredentialInput))
-      )
-    }
+      ),
+    },
   },
   async resolve(source, args, context): Promise<Promise<OpenIdCredential>[]> {
     const { executor, authorization: a, realm, base } = context;
@@ -74,7 +74,7 @@ export const createOpenIdCredentials: GraphQLFieldConfig<
       );
     }
 
-    return args.credentials.map(async input => {
+    return args.credentials.map(async (input) => {
       // Validate `id`.
       if (typeof input.id === "string" && !validateIdFormat(input.id)) {
         throw new ValidationError("The provided `id` is an invalid ID.");
@@ -115,7 +115,7 @@ export const createOpenIdCredentials: GraphQLFieldConfig<
         if (input.id) {
           try {
             await Credential.read(tx, input.id, strategies, {
-              forUpdate: true
+              forUpdate: true,
             });
             throw new ConflictError();
           } catch (error) {
@@ -171,7 +171,7 @@ export const createOpenIdCredentials: GraphQLFieldConfig<
 
           const response = await fetch(authority.details.tokenUrl, {
             method: "POST",
-            body: requestBody
+            body: requestBody,
           });
 
           const responseBody = (await response.json()) as {
@@ -288,11 +288,11 @@ export const createOpenIdCredentials: GraphQLFieldConfig<
                 type: "credential",
                 credentialId: "",
                 authorityId: input.authorityId,
-                userId: input.userId
+                userId: input.userId,
               },
               {
                 basic: "*",
-                details: "*"
+                details: "*",
               }
             )
           ))
@@ -314,11 +314,11 @@ export const createOpenIdCredentials: GraphQLFieldConfig<
                 type: "credential",
                 credentialId: "",
                 authorityId: input.authorityId,
-                userId: "*"
+                userId: "*",
               },
               {
                 basic: "*",
-                details: "*"
+                details: "*",
               }
             )
           )) &&
@@ -335,12 +335,12 @@ export const createOpenIdCredentials: GraphQLFieldConfig<
             tx,
             {
               ...existingCredentials[0],
-              enabled: false
+              enabled: false,
             },
             {
               recordId: v4(),
               createdByAuthorizationId: a.id,
-              createdAt: new Date()
+              createdAt: new Date(),
             }
           );
         }
@@ -353,12 +353,12 @@ export const createOpenIdCredentials: GraphQLFieldConfig<
             authorityId: input.authorityId,
             userId: input.userId,
             authorityUserId: subject,
-            details: {}
+            details: {},
           },
           {
             recordId: v4(),
             createdByAuthorizationId: a.id,
-            createdAt: new Date()
+            createdAt: new Date(),
           }
         );
 
@@ -368,7 +368,7 @@ export const createOpenIdCredentials: GraphQLFieldConfig<
             type: "credential",
             authorityId: credential.authorityId,
             credentialId: id,
-            userId: credential.userId
+            userId: credential.userId,
           }
         );
 
@@ -376,14 +376,14 @@ export const createOpenIdCredentials: GraphQLFieldConfig<
         const administrationResults = await Promise.allSettled(
           input.administration.map(async ({ roleId, scopes }) => {
             const administrationRoleBefore = await Role.read(tx, roleId, {
-              forUpdate: true
+              forUpdate: true,
             });
 
             if (
               !administrationRoleBefore.isAccessibleBy(realm, a, executor, {
                 basic: "w",
                 scopes: "w",
-                users: ""
+                users: "",
               })
             ) {
               throw new ForbiddenError(
@@ -397,15 +397,15 @@ export const createOpenIdCredentials: GraphQLFieldConfig<
                 ...administrationRoleBefore,
                 scopes: simplify([
                   ...administrationRoleBefore.scopes,
-                  ...possibleAdministrationScopes.filter(possible =>
+                  ...possibleAdministrationScopes.filter((possible) =>
                     isSuperset(scopes, possible)
-                  )
-                ])
+                  ),
+                ]),
               },
               {
                 recordId: v4(),
                 createdByAuthorizationId: a.id,
-                createdAt: new Date()
+                createdAt: new Date(),
               }
             );
 
@@ -440,5 +440,5 @@ export const createOpenIdCredentials: GraphQLFieldConfig<
         tx.release();
       }
     });
-  }
+  },
 };

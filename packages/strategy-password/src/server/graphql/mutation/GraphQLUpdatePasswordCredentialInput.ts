@@ -3,21 +3,21 @@ import {
   GraphQLNonNull,
   GraphQLString,
   GraphQLBoolean,
-  GraphQLInputObjectType
+  GraphQLInputObjectType,
 } from "graphql";
 
 export const GraphQLUpdatePasswordCredentialInput = new GraphQLInputObjectType({
   name: "UpdatePasswordCredentialInput",
   fields: () => ({
     id: {
-      type: new GraphQLNonNull(GraphQLID)
+      type: new GraphQLNonNull(GraphQLID),
     },
     enabled: {
-      type: GraphQLBoolean
+      type: GraphQLBoolean,
     },
     password: {
       type: GraphQLString,
-      description: "The plaintext password to use for this credential."
-    }
-  })
+      description: "The plaintext password to use for this credential.",
+    },
+  }),
 });

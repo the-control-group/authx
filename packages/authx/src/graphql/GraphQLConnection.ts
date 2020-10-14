@@ -6,6 +6,6 @@ export const GraphQLConnection = new GraphQLInterfaceType({
   name: "Connection",
   fields: () => ({
     pageInfo: { type: new GraphQLNonNull(GraphQLPageInfo) },
-    edges: { type: new GraphQLList(GraphQLEdge) }
-  })
+    edges: { type: new GraphQLList(GraphQLEdge) },
+  }),
 });

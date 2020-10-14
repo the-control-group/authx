@@ -10,7 +10,7 @@ export default function (this: LoaderContext, source: string | Buffer): string {
   return source.replace(
     "__STRATEGIES__",
     `[${strategies
-      .map(s => `require(${JSON.stringify(s)}).default`)
+      .map((s) => `require(${JSON.stringify(s)}).default`)
       .join(", ")}]`
   );
 }

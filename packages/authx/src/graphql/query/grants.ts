@@ -26,8 +26,8 @@ export const grants: GraphQLFieldConfig<
     includeDisabled: {
       type: GraphQLBoolean,
       defaultValue: false,
-      description: "Include disabled grants in results."
-    }
+      description: "Include disabled grants in results.",
+    },
   },
   async resolve(source, args, context) {
     const { executor, authorization: a, realm } = context;
@@ -59,5 +59,5 @@ export const grants: GraphQLFieldConfig<
     );
 
     return CursorConnection.connectionFromRules(args, grants, rules);
-  }
+  },
 };

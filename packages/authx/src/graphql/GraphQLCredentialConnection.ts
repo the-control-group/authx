@@ -8,6 +8,6 @@ export const GraphQLCredentialConnection = new GraphQLObjectType({
   interfaces: () => [GraphQLConnection],
   fields: () => ({
     pageInfo: { type: new GraphQLNonNull(GraphQLPageInfo) },
-    edges: { type: new GraphQLList(GraphQLCredentialEdge) }
-  })
+    edges: { type: new GraphQLList(GraphQLCredentialEdge) },
+  }),
 });

@@ -271,7 +271,7 @@ export default class AuthXClientProxy extends EventEmitter {
       response: response,
       rule: undefined,
       behavior: undefined,
-      message: "Request received."
+      message: "Request received.",
     };
 
     // Emit meta on request start.
@@ -357,7 +357,7 @@ export default class AuthXClientProxy extends EventEmitter {
       meta.message = "Request proxied.";
       meta.rule = rule;
       meta.behavior = behavior;
-      this._proxy.web(request, response, behavior.proxyOptions, error => {
+      this._proxy.web(request, response, behavior.proxyOptions, (error) => {
         if (!response.headersSent) {
           const code = (error as any).code;
           const statusCode =
@@ -522,7 +522,7 @@ export default class AuthXClientProxy extends EventEmitter {
             method: "POST",
             signal: controller.signal,
             headers: {
-              "Content-Type": "application/json"
+              "Content-Type": "application/json",
             },
             body: JSON.stringify({
               /* eslint-disable camelcase */
@@ -531,9 +531,9 @@ export default class AuthXClientProxy extends EventEmitter {
               client_secret: this._config.clientSecret,
               token_format: this._config.tokenFormat,
               refresh_token: refreshToken,
-              scope: scopes.join(" ")
+              scope: scopes.join(" "),
               /* eslint-enable camelcase */
-            })
+            }),
           });
 
           if (refreshResponse.status !== 200) {
@@ -660,7 +660,7 @@ export default class AuthXClientProxy extends EventEmitter {
             }
           }
         }
-      })()
+      })(),
     };
 
     // Store the request.
@@ -691,7 +691,7 @@ export default class AuthXClientProxy extends EventEmitter {
       throw new Error("Proxy cannot listen because it is closing.");
     }
 
-    return new Promise(resolve => {
+    return new Promise((resolve) => {
       this.server.once("listening", resolve);
       this.server.listen(options);
     });
@@ -740,7 +740,7 @@ export default class AuthXClientProxy extends EventEmitter {
     this._expirationTimeouts = {};
 
     // Close the proxy.
-    return new Promise(resolve => {
+    return new Promise((resolve) => {
       setTimeout(() => {
         this.server.close(() => {
           resolve();

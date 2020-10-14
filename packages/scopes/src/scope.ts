@@ -3,7 +3,7 @@ import {
   getIntersection as getDomainIntersection,
   isSuperset as domainIsSuperset,
   compare as compareDomain,
-  normalize as normalizeDomain
+  normalize as normalizeDomain,
 } from "./domain";
 
 export { Domain, Segment, AnySingle, AnyMultiple } from "./domain";
@@ -19,11 +19,11 @@ function intersect(left: Scope, rightA: Scope, rightB: Scope): Scope[] {
   const [b, ...restB] = rightB;
 
   if (!restA.length) {
-    return getDomainIntersection(a, b).map(domain => [...left, domain]);
+    return getDomainIntersection(a, b).map((domain) => [...left, domain]);
   }
 
   return getDomainIntersection(a, b)
-    .map(domain => intersect([...left, domain], restA, restB))
+    .map((domain) => intersect([...left, domain], restA, restB))
     .reduce((x, y) => [...x, ...y], []);
 }
 
@@ -71,9 +71,9 @@ export function getIntersection(
 ): Scope[] {
   return simplify(
     collectionA
-      .map(a =>
+      .map((a) =>
         collectionB
-          .map(b => intersect([], a, b))
+          .map((b) => intersect([], a, b))
           .reduce((x, y) => [...x, ...y], [])
       )
       .reduce((x, y) => [...x, ...y], [])
@@ -124,7 +124,7 @@ export function getDifference(
 ): Scope[] {
   return collectionA.reduce((remaining, a) => {
     return remaining.filter(
-      b =>
+      (b) =>
         a.length !== b.length ||
         a.some((domainA: Domain, i: number) => !domainIsSuperset(domainA, b[i]))
     );

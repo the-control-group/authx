@@ -2,7 +2,7 @@ import {
   GraphQLFieldConfig,
   GraphQLID,
   GraphQLNonNull,
-  GraphQLString
+  GraphQLString,
 } from "graphql";
 
 import { Pool, PoolClient } from "pg";
@@ -19,7 +19,7 @@ import {
   AuthenticationError,
   User,
   DataLoaderExecutor,
-  ReadonlyDataLoaderExecutor
+  ReadonlyDataLoaderExecutor,
 } from "@authx/authx";
 
 import { createV2AuthXScope } from "@authx/authx/scopes";
@@ -42,17 +42,17 @@ export const authenticatePassword: GraphQLFieldConfig<
   description: "Create a new authorization.",
   args: {
     identityAuthorityId: {
-      type: new GraphQLNonNull(GraphQLID)
+      type: new GraphQLNonNull(GraphQLID),
     },
     identityAuthorityUserId: {
-      type: new GraphQLNonNull(GraphQLString)
+      type: new GraphQLNonNull(GraphQLString),
     },
     passwordAuthorityId: {
-      type: new GraphQLNonNull(GraphQLID)
+      type: new GraphQLNonNull(GraphQLID),
     },
     password: {
-      type: new GraphQLNonNull(GraphQLString)
-    }
+      type: new GraphQLNonNull(GraphQLString),
+    },
   },
   async resolve(source, args, context): Promise<Authorization> {
     const { executor, authorization: a, realm } = context;
@@ -146,7 +146,7 @@ export const authenticatePassword: GraphQLFieldConfig<
       // Invoke the credential.
       await credential.invoke(executor, {
         id: v4(),
-        createdAt: new Date()
+        createdAt: new Date(),
       });
 
       const authorizationId = v4();
@@ -155,7 +155,7 @@ export const authenticatePassword: GraphQLFieldConfig<
         currentAuthorizationId: authorizationId,
         currentUserId: credential.userId,
         currentGrantId: null,
-        currentClientId: null
+        currentClientId: null,
       };
 
       // Make sure the user can create new authorizations.
@@ -170,12 +170,12 @@ export const authenticatePassword: GraphQLFieldConfig<
               authorizationId: "",
               grantId: "",
               clientId: "",
-              userId: user.id
+              userId: user.id,
             },
             {
               basic: "*",
               scopes: "*",
-              secrets: "*"
+              secrets: "*",
             }
           )
         )
@@ -194,13 +194,13 @@ export const authenticatePassword: GraphQLFieldConfig<
           userId,
           grantId: null,
           secret: randomBytes(16).toString("hex"),
-          scopes: [`${realm}:**:**`]
+          scopes: [`${realm}:**:**`],
         },
         {
           recordId: v4(),
           createdByAuthorizationId: authorizationId,
           createdByCredentialId: credential.id,
-          createdAt: new Date()
+          createdAt: new Date(),
         }
       );
 
@@ -209,7 +209,7 @@ export const authenticatePassword: GraphQLFieldConfig<
       await authorization.invoke(executor, {
         id: v4(),
         format: "basic",
-        createdAt: new Date()
+        createdAt: new Date(),
       });
 
       await tx.query("COMMIT");
@@ -233,5 +233,5 @@ export const authenticatePassword: GraphQLFieldConfig<
     } finally {
       tx.release();
     }
-  }
+  },
 };

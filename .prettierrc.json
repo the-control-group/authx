@@ -1,6 +1,6 @@
 {
-  "trailingComma": "none",
-  "arrowParens": "avoid",
+  "trailingComma": "es5",
+  "arrowParens": "always",
   "overrides": [
     {
       "files": ".ts",

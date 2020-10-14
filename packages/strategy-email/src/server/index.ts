@@ -11,7 +11,7 @@ import {
   GraphQLCreateEmailAuthorityInput,
   GraphQLCreateEmailCredentialInput,
   GraphQLUpdateEmailAuthorityInput,
-  GraphQLUpdateEmailCredentialInput
+  GraphQLUpdateEmailCredentialInput,
 } from "./graphql";
 
 export * from "./model";
@@ -25,7 +25,7 @@ const strategy: Strategy = {
     GraphQLCreateEmailAuthorityInput,
     GraphQLCreateEmailCredentialInput,
     GraphQLUpdateEmailAuthorityInput,
-    GraphQLUpdateEmailCredentialInput
+    GraphQLUpdateEmailCredentialInput,
   ],
   queryFields: {},
   mutationFields: {
@@ -35,10 +35,10 @@ const strategy: Strategy = {
     updateEmailAuthorities,
 
     createEmailCredentials,
-    updateEmailCredentials
+    updateEmailCredentials,
   },
   authorityModel: EmailAuthority,
-  credentialModel: EmailCredential
+  credentialModel: EmailCredential,
 };
 
 export default strategy;

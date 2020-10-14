@@ -4,7 +4,7 @@ import {
   GraphQLNonNull,
   GraphQLString,
   GraphQLBoolean,
-  GraphQLObjectType
+  GraphQLObjectType,
 } from "graphql";
 
 import jwt from "jsonwebtoken";
@@ -28,7 +28,7 @@ export const GraphQLAuthorization: GraphQLObjectType<
   fields: () => ({
     id: { type: new GraphQLNonNull(GraphQLID) },
     enabled: {
-      type: new GraphQLNonNull(GraphQLBoolean)
+      type: new GraphQLNonNull(GraphQLBoolean),
     },
     grant: {
       type: GraphQLGrant,
@@ -40,7 +40,7 @@ export const GraphQLAuthorization: GraphQLObjectType<
         if (!a) return null;
         const grant = await authorization.grant(executor);
         return grant && grant.isAccessibleBy(realm, a, executor) ? grant : null;
-      }
+      },
     },
     user: {
       type: GraphQLUser,
@@ -53,7 +53,7 @@ export const GraphQLAuthorization: GraphQLObjectType<
 
         const user = await authorization.user(executor);
         return user.isAccessibleBy(realm, a, executor) ? user : null;
-      }
+      },
     },
     secret: {
       type: GraphQLString,
@@ -66,11 +66,11 @@ export const GraphQLAuthorization: GraphQLObjectType<
           (await authorization.isAccessibleBy(realm, a, executor, {
             basic: "r",
             scopes: "",
-            secrets: "r"
+            secrets: "r",
           }))
           ? authorization.secret
           : null;
-      }
+      },
     },
     scopes: {
       type: new GraphQLList(GraphQLScope),
@@ -83,11 +83,11 @@ export const GraphQLAuthorization: GraphQLObjectType<
           (await authorization.isAccessibleBy(realm, a, executor, {
             basic: "r",
             scopes: "r",
-            secrets: ""
+            secrets: "",
           }))
           ? authorization.scopes
           : null;
-      }
+      },
     },
     explanations: {
       type: new GraphQLList(GraphQLExplanation),
@@ -101,7 +101,7 @@ export const GraphQLAuthorization: GraphQLObjectType<
           !(await authorization.isAccessibleBy(realm, a, executor, {
             basic: "r",
             scopes: "r",
-            secrets: ""
+            secrets: "",
           }))
         ) {
           return null;
@@ -111,9 +111,9 @@ export const GraphQLAuthorization: GraphQLObjectType<
           currentAuthorizationId: authorization.id,
           currentGrantId: authorization.grantId,
           currentUserId: authorization.userId,
-          currentClientId: (grant && grant.clientId) || null
+          currentClientId: (grant && grant.clientId) || null,
         });
-      }
+      },
     },
     access: {
       type: new GraphQLList(GraphQLScope),
@@ -126,18 +126,18 @@ export const GraphQLAuthorization: GraphQLObjectType<
         return (await authorization.isAccessibleBy(realm, a, executor, {
           basic: "r",
           scopes: "r",
-          secrets: ""
+          secrets: "",
         }))
           ? authorization.access(executor)
           : null;
-      }
+      },
     },
     token: {
       type: GraphQLString,
       args: {
         format: {
-          type: new GraphQLNonNull(GraphQLTokenFormat)
-        }
+          type: new GraphQLNonNull(GraphQLTokenFormat),
+        },
       },
       async resolve(
         authorization,
@@ -147,7 +147,7 @@ export const GraphQLAuthorization: GraphQLObjectType<
           jwtValidityDuration,
           privateKey,
           authorization: a,
-          executor
+          executor,
         }: Context
       ): Promise<null | string> {
         if (!a) return null;
@@ -155,12 +155,12 @@ export const GraphQLAuthorization: GraphQLObjectType<
           !(await authorization.isAccessibleBy(realm, a, executor, {
             basic: "r",
             scopes: "r",
-            secrets: ""
+            secrets: "",
           })) ||
           !(await authorization.isAccessibleBy(realm, a, executor, {
             basic: "r",
             scopes: "",
-            secrets: "r"
+            secrets: "r",
           }))
         ) {
           return null;
@@ -179,13 +179,13 @@ export const GraphQLAuthorization: GraphQLObjectType<
           await authorization.invoke(executor, {
             id: tokenId,
             format: "bearer",
-            createdAt: new Date()
+            createdAt: new Date(),
           });
 
           return `Bearer ${jwt.sign(
             {
               aid: authorization.id,
-              scopes: await authorization.access(executor)
+              scopes: await authorization.access(executor),
             },
             privateKey,
             {
@@ -197,13 +197,13 @@ export const GraphQLAuthorization: GraphQLObjectType<
 
               // The jwt library uses the presence of keys in its validation,
               // so we cannot just set `audience` to undefined.
-              ...(grant ? { audience: grant.clientId } : {})
+              ...(grant ? { audience: grant.clientId } : {}),
             }
           )}`;
         }
 
         throw new Error("INVARIANT: Impossible token format.");
-      }
-    }
-  })
+      },
+    },
+  }),
 });

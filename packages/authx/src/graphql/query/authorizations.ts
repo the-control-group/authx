@@ -26,8 +26,8 @@ export const authorizations: GraphQLFieldConfig<
     includeDisabled: {
       type: GraphQLBoolean,
       defaultValue: false,
-      description: "Include disabled authorities in results."
-    }
+      description: "Include disabled authorities in results.",
+    },
   },
   async resolve(source, args, context) {
     const { executor, authorization: a, realm } = context;
@@ -36,7 +36,7 @@ export const authorizations: GraphQLFieldConfig<
     const rules = CursorRule.addToRuleListIfNeeded(
       [
         new NoReplacementRecord(),
-        new IsAccessibleByRule(realm, a, "authorization")
+        new IsAccessibleByRule(realm, a, "authorization"),
       ],
       args
     );
@@ -58,5 +58,5 @@ export const authorizations: GraphQLFieldConfig<
     );
 
     return CursorConnection.connectionFromRules(args, authorizations, rules);
-  }
+  },
 };

@@ -3,7 +3,7 @@ import {
   AnySingle,
   AnyMultiple,
   getIntersection,
-  isSuperset
+  isSuperset,
 } from "./scope";
 
 export interface ParameterizedScope {
@@ -67,7 +67,7 @@ export function extract(
     finish.push({
       query,
       result,
-      parameters
+      parameters,
     });
   }
   return finish;

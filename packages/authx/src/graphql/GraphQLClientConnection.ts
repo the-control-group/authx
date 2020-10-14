@@ -8,6 +8,6 @@ export const GraphQLClientConnection = new GraphQLObjectType({
   interfaces: () => [GraphQLConnection],
   fields: () => ({
     pageInfo: { type: new GraphQLNonNull(GraphQLPageInfo) },
-    edges: { type: new GraphQLList(GraphQLClientEdge) }
-  })
+    edges: { type: new GraphQLList(GraphQLClientEdge) },
+  }),
 });

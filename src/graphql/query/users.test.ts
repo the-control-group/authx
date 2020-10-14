@@ -5,22 +5,22 @@ import {
   ClientContext,
   createV2AuthXScope,
   UserAction,
-  UserContext
+  UserContext,
 } from "@authx/authx/dist/util/scopes";
 
 const ctx = registerHooks(__filename);
 
-test("Fetch users with limited read scope and page", async t => {
+test("Fetch users with limited read scope and page", async (t) => {
   function createUserReadScope(userId: string): string {
     const action: UserAction = {
-      basic: "r"
+      basic: "r",
     };
 
     return createV2AuthXScope(
       "authx",
       {
         type: "user",
-        userId: userId
+        userId: userId,
       },
       action
     );
@@ -30,7 +30,7 @@ test("Fetch users with limited read scope and page", async t => {
     createUserReadScope("0cbd3783-0424-4f35-be51-b42f07a2a987"), // Dwight Schrute
     createUserReadScope("51192909-3664-44d5-be62-c6b45f0b0ee6"), // Darryl Philbin
     createUserReadScope("d0fc4c64-a3d6-4d97-9341-07de24439bb1"), // Jim Halpert
-    createUserReadScope("eaa9fa5e-088a-4ae2-a6ab-f120006b20a9") // Pam Beesly-Halpert
+    createUserReadScope("eaa9fa5e-088a-4ae2-a6ab-f120006b20a9"), // Pam Beesly-Halpert
   ]);
 
   const target = (
@@ -63,7 +63,7 @@ test("Fetch users with limited read scope and page", async t => {
       "Dwight Schrute",
       "Darryl Philbin",
       "Jim Halpert",
-      "Pam Beesly-Halpert"
+      "Pam Beesly-Halpert",
     ].sort()
   );
 
@@ -132,17 +132,17 @@ test("Fetch users with limited read scope and page", async t => {
   t.assert(!target3.pageInfo.hasNextPage);
 });
 
-test("Fetch users with limited read scope and reverse page", async t => {
+test("Fetch users with limited read scope and reverse page", async (t) => {
   function createUserReadScope(userId: string): string {
     const action: UserAction = {
-      basic: "r"
+      basic: "r",
     };
 
     return createV2AuthXScope(
       "authx",
       {
         type: "user",
-        userId: userId
+        userId: userId,
       },
       action
     );
@@ -152,7 +152,7 @@ test("Fetch users with limited read scope and reverse page", async t => {
     createUserReadScope("0cbd3783-0424-4f35-be51-b42f07a2a987"), // Dwight Schrute
     createUserReadScope("51192909-3664-44d5-be62-c6b45f0b0ee6"), // Darryl Philbin
     createUserReadScope("d0fc4c64-a3d6-4d97-9341-07de24439bb1"), // Jim Halpert
-    createUserReadScope("eaa9fa5e-088a-4ae2-a6ab-f120006b20a9") // Pam Beesly-Halpert
+    createUserReadScope("eaa9fa5e-088a-4ae2-a6ab-f120006b20a9"), // Pam Beesly-Halpert
   ]);
 
   const target = (
@@ -216,7 +216,7 @@ test("Fetch users with limited read scope and reverse page", async t => {
   t.assert(!target2.pageInfo.hasPreviousPage);
 });
 
-test("Fetch users super admin scope", async t => {
+test("Fetch users super admin scope", async (t) => {
   const target = (
     await ctx.graphQL(
       `
@@ -243,23 +243,23 @@ test("Fetch users super admin scope", async t => {
       "Dwight Schrute",
       "Dunder Mifflin Infinity",
       "Toby Flenderson",
-      "Darryl Philbin"
+      "Darryl Philbin",
     ].sort()
   );
 });
 
-test("Fetch users all users scope", async t => {
+test("Fetch users all users scope", async (t) => {
   const clientContext: UserContext = {
     userId: "*",
-    type: "user"
+    type: "user",
   };
 
   const clientAction: UserAction = {
-    basic: "r"
+    basic: "r",
   };
 
   const token = await ctx.createLimitedAuthorization([
-    createV2AuthXScope("authx", clientContext, clientAction)
+    createV2AuthXScope("authx", clientContext, clientAction),
   ]);
 
   const target = (
@@ -288,24 +288,24 @@ test("Fetch users all users scope", async t => {
       "Dwight Schrute",
       "Dunder Mifflin Infinity",
       "Toby Flenderson",
-      "Darryl Philbin"
+      "Darryl Philbin",
     ].sort()
   );
 });
 
-test("Fetch users incorrect scope", async t => {
+test("Fetch users incorrect scope", async (t) => {
   const clientContext: ClientContext = {
     clientId: "*",
-    type: "client"
+    type: "client",
   };
 
   const clientAction: ClientAction = {
     basic: "r",
-    secrets: "r"
+    secrets: "r",
   };
 
   const token = await ctx.createLimitedAuthorization([
-    createV2AuthXScope("authx", clientContext, clientAction)
+    createV2AuthXScope("authx", clientContext, clientAction),
   ]);
 
   const target = (
@@ -330,7 +330,7 @@ test("Fetch users incorrect scope", async t => {
   t.assert(target.edges === null);
 });
 
-test("Fetch users anonymous scope", async t => {
+test("Fetch users anonymous scope", async (t) => {
   const target = (
     await ctx.graphQL(`
     query {

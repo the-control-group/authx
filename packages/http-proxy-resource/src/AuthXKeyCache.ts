@@ -68,9 +68,9 @@ export class AuthXKeyCache extends EventEmitter {
           signal: this._fetchAbortController.signal,
           method: "POST",
           headers: {
-            "Content-Type": "application/json"
+            "Content-Type": "application/json",
           },
-          body: '{"query": "query { keys }"}'
+          body: '{"query": "query { keys }"}',
         })
       ).json();
 
@@ -89,7 +89,7 @@ export class AuthXKeyCache extends EventEmitter {
         !keys ||
         !Array.isArray(keys) ||
         !keys.length ||
-        !keys.every(k => typeof k === "string")
+        !keys.every((k) => typeof k === "string")
       ) {
         throw new Error("An array of least one key must be returned by AuthX.");
       }

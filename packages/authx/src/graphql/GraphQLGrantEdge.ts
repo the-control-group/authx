@@ -7,6 +7,6 @@ export const GraphQLGrantEdge = new GraphQLObjectType({
   interfaces: () => [GraphQLEdge],
   fields: () => ({
     cursor: { type: new GraphQLNonNull(GraphQLString) },
-    node: { type: GraphQLGrant }
-  })
+    node: { type: GraphQLGrant },
+  }),
 });
