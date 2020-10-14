@@ -1,7 +1,7 @@
 import { join, basename, extname } from "path";
 import MemoryFileSystem from "memory-fs";
 import HtmlWebpackPlugin from "html-webpack-plugin";
-import webpack, { Plugin, DefinePlugin } from "webpack";
+import webpack, { DefinePlugin } from "webpack";
 
 class BuildError extends Error {
   public errors: ReadonlyArray<string | Error> = [];
@@ -47,25 +47,29 @@ export default async function createInterface(
       new DefinePlugin({
         __REALM__: JSON.stringify(realm)
       }),
-
-      // TODO: New type definitions between webpack and this plugin are
-      // incompatible, even though the underlying code is. This will likely be
-      // fixed shortly. If you're reading this, remove the cast through any.
-      (new HtmlWebpackPlugin({
+      new HtmlWebpackPlugin({
         template: join(__dirname, "../client/index.html"),
         filename: "index.html"
-      }) as any) as Plugin
+      })
     ]
   });
 
+  // FIXME: While the code is compatible here, the types are not (allowing
+  // err to be undefined). This should hopefully be fixed very soon, and if you
+  // are reading this, you should try removing the cast through any.
+
   // Output directly to memory.
-  compiler.outputFileSystem = fs;
+  compiler.outputFileSystem = fs as any;
 
   // Wait for the build.
   await new Promise((resolve, reject) => {
     compiler.run((error, stats) => {
       if (error) {
         return reject(error);
+      }
+
+      if (!stats) {
+        return reject(new Error("Webpack stats cannot be undefined."));
       }
 
       if (stats.hasErrors()) {
