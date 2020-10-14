@@ -243,3 +243,9 @@ CREATE TABLE authx.client_invocation (
 CREATE INDEX ON authx.client_invocation USING BTREE (entity_id, record_id);
 CREATE INDEX ON authx.client_invocation USING BTREE (created_at);
 
+CREATE EXTENSION IF NOT EXISTS "uuid-ossp";
+ALTER TABLE authx.role_record_user ADD role_record_user_id UUID DEFAULT uuid_generate_v4();
+ALTER TABLE authx.role_record_user DROP CONSTRAINT role_record_user_pkey;
+ALTER TABLE authx.role_record_user ADD PRIMARY KEY (role_record_user_id);
+
+CREATE UNIQUE INDEX ON authx.role_record_user (role_record_id, user_id);
