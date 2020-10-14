@@ -1,9 +1,9 @@
-import { loader } from "webpack";
+// The LoaderContext type is no longer published, which is unfortunate.
+type LoaderContext = {
+  query?: { strategies?: string[] };
+};
 
-export default function (
-  this: loader.LoaderContext,
-  source: string | Buffer
-): string {
+export default function (this: LoaderContext, source: string | Buffer): string {
   const strategies: ReadonlyArray<string> =
     (this.query && this.query.strategies) || [];
   source = typeof source === "string" ? source : source.toString();
