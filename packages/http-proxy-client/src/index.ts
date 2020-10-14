@@ -49,6 +49,14 @@ export interface Behavior {
    * * @defaultValue `[]`
    */
   readonly sendTokenToTargetWithScopes?: string[];
+
+  /**
+   * Format (BEARER or BASIC) of tokens that the proxy will request from AuthX and pass to the
+   * the resource.
+   *
+   * If unspecified, the format BEARER will be used.
+   */
+  readonly tokenFormat?: "BASIC" | "BEARER";
 }
 
 export interface Rule {
@@ -510,8 +518,6 @@ export default class AuthXClientProxy extends EventEmitter {
       timeout,
       promise: (async () => {
         try {
-          // FIXME: This should not need to be cast through any. See:
-          // https://github.com/DefinitelyTyped/DefinitelyTyped/pull/35636
           const refreshResponse = await fetch(this._config.authxUrl, {
             method: "POST",
             signal: controller.signal,
@@ -528,7 +534,7 @@ export default class AuthXClientProxy extends EventEmitter {
               scope: scopes.join(" ")
               /* eslint-enable camelcase */
             })
-          } as any);
+          });
 
           if (refreshResponse.status !== 200) {
             throw new Error(
@@ -556,7 +562,7 @@ export default class AuthXClientProxy extends EventEmitter {
 
           // This code is designed to make sure we keep track of when tokens will expire, and refresh them before they do.
           // BASIC tokens never expire, so this is not applicable to them.
-          if (refreshResponseBody.token_type?.toLowerCase() == "bearer") {
+          if (refreshResponseBody.token_type?.toLowerCase() === "bearer") {
             const payload = decode(accessToken);
             if (!payload || typeof payload !== "object") {
               throw new Error("Invalid token payload.");

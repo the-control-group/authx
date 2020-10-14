@@ -107,9 +107,10 @@ export interface Config {
   readonly requestGrantedScopes: string[];
 
   /**
-   * Format of tokens that we will request from AuthX and use.
-   * Can be either BEARER or BASIC.
-   * If not set, assumes BEARER.
+   * Format (BEARER or BASIC) of tokens that the proxy will request from AuthX and pass to the
+   * the resource.
+   *
+   * If unspecified, the format BEARER will be used.
    */
   readonly tokenFormat?: "BASIC" | "BEARER";
 
