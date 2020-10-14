@@ -96,6 +96,7 @@ export const GraphQLGrant: GraphQLObjectType<
     },
     scopes: {
       type: new GraphQLList(GraphQLScope),
+      description: "Returns the scopes configured directly on the grant.",
       async resolve(
         grant,
         args,
@@ -108,6 +109,30 @@ export const GraphQLGrant: GraphQLObjectType<
             secrets: ""
           }))
           ? grant.scopes
+          : null;
+      }
+    },
+    access: {
+      type: new GraphQLList(GraphQLScope),
+      description:
+        "Returns the scopes available to authorizations of this grant, considering the access of the user and the scopes of the grant.",
+      async resolve(
+        grant,
+        args,
+        { realm, authorization: a, executor }: Context
+      ): Promise<null | string[]> {
+        return a &&
+          (await grant.isAccessibleBy(realm, a, executor, {
+            basic: "r",
+            scopes: "r",
+            secrets: ""
+          }))
+          ? grant.access(executor, {
+              currentAuthorizationId: "*",
+              currentUserId: grant.userId,
+              currentGrantId: grant.id,
+              currentClientId: grant.clientId
+            })
           : null;
       }
     },
