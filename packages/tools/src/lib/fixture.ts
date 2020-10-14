@@ -10,12 +10,6 @@ import {
   user
 } from "./fixture/index";
 
-interface Metadata {
-  recordId: string;
-  createdByAuthorizationId: string;
-  createdAt: Date;
-}
-
 export async function fixture(tx: ClientBase | Client): Promise<void> {
   // add entities to satisfy foreign key constraints
   await Promise.all([

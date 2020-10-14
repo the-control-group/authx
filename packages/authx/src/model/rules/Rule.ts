@@ -103,7 +103,7 @@ export class Rule {
    * @param root
    * @param rules
    */
-  static async runQuery<T>(
+  static async runQuery(
     tx: ReadonlyDataLoaderExecutor,
     root: string,
     rules: Rule[]

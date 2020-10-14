@@ -1,10 +1,5 @@
 import { useState, useMemo, useEffect, useCallback } from "react";
 
-interface Authorization {
-  id: string;
-  secret: string;
-}
-
 // Get the current authorization from localStorage.
 export function useAuthorization(): {
   authorization: null | { id: string; secret: string };
