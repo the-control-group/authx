@@ -58,7 +58,7 @@ export default async function createInterface(
   // err to be undefined). This should hopefully be fixed very soon, and if you
   // are reading this, you should try removing the cast through any.
 
-  // Output directly to memory.
+  compiler.intermediateFileSystem = fs as any;
   compiler.outputFileSystem = fs as any;
 
   // Wait for the build.
