@@ -36,7 +36,11 @@ export const credentials: GraphQLFieldConfig<
     const rules = CursorRule.addToRuleListIfNeeded(
       [
         new NoReplacementRecord(),
-        new IsAccessibleByRule(realm, a, "credential"),
+        new IsAccessibleByRule(
+          realm,
+          await a.access(executor, realm),
+          "credential"
+        ),
       ],
       args
     );

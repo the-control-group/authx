@@ -128,7 +128,7 @@ export const GraphQLAuthorization: GraphQLObjectType<
           scopes: "r",
           secrets: "",
         }))
-          ? authorization.access(executor)
+          ? authorization.access(executor, realm)
           : null;
       },
     },
@@ -185,7 +185,7 @@ export const GraphQLAuthorization: GraphQLObjectType<
           return `Bearer ${jwt.sign(
             {
               aid: authorization.id,
-              scopes: await authorization.access(executor),
+              scopes: await authorization.access(executor, realm),
             },
             privateKey,
             {

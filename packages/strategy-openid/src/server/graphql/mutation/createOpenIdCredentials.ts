@@ -282,6 +282,7 @@ export const createOpenIdCredentials: GraphQLFieldConfig<
         if (
           !(await a.can(
             executor,
+            realm,
             createV2AuthXScope(
               realm,
               {
@@ -308,6 +309,7 @@ export const createOpenIdCredentials: GraphQLFieldConfig<
         if (
           !(await a.can(
             executor,
+            realm,
             createV2AuthXScope(
               realm,
               {

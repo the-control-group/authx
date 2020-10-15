@@ -34,7 +34,10 @@ export const roles: GraphQLFieldConfig<
     if (!a) return [];
 
     const rules = CursorRule.addToRuleListIfNeeded(
-      [new NoReplacementRecord(), new IsAccessibleByRule(realm, a, "role")],
+      [
+        new NoReplacementRecord(),
+        new IsAccessibleByRule(realm, await a.access(executor, realm), "role"),
+      ],
       args
     );
 

@@ -94,6 +94,7 @@ export const createGrants: GraphQLFieldConfig<
         if (
           !(await a.can(
             executor,
+            realm,
             createV2AuthXScope(
               realm,
               {

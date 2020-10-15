@@ -67,6 +67,7 @@ export class User implements UserData {
     if (
       await a.can(
         tx,
+        realm,
         createV2AuthXScope(
           realm,
           {

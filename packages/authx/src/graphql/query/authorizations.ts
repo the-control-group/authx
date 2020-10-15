@@ -36,7 +36,11 @@ export const authorizations: GraphQLFieldConfig<
     const rules = CursorRule.addToRuleListIfNeeded(
       [
         new NoReplacementRecord(),
-        new IsAccessibleByRule(realm, a, "authorization"),
+        new IsAccessibleByRule(
+          realm,
+          await a.access(executor, realm),
+          "authorization"
+        ),
       ],
       args
     );

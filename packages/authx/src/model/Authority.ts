@@ -77,6 +77,7 @@ export abstract class Authority<A> implements AuthorityData<A> {
     if (
       await a.can(
         tx,
+        realm,
         createV2AuthXScope(
           realm,
           {

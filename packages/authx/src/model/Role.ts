@@ -71,6 +71,7 @@ export class Role implements RoleData {
     if (
       await a.can(
         tx,
+        realm,
         createV2AuthXScope(
           realm,
           {

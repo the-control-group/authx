@@ -96,6 +96,7 @@ export const createClients: GraphQLFieldConfig<
         if (
           !(await a.can(
             executor,
+            realm,
             createV2AuthXScope(
               realm,
               {
