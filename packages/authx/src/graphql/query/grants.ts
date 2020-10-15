@@ -34,7 +34,10 @@ export const grants: GraphQLFieldConfig<
     if (!a) return [];
 
     const rules = CursorRule.addToRuleListIfNeeded(
-      [new NoReplacementRecord(), new IsAccessibleByRule(realm, a, "grant")],
+      [
+        new NoReplacementRecord(),
+        new IsAccessibleByRule(realm, await a.access(executor, realm), "grant"),
+      ],
       args
     );
 

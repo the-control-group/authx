@@ -1,6 +1,17 @@
 import { Rule } from "./Rule";
-import { Authorization } from "../Authorization";
 import { extract } from "@authx/scopes";
+
+/**
+ * Note that the entity type "authority" is intentionally omitted, because it is
+ * always accessible.
+ */
+type AccessibleEntityType =
+  | "authorization"
+  | "client"
+  | "credential"
+  | "grant"
+  | "role"
+  | "user";
 
 /**
  * Rule that handles pagination if the user is paging backwards through the data
@@ -14,8 +25,8 @@ import { extract } from "@authx/scopes";
 export class IsAccessibleByRule extends Rule {
   constructor(
     private readonly realm: string,
-    private readonly authorization: Authorization,
-    private readonly entityType: string
+    private readonly access: string[],
+    private readonly entityType: AccessibleEntityType
   ) {
     super();
   }
@@ -73,7 +84,7 @@ export class IsAccessibleByRule extends Rule {
       const fixedIds: { [key: string]: string }[] = [];
       let allAccess = false;
 
-      for (const scope of this.authorization.scopes) {
+      for (const scope of this.access) {
         const extractedScopes = extract(template, [scope]);
 
         for (const extracted of extractedScopes) {

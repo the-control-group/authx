@@ -34,7 +34,10 @@ export const users: GraphQLFieldConfig<
     if (!a) return [];
 
     const rules = CursorRule.addToRuleListIfNeeded(
-      [new NoReplacementRecord(), new IsAccessibleByRule(realm, a, "user")],
+      [
+        new NoReplacementRecord(),
+        new IsAccessibleByRule(realm, await a.access(executor, realm), "user"),
+      ],
       args
     );
 
