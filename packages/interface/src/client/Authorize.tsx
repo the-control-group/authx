@@ -396,7 +396,7 @@ export function Authorize({
 
   // API and errors
   const graphql = useContext<GraphQL>(GraphQLContext);
-  const [operating, setOperating] = useState<boolean>(false);
+  const [operating, setOperating] = useState<null | boolean>(null);
   const [redirecting, setRedirecting] = useState<boolean>(false);
   const [errors, setErrors] = useState<string[]>([]);
   async function onGrantAccess(): Promise<void> {
@@ -562,12 +562,15 @@ export function Authorize({
         return;
       }
 
-      // Check that all requested scopes are already granted
+      // Check that all requested scopes are already granted, that we are
+      // not in the process of operating, and that we have not just tried to
+      // operate.
       const grantedScopes = grant?.scopes;
       if (
         grantedScopes &&
         requestedScopeTemplates &&
-        isSuperset(grantedScopes, requestedScopeTemplates)
+        isSuperset(grantedScopes, requestedScopeTemplates) &&
+        operating === null
       ) {
         // TODO: This does NOT fully follow the OpenID Connect spec here, which
         // should be considered instead of the current behavior.
