@@ -343,6 +343,8 @@ async function oAuth2Middleware(
               : undefined;
           const paramsCode: undefined | string =
             typeof request.code === "string" ? request.code : undefined;
+          const paramsScope: undefined | string =
+            typeof request.scope === "string" ? request.scope : undefined;
           const paramsNonce: undefined | string =
             typeof request.nonce === "string" ? request.nonce : undefined;
           const tokenFormat =
@@ -421,7 +423,7 @@ async function oAuth2Middleware(
           }
 
           // Fetch the grant.
-          let grant;
+          let grant: Grant;
           try {
             grant = await Grant.read(executor, grantId);
           } catch (error) {
@@ -469,7 +471,9 @@ async function oAuth2Middleware(
             );
           }
 
-          const requestedScopes = grant.scopes;
+          const requestedScopeTemplates = paramsScope
+            ? paramsScope.split(" ")
+            : [];
 
           const values = {
             currentUserId: grant.userId,
@@ -524,7 +528,17 @@ async function oAuth2Middleware(
           // Look for an existing active authorization for this grant with the
           // requested scopes.
           const possibleRequestedAuthorizations = authorizations.filter((t) =>
-            isEqual(requestedScopes, t.scopes)
+            isEqual(
+              inject(requestedScopeTemplates, {
+                /* eslint-disable camelcase */
+                current_user_id: grant.userId ?? null,
+                current_grant_id: grant.id ?? null,
+                current_client_id: grant.clientId ?? null,
+                current_authorization_id: t.id ?? null,
+                /* eslint-enable camelcase */
+              }),
+              t.scopes
+            )
           );
 
           let requestedAuthorization: Authorization;
@@ -533,15 +547,23 @@ async function oAuth2Middleware(
             requestedAuthorization = possibleRequestedAuthorizations[0];
           } else {
             // Create a new authorization.
+            const authorizationId = v4();
             requestedAuthorization = await Authorization.write(
               tx,
               {
-                id: v4(),
+                id: authorizationId,
                 enabled: true,
                 userId: user.id,
                 grantId: grant.id,
                 secret: randomBytes(16).toString("hex"),
-                scopes: requestedScopes,
+                scopes: inject(requestedScopeTemplates, {
+                  /* eslint-disable camelcase */
+                  current_user_id: grant.userId ?? null,
+                  current_grant_id: grant.id ?? null,
+                  current_client_id: grant.clientId ?? null,
+                  current_authorization_id: authorizationId ?? null,
+                  /* eslint-enable camelcase */
+                }),
               },
               {
                 recordId: v4(),

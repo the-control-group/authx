@@ -62,6 +62,7 @@ export const client = [
           urls: [
             "https://www.dundermifflin.com",
             "https://admin.dundermifflin.com",
+            "http://localhost",
           ],
         },
         {
