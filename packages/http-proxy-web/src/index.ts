@@ -384,7 +384,7 @@ export default class AuthXWebProxy extends EventEmitter {
             client_secret: this._config.clientSecret,
             code: code,
             token_format: this._config.tokenFormat,
-            scope: "**:**:**",
+            scope: this._config.requestGrantedScopes.join(" "),
             /* eslint-enable camelcase */
           }),
         });
@@ -404,14 +404,6 @@ export default class AuthXWebProxy extends EventEmitter {
         // Update the refresh token.
         if (tokenResponseBody.refresh_token) {
           cookies.set("authx.r", tokenResponseBody.refresh_token);
-        }
-
-        // Use the new access token.
-        if (tokenResponseBody.access_token) {
-          cookies.set(
-            `authx.t.${hashScopes(["**:**:**"])}`,
-            tokenResponseBody.access_token
-          );
         }
 
         response.setHeader("Location", cookies.get("authx.d") || "/");

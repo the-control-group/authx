@@ -237,6 +237,7 @@ test("Root query fields.", async (t) => {
               urls: [
                 "https://www.dundermifflin.com",
                 "https://admin.dundermifflin.com",
+                "http://localhost",
               ],
             },
             secrets: [
