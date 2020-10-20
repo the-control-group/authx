@@ -28,6 +28,8 @@ test("Root query fields.", async (t) => {
     body: JSON.stringify({
       query: /* GraphQL */ `
         query {
+          keys
+
           viewer {
             id
             enabled
@@ -206,6 +208,132 @@ test("Root query fields.", async (t) => {
             secret
             scopes
           }
+
+          authority(id: "0d765613-e813-40e5-9aa7-89f96531364e") {
+            id
+          }
+          authorities(first: 1) {
+            pageInfo {
+              hasNextPage
+              hasPreviousPage
+              startCursor
+              endCursor
+            }
+            edges {
+              cursor
+              node {
+                id
+              }
+            }
+          }
+
+          authorization(id: "5387ece5-37a1-4573-a189-14333ebf8d88") {
+            id
+          }
+          authorizations(first: 1) {
+            pageInfo {
+              hasNextPage
+              hasPreviousPage
+              startCursor
+              endCursor
+            }
+            edges {
+              cursor
+              node {
+                id
+              }
+            }
+          }
+
+          client(id: "1fcb730e-f134-463a-b224-cab7e61c5ce0") {
+            id
+          }
+          clients(first: 1) {
+            pageInfo {
+              hasNextPage
+              hasPreviousPage
+              startCursor
+              endCursor
+            }
+            edges {
+              cursor
+              node {
+                id
+              }
+            }
+          }
+
+          credential(id: "540128ad-7a55-423e-a85c-103677df333c") {
+            id
+          }
+          credentials(first: 1) {
+            pageInfo {
+              hasNextPage
+              hasPreviousPage
+              startCursor
+              endCursor
+            }
+            edges {
+              cursor
+              node {
+                id
+              }
+            }
+          }
+
+          grant(id: "d8dcaf12-b744-4d2d-b223-09e7e5eaa922") {
+            id
+          }
+          grants(first: 1) {
+            pageInfo {
+              hasNextPage
+              hasPreviousPage
+              startCursor
+              endCursor
+            }
+            edges {
+              cursor
+              node {
+                id
+              }
+            }
+          }
+
+          role(id: "ee37605c-5834-40c9-bd80-bac16d9e62a4") {
+            id
+          }
+          roles(first: 1) {
+            pageInfo {
+              hasNextPage
+              hasPreviousPage
+              startCursor
+              endCursor
+            }
+            edges {
+              cursor
+              node {
+                id
+              }
+            }
+          }
+
+          user(id: "e165cbb0-86b0-4e11-9db7-eb5f742161b8") {
+            id
+          }
+          users(first: 1) {
+            pageInfo {
+              hasNextPage
+              hasPreviousPage
+              startCursor
+              endCursor
+            }
+            edges {
+              cursor
+              node {
+                id
+              }
+            }
+          }
         }
       `,
     }),
@@ -216,6 +344,9 @@ test("Root query fields.", async (t) => {
   t.deepEqual(
     {
       data: {
+        keys: [
+          "-----BEGIN PUBLIC KEY-----\nMIGfMA0GCSqGSIb3DQEBAQUAA4GNADCBiQKBgQCfb+nyTPFCntEXbrFPU5DeE0gC\n4jXRcSFWDfCRgeqeQWqIW9DeMmCj13k0z6fQCiG3FATYosS64wAs+OiyGtu9q/Jy\nUEVIBMF0upDJMA53AFFx+0Fb/i76JFPTY7SxzvioIFeKRwY8evIRWQWYO95Os6gK\nBac/x5qiUn5fh2xM+wIDAQAB\n-----END PUBLIC KEY-----",
+        ],
         viewer: {
           id: "c70da498-27ed-4c3b-a318-38bb220cef48",
           enabled: true,
@@ -247,6 +378,12 @@ test("Root query fields.", async (t) => {
             scopes: ["**:**:**"],
             access: ["**:**:**"],
             authorizations: {
+              pageInfo: {
+                startCursor: "YXJyYXljb25uZWN0aW9uOjA=",
+                endCursor: "YXJyYXljb25uZWN0aW9uOjA=",
+                hasNextPage: false,
+                hasPreviousPage: false,
+              },
               edges: [
                 {
                   cursor: "YXJyYXljb25uZWN0aW9uOjA=",
@@ -255,12 +392,6 @@ test("Root query fields.", async (t) => {
                   },
                 },
               ],
-              pageInfo: {
-                endCursor: "YXJyYXljb25uZWN0aW9uOjA=",
-                hasNextPage: false,
-                hasPreviousPage: false,
-                startCursor: "YXJyYXljb25uZWN0aW9uOjA=",
-              },
             },
           },
           user: {
@@ -269,6 +400,12 @@ test("Root query fields.", async (t) => {
             type: "HUMAN",
             name: "Michael Scott",
             authorizations: {
+              pageInfo: {
+                startCursor: "YXJyYXljb25uZWN0aW9uOjA=",
+                endCursor: "YXJyYXljb25uZWN0aW9uOjA=",
+                hasNextPage: false,
+                hasPreviousPage: false,
+              },
               edges: [
                 {
                   cursor: "YXJyYXljb25uZWN0aW9uOjA=",
@@ -277,14 +414,14 @@ test("Root query fields.", async (t) => {
                   },
                 },
               ],
-              pageInfo: {
-                endCursor: "YXJyYXljb25uZWN0aW9uOjA=",
-                hasNextPage: false,
-                hasPreviousPage: false,
-                startCursor: "YXJyYXljb25uZWN0aW9uOjA=",
-              },
             },
             credentials: {
+              pageInfo: {
+                startCursor: "YXJyYXljb25uZWN0aW9uOjA=",
+                endCursor: "YXJyYXljb25uZWN0aW9uOjE=",
+                hasNextPage: false,
+                hasPreviousPage: false,
+              },
               edges: [
                 {
                   cursor: "YXJyYXljb25uZWN0aW9uOjA=",
@@ -339,14 +476,14 @@ test("Root query fields.", async (t) => {
                   },
                 },
               ],
-              pageInfo: {
-                endCursor: "YXJyYXljb25uZWN0aW9uOjE=",
-                hasNextPage: false,
-                hasPreviousPage: false,
-                startCursor: "YXJyYXljb25uZWN0aW9uOjA=",
-              },
             },
             grants: {
+              pageInfo: {
+                startCursor: "YXJyYXljb25uZWN0aW9uOjA=",
+                endCursor: "YXJyYXljb25uZWN0aW9uOjA=",
+                hasNextPage: false,
+                hasPreviousPage: false,
+              },
               edges: [
                 {
                   cursor: "YXJyYXljb25uZWN0aW9uOjA=",
@@ -355,17 +492,17 @@ test("Root query fields.", async (t) => {
                   },
                 },
               ],
-              pageInfo: {
-                endCursor: "YXJyYXljb25uZWN0aW9uOjA=",
-                hasNextPage: false,
-                hasPreviousPage: false,
-                startCursor: "YXJyYXljb25uZWN0aW9uOjA=",
-              },
             },
             grant: {
               id: "e4670762-beb7-435c-94af-055b951f97e6",
             },
             roles: {
+              pageInfo: {
+                startCursor: "YXJyYXljb25uZWN0aW9uOjA=",
+                endCursor: "YXJyYXljb25uZWN0aW9uOjE=",
+                hasNextPage: false,
+                hasPreviousPage: false,
+              },
               edges: [
                 {
                   cursor: "YXJyYXljb25uZWN0aW9uOjA=",
@@ -376,6 +513,12 @@ test("Root query fields.", async (t) => {
                     description:
                       "All human users should be assigned to this role.",
                     users: {
+                      pageInfo: {
+                        startCursor: "YXJyYXljb25uZWN0aW9uOjA=",
+                        endCursor: "YXJyYXljb25uZWN0aW9uOjg=",
+                        hasNextPage: false,
+                        hasPreviousPage: false,
+                      },
                       edges: [
                         {
                           cursor: "YXJyYXljb25uZWN0aW9uOjA=",
@@ -441,12 +584,6 @@ test("Root query fields.", async (t) => {
                           },
                         },
                       ],
-                      pageInfo: {
-                        endCursor: "YXJyYXljb25uZWN0aW9uOjg=",
-                        hasNextPage: false,
-                        hasPreviousPage: false,
-                        startCursor: "YXJyYXljb25uZWN0aW9uOjA=",
-                      },
                     },
                     scopes: [
                       "authx:v2.authorization..*.*..*..{current_user_id}:*..*..",
@@ -467,6 +604,12 @@ test("Root query fields.", async (t) => {
                     description:
                       "A super administrator has full access to all resources.",
                     users: {
+                      pageInfo: {
+                        startCursor: "YXJyYXljb25uZWN0aW9uOjA=",
+                        endCursor: "YXJyYXljb25uZWN0aW9uOjA=",
+                        hasNextPage: false,
+                        hasPreviousPage: false,
+                      },
                       edges: [
                         {
                           cursor: "YXJyYXljb25uZWN0aW9uOjA=",
@@ -476,28 +619,149 @@ test("Root query fields.", async (t) => {
                           },
                         },
                       ],
-                      pageInfo: {
-                        endCursor: "YXJyYXljb25uZWN0aW9uOjA=",
-                        hasNextPage: false,
-                        hasPreviousPage: false,
-                        startCursor: "YXJyYXljb25uZWN0aW9uOjA=",
-                      },
                     },
                     scopes: ["**:**:**"],
                   },
                 },
               ],
-              pageInfo: {
-                endCursor: "YXJyYXljb25uZWN0aW9uOjE=",
-                hasNextPage: false,
-                hasPreviousPage: false,
-                startCursor: "YXJyYXljb25uZWN0aW9uOjA=",
-              },
             },
           },
           secret:
             "8f57395ecd9d6fcb884145f8f6feff357fead2fbd83607e87d71a7c372cf37ad",
           scopes: ["**:**:**"],
+        },
+        authority: {
+          id: "0d765613-e813-40e5-9aa7-89f96531364e",
+        },
+        authorities: {
+          pageInfo: {
+            hasNextPage: true,
+            hasPreviousPage: false,
+            startCursor: "aWQ6MGQ3NjU2MTMtZTgxMy00MGU1LTlhYTctODlmOTY1MzEzNjRl",
+            endCursor: "aWQ6MGQ3NjU2MTMtZTgxMy00MGU1LTlhYTctODlmOTY1MzEzNjRl",
+          },
+          edges: [
+            {
+              cursor: "aWQ6MGQ3NjU2MTMtZTgxMy00MGU1LTlhYTctODlmOTY1MzEzNjRl",
+              node: {
+                id: "0d765613-e813-40e5-9aa7-89f96531364e",
+              },
+            },
+          ],
+        },
+        authorization: {
+          id: "5387ece5-37a1-4573-a189-14333ebf8d88",
+        },
+        authorizations: {
+          pageInfo: {
+            hasNextPage: true,
+            hasPreviousPage: false,
+            startCursor: "aWQ6NTM4N2VjZTUtMzdhMS00NTczLWExODktMTQzMzNlYmY4ZDg4",
+            endCursor: "aWQ6NTM4N2VjZTUtMzdhMS00NTczLWExODktMTQzMzNlYmY4ZDg4",
+          },
+          edges: [
+            {
+              cursor: "aWQ6NTM4N2VjZTUtMzdhMS00NTczLWExODktMTQzMzNlYmY4ZDg4",
+              node: {
+                id: "5387ece5-37a1-4573-a189-14333ebf8d88",
+              },
+            },
+          ],
+        },
+        client: {
+          id: "1fcb730e-f134-463a-b224-cab7e61c5ce0",
+        },
+        clients: {
+          pageInfo: {
+            hasNextPage: true,
+            hasPreviousPage: false,
+            startCursor: "aWQ6MTc0MzZkODMtNjAyMi00MTAxLWJmOWYtOTk3ZjE1NTBmNTdj",
+            endCursor: "aWQ6MTc0MzZkODMtNjAyMi00MTAxLWJmOWYtOTk3ZjE1NTBmNTdj",
+          },
+          edges: [
+            {
+              cursor: "aWQ6MTc0MzZkODMtNjAyMi00MTAxLWJmOWYtOTk3ZjE1NTBmNTdj",
+              node: {
+                id: "17436d83-6022-4101-bf9f-997f1550f57c",
+              },
+            },
+          ],
+        },
+        credential: {
+          id: "540128ad-7a55-423e-a85c-103677df333c",
+        },
+        credentials: {
+          pageInfo: {
+            hasNextPage: true,
+            hasPreviousPage: false,
+            startCursor: "aWQ6MDJlNTg4YjAtNjBhNy00YWY1LWEwYzctYjc4ZWQ0Mzk1N2I0",
+            endCursor: "aWQ6MDJlNTg4YjAtNjBhNy00YWY1LWEwYzctYjc4ZWQ0Mzk1N2I0",
+          },
+          edges: [
+            {
+              cursor: "aWQ6MDJlNTg4YjAtNjBhNy00YWY1LWEwYzctYjc4ZWQ0Mzk1N2I0",
+              node: {
+                id: "02e588b0-60a7-4af5-a0c7-b78ed43957b4",
+              },
+            },
+          ],
+        },
+        grant: {
+          id: "d8dcaf12-b744-4d2d-b223-09e7e5eaa922",
+        },
+        grants: {
+          pageInfo: {
+            hasNextPage: true,
+            hasPreviousPage: false,
+            startCursor: "aWQ6NGU3NmNiMTMtYWIyNC00ZGMxLWFkOTYtYWJjYmI4OWY1NTI5",
+            endCursor: "aWQ6NGU3NmNiMTMtYWIyNC00ZGMxLWFkOTYtYWJjYmI4OWY1NTI5",
+          },
+          edges: [
+            {
+              cursor: "aWQ6NGU3NmNiMTMtYWIyNC00ZGMxLWFkOTYtYWJjYmI4OWY1NTI5",
+              node: {
+                id: "4e76cb13-ab24-4dc1-ad96-abcbb89f5529",
+              },
+            },
+          ],
+        },
+        role: {
+          id: "ee37605c-5834-40c9-bd80-bac16d9e62a4",
+        },
+        roles: {
+          pageInfo: {
+            hasNextPage: true,
+            hasPreviousPage: false,
+            startCursor: "aWQ6MDhlMmIzOWUtYmE5Zi00ZGUyLThkY2EtYWVmNDYwNzkzNTY2",
+            endCursor: "aWQ6MDhlMmIzOWUtYmE5Zi00ZGUyLThkY2EtYWVmNDYwNzkzNTY2",
+          },
+          edges: [
+            {
+              cursor: "aWQ6MDhlMmIzOWUtYmE5Zi00ZGUyLThkY2EtYWVmNDYwNzkzNTY2",
+              node: {
+                id: "08e2b39e-ba9f-4de2-8dca-aef460793566",
+              },
+            },
+          ],
+        },
+        user: {
+          id: "e165cbb0-86b0-4e11-9db7-eb5f742161b8",
+        },
+        users: {
+          pageInfo: {
+            hasNextPage: true,
+            hasPreviousPage: false,
+            startCursor: "aWQ6MGNiZDM3ODMtMDQyNC00ZjM1LWJlNTEtYjQyZjA3YTJhOTg3",
+            endCursor: "aWQ6MGNiZDM3ODMtMDQyNC00ZjM1LWJlNTEtYjQyZjA3YTJhOTg3",
+          },
+          edges: [
+            {
+              cursor: "aWQ6MGNiZDM3ODMtMDQyNC00ZjM1LWJlNTEtYjQyZjA3YTJhOTg3",
+              node: {
+                id: "0cbd3783-0424-4f35-be51-b42f07a2a987",
+              },
+            },
+          ],
         },
       },
     },
