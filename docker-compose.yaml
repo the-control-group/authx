@@ -17,8 +17,9 @@ services:
         target: /var/lib/postgres
     ports:
       - target: 5432
+        published: 5432
         protocol: tcp
-        mode: localhost
+        mode: host
 
   # This container doesn't do anything by itself, but can be used to run tests
   # or issue one-off commands.
@@ -40,15 +41,16 @@ services:
         target: /workspace/node_modules
     ports:
       - target: 80
+        published: 80
         protocol: tcp
-        mode: localhost
+        mode: host
 
   # This container builds the server.
   builder:
     build:
       context: .
       target: base
-    command: yarn build:development
+    command: yarn build:development:chained
     environment:
       NODE_ENV: development
     volumes:
@@ -82,5 +84,6 @@ services:
         target: /workspace/node_modules
     ports:
       - target: 80
+        published: 80
         protocol: tcp
-        mode: localhost
+        mode: host

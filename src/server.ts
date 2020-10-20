@@ -5,6 +5,7 @@ import createAuthXInterface from "@authx/interface";
 import email from "@authx/strategy-email";
 import password from "@authx/strategy-password";
 import openid from "@authx/strategy-openid";
+import saml from "@authx/strategy-saml";
 
 const __DEV__ = process.env.NODE_ENV !== "production";
 
@@ -19,6 +20,7 @@ const __DEV__ = process.env.NODE_ENV !== "production";
       "@authx/strategy-email/interface",
       "@authx/strategy-password/interface",
       "@authx/strategy-openid/interface",
+      "@authx/strategy-saml/interface",
     ]);
 
     // Add the AuthX user interface.
@@ -69,7 +71,7 @@ Bac/x5qiUn5fh2xM+wIDAQAB
         console.log("--- SENDING EMAIL MESSAGE -------------------------");
         console.log(options);
       },
-      strategies: new StrategyCollection([email, password, openid]),
+      strategies: new StrategyCollection([email, password, openid, saml]),
       pg: {
         database: process.env.PGDATABASE ?? undefined,
         host: process.env.PGHOST ?? undefined,

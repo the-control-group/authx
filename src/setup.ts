@@ -73,6 +73,7 @@ async function setupApp(
     "@authx/strategy-email/interface",
     "@authx/strategy-password/interface",
     "@authx/strategy-openid/interface",
+    "@authx/strategy-saml/interface",
   ]);
 
   // Add the AuthX user interface.

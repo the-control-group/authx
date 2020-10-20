@@ -11,6 +11,7 @@
     "packages/strategy-email",
     "packages/strategy-openid",
     "packages/strategy-password",
+    "packages/strategy-saml",
     "packages/tools"
   ],
   "nohoist": [
