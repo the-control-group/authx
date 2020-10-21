@@ -41,9 +41,10 @@ export function samlRouterFactory(): Router<any, { [x]: Context }> {
 
       if (data.errors) {
         ctx.redirect(
-          `/?error=${encodeURIComponent(
-            data.errors.map((it: any) => it.message).join(", ")
-          )}&authorityId=${encodeURIComponent(authorityId)}`
+          `${base}?
+            ${data.errors
+              .map((it: any) => `errors=${encodeURIComponent(it.message)}`)
+              .join("&")}&authorityId=${encodeURIComponent(authorityId)}`
         );
       } else {
         ctx.cookies.set(
@@ -56,7 +57,7 @@ export function samlRouterFactory(): Router<any, { [x]: Context }> {
           data.data.assertSaml.secret,
           { httpOnly: false }
         );
-        ctx.redirect(`/?authorityId=${encodeURIComponent(authorityId)}`);
+        ctx.redirect(`${base}?authorityId=${encodeURIComponent(authorityId)}`);
       }
     }
   );

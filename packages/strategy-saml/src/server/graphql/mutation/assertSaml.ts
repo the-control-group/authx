@@ -31,6 +31,13 @@ const ATTRIBUTE_EMAIL_ADDRESS = "urn:oid:0.9.2342.19200300.100.1.3";
 const ATTRIBUTE_FIRST_NAME = "urn:oid:2.5.4.42";
 const ATTRIBUTE_LAST_NAME = "urn:oid:2.5.4.4";
 
+interface PostAssertResponse {
+  user: {
+    name_id: string;
+    attributes: { [key: string]: string[] };
+  };
+}
+
 /**
  * Finds an existing user by email address
  * @param tx
@@ -174,7 +181,7 @@ export const assertSaml: GraphQLFieldConfig<
     samlResponse: {
       type: new GraphQLNonNull(GraphQLString),
       description:
-        "The OAuth authorization code provided by the Saml exchange.",
+        "The SAMLResponse, base64 encoded. Must contain an internal signature.",
     },
   },
   async resolve(source, args, context): Promise<Authorization> {
@@ -216,8 +223,8 @@ export const assertSaml: GraphQLFieldConfig<
         },
       };
 
-      const caller = async (): Promise<any> => {
-        return new Promise<any>((resolve, reject) => {
+      const caller = async (): Promise<PostAssertResponse> => {
+        return new Promise<PostAssertResponse>((resolve, reject) => {
           authority
             .serviceProvider(context.base)
             .post_assert(authority.identityProvider, options, (err, resp) => {
@@ -266,9 +273,9 @@ export const assertSaml: GraphQLFieldConfig<
               ATTRIBUTE_DISPLAY_NAME,
             ]) {
               if (Array.isArray(result.user.attributes[nameAttribute])) {
-                userFullName = result.user.attributes[nameAttribute].find(
-                  (it: any) => it
-                ) ?? "";
+                userFullName =
+                  result.user.attributes[nameAttribute].find((it: any) => it) ??
+                  "";
                 break;
               }
             }

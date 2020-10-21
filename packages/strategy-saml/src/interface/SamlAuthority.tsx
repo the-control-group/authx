@@ -50,10 +50,10 @@ export function SamlAuthority({
       }
 
       const params = new URLSearchParams(window.location.search);
-      const errorParam = params.get("error");
+      const errorsParam = params.getAll("errors");
 
-      if (errorParam) {
-        setErrors([errorParam]);
+      if (errorsParam) {
+        setErrors(errorsParam);
       }
     })();
   }, []);
