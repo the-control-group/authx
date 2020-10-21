@@ -47,7 +47,11 @@ jobs:
         id: GenerateVersion
         run: |
           export BASE_VERSION="$GITHUB_REF"
+          echo "Base version is $BASE_VERSION"
+          [ ! -z "$BASE_VERSION" ]
           export VERSION=`echo "$BASE_VERSION" | grep -Po '[0-9].*'`
+          echo "Version is $VERSION"
+          [ ! -z "$VERSION" ]
           echo "::set-output name=version::$VERSION"
       - name: Version
         env:
