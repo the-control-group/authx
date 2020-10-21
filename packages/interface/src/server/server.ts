@@ -6,6 +6,7 @@ import createInterfaceMiddleware from ".";
   const interfaceMiddleware = await createInterfaceMiddleware("authx", [
     "@authx/strategy-email/client",
     "@authx/strategy-password/client",
+    "@authx/strategy-saml/client",
   ]);
   app.use(interfaceMiddleware);
   const server = app.listen(

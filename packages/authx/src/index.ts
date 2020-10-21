@@ -176,6 +176,20 @@ export class AuthX extends Router<any, { [x]: Context }> {
       body({ multipart: false, urlencoded: true, text: false, json: true }),
       oauth2 as AuthXMiddleware
     );
+
+    for (const strategyName in strategies.map) {
+      const strategy = strategies.map[strategyName];
+      const strategyRouterFactory = strategy.router;
+      if (strategyRouterFactory) {
+        const strategyRouter = strategyRouterFactory();
+        this.use(
+          `/strategy/${strategyName}`,
+          contextMiddleware,
+          strategyRouter.routes(),
+          strategyRouter.allowedMethods()
+        );
+      }
+    }
   }
 }
 
