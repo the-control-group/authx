@@ -44,15 +44,20 @@ jobs:
           PGSSL: false
 
       - name: GenerateVersion
+        id: GenerateVersion
         run: |
           export BASE_VERSION="$GITHUB_REF"
           export VERSION=`echo "$BASE_VERSION" | grep -Po '[0-9].*'`
-          echo "::set-env name=VERSION::$VERSION"
+          echo "::set-output name=version::$VERSION"
       - name: Version
+        env:
+          VERSION: ${steps.GenerateVersion.outputs.version}
         run: |
           yarn run lerna version --no-git-tag-version -y "$VERSION"
           yarn format
       - name: Repush
+        env:
+          VERSION: ${steps.GenerateVersion.outputs.version}
         run: |
           git config --global user.name 'Github Actions'
           git config --global user.email 'githubactions'
@@ -64,6 +69,7 @@ jobs:
       - name: Publish
         env:
           NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
+          VERSION: ${steps.GenerateVersion.outputs.version}
         run: |
           echo '//registry.npmjs.org/:_authToken=${NPM_TOKEN}' > ~/.npmrc
           scripts/run-in-packages.sh yarn publish --no-git-tag-version --new-version $VERSION
