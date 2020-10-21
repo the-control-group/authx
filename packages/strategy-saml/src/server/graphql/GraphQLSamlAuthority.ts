@@ -81,7 +81,8 @@ export const GraphQLSamlAuthority = new GraphQLObjectType<
     },
     entityId: {
       type: new GraphQLNonNull(GraphQLString),
-      description: "SAML XML Metadata, as a base64 encoded string",
+      description:
+        "The entity ID of this authority. Usually expressed as a URL.",
       async resolve(
         authority,
         args,
@@ -98,7 +99,8 @@ export const GraphQLSamlAuthority = new GraphQLObjectType<
     },
     serviceProviderPrivateKey: {
       type: new GraphQLNonNull(GraphQLString),
-      description: "SAML XML Metadata, as a base64 encoded string",
+      description:
+        "This authority's private key. Used when signing requests to the IdP and when the assertion is signed. PEM format, with line breaks.",
       async resolve(
         authority,
         args,
@@ -115,7 +117,8 @@ export const GraphQLSamlAuthority = new GraphQLObjectType<
     },
     serviceProviderCertificate: {
       type: new GraphQLNonNull(GraphQLString),
-      description: "SAML XML Metadata, as a base64 encoded string",
+      description:
+        "This authority's certificate. Used when signing requests to the IdP and when the assertion is signed. PEM format, with line breaks.",
       async resolve(
         authority,
         args,
@@ -132,7 +135,7 @@ export const GraphQLSamlAuthority = new GraphQLObjectType<
     },
     assertEndpoint: {
       type: new GraphQLNonNull(GraphQLString),
-      description: "SAML XML Metadata, as a base64 encoded string",
+      description: "HTTP-POST binding on the AuthX side. Set automatically.",
       async resolve(
         authority,
         args,
@@ -143,7 +146,7 @@ export const GraphQLSamlAuthority = new GraphQLObjectType<
     },
     emailAuthorityId: {
       type: new GraphQLNonNull(GraphQLString),
-      description: "SAML XML Metadata, as a base64 encoded string",
+      description: "ID of the email authority, for linking purposes.",
       async resolve(
         authority,
         args,
@@ -160,7 +163,8 @@ export const GraphQLSamlAuthority = new GraphQLObjectType<
     },
     authUrl: {
       type: new GraphQLNonNull(GraphQLString),
-      description: "SAML XML Metadata, as a base64 encoded string",
+      description:
+        "Auth URL on the IdP side where it receives the HTTP-Redirect AuthN request.",
       async resolve(
         authority,
         args,
@@ -241,7 +245,8 @@ export const GraphQLSamlAuthority = new GraphQLObjectType<
       type: new GraphQLNonNull(
         new GraphQLList(new GraphQLNonNull(GraphQLString))
       ) as any,
-      description: "When a user is created, assign to these roles.",
+      description:
+        "List of certificates we will accept from the IdP. PEM format, with line breaks.",
       async resolve(
         authority,
         args,
