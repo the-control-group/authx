@@ -1,4 +1,4 @@
-export * from "./assertSaml";
+export * from "./authenticateSaml";
 export * from "./createSamlAuthorities";
 export * from "./createSamlCredentials";
 export * from "./GraphQLCreateSamlAuthorityInput";

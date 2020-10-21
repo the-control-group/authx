@@ -1,7 +1,7 @@
 import { Strategy } from "@authx/authx";
 import { SamlAuthority } from "./model/SamlAuthority";
 import { SamlCredential } from "./model/SamlCredential";
-import { assertSaml, GraphQLSamlAuthority } from "./graphql";
+import { authenticateSaml, GraphQLSamlAuthority } from "./graphql";
 import { samlRouterFactory } from "./samlRouter";
 import { GraphQLSamlCredential } from "./graphql/GraphQLSamlCredential";
 
@@ -27,7 +27,7 @@ const strategy: Strategy = {
   ],
   queryFields: {},
   mutationFields: {
-    assertSaml,
+    authenticateSaml,
     createSamlAuthorities,
     createSamlCredentials,
     updateSamlAuthorities,

@@ -164,7 +164,7 @@ async function createSamlCredentialForUser(
   );
 }
 
-export const assertSaml: GraphQLFieldConfig<
+export const authenticateSaml: GraphQLFieldConfig<
   any,
   Context,
   {

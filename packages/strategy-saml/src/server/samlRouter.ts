@@ -20,9 +20,9 @@ export function samlRouterFactory(): Router<any, { [x]: Context }> {
           "content-type": "application/json",
         },
         body: JSON.stringify({
-          query: `mutation AssertSaml($samlResponse: String!, $authorityId: ID!)
+          query: `mutation AuthenticateSaml($samlResponse: String!, $authorityId: ID!)
           {
-            assertSaml(
+            authenticateSaml(
               samlResponse: $samlResponse
               authorityId: $authorityId
             ){
@@ -41,20 +41,21 @@ export function samlRouterFactory(): Router<any, { [x]: Context }> {
 
       if (data.errors) {
         ctx.redirect(
-          `${base}?
-            ${data.errors
-              .map((it: any) => `errors=${encodeURIComponent(it.message)}`)
-              .join("&")}&authorityId=${encodeURIComponent(authorityId)}`
+          `${base}?${data.errors
+            .map((it: any) => `errors=${encodeURIComponent(it.message)}`)
+            .join("&")}&authorityId=${encodeURIComponent(authorityId)}`
         );
       } else {
+        console.log(data);
+
         ctx.cookies.set(
           "samlFinishedAuthorizationId",
-          data.data.assertSaml.id,
+          data.data.authenticateSaml.id,
           { httpOnly: false }
         );
         ctx.cookies.set(
           "samlFinishedAuthorizationSecret",
-          data.data.assertSaml.secret,
+          data.data.authenticateSaml.secret,
           { httpOnly: false }
         );
         ctx.redirect(`${base}?authorityId=${encodeURIComponent(authorityId)}`);
