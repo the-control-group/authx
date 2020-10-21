@@ -266,9 +266,9 @@ export const assertSaml: GraphQLFieldConfig<
               ATTRIBUTE_DISPLAY_NAME,
             ]) {
               if (Array.isArray(result.user.attributes[nameAttribute])) {
-                userFullName = result.user.attributes[nameAttribute].first(
+                userFullName = result.user.attributes[nameAttribute].find(
                   (it: any) => it
-                );
+                ) ?? "";
                 break;
               }
             }
