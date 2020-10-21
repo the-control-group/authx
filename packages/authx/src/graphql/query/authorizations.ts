@@ -1,6 +1,6 @@
 import { GraphQLBoolean, GraphQLFieldConfig } from "graphql";
 
-import { connectionArgs, ConnectionArguments } from "graphql-relay";
+import { connectionArgs, ConnectionArguments, Connection } from "graphql-relay";
 
 import { GraphQLAuthorizationConnection } from "../GraphQLAuthorizationConnection";
 import { Context } from "../../Context";
@@ -29,9 +29,19 @@ export const authorizations: GraphQLFieldConfig<
       description: "Include disabled authorities in results.",
     },
   },
-  async resolve(source, args, context) {
+  async resolve(source, args, context): Promise<Connection<Authorization>> {
     const { executor, authorization: a, realm } = context;
-    if (!a) return [];
+    if (!a) {
+      return {
+        pageInfo: {
+          startCursor: null,
+          endCursor: null,
+          hasPreviousPage: false,
+          hasNextPage: false,
+        },
+        edges: [],
+      };
+    }
 
     const rules = CursorRule.addToRuleListIfNeeded(
       [
@@ -55,6 +65,18 @@ export const authorizations: GraphQLFieldConfig<
         `,
       rules
     );
+
+    if (!ids.rows.length) {
+      return {
+        pageInfo: {
+          startCursor: null,
+          endCursor: null,
+          hasPreviousPage: false,
+          hasNextPage: false,
+        },
+        edges: [],
+      };
+    }
 
     const authorizations = await Authorization.read(
       executor,

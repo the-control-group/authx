@@ -1,6 +1,6 @@
 import { GraphQLBoolean, GraphQLFieldConfig } from "graphql";
 
-import { connectionArgs, ConnectionArguments } from "graphql-relay";
+import { connectionArgs, ConnectionArguments, Connection } from "graphql-relay";
 
 import { GraphQLGrantConnection } from "../GraphQLGrantConnection";
 import { Context } from "../../Context";
@@ -29,9 +29,19 @@ export const grants: GraphQLFieldConfig<
       description: "Include disabled grants in results.",
     },
   },
-  async resolve(source, args, context) {
+  async resolve(source, args, context): Promise<Connection<Grant>> {
     const { executor, authorization: a, realm } = context;
-    if (!a) return [];
+    if (!a) {
+      return {
+        pageInfo: {
+          startCursor: null,
+          endCursor: null,
+          hasPreviousPage: false,
+          hasNextPage: false,
+        },
+        edges: [],
+      };
+    }
 
     const rules = CursorRule.addToRuleListIfNeeded(
       [
@@ -53,7 +63,15 @@ export const grants: GraphQLFieldConfig<
     );
 
     if (!ids.rows.length) {
-      return [];
+      return {
+        pageInfo: {
+          startCursor: null,
+          endCursor: null,
+          hasPreviousPage: false,
+          hasNextPage: false,
+        },
+        edges: [],
+      };
     }
 
     const grants = await Grant.read(

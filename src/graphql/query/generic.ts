@@ -22,31 +22,40 @@ export function pagingTests(config: PagingTestsConfig): void {
     let lastCursor: string | null = null;
 
     for (let i = 0; i < config.ids.length; ++i) {
-      const dataRaw: any = await config.ctx.graphQL(
+      const dataRaw = (await config.ctx.graphQL(
         `
-                query {
-                    ${config.endpointName}(first:1${
+        query {
+          ${config.endpointName}(first:1${
           lastCursor ? ', after:"' + lastCursor + '"' : ""
         }) {
-                        edges {
-                            node {
-                                id
-                            }
-                            cursor
-                        }
-                        pageInfo {
-                            hasNextPage
-                            hasPreviousPage
-                            startCursor
-                            endCursor
-                        }
-                    }
-                }
-                `,
+            edges {
+              node {
+                id
+              }
+              cursor
+            }
+            pageInfo {
+              hasNextPage
+              hasPreviousPage
+              startCursor
+              endCursor
+            }
+          }
+        }
+        `,
         token
-      );
+      )) as {
+        errors?: null | [{ message: string }];
+        data: any;
+      };
 
-      const data = dataRaw[endpointName];
+      if (dataRaw.errors?.length) {
+        throw new Error(
+          dataRaw.errors.map(({ message }) => message).join("; ")
+        );
+      }
+
+      const data = dataRaw.data[endpointName];
 
       t.assert(data.edges !== null);
       t.assert(
@@ -83,31 +92,40 @@ export function pagingTests(config: PagingTestsConfig): void {
     let lastCursor: string | null = null;
 
     for (let i = config.ids.length - 1; i >= 0; --i) {
-      const dataRaw: any = await config.ctx.graphQL(
+      const dataRaw = (await config.ctx.graphQL(
         `
-                query {
-                    ${config.endpointName}(last:1${
+        query {
+          ${config.endpointName}(last:1${
           lastCursor ? ', before:"' + lastCursor + '"' : ""
         }) {
-                        edges {
-                            node {
-                                id
-                            }
-                            cursor
-                        }
-                        pageInfo {
-                            hasNextPage
-                            hasPreviousPage
-                            startCursor
-                            endCursor
-                        }
-                    }
-                }
-                `,
+            edges {
+              node {
+                id
+              }
+              cursor
+            }
+            pageInfo {
+              hasNextPage
+              hasPreviousPage
+              startCursor
+              endCursor
+            }
+          }
+        }
+        `,
         token
-      );
+      )) as {
+        errors?: null | [{ message: string }];
+        data: any;
+      };
 
-      const data = dataRaw[endpointName];
+      if (dataRaw.errors?.length) {
+        throw new Error(
+          dataRaw.errors.map(({ message }) => message).join("; ")
+        );
+      }
+
+      const data = dataRaw.data[endpointName];
 
       t.assert(data.edges !== null);
       t.assert(

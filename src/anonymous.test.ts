@@ -33,7 +33,14 @@ test("Root query fields.", async (t) => {
             description
           }
           authorities {
+            pageInfo {
+              hasNextPage
+              hasPreviousPage
+              startCursor
+              endCursor
+            }
             edges {
+              cursor
               node {
                 id
                 enabled
@@ -79,7 +86,14 @@ test("Root query fields.", async (t) => {
             id
           }
           authorizations {
+            pageInfo {
+              hasNextPage
+              hasPreviousPage
+              startCursor
+              endCursor
+            }
             edges {
+              cursor
               node {
                 id
               }
@@ -90,7 +104,14 @@ test("Root query fields.", async (t) => {
             id
           }
           clients {
+            pageInfo {
+              hasNextPage
+              hasPreviousPage
+              startCursor
+              endCursor
+            }
             edges {
+              cursor
               node {
                 id
               }
@@ -101,7 +122,14 @@ test("Root query fields.", async (t) => {
             id
           }
           credentials {
+            pageInfo {
+              hasNextPage
+              hasPreviousPage
+              startCursor
+              endCursor
+            }
             edges {
+              cursor
               node {
                 id
               }
@@ -112,7 +140,14 @@ test("Root query fields.", async (t) => {
             id
           }
           grants {
+            pageInfo {
+              hasNextPage
+              hasPreviousPage
+              startCursor
+              endCursor
+            }
             edges {
+              cursor
               node {
                 id
               }
@@ -123,7 +158,14 @@ test("Root query fields.", async (t) => {
             id
           }
           roles {
+            pageInfo {
+              hasNextPage
+              hasPreviousPage
+              startCursor
+              endCursor
+            }
             edges {
+              cursor
               node {
                 id
               }
@@ -134,7 +176,14 @@ test("Root query fields.", async (t) => {
             id
           }
           users {
+            pageInfo {
+              hasNextPage
+              hasPreviousPage
+              startCursor
+              endCursor
+            }
             edges {
+              cursor
               node {
                 id
               }
@@ -163,25 +212,33 @@ test("Root query fields.", async (t) => {
           description: "The email authority.",
         },
         authorities: {
+          pageInfo: {
+            hasNextPage: false,
+            hasPreviousPage: false,
+            startCursor: "aWQ6MGQ3NjU2MTMtZTgxMy00MGU1LTlhYTctODlmOTY1MzEzNjRl",
+            endCursor: "aWQ6NzI1ZjljM2ItNGE3Mi00MDIxLTkwNjYtYzg5ZTUzNGRmNWJl",
+          },
           edges: [
             {
+              cursor: "aWQ6MGQ3NjU2MTMtZTgxMy00MGU1LTlhYTctODlmOTY1MzEzNjRl",
               node: {
                 id: "0d765613-e813-40e5-9aa7-89f96531364e",
                 enabled: true,
                 name: "Email",
                 description: "The email authority.",
-                authenticationEmailHtml: null,
+                privateKey: null,
+                publicKeys: null,
+                proofValidityDuration: null,
                 authenticationEmailSubject: null,
                 authenticationEmailText: null,
-                privateKey: null,
-                proofValidityDuration: null,
-                publicKeys: null,
-                verificationEmailHtml: null,
+                authenticationEmailHtml: null,
                 verificationEmailSubject: null,
                 verificationEmailText: null,
+                verificationEmailHtml: null,
               },
             },
             {
+              cursor: "aWQ6NzI1ZjljM2ItNGE3Mi00MDIxLTkwNjYtYzg5ZTUzNGRmNWJl",
               node: {
                 id: "725f9c3b-4a72-4021-9066-c89e534df5be",
                 enabled: true,
@@ -192,34 +249,69 @@ test("Root query fields.", async (t) => {
             },
           ],
         },
-
         authorization: null,
-        authorizations: { edges: null },
-
+        authorizations: {
+          pageInfo: {
+            hasNextPage: false,
+            hasPreviousPage: false,
+            startCursor: null,
+            endCursor: null,
+          },
+          edges: [],
+        },
         client: null,
-        clients: { edges: null },
-
+        clients: {
+          pageInfo: {
+            hasNextPage: false,
+            hasPreviousPage: false,
+            startCursor: null,
+            endCursor: null,
+          },
+          edges: [],
+        },
         credential: null,
-        credentials: { edges: null },
-
+        credentials: {
+          pageInfo: {
+            hasNextPage: false,
+            hasPreviousPage: false,
+            startCursor: null,
+            endCursor: null,
+          },
+          edges: [],
+        },
         grant: null,
-        grants: { edges: null },
-
+        grants: {
+          pageInfo: {
+            hasNextPage: false,
+            hasPreviousPage: false,
+            startCursor: null,
+            endCursor: null,
+          },
+          edges: [],
+        },
         role: null,
-        roles: { edges: null },
-
+        roles: {
+          pageInfo: {
+            hasNextPage: false,
+            hasPreviousPage: false,
+            startCursor: null,
+            endCursor: null,
+          },
+          edges: [],
+        },
         user: null,
-        users: { edges: null },
-
+        users: {
+          pageInfo: {
+            hasNextPage: false,
+            hasPreviousPage: false,
+            startCursor: null,
+            endCursor: null,
+          },
+          edges: [],
+        },
         viewer: null,
-
         keys: [
-          `-----BEGIN PUBLIC KEY-----
-MIGfMA0GCSqGSIb3DQEBAQUAA4GNADCBiQKBgQCfb+nyTPFCntEXbrFPU5DeE0gC
-4jXRcSFWDfCRgeqeQWqIW9DeMmCj13k0z6fQCiG3FATYosS64wAs+OiyGtu9q/Jy
-UEVIBMF0upDJMA53AFFx+0Fb/i76JFPTY7SxzvioIFeKRwY8evIRWQWYO95Os6gK
-Bac/x5qiUn5fh2xM+wIDAQAB
------END PUBLIC KEY-----`,
+          "-----BEGIN PUBLIC KEY-----\nMIGfMA0GCSqGSIb3DQEBAQUAA4GNADCBiQKBgQCfb+nyTPFCntEXbrFPU5DeE0gC\n4jXRcSFWDfCRgeqeQWqIW9DeMmCj13k0z6fQCiG3FATYosS64wAs+OiyGtu9q/Jy\nUEVIBMF0upDJMA53AFFx+0Fb/i76JFPTY7SxzvioIFeKRwY8evIRWQWYO95Os6gK\nBac/x5qiUn5fh2xM+wIDAQAB\n-----END PUBLIC KEY-----",
         ],
       },
     },

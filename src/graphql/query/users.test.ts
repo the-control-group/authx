@@ -33,103 +33,208 @@ test("Fetch users with limited read scope and page", async (t) => {
     createUserReadScope("eaa9fa5e-088a-4ae2-a6ab-f120006b20a9"), // Pam Beesly-Halpert
   ]);
 
-  const target = (
-    await ctx.graphQL(
-      `
-    query {
+  const target = (await ctx.graphQL(
+    `
+      query {
         users {
-            pageInfo {
-                hasNextPage
-                hasPreviousPage
+          pageInfo {
+            hasNextPage
+            hasPreviousPage
+          }
+          edges {
+            node {
+              id
+              name
             }
-            edges {
-                node {
-                    id
-                    name
-                }
-                cursor
-            }
+            cursor
+          }
         }
+      }
+      `,
+    token
+  )) as {
+    errors?: null | { message: string }[];
+    data: null | {
+      users: null | {
+        pageInfo: null | {
+          hasNextPage: null | boolean;
+          hasPreviousPage: null | boolean;
+        };
+        edges:
+          | null
+          | {
+              cursor: string;
+              node: {
+                id: string;
+                name: string;
+              };
+            }[];
+      };
+    };
+  };
+
+  t.deepEqual(target, {
+    data: {
+      users: {
+        pageInfo: { hasNextPage: false, hasPreviousPage: false },
+        edges: [
+          {
+            node: {
+              id: "0cbd3783-0424-4f35-be51-b42f07a2a987",
+              name: "Dwight Schrute",
+            },
+            cursor: "aWQ6MGNiZDM3ODMtMDQyNC00ZjM1LWJlNTEtYjQyZjA3YTJhOTg3",
+          },
+          {
+            node: {
+              id: "d0fc4c64-a3d6-4d97-9341-07de24439bb1",
+              name: "Jim Halpert",
+            },
+            cursor: "aWQ6ZDBmYzRjNjQtYTNkNi00ZDk3LTkzNDEtMDdkZTI0NDM5YmIx",
+          },
+          {
+            node: {
+              id: "eaa9fa5e-088a-4ae2-a6ab-f120006b20a9",
+              name: "Pam Beesly-Halpert",
+            },
+            cursor: "aWQ6ZWFhOWZhNWUtMDg4YS00YWUyLWE2YWItZjEyMDAwNmIyMGE5",
+          },
+          {
+            node: {
+              id: "51192909-3664-44d5-be62-c6b45f0b0ee6",
+              name: "Darryl Philbin",
+            },
+            cursor: "aWQ6NTExOTI5MDktMzY2NC00NGQ1LWJlNjItYzZiNDVmMGIwZWU2",
+          },
+        ],
+      },
+    },
+  });
+
+  const firstCursor = target.data?.users?.edges?.[0]?.cursor;
+
+  const target2 = (await ctx.graphQL(
+    `
+    query {
+      users(first:2, after:"${firstCursor}") {
+        pageInfo {
+          hasNextPage
+          hasPreviousPage
+        }
+        edges {
+          node {
+            id
+            name
+          }
+          cursor
+        }
+      }
     }
     `,
-      token
-    )
-  ).users;
+    token
+  )) as {
+    errors?: null | { message: string }[];
+    data: null | {
+      users: null | {
+        pageInfo: null | {
+          hasNextPage: null | boolean;
+          hasPreviousPage: null | boolean;
+        };
+        edges:
+          | null
+          | {
+              cursor: string;
+              node: {
+                id: string;
+                name: string;
+              };
+            }[];
+      };
+    };
+  };
 
-  t.assert(target.edges !== null);
-  t.deepEqual(
-    target.edges.map((it: any) => it.node.name).sort(),
-    [
-      "Dwight Schrute",
-      "Darryl Philbin",
-      "Jim Halpert",
-      "Pam Beesly-Halpert",
-    ].sort()
-  );
+  t.deepEqual(target2, {
+    data: {
+      users: {
+        pageInfo: { hasNextPage: true, hasPreviousPage: false },
+        edges: [
+          {
+            node: {
+              id: "51192909-3664-44d5-be62-c6b45f0b0ee6",
+              name: "Darryl Philbin",
+            },
+            cursor: "aWQ6NTExOTI5MDktMzY2NC00NGQ1LWJlNjItYzZiNDVmMGIwZWU2",
+          },
+          {
+            node: {
+              id: "d0fc4c64-a3d6-4d97-9341-07de24439bb1",
+              name: "Jim Halpert",
+            },
+            cursor: "aWQ6ZDBmYzRjNjQtYTNkNi00ZDk3LTkzNDEtMDdkZTI0NDM5YmIx",
+          },
+        ],
+      },
+    },
+  });
 
-  const firstCursor = target.edges[0].cursor;
+  const lastCursor = target2.data?.users?.edges?.[1]?.cursor;
 
-  const target2 = (
-    await ctx.graphQL(
-      `
-    query {
-        users(first:2, after:"${firstCursor}") {
-            pageInfo {
-                hasNextPage
-                hasPreviousPage
-            }
-            edges {
-                node {
-                    id
-                    name
-                }
-                cursor
-            }
-        }
-    }
-    `,
-      token
-    )
-  ).users;
-
-  t.assert(target2.edges !== null);
-  t.deepEqual(
-    target2.edges.map((it: any) => it.node.name).sort(),
-    ["Darryl Philbin", "Jim Halpert"].sort()
-  );
-  t.assert(target2.pageInfo.hasNextPage);
-
-  const lastCursor = target2.edges[1].cursor;
-
-  const target3 = (
-    await ctx.graphQL(
-      `
-    query {
+  const target3 = (await ctx.graphQL(
+    `
+      query {
         users(first:2, after:"${lastCursor}") {
-            pageInfo {
-                hasNextPage
-                hasPreviousPage
+          pageInfo {
+            hasNextPage
+            hasPreviousPage
+          }
+          edges {
+            node {
+              id
+              name
             }
-            edges {
-                node {
-                    id
-                    name
-                }
-                cursor
-            }
+            cursor
+          }
         }
-    }
-    `,
-      token
-    )
-  ).users;
+      }
+      `,
+    token
+  )) as {
+    errors?: null | { message: string }[];
+    data: null | {
+      users: null | {
+        pageInfo: null | {
+          hasNextPage: null | boolean;
+          hasPreviousPage: null | boolean;
+        };
+        edges:
+          | null
+          | {
+              cursor: string;
+              node: {
+                id: string;
+                name: string;
+              };
+            }[];
+      };
+    };
+  };
 
-  t.assert(target3.edges !== null);
-  t.deepEqual(
-    target3.edges.map((it: any) => it.node.name).sort(),
-    ["Pam Beesly-Halpert"].sort()
-  );
-  t.assert(!target3.pageInfo.hasNextPage);
+  t.deepEqual(target3, {
+    data: {
+      users: {
+        pageInfo: { hasNextPage: false, hasPreviousPage: false },
+        edges: [
+          {
+            node: {
+              id: "eaa9fa5e-088a-4ae2-a6ab-f120006b20a9",
+              name: "Pam Beesly-Halpert",
+            },
+            cursor: "aWQ6ZWFhOWZhNWUtMDg4YS00YWUyLWE2YWItZjEyMDAwNmIyMGE5",
+          },
+        ],
+      },
+    },
+  });
 });
 
 test("Fetch users with limited read scope and reverse page", async (t) => {
@@ -155,97 +260,204 @@ test("Fetch users with limited read scope and reverse page", async (t) => {
     createUserReadScope("eaa9fa5e-088a-4ae2-a6ab-f120006b20a9"), // Pam Beesly-Halpert
   ]);
 
-  const target = (
-    await ctx.graphQL(
-      `
-    query {
+  const target = (await ctx.graphQL(
+    `
+      query {
         users(last:2) {
-            pageInfo {
-                hasNextPage
-                hasPreviousPage
+          pageInfo {
+            hasNextPage
+            hasPreviousPage
+          }
+          edges {
+            node {
+              id
+              name
             }
-            edges {
-                node {
-                    id
-                    name
-                }
-                cursor
-            }
+            cursor
+          }
         }
-    }
-    `,
-      token
-    )
-  ).users;
+      }
+      `,
+    token
+  )) as {
+    errors?: null | { message: string }[];
+    data: null | {
+      users: null | {
+        pageInfo: null | {
+          hasNextPage: null | boolean;
+          hasPreviousPage: null | boolean;
+        };
+        edges:
+          | null
+          | {
+              cursor: string;
+              node: {
+                id: string;
+                name: string;
+              };
+            }[];
+      };
+    };
+  };
 
-  t.assert(target.edges !== null);
-  t.deepEqual(
-    target.edges.map((it: any) => it.node.name),
-    ["Jim Halpert", "Pam Beesly-Halpert"]
-  );
-  t.assert(target.pageInfo.hasPreviousPage);
+  t.deepEqual(target, {
+    data: {
+      users: {
+        pageInfo: { hasNextPage: false, hasPreviousPage: true },
+        edges: [
+          {
+            node: {
+              id: "d0fc4c64-a3d6-4d97-9341-07de24439bb1",
+              name: "Jim Halpert",
+            },
+            cursor: "aWQ6ZDBmYzRjNjQtYTNkNi00ZDk3LTkzNDEtMDdkZTI0NDM5YmIx",
+          },
+          {
+            node: {
+              id: "eaa9fa5e-088a-4ae2-a6ab-f120006b20a9",
+              name: "Pam Beesly-Halpert",
+            },
+            cursor: "aWQ6ZWFhOWZhNWUtMDg4YS00YWUyLWE2YWItZjEyMDAwNmIyMGE5",
+          },
+        ],
+      },
+    },
+  });
 
-  const target2 = (
-    await ctx.graphQL(
-      `
-    query {
-        users(last:2, before:"${target.edges[0].cursor}") {
-            pageInfo {
-                hasNextPage
-                hasPreviousPage
-            }
-            edges {
-                node {
-                    id
-                    name
-                }
-                cursor
-            }
+  const target2 = (await ctx.graphQL(
+    `
+  query {
+    users(last:2, before:"${target.data?.users?.edges?.[0]?.cursor ?? ""}") {
+      pageInfo {
+        hasNextPage
+        hasPreviousPage
+      }
+      edges {
+        node {
+          id
+          name
         }
+        cursor
+      }
     }
-    `,
-      token
-    )
-  ).users;
+  }
+  `,
+    token
+  )) as {
+    errors?: null | { message: string }[];
+    data: null | {
+      users: null | {
+        pageInfo: null | {
+          hasNextPage: null | boolean;
+          hasPreviousPage: null | boolean;
+        };
+        edges:
+          | null
+          | {
+              cursor: string;
+              node: {
+                id: string;
+                name: string;
+              };
+            }[];
+      };
+    };
+  };
 
-  t.assert(target2.edges !== null);
-  t.deepEqual(
-    target2.edges.map((it: any) => it.node.name),
-    ["Dwight Schrute", "Darryl Philbin"]
-  );
-  t.assert(!target2.pageInfo.hasPreviousPage);
+  t.deepEqual(target2, {
+    data: {
+      users: {
+        pageInfo: { hasNextPage: false, hasPreviousPage: false },
+        edges: [
+          {
+            node: {
+              id: "0cbd3783-0424-4f35-be51-b42f07a2a987",
+              name: "Dwight Schrute",
+            },
+            cursor: "aWQ6MGNiZDM3ODMtMDQyNC00ZjM1LWJlNTEtYjQyZjA3YTJhOTg3",
+          },
+          {
+            node: {
+              id: "51192909-3664-44d5-be62-c6b45f0b0ee6",
+              name: "Darryl Philbin",
+            },
+            cursor: "aWQ6NTExOTI5MDktMzY2NC00NGQ1LWJlNjItYzZiNDVmMGIwZWU2",
+          },
+        ],
+      },
+    },
+  });
 });
 
 test("Fetch users super admin scope", async (t) => {
-  const target = (
-    await ctx.graphQL(
-      `
+  const target = (await ctx.graphQL(
+    `
     query {
-        users(first:4) {
-            edges {
-                node {
-                    id
-                    name
-                }
-                cursor
-            }
+      users(first:4) {
+        edges {
+          node {
+            id
+            name
+          }
+          cursor
         }
+      }
     }
     `,
-      SUPER_ADMIN_AUTH_STRING
-    )
-  ).users;
+    SUPER_ADMIN_AUTH_STRING
+  )) as {
+    errors?: null | { message: string }[];
+    data: null | {
+      users: null | {
+        edges:
+          | null
+          | {
+              cursor: string;
+              node: {
+                id: string;
+                name: string;
+              };
+            }[];
+      };
+    };
+  };
 
-  t.assert(target.edges !== null);
-  t.deepEqual(
-    target.edges.map((it: any) => it.node.name).sort(),
-    [
-      "Dwight Schrute",
-      "Dunder Mifflin Infinity",
-      "Toby Flenderson",
-      "Darryl Philbin",
-    ].sort()
-  );
+  t.deepEqual(target, {
+    data: {
+      users: {
+        edges: [
+          {
+            node: {
+              id: "0cbd3783-0424-4f35-be51-b42f07a2a987",
+              name: "Dwight Schrute",
+            },
+            cursor: "aWQ6MGNiZDM3ODMtMDQyNC00ZjM1LWJlNTEtYjQyZjA3YTJhOTg3",
+          },
+          {
+            node: {
+              id: "1691f38d-92c8-4d86-9a89-da99528cfcb5",
+              name: "Dunder Mifflin Infinity",
+            },
+            cursor: "aWQ6MTY5MWYzOGQtOTJjOC00ZDg2LTlhODktZGE5OTUyOGNmY2I1",
+          },
+          {
+            node: {
+              id: "306eabbb-cc2b-4f88-be19-4bb6ec98e5c3",
+              name: "Toby Flenderson",
+            },
+            cursor: "aWQ6MzA2ZWFiYmItY2MyYi00Zjg4LWJlMTktNGJiNmVjOThlNWMz",
+          },
+          {
+            node: {
+              id: "51192909-3664-44d5-be62-c6b45f0b0ee6",
+              name: "Darryl Philbin",
+            },
+            cursor: "aWQ6NTExOTI5MDktMzY2NC00NGQ1LWJlNjItYzZiNDVmMGIwZWU2",
+          },
+        ],
+      },
+    },
+  });
 });
 
 test("Fetch users all users scope", async (t) => {
@@ -262,35 +474,74 @@ test("Fetch users all users scope", async (t) => {
     createV2AuthXScope("authx", clientContext, clientAction),
   ]);
 
-  const target = (
-    await ctx.graphQL(
-      `
-    query {
+  const target = (await ctx.graphQL(
+    `
+      query {
         users(first:4) {
-            edges {
-                node {
-                    id
-                    name
-                }
-                cursor
+          edges {
+            node {
+              id
+              name
             }
+            cursor
+          }
         }
-    }
-    `,
-      token
-    )
-  ).users;
+      }
+      `,
+    token
+  )) as {
+    errors?: null | { message: string }[];
+    data: null | {
+      users: null | {
+        edges:
+          | null
+          | {
+              cursor: string;
+              node: {
+                id: string;
+                name: string;
+              };
+            }[];
+      };
+    };
+  };
 
-  t.assert(target.edges !== null);
-  t.deepEqual(
-    target.edges.map((it: any) => it.node.name).sort(),
-    [
-      "Dwight Schrute",
-      "Dunder Mifflin Infinity",
-      "Toby Flenderson",
-      "Darryl Philbin",
-    ].sort()
-  );
+  t.deepEqual(target, {
+    data: {
+      users: {
+        edges: [
+          {
+            node: {
+              id: "0cbd3783-0424-4f35-be51-b42f07a2a987",
+              name: "Dwight Schrute",
+            },
+            cursor: "aWQ6MGNiZDM3ODMtMDQyNC00ZjM1LWJlNTEtYjQyZjA3YTJhOTg3",
+          },
+          {
+            node: {
+              id: "1691f38d-92c8-4d86-9a89-da99528cfcb5",
+              name: "Dunder Mifflin Infinity",
+            },
+            cursor: "aWQ6MTY5MWYzOGQtOTJjOC00ZDg2LTlhODktZGE5OTUyOGNmY2I1",
+          },
+          {
+            node: {
+              id: "306eabbb-cc2b-4f88-be19-4bb6ec98e5c3",
+              name: "Toby Flenderson",
+            },
+            cursor: "aWQ6MzA2ZWFiYmItY2MyYi00Zjg4LWJlMTktNGJiNmVjOThlNWMz",
+          },
+          {
+            node: {
+              id: "51192909-3664-44d5-be62-c6b45f0b0ee6",
+              name: "Darryl Philbin",
+            },
+            cursor: "aWQ6NTExOTI5MDktMzY2NC00NGQ1LWJlNjItYzZiNDVmMGIwZWU2",
+          },
+        ],
+      },
+    },
+  });
 });
 
 test("Fetch users incorrect scope", async (t) => {
@@ -308,44 +559,70 @@ test("Fetch users incorrect scope", async (t) => {
     createV2AuthXScope("authx", clientContext, clientAction),
   ]);
 
-  const target = (
-    await ctx.graphQL(
-      `
-    query {
+  const target = (await ctx.graphQL(
+    `
+      query {
         users {
-            edges {
-                node {
-                    id
-                    name
-                }
-                cursor
+          edges {
+            node {
+              id
+              name
             }
+            cursor
+          }
         }
-    }
-    `,
-      token
-    )
-  ).users;
+      }
+      `,
+    token
+  )) as {
+    errors?: null | { message: string }[];
+    data: null | {
+      users: null | {
+        edges:
+          | null
+          | {
+              cursor: string;
+              node: {
+                id: string;
+                name: string;
+              };
+            }[];
+      };
+    };
+  };
 
-  t.assert(target.edges === null);
+  t.deepEqual(target, { data: { users: { edges: [] } } });
 });
 
 test("Fetch users anonymous scope", async (t) => {
-  const target = (
-    await ctx.graphQL(`
-    query {
+  const target = (await ctx.graphQL(`
+      query {
         users(first:4) {
-            edges {
-                node {
-                    id
-                    name
-                }
-                cursor
+          edges {
+            node {
+              id
+              name
             }
+            cursor
+          }
         }
-    }
-    `)
-  ).users;
+      }
+    `)) as {
+    errors?: null | { message: string }[];
+    data: null | {
+      users: null | {
+        edges:
+          | null
+          | {
+              cursor: string;
+              node: {
+                id: string;
+                name: string;
+              };
+            }[];
+      };
+    };
+  };
 
-  t.assert(target.edges === null);
+  t.deepEqual(target, { data: { users: { edges: [] } } });
 });
