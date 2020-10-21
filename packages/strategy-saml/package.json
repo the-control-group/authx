@@ -1,20 +1,20 @@
 {
   "bugs": "https://github.com/the-control-group/authx/issues",
   "dependencies": {
-    "@authx/scopes": "^3.1.0-alpha.20",
-    "@authx/authx": "^3.1.0-alpha.20",
-    "@authx/strategy-email": "^3.1.0-alpha.20",
+    "@authx/authx": "^3.1.0-alpha.23",
+    "@authx/scopes": "^3.1.0-alpha.23",
+    "@authx/strategy-email": "^3.1.0-alpha.23",
     "@types/bcrypt": "^3.0.0",
     "@types/pg": "^7.14.4",
-    "@types/uuid": "^8.3.0",
     "@types/saml2-js": "^1.6.8",
+    "@types/uuid": "^8.3.0",
     "bcrypt": "^5.0.0",
     "graphql": "15.3.0",
-    "pg": "^8.3.2",
-    "uuid": "^8.3.0",
-    "saml2-js": "^2.0.5",
+    "koa-body": "^4.2.0",
     "koa-router": "^9.4.0",
-    "koa-body": "^4.2.0"
+    "pg": "^8.3.2",
+    "saml2-js": "^2.0.5",
+    "uuid": "^8.3.0"
   },
   "description": "",
   "devDependencies": {
@@ -65,5 +65,5 @@
     "prepublishOnly": "yarn build"
   },
   "types": "dist/server/index.d.ts",
-  "version": "3.1.0-alpha.20"
+  "version": "3.1.0-alpha.23"
 }
