@@ -3,7 +3,7 @@ import { GraphQLAuthorityConnection } from "../GraphQLAuthorityConnection";
 import { Context } from "../../Context";
 import { Authority } from "../../model";
 
-import { connectionArgs, ConnectionArguments } from "graphql-relay";
+import { connectionArgs, ConnectionArguments, Connection } from "graphql-relay";
 import { CursorRule } from "../../model/rules/CursorRule";
 import { NoReplacementRecord } from "../../model/rules/NoReplacementRecord";
 import { FieldRule } from "../../model/rules/FieldRule";
@@ -27,7 +27,7 @@ export const authorities: GraphQLFieldConfig<
       description: "Include disabled authorities in results.",
     },
   },
-  async resolve(source, args, context) {
+  async resolve(source, args, context): Promise<Connection<Authority<any>>> {
     const { executor } = context;
 
     const rules = CursorRule.addToRuleListIfNeeded(
@@ -47,7 +47,15 @@ export const authorities: GraphQLFieldConfig<
     );
 
     if (!ids.rows.length) {
-      return [];
+      return {
+        pageInfo: {
+          startCursor: null,
+          endCursor: null,
+          hasPreviousPage: false,
+          hasNextPage: false,
+        },
+        edges: [],
+      };
     }
 
     return CursorConnection.connectionFromRules(

@@ -336,11 +336,14 @@ export class Authorization implements AuthorizationData {
   ): Promise<Authorization[] | Authorization> {
     if (tx instanceof DataLoaderExecutor) {
       const loader = cache.get(tx);
-      return Promise.all(
-        typeof id === "string"
-          ? [loader.load(id)]
-          : id.map((i) => loader.load(i))
-      );
+
+      // Load a single instance.
+      if (typeof id === "string") {
+        return loader.load(id);
+      }
+
+      // Load multiple instances.
+      return Promise.all(id.map((i) => loader.load(i)));
     }
 
     if (typeof id !== "string" && !id.length) {
@@ -365,16 +368,6 @@ export class Authorization implements AuthorizationData {
       `,
       [typeof id === "string" ? [id] : id]
     );
-
-    if (result.rows.length > (typeof id === "string" ? 1 : id.length)) {
-      throw new Error(
-        "INVARIANT: Read must never return more records than requested."
-      );
-    }
-
-    if (result.rows.length < (typeof id === "string" ? 1 : id.length)) {
-      throw new NotFoundError();
-    }
 
     if (result.rows.length > (typeof id === "string" ? 1 : id.length)) {
       throw new Error(

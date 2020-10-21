@@ -1,6 +1,6 @@
 import { GraphQLBoolean, GraphQLFieldConfig } from "graphql";
 
-import { connectionArgs, ConnectionArguments } from "graphql-relay";
+import { connectionArgs, ConnectionArguments, Connection } from "graphql-relay";
 
 import { GraphQLUserConnection } from "../GraphQLUserConnection";
 import { Context } from "../../Context";
@@ -29,9 +29,19 @@ export const users: GraphQLFieldConfig<
       description: "Include disabled users in results.",
     },
   },
-  async resolve(source, args, context) {
+  async resolve(source, args, context): Promise<Connection<User>> {
     const { executor, authorization: a, realm } = context;
-    if (!a) return [];
+    if (!a) {
+      return {
+        pageInfo: {
+          startCursor: null,
+          endCursor: null,
+          hasPreviousPage: false,
+          hasNextPage: false,
+        },
+        edges: [],
+      };
+    }
 
     const rules = CursorRule.addToRuleListIfNeeded(
       [
@@ -52,7 +62,15 @@ export const users: GraphQLFieldConfig<
     );
 
     if (!ids.rows.length) {
-      return [];
+      return {
+        pageInfo: {
+          startCursor: null,
+          endCursor: null,
+          hasPreviousPage: false,
+          hasNextPage: false,
+        },
+        edges: [],
+      };
     }
 
     const users = await User.read(
