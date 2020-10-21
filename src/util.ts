@@ -10,7 +10,7 @@ export class FunctionalTestContext {
   async graphQL(
     query: string,
     basicAuthString: string | null = null
-  ): Promise<any> {
+  ): Promise<{ errors?: null | { message: string }[]; data: unknown }> {
     if (this.url == null)
       throw '"graphQL" should only be called from in a test';
 
@@ -31,35 +31,38 @@ export class FunctionalTestContext {
       }),
     });
 
-    const ret = await result.json();
-
-    if (ret.data) {
-      return ret.data;
-    } else {
-      throw `Invalid GraphQL response: ${JSON.stringify(ret)}`;
-    }
+    return result.json();
   }
 
   async createLimitedAuthorization(scopes: string[]): Promise<string> {
-    const r1 = await this.graphQL(
+    const r1 = (await this.graphQL(
       `
-        mutation {
-          createAuthorizations(authorizations: {
-            enabled: true,
-            userId: "a6a0946d-eeb4-45cd-83c6-c7920f2272eb",
-            grantId: "e4670762-beb7-435c-94af-055b951f97e6",
-            scopes: ${JSON.stringify(scopes)}
-          }) {
-            id
-            secret
-          }
+      mutation {
+        createAuthorizations(authorizations: {
+          enabled: true,
+          userId: "a6a0946d-eeb4-45cd-83c6-c7920f2272eb",
+          grantId: "e4670762-beb7-435c-94af-055b951f97e6",
+          scopes: ${JSON.stringify(scopes)}
+        }) {
+          id
+          secret
         }
-        `,
+      }
+      `,
       SUPER_ADMIN_AUTH_STRING
-    );
+    )) as {
+      data: {
+        createAuthorizations: { id: string; secret: string }[];
+      };
+    };
+
+    const authorization = r1.data.createAuthorizations[0];
+    if (!authorization) {
+      throw new Error("Missing test authorization!");
+    }
 
     return Buffer.from(
-      `${r1.createAuthorizations[0].id}:${r1.createAuthorizations[0].secret}`,
+      `${authorization.id}:${authorization.secret}`,
       "ascii"
     ).toString("base64");
   }
