@@ -16,7 +16,6 @@ export const GraphQLUpdateSamlAuthorityInput = new GraphQLInputObjectType({
     },
     enabled: {
       type: GraphQLBoolean,
-      defaultValue: true,
     },
     name: {
       type: GraphQLString,
@@ -40,18 +39,15 @@ export const GraphQLUpdateSamlAuthorityInput = new GraphQLInputObjectType({
       type: GraphQLBoolean,
       description: GraphQLSamlAuthority.getFields().matchesUsersByEmail
         .description,
-      defaultValue: false,
     },
     createsUnmatchedUsers: {
       type: GraphQLBoolean,
       description: GraphQLSamlAuthority.getFields().createsUnmatchedUsers
         .description,
-      defaultValue: false,
     },
     assignsCreatedUsersToRoleIds: {
       type: new GraphQLList(new GraphQLNonNull(GraphQLID)),
       description: "When a user is created, assign to these role IDs.",
-      defaultValue: [],
     },
     entityId: {
       type: GraphQLString,
