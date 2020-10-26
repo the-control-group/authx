@@ -46,19 +46,22 @@ export function samlRouterFactory(): Router<any, { [x]: Context }> {
             .join("&")}&authorityId=${encodeURIComponent(authorityId)}`
         );
       } else {
-        console.log(data);
-
         ctx.cookies.set(
-          "samlFinishedAuthorizationId",
+          "strategy.saml.authorization_id",
           data.data.authenticateSaml.id,
           { httpOnly: false }
         );
         ctx.cookies.set(
-          "samlFinishedAuthorizationSecret",
+          "strategy.saml.authorization_secret",
           data.data.authenticateSaml.secret,
           { httpOnly: false }
         );
-        ctx.redirect(`${base}?authorityId=${encodeURIComponent(authorityId)}`);
+
+        const destination =
+          ctx.cookies.get("window.document.cookie") ||
+          `${base}?authorityId=${encodeURIComponent(authorityId)}`;
+
+        ctx.redirect(destination);
       }
     }
   );

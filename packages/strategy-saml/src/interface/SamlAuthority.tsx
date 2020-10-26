@@ -45,8 +45,9 @@ export function SamlAuthority({
           id: cookieMap.samlFinishedAuthorizationId,
           secret: cookieMap.samlFinishedAuthorizationSecret,
         });
-        window.document.cookie = "samlFinishedAuthorizationId=";
-        window.document.cookie = "samlFinishedAuthorizationSecret=";
+        window.document.cookie = "strategy.saml.authorization_id=";
+        window.document.cookie = "strategy.saml.authorization_secret=";
+        window.document.cookie = "strategy.saml.destination=";
       }
 
       const params = new URLSearchParams(window.location.search);
@@ -62,6 +63,12 @@ export function SamlAuthority({
   const [errors, setErrors] = useState<string[]>([]);
   async function onSubmit(e: FormEvent): Promise<void> {
     e.preventDefault();
+
+    // Save the current URL for internal redirection.
+    window.document.cookie = `strategy.saml.destination=${encodeURIComponent(
+      window.location.href
+    )}`;
+
     window.location.href = authority.authUrlWithParams;
   }
 
