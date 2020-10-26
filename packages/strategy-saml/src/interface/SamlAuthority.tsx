@@ -38,8 +38,8 @@ export function SamlAuthority({
       }
 
       if (
-        cookieMap.samlFinishedAuthorizationId &&
-        cookieMap.samlFinishedAuthorizationSecret
+        cookieMap["strategy.saml.authorization_id"] &&
+        cookieMap["strategy.saml.authorization_secret"]
       ) {
         setAuthorization({
           id: cookieMap["strategy.saml.authorization_id"],
