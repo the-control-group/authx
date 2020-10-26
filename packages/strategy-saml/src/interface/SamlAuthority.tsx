@@ -42,7 +42,7 @@ export function SamlAuthority({
         cookieMap.samlFinishedAuthorizationSecret
       ) {
         setAuthorization({
-          id: cookieMap.samlFinishedAuthorizationId,
+          id: cookieMap["strategy.saml.authorization_id"],
           secret: cookieMap["strategy.saml.authorization_secret"],
         });
         window.document.cookie = "strategy.saml.authorization_id=";
