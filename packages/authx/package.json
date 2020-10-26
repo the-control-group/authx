@@ -5,7 +5,7 @@
   },
   "bugs": "https://github.com/the-control-group/authx/issues",
   "dependencies": {
-    "@authx/scopes": "^3.1.0-alpha.26",
+    "@authx/scopes": "^3.1.0-alpha.27",
     "@types/auth-header": "^1.0.1",
     "@types/form-data": "^2.5.0",
     "@types/graphql-api-koa": "^2.0.2",
@@ -83,5 +83,5 @@
     "prepublishOnly": "yarn build"
   },
   "types": "dist/index.d.ts",
-  "version": "3.1.0-alpha.26"
+  "version": "3.1.0-alpha.27"
 }
