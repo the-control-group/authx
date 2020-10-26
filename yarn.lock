@@ -23,7 +23,7 @@
     chalk "^2.0.0"
     js-tokens "^4.0.0"
 
-"@babel/runtime@^7.9.0":
+"@babel/runtime@^7.11.2":
   version "7.12.1"
   resolved "https://registry.yarnpkg.com/@babel/runtime/-/runtime-7.12.1.tgz#b4116a6b6711d010b2dad3b7b6e43bf1b9954740"
   integrity sha512-J5AIf3vPj3UwXaAzb5j1xM4WAQDX3EMgemF8rjCP3SoW09LfRKAXQKt6CoVYl230P6iWdRcBbnLDDdnqWxZSCA==
@@ -3687,10 +3687,10 @@ extglob@^2.0.4:
     snapdragon "^0.8.1"
     to-regex "^3.0.1"
 
-extract-files@^8.0.0:
-  version "8.1.0"
-  resolved "https://registry.yarnpkg.com/extract-files/-/extract-files-8.1.0.tgz#46a0690d0fe77411a2e3804852adeaa65cd59288"
-  integrity sha512-PTGtfthZK79WUMk+avLmwx3NGdU8+iVFXC2NMGxKsn0MnihOG2lvumj+AZo8CTwTrwjXDgZ5tztbRlEdRjBonQ==
+extract-files@^9.0.0:
+  version "9.0.0"
+  resolved "https://registry.yarnpkg.com/extract-files/-/extract-files-9.0.0.tgz#8a7744f2437f81f5ed3250ed9f1550de902fe54a"
+  integrity sha512-CvdFfHkC95B4bBBk36hcEmvdR2awOdhhVUYH6S/zrVj3477zven/fJMYg7121h4T1xHZC+tetUpubpAhxwI7hQ==
 
 extsprintf@1.3.0:
   version "1.3.0"
@@ -4210,15 +4210,15 @@ graphql-playground-middleware-koa@^1.6.21:
   dependencies:
     graphql-playground-html "^1.6.29"
 
-graphql-react@^10.0.0:
-  version "10.0.0"
-  resolved "https://registry.yarnpkg.com/graphql-react/-/graphql-react-10.0.0.tgz#fa0eb50a4871e37d58264ec071e30b3336faa376"
-  integrity sha512-4fRMgF4hsky/6vuRv77qUgM1XpxIFxHpSrK3Xy7XSKQTZI/g4RWspEFwZph8y5FLWs22D9688pOEiRdqZniTGg==
+graphql-react@^12.0.0:
+  version "12.0.0"
+  resolved "https://registry.yarnpkg.com/graphql-react/-/graphql-react-12.0.0.tgz#b12007246c300037b668eb0151136765b8cb0362"
+  integrity sha512-S4etnAPXHCPkiM6kDki6HWimS+rSjodJy0/atmklSjjukrMcGAaMrmD5abIfPujyiT3Cz4yBXy6jCIML94kS2A==
   dependencies:
-    "@babel/runtime" "^7.9.0"
-    extract-files "^8.0.0"
+    "@babel/runtime" "^7.11.2"
+    extract-files "^9.0.0"
     fnv1a "^1.0.1"
-    mitt "^1.1.3"
+    mitt "^2.1.0"
     prop-types "^15.7.2"
 
 graphql-relay@^0.6.0:
@@ -5806,10 +5806,10 @@ mississippi@^3.0.0:
     stream-each "^1.1.0"
     through2 "^2.0.0"
 
-mitt@^1.1.3:
-  version "1.2.0"
-  resolved "https://registry.yarnpkg.com/mitt/-/mitt-1.2.0.tgz#cb24e6569c806e31bd4e3995787fe38a04fdf90d"
-  integrity sha512-r6lj77KlwqLhIUku9UWYes7KJtsczvolZkzp8hbaDPPaE24OmWl5s539Mytlj22siEQKosZ26qCBgda2PKwoJw==
+mitt@^2.1.0:
+  version "2.1.0"
+  resolved "https://registry.yarnpkg.com/mitt/-/mitt-2.1.0.tgz#f740577c23176c6205b121b2973514eade1b2230"
+  integrity sha512-ILj2TpLiysu2wkBbWjAmww7TkZb65aiQO+DkVdUTBpBXq+MHYiETENkKFMtsJZX1Lf4pe4QOrTSjIfUwN5lRdg==
 
 mixin-deep@^1.2.0:
   version "1.3.2"
