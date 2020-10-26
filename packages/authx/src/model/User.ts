@@ -192,6 +192,7 @@ export class User implements UserData {
         user_id = $1
         AND client_id = $2
         AND replacement_record_id IS NULL
+        AND enabled = TRUE
       ORDER BY id ASC
       `,
       [this.id, clientId]
