@@ -57,11 +57,16 @@ export function samlRouterFactory(): Router<any, { [x]: Context }> {
           { httpOnly: false }
         );
 
-        const destination =
-          ctx.cookies.get("window.document.cookie") ||
-          `${base}?authorityId=${encodeURIComponent(authorityId)}`;
+        const destination = decodeURIComponent(
+          ctx.cookies.get("strategy.saml.destination", {
+            signed: false,
+          }) ?? ""
+        );
 
-        ctx.redirect(destination);
+        ctx.redirect(
+          destination ||
+            `${base}?authorityId=${encodeURIComponent(authorityId)}`
+        );
       }
     }
   );
