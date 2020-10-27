@@ -1,4 +1,5 @@
 import { v4 } from "uuid";
+import { filter } from "../../util/filter";
 import { Pool, PoolClient } from "pg";
 import { isSuperset, simplify } from "@authx/scopes";
 import { GraphQLFieldConfig, GraphQLList, GraphQLNonNull } from "graphql";
@@ -126,6 +127,39 @@ export const createRoles: GraphQLFieldConfig<
                 throw error;
               }
             }
+          }
+
+          // To add a scope to a role, a user must have the ability to assign
+          // users to a role that contains the scope.
+          const roleIDs = (
+            await tx.query(`
+            SELECT entity_id AS id
+            FROM authx.role_record
+            WHERE
+              replacement_record_id IS NULL
+              AND enabled = true
+            FOR UPDATE
+            `)
+          ).rows.map(({ id }) => id) as string[];
+
+          const assignableScopes = roleIDs.length
+            ? (
+                await filter(await Role.read(executor, roleIDs), (role) =>
+                  role.isAccessibleBy(realm, a, executor, {
+                    basic: "w",
+                    scopes: "",
+                    users: "w",
+                  })
+                )
+              ).reduce<string[]>((acc, { scopes }) => {
+                return [...acc, ...scopes];
+              }, [])
+            : [];
+
+          if (!isSuperset(assignableScopes, input.scopes)) {
+            throw new ForbiddenError(
+              "You do not have permission to assign the provided scopes."
+            );
           }
 
           const id = input.id || v4();
