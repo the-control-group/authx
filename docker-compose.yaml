@@ -2,7 +2,7 @@ version: "3.7"
 
 volumes:
   postgres:
-  server_node_modules:
+  node_modules:
 
 services:
 
@@ -17,40 +17,32 @@ services:
         target: /var/lib/postgres
     ports:
       - target: 5432
-        published: 5432
+        published: "${PUBLISH_PORT_POSTGRES}"
         protocol: tcp
         mode: host
 
-  # This container doesn't do anything by itself, but can be used to run tests
-  # or issue one-off commands.
-  runner:
-    build:
-      context: .
-      target: base
+  # This container installs node modules into the node_modules volume.
+  installer:
+    image: node:14.11.0
+    working_dir: /workspace
+    command: yarn
     environment:
       NODE_ENV: development
-      PGHOST: postgres
-      PGUSER: postgres
-      PGPASSWORD: postgres
     volumes:
       - type: bind
         source: .
         target: /workspace
       - type: volume
-        source: server_node_modules
+        source: node_modules
         target: /workspace/node_modules
-    ports:
-      - target: 80
-        published: 80
-        protocol: tcp
-        mode: host
 
-  # This container builds the server.
+  # This container watches for changes and builds the application.
   builder:
-    build:
-      context: .
-      target: base
-    command: yarn build:development:chained
+    depends_on:
+      - installer
+    image: node:14.11.0
+    working_dir: /workspace
+    command: ./scripts/await.sh node_modules/.bin/lerna yarn build:development:chained
     environment:
       NODE_ENV: development
     volumes:
@@ -58,7 +50,7 @@ services:
         source: .
         target: /workspace
       - type: volume
-        source: server_node_modules
+        source: node_modules
         target: /workspace/node_modules
 
   # This container runs the server.
@@ -66,10 +58,9 @@ services:
     depends_on:
       - builder
       - postgres
-    build:
-      context: .
-      target: base
-    command: yarn start:development
+    image: node:14.11.0
+    working_dir: /workspace
+    command: ./scripts/await.sh node_modules/.bin/nodemon ./scripts/await.sh dist/server.js yarn start:development
     environment:
       NODE_ENV: development
       PGHOST: postgres
@@ -80,10 +71,10 @@ services:
         source: .
         target: /workspace
       - type: volume
-        source: server_node_modules
+        source: node_modules
         target: /workspace/node_modules
     ports:
       - target: 80
-        published: 80
+        published: "${PUBLISH_PORT_HTTP}"
         protocol: tcp
         mode: host
