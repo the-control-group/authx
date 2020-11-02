@@ -6,7 +6,7 @@
   "bugs": "https://github.com/the-control-group/authx/issues",
   "dependencies": {
     "@authx/scopes": "^3.1.0-alpha.27",
-    "@types/cookies": "^0.7.4",
+    "@types/cookies": "^0.7.5",
     "@types/http-proxy": "^1.17.4",
     "@types/jsonwebtoken": "^8.5.0",
     "@types/node-fetch": "^2.5.7",
@@ -18,14 +18,14 @@
   },
   "description": "",
   "devDependencies": {
-    "@typescript-eslint/eslint-plugin": "^4.4.1",
-    "@typescript-eslint/parser": "^4.4.1",
+    "@typescript-eslint/eslint-plugin": "^4.6.1",
+    "@typescript-eslint/parser": "^4.6.1",
     "ava": "^3.5.2",
-    "eslint": "^7.7.0",
-    "eslint-config-prettier": "^6.10.1",
+    "eslint": "^7.12.1",
+    "eslint-config-prettier": "^6.15.0",
     "eslint-plugin-prettier": "^3.1.1",
     "prettier": "^2.0.2",
-    "typescript": "^4.0.2"
+    "typescript": "^4.0.5"
   },
   "engines": {
     "node": ">=6"
