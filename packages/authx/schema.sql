@@ -136,14 +136,18 @@ CREATE TABLE authx.role_record (
 
 CREATE UNIQUE INDEX ON authx.role_record USING BTREE (entity_id) WHERE replacement_record_id IS NULL;
 CREATE UNIQUE INDEX ON authx.role_record USING BTREE (entity_id, record_id);
+CREATE UNIQUE INDEX ON authx.role_record USING BTREE (record_id, replacement_record_id);
 
 CREATE TABLE authx.role_record_user (
-  role_record_id UUID NOT NULL REFERENCES authx.role_record,
-  user_id UUID REFERENCES authx.user,
-  PRIMARY KEY(role_record_id, user_id)
+  role_record_id UUID NOT NULL,
+  role_replacement_record_id UUID DEFAULT NULL,
+  user_id UUID NOT NULL REFERENCES authx.user,
+  PRIMARY KEY (role_record_id, user_id),
+  FOREIGN KEY (role_record_id, role_replacement_record_id) REFERENCES authx.role_record (record_id, replacement_record_id) DEFERRABLE INITIALLY DEFERRED
 );
 
 CREATE INDEX ON authx.role_record_user USING BTREE (user_id, role_record_id);
+CREATE INDEX ON authx.role_record_user USING BTREE (role_record_id, role_replacement_record_id);
 
 
 

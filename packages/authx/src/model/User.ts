@@ -221,17 +221,34 @@ export class User implements UserData {
       const ids = (
         await queryCache.query(
           tx,
-          `
-        SELECT entity_id AS id
-        FROM authx.role_record
-        JOIN authx.role_record_user
-          ON authx.role_record_user.role_record_id = authx.role_record.record_id
-        WHERE
-          authx.role_record_user.user_id = $1
-          AND authx.role_record.enabled = TRUE
-          AND authx.role_record.replacement_record_id IS NULL
-        ORDER BY id ASC
-        `,
+          // This provides a mechanism for denormalizing the role replacement
+          // record ID into the relation table while minimizing production
+          // impact. By upgrading the application but keeping this environment
+          // varuable set to "true", read operations will continue to work as
+          // the schema is migrated.
+          process.env.AUTHX_ROLE_SCHEMA_MIGRATION === "true"
+            ? `
+              SELECT entity_id AS id
+              FROM authx.role_record
+              JOIN authx.role_record_user
+                ON authx.role_record_user.role_record_id = authx.role_record.record_id
+              WHERE
+                authx.role_record_user.user_id = $1
+                AND authx.role_record.enabled = TRUE
+                AND authx.role_record.replacement_record_id IS NULL
+              ORDER BY id ASC
+              `
+            : `
+              SELECT entity_id AS id
+              FROM authx.role_record
+              JOIN authx.role_record_user
+                ON authx.role_record_user.role_record_id = authx.role_record.record_id
+              WHERE
+                authx.role_record_user.user_id = $1
+                AND authx.role_record_user.role_replacement_record_id IS NULL
+                AND authx.role_record.enabled = TRUE
+              ORDER BY id ASC
+              `,
           [this.id]
         )
       ).rows.map(({ id }) => id);
