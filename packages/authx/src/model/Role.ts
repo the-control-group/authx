@@ -292,6 +292,29 @@ export class Role implements RoleData {
       );
     }
 
+    const previousRoleRecordId = previous.rows[0]?.record_id ?? null;
+
+    // replace the previous record's users
+    if (previousRoleRecordId) {
+      const previousUsers = await tx.query(
+        `
+        UPDATE authx.role_record_user
+        SET role_replacement_record_id = $2
+        WHERE role_record_id = $1 AND role_replacement_record_id IS NULL
+        RETURNING role_record_id
+        `,
+        [previousRoleRecordId, metadata.recordId]
+      );
+
+      for (const row of previousUsers.rows as { role_record_id: string }[]) {
+        if (row.role_record_id !== previousRoleRecordId) {
+          throw new Error(
+            "INVARIANT: It must be impossible for a different role's users to be updated."
+          );
+        }
+      }
+    }
+
     // insert the new record
     const next = await tx.query(
       `
