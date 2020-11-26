@@ -4,7 +4,7 @@ import { GraphQLFieldConfig, GraphQLList, GraphQLNonNull } from "graphql";
 import { Context } from "../../Context";
 import { GraphQLAuthorization } from "../GraphQLAuthorization";
 import { Authorization } from "../../model";
-import { DataLoaderExecutor, ReadonlyDataLoaderExecutor } from "../../loader";
+import { DataLoaderExecutor } from "../../loader";
 import { ForbiddenError } from "../../errors";
 import { GraphQLUpdateAuthorizationInput } from "./GraphQLUpdateAuthorizationInput";
 
@@ -28,7 +28,11 @@ export const updateAuthorizations: GraphQLFieldConfig<
     },
   },
   async resolve(source, args, context): Promise<Promise<Authorization>[]> {
-    const { executor, authorization: a, realm } = context;
+    const {
+      executor: { strategies, connection: pool },
+      authorization: a,
+      realm,
+    } = context;
 
     if (!a) {
       throw new ForbiddenError(
@@ -36,15 +40,13 @@ export const updateAuthorizations: GraphQLFieldConfig<
       );
     }
 
-    const strategies = executor.strategies;
-    const pool = executor.connection;
     if (!(pool instanceof Pool)) {
       throw new Error(
         "INVARIANT: The executor connection is expected to be an instance of Pool."
       );
     }
 
-    return args.authorizations.map(async (input) => {
+    const results = args.authorizations.map(async (input) => {
       const tx = await pool.connect();
       try {
         // Make sure this transaction is used for queries made by the executor.
@@ -93,11 +95,6 @@ export const updateAuthorizations: GraphQLFieldConfig<
         Authorization.clear(executor, authorization.id);
         Authorization.prime(executor, authorization.id, authorization);
 
-        // Update the context to use a new executor primed with the results of
-        // this mutation, using the original connection pool.
-        executor.connection = pool;
-        context.executor = executor as ReadonlyDataLoaderExecutor<Pool>;
-
         return authorization;
       } catch (error) {
         await tx.query("ROLLBACK");
@@ -106,5 +103,13 @@ export const updateAuthorizations: GraphQLFieldConfig<
         tx.release();
       }
     });
+
+    // Wait for all mutations to succeed or fail.
+    await Promise.allSettled(results);
+
+    // Set a new executor (clearing all memoized values).
+    context.executor = new DataLoaderExecutor<Pool>(pool, strategies);
+
+    return results;
   },
 };

@@ -10,7 +10,6 @@ import {
   ValidationError,
   validateIdFormat,
   DataLoaderExecutor,
-  ReadonlyDataLoaderExecutor,
 } from "@authx/authx";
 import { EmailAuthority } from "../../model";
 import { GraphQLEmailAuthority } from "../GraphQLEmailAuthority";
@@ -48,7 +47,11 @@ export const updateEmailAuthorities: GraphQLFieldConfig<
     },
   },
   async resolve(source, args, context): Promise<Promise<EmailAuthority>[]> {
-    const { executor, authorization: a, realm } = context;
+    const {
+      executor: { strategies, connection: pool },
+      authorization: a,
+      realm,
+    } = context;
 
     if (!a) {
       throw new ForbiddenError(
@@ -56,15 +59,13 @@ export const updateEmailAuthorities: GraphQLFieldConfig<
       );
     }
 
-    const strategies = executor.strategies;
-    const pool = executor.connection;
     if (!(pool instanceof Pool)) {
       throw new Error(
         "INVARIANT: The executor connection is expected to be an instance of Pool."
       );
     }
 
-    return args.authorities.map(async (input) => {
+    const results = args.authorities.map(async (input) => {
       // Validate `id`.
       if (!validateIdFormat(input.id)) {
         throw new ValidationError("The provided `id` is an invalid ID.");
@@ -196,11 +197,6 @@ export const updateEmailAuthorities: GraphQLFieldConfig<
         Authority.clear(executor, authority.id);
         Authority.prime(executor, authority.id, authority);
 
-        // Update the context to use a new executor primed with the results of
-        // this mutation, using the original connection pool.
-        executor.connection = pool;
-        context.executor = executor as ReadonlyDataLoaderExecutor<Pool>;
-
         return authority;
       } catch (error) {
         await tx.query("ROLLBACK");
@@ -209,5 +205,13 @@ export const updateEmailAuthorities: GraphQLFieldConfig<
         tx.release();
       }
     });
+
+    // Wait for all mutations to succeed or fail.
+    await Promise.allSettled(results);
+
+    // Set a new executor (clearing all memoized values).
+    context.executor = new DataLoaderExecutor<Pool>(pool, strategies);
+
+    return results;
   },
 };

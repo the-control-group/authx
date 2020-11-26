@@ -11,7 +11,6 @@ import {
   ValidationError,
   validateIdFormat,
   DataLoaderExecutor,
-  ReadonlyDataLoaderExecutor,
 } from "@authx/authx";
 import { PasswordCredential } from "../../model";
 import { GraphQLPasswordCredential } from "../GraphQLPasswordCredential";
@@ -40,7 +39,11 @@ export const updatePasswordCredentials: GraphQLFieldConfig<
     },
   },
   async resolve(source, args, context): Promise<Promise<PasswordCredential>[]> {
-    const { executor, authorization: a, realm } = context;
+    const {
+      executor: { strategies, connection: pool },
+      authorization: a,
+      realm,
+    } = context;
 
     if (!a) {
       throw new ForbiddenError(
@@ -48,15 +51,13 @@ export const updatePasswordCredentials: GraphQLFieldConfig<
       );
     }
 
-    const strategies = executor.strategies;
-    const pool = executor.connection;
     if (!(pool instanceof Pool)) {
       throw new Error(
         "INVARIANT: The executor connection is expected to be an instance of Pool."
       );
     }
 
-    return args.credentials.map(async (input) => {
+    const results = args.credentials.map(async (input) => {
       // Validate `id`.
       if (!validateIdFormat(input.id)) {
         throw new ValidationError("The provided `id` is an invalid ID.");
@@ -137,11 +138,6 @@ export const updatePasswordCredentials: GraphQLFieldConfig<
         Credential.clear(executor, credential.id);
         Credential.prime(executor, credential.id, credential);
 
-        // Update the context to use a new executor primed with the results of
-        // this mutation, using the original connection pool.
-        executor.connection = pool;
-        context.executor = executor as ReadonlyDataLoaderExecutor<Pool>;
-
         return credential;
       } catch (error) {
         await tx.query("ROLLBACK");
@@ -150,5 +146,13 @@ export const updatePasswordCredentials: GraphQLFieldConfig<
         tx.release();
       }
     });
+
+    // Wait for all mutations to succeed or fail.
+    await Promise.allSettled(results);
+
+    // Set a new executor (clearing all memoized values).
+    context.executor = new DataLoaderExecutor<Pool>(pool, strategies);
+
+    return results;
   },
 };

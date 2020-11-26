@@ -7,7 +7,7 @@ import { isSuperset, simplify } from "@authx/scopes";
 import { Context } from "../../Context";
 import { GraphQLClient } from "../GraphQLClient";
 import { Client, Role } from "../../model";
-import { DataLoaderExecutor, ReadonlyDataLoaderExecutor } from "../../loader";
+import { DataLoaderExecutor } from "../../loader";
 import { validateIdFormat } from "../../util/validateIdFormat";
 import { createV2AuthXScope } from "../../util/scopes";
 import {
@@ -45,21 +45,23 @@ export const createClients: GraphQLFieldConfig<
     },
   },
   async resolve(source, args, context): Promise<Promise<Client>[]> {
-    const { executor, authorization: a, realm } = context;
+    const {
+      executor: { strategies, connection: pool },
+      authorization: a,
+      realm,
+    } = context;
 
     if (!a) {
       throw new ForbiddenError("You must be authenticated to create a client.");
     }
 
-    const strategies = executor.strategies;
-    const pool = executor.connection;
     if (!(pool instanceof Pool)) {
       throw new Error(
         "INVARIANT: The executor connection is expected to be an instance of Pool."
       );
     }
 
-    return args.clients.map(async (input) => {
+    const results = args.clients.map(async (input) => {
       // Validate `id`.
       if (typeof input.id === "string" && !validateIdFormat(input.id)) {
         throw new ValidationError("The provided `id` is an invalid ID.");
@@ -334,11 +336,6 @@ export const createClients: GraphQLFieldConfig<
           Client.clear(executor, client.id);
           Client.prime(executor, client.id, client);
 
-          // Update the context to use a new executor primed with the results of
-          // this mutation, using the original connection pool.
-          executor.connection = pool;
-          context.executor = executor as ReadonlyDataLoaderExecutor<Pool>;
-
           return client;
         } catch (error) {
           await tx.query("ROLLBACK");
@@ -348,5 +345,13 @@ export const createClients: GraphQLFieldConfig<
         tx.release();
       }
     });
+
+    // Wait for all mutations to succeed or fail.
+    await Promise.allSettled(results);
+
+    // Set a new executor (clearing all memoized values).
+    context.executor = new DataLoaderExecutor<Pool>(pool, strategies);
+
+    return results;
   },
 };
