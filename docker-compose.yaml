@@ -17,7 +17,7 @@ services:
         target: /var/lib/postgres
     ports:
       - target: 5432
-        published: "${PUBLISH_PORT_POSTGRES}"
+        published: ${PUBLISH_PORT_POSTGRES}
         protocol: tcp
         mode: host
 
@@ -75,6 +75,6 @@ services:
         target: /workspace/node_modules
     ports:
       - target: 80
-        published: "${PUBLISH_PORT_HTTP}"
+        published: ${PUBLISH_PORT_HTTP}
         protocol: tcp
         mode: host

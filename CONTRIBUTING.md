@@ -27,10 +27,10 @@ By default, running `up` does _not_ create the database schema or fill it with f
 
 ```bash
 # Create the authx database schema.
-docker-compose run server yarn authx schema
+docker-compose run --rm server yarn authx schema
 
 # Populate the database with fixed sample data.
-docker-compose run server yarn authx fixture
+docker-compose run --rm server yarn authx fixture
 ```
 
 Docker will have read and write access to the project directory, but will mount its own copy of the `node_modules` directory. This allows different natively combiled dependencies to be used inside the containers and on the host for scripts/IDEs.
@@ -41,10 +41,10 @@ The `server` service in docker-compose is an ideal place for running tests, eith
 
 ```bash
 # Run the entire test suite.
-docker-compose run server yarn test
+docker-compose run --rm server yarn test
 
 # Run a bash container and execute tests in a specific package.
-docker-compose run server bash
+docker-compose run --rm server bash
 cd packages/scopes
 yarn test
 ```
