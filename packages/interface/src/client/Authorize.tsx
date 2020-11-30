@@ -34,6 +34,7 @@ const implicitScopes = [
     },
     {
       basic: "r",
+      scopes: ""
     }
   ),
   createV2AuthXScope(

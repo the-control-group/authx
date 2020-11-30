@@ -32,7 +32,7 @@ test("Root query fields.", async (t) => {
             name
             description
           }
-          authorities(first: 1) {
+          authorities {
             pageInfo {
               hasNextPage
               hasPreviousPage

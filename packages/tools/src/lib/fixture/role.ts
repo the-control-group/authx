@@ -59,7 +59,7 @@ export const role = [
               }
             ),
 
-            // A user can read basic fields of her own user account.
+            // A user can read her own user account.
             createV2AuthXScope(
               "authx",
               {
@@ -68,6 +68,7 @@ export const role = [
               },
               {
                 basic: "r",
+                scopes: "*",
               }
             ),
 
