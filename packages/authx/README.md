@@ -183,9 +183,10 @@ authx:v2.client.......:*..*.*.
 | `credential`    |    ✪    |     ●     |          |           |         |
 | `grant`         |    ✪    |           |    ●     |     ●     |         |
 | `role`          |    ✪    |           |    ●     |           |    ●    |
-| `user`          |    ✪    |           |    ●     |           |         |
+| `user`          |    ✪    |           |    ◯     |           |         |
 
-- ● An `r` will be checked for reads; a `w` will be checked for writes.
+- ◯ An `r` will be checked for reads.
+- ● An `r` will be checked for reads and a `w` will be checked for writes.
 - ✪ All other applicable positions will check for a corresponding `r` or `w` in this position.
 
 ## OAuth

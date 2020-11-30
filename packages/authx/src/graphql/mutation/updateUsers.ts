@@ -71,6 +71,7 @@ export const updateUsers: GraphQLFieldConfig<
         if (
           !(await before.isAccessibleBy(realm, a, executor, {
             basic: "w",
+            scopes: "",
           }))
         ) {
           throw new ForbiddenError(

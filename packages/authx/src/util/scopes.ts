@@ -126,7 +126,7 @@ export interface UserContext {
 export interface UserAction {
   basic: "r" | "w" | "*";
   details?: undefined;
-  scopes?: undefined;
+  scopes: "" | "r" | "*";
   secrets?: undefined;
   users?: undefined;
 }

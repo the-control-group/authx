@@ -62,6 +62,7 @@ export class User implements UserData {
     tx: Pool | ClientBase | DataLoaderExecutor,
     action: UserAction = {
       basic: "r",
+      scopes: "",
     }
   ): Promise<boolean> {
     if (

@@ -5,6 +5,7 @@ import {
   GraphQLBoolean,
   GraphQLString,
   GraphQLFieldConfigMap,
+  GraphQLList,
 } from "graphql";
 
 import {
@@ -22,6 +23,8 @@ import { GraphQLGrantConnection } from "./GraphQLGrantConnection";
 import { GraphQLAuthorizationConnection } from "./GraphQLAuthorizationConnection";
 import { GraphQLCredentialConnection } from "./GraphQLCredentialConnection";
 import { GraphQLNode } from "./GraphQLNode";
+import { GraphQLScope } from "./GraphQLScope";
+
 import { filter } from "../util/filter";
 
 export const GraphQLUser: GraphQLObjectType<
@@ -155,6 +158,30 @@ export const GraphQLUser: GraphQLObjectType<
               ),
               args
             )
+          : null;
+      },
+    },
+    access: {
+      type: new GraphQLList(GraphQLScope),
+      async resolve(
+        user,
+        args,
+        { realm, authorization: a, executor }: Context
+      ): Promise<null | string[]> {
+        if (!a) return null;
+
+        const grant = await a.grant(executor);
+
+        return (await user.isAccessibleBy(realm, a, executor, {
+          basic: "r",
+          scopes: "r",
+        }))
+          ? user.access(executor, {
+              currentAuthorizationId: a.id,
+              currentUserId: a.userId,
+              currentGrantId: grant?.id ?? null,
+              currentClientId: grant?.clientId ?? null,
+            })
           : null;
       },
     },
