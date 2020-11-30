@@ -6,7 +6,7 @@ import { GraphQLFieldConfig, GraphQLList, GraphQLNonNull } from "graphql";
 import { Context } from "../../Context";
 import { GraphQLAuthorization } from "../GraphQLAuthorization";
 import { Authorization, Grant, Role } from "../../model";
-import { DataLoaderExecutor, ReadonlyDataLoaderExecutor } from "../../loader";
+import { DataLoaderExecutor } from "../../loader";
 import { validateIdFormat } from "../../util/validateIdFormat";
 import { createV2AuthXScope } from "../../util/scopes";
 import {
@@ -43,7 +43,7 @@ export const createAuthorizations: GraphQLFieldConfig<
       ),
     },
   },
-  async resolve(source, args, context): Promise<Authorization[]> {
+  async resolve(source, args, context): Promise<Promise<Authorization>[]> {
     const {
       executor: { strategies, connection: pool },
       authorization: a,
@@ -62,41 +62,36 @@ export const createAuthorizations: GraphQLFieldConfig<
       );
     }
 
-    // Loop through the authorizations sequentially. This ensures that later
-    // inputs can assume that previous ones succeeded.
-    const tx = await pool.connect();
-    let lastExecutor: DataLoaderExecutor<Pool | PoolClient> | undefined;
-    try {
-      await tx.query("BEGIN DEFERRABLE");
-      const authorizations = [];
-      for (const input of args.authorizations) {
-        // Validate `id`.
-        if (typeof input.id === "string" && !validateIdFormat(input.id)) {
-          throw new ValidationError("The provided `id` is an invalid ID.");
-        }
+    const results = args.authorizations.map(async (input) => {
+      // Validate `id`.
+      if (typeof input.id === "string" && !validateIdFormat(input.id)) {
+        throw new ValidationError("The provided `id` is an invalid ID.");
+      }
 
-        // Validate `userId`.
-        if (!validateIdFormat(input.userId)) {
-          throw new ValidationError("The provided `userId` is an invalid ID.");
-        }
+      // Validate `userId`.
+      if (!validateIdFormat(input.userId)) {
+        throw new ValidationError("The provided `userId` is an invalid ID.");
+      }
 
-        // Validate `grantId`.
-        if (
-          typeof input.grantId === "string" &&
-          !validateIdFormat(input.grantId)
-        ) {
-          throw new ValidationError("The provided `grantId` is an invalid ID.");
-        }
+      // Validate `grantId`.
+      if (
+        typeof input.grantId === "string" &&
+        !validateIdFormat(input.grantId)
+      ) {
+        throw new ValidationError("The provided `grantId` is an invalid ID.");
+      }
 
-        // Validate `administration`.
-        for (const { roleId } of input.administration) {
-          if (!validateIdFormat(roleId)) {
-            throw new ValidationError(
-              "The provided `administration` list contains a `roleId` that is an invalid ID."
-            );
-          }
+      // Validate `administration`.
+      for (const { roleId } of input.administration) {
+        if (!validateIdFormat(roleId)) {
+          throw new ValidationError(
+            "The provided `administration` list contains a `roleId` that is an invalid ID."
+          );
         }
+      }
 
+      const tx = await pool.connect();
+      try {
         // Make sure this transaction is used for queries made by the executor.
         const executor = new DataLoaderExecutor<Pool | PoolClient>(
           tx,
@@ -106,6 +101,7 @@ export const createAuthorizations: GraphQLFieldConfig<
         const grant = input.grantId
           ? await Grant.read(executor, input.grantId)
           : null;
+
         if (
           !(await a.can(
             executor,
@@ -132,152 +128,148 @@ export const createAuthorizations: GraphQLFieldConfig<
           );
         }
 
-        // Make sure the ID isn't already in use.
-        if (input.id) {
-          try {
-            await Authorization.read(tx, input.id, { forUpdate: true });
-            throw new ConflictError();
-          } catch (error) {
-            if (!(error instanceof NotFoundError)) {
-              throw error;
-            }
-          }
-        }
+        try {
+          await tx.query("BEGIN DEFERRABLE");
 
-        const id = input.id || v4();
-        const authorization = await Authorization.write(
-          tx,
-          {
-            id,
-            enabled: input.enabled,
-            userId: input.userId,
-            grantId: input.grantId,
-            secret: randomBytes(16).toString("hex"),
-            scopes: input.scopes,
-          },
-          {
-            recordId: v4(),
-            createdByAuthorizationId: a.id,
-            createdByCredentialId: null,
-            createdAt: new Date(),
-          }
-        );
-
-        const authorizationScopeContext = {
-          type: "authorization" as const,
-          authorizationId: id,
-          clientId: grant?.clientId ?? "",
-          grantId: grant?.id ?? "",
-          userId: input.userId,
-        };
-
-        const possibleAdministrationScopes = [
-          createV2AuthXScope(realm, authorizationScopeContext, {
-            basic: "r",
-            scopes: "",
-            secrets: "",
-          }),
-          createV2AuthXScope(realm, authorizationScopeContext, {
-            basic: "r",
-            scopes: "r",
-            secrets: "",
-          }),
-          createV2AuthXScope(realm, authorizationScopeContext, {
-            basic: "r",
-            scopes: "",
-            secrets: "r",
-          }),
-          createV2AuthXScope(realm, authorizationScopeContext, {
-            basic: "r",
-            scopes: "*",
-            secrets: "*",
-          }),
-          createV2AuthXScope(realm, authorizationScopeContext, {
-            basic: "w",
-            scopes: "",
-            secrets: "",
-          }),
-          createV2AuthXScope(realm, authorizationScopeContext, {
-            basic: "*",
-            scopes: "*",
-            secrets: "*",
-          }),
-        ];
-
-        // Add administration scopes.
-        const administrationResults = await Promise.allSettled(
-          input.administration.map(async ({ roleId, scopes }) => {
-            const administrationRoleBefore = await Role.read(tx, roleId, {
-              forUpdate: true,
-            });
-
-            if (
-              !administrationRoleBefore.isAccessibleBy(realm, a, executor, {
-                basic: "w",
-                scopes: "w",
-                users: "",
-              })
-            ) {
-              throw new ForbiddenError(
-                `You do not have permission to modify the scopes of role ${roleId}.`
-              );
-            }
-
-            const administrationRole = await Role.write(
-              tx,
-              {
-                ...administrationRoleBefore,
-                scopes: simplify([
-                  ...administrationRoleBefore.scopes,
-                  ...possibleAdministrationScopes.filter((possible) =>
-                    isSuperset(scopes, possible)
-                  ),
-                ]),
-              },
-              {
-                recordId: v4(),
-                createdByAuthorizationId: a.id,
-                createdAt: new Date(),
+          // Make sure the ID isn't already in use.
+          if (input.id) {
+            try {
+              await Authorization.read(tx, input.id, { forUpdate: true });
+              throw new ConflictError();
+            } catch (error) {
+              if (!(error instanceof NotFoundError)) {
+                throw error;
               }
-            );
-
-            // Clear and prime the loader.
-            Role.clear(executor, administrationRole.id);
-            Role.prime(executor, administrationRole.id, administrationRole);
-          })
-        );
-
-        for (const result of administrationResults) {
-          if (result.status === "rejected") {
-            throw new Error(result.reason);
+            }
           }
+
+          const id = input.id || v4();
+          const authorization = await Authorization.write(
+            tx,
+            {
+              id,
+              enabled: input.enabled,
+              userId: input.userId,
+              grantId: input.grantId,
+              secret: randomBytes(16).toString("hex"),
+              scopes: input.scopes,
+            },
+            {
+              recordId: v4(),
+              createdByAuthorizationId: a.id,
+              createdByCredentialId: null,
+              createdAt: new Date(),
+            }
+          );
+
+          const authorizationScopeContext = {
+            type: "authorization" as const,
+            authorizationId: id,
+            clientId: grant?.clientId ?? "",
+            grantId: grant?.id ?? "",
+            userId: input.userId,
+          };
+
+          const possibleAdministrationScopes = [
+            createV2AuthXScope(realm, authorizationScopeContext, {
+              basic: "r",
+              scopes: "",
+              secrets: "",
+            }),
+            createV2AuthXScope(realm, authorizationScopeContext, {
+              basic: "r",
+              scopes: "r",
+              secrets: "",
+            }),
+            createV2AuthXScope(realm, authorizationScopeContext, {
+              basic: "r",
+              scopes: "",
+              secrets: "r",
+            }),
+            createV2AuthXScope(realm, authorizationScopeContext, {
+              basic: "r",
+              scopes: "*",
+              secrets: "*",
+            }),
+            createV2AuthXScope(realm, authorizationScopeContext, {
+              basic: "w",
+              scopes: "",
+              secrets: "",
+            }),
+            createV2AuthXScope(realm, authorizationScopeContext, {
+              basic: "*",
+              scopes: "*",
+              secrets: "*",
+            }),
+          ];
+
+          // Add administration scopes.
+          const administrationResults = await Promise.allSettled(
+            input.administration.map(async ({ roleId, scopes }) => {
+              const administrationRoleBefore = await Role.read(tx, roleId, {
+                forUpdate: true,
+              });
+
+              if (
+                !administrationRoleBefore.isAccessibleBy(realm, a, executor, {
+                  basic: "w",
+                  scopes: "w",
+                  users: "",
+                })
+              ) {
+                throw new ForbiddenError(
+                  `You do not have permission to modify the scopes of role ${roleId}.`
+                );
+              }
+
+              const administrationRole = await Role.write(
+                tx,
+                {
+                  ...administrationRoleBefore,
+                  scopes: simplify([
+                    ...administrationRoleBefore.scopes,
+                    ...possibleAdministrationScopes.filter((possible) =>
+                      isSuperset(scopes, possible)
+                    ),
+                  ]),
+                },
+                {
+                  recordId: v4(),
+                  createdByAuthorizationId: a.id,
+                  createdAt: new Date(),
+                }
+              );
+
+              // Clear and prime the loader.
+              Role.clear(executor, administrationRole.id);
+              Role.prime(executor, administrationRole.id, administrationRole);
+            })
+          );
+
+          for (const result of administrationResults) {
+            if (result.status === "rejected") {
+              throw new Error(result.reason);
+            }
+          }
+
+          await tx.query("COMMIT");
+
+          return authorization;
+        } catch (error) {
+          await tx.query("ROLLBACK");
+          throw error;
         }
-
-        await tx.query("COMMIT");
-
-        authorizations.push(authorization);
-        lastExecutor = executor;
+      } finally {
+        tx.release();
       }
+    });
 
-      // Update the context to use a new executor primed with the results of
-      // this mutation, using the original connection pool.
-      if (lastExecutor) {
-        lastExecutor.connection = pool;
-        context.executor = lastExecutor as ReadonlyDataLoaderExecutor<Pool>;
-      } else {
-        context.executor = new DataLoaderExecutor<Pool>(pool, strategies);
-      }
+    // Wait for all mutations to succeed or fail.
+    await Promise.allSettled(results);
 
-      for (const authorization of authorizations) {
-        Authorization.prime(context.executor, authorization.id, authorization);
-      }
+    // Set a new executor (clearing all memoized values).
+    context.executor = new DataLoaderExecutor<Pool>(pool, strategies);
 
-      return authorizations;
-    } catch (error) {
-      await tx.query("ROLLBACK");
-      throw error;
-    } finally {
-      tx.release();
-    }
+    return results;
   },
 };
