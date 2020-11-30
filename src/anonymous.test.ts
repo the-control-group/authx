@@ -85,7 +85,7 @@ test("Root query fields.", async (t) => {
           authorization(id: "5387ece5-37a1-4573-a189-14333ebf8d88") {
             id
           }
-          authorizations {
+          authorizations(first: 1) {
             pageInfo {
               hasNextPage
               hasPreviousPage
@@ -103,7 +103,7 @@ test("Root query fields.", async (t) => {
           client(id: "1fcb730e-f134-463a-b224-cab7e61c5ce0") {
             id
           }
-          clients {
+          clients(first: 1) {
             pageInfo {
               hasNextPage
               hasPreviousPage
@@ -121,7 +121,7 @@ test("Root query fields.", async (t) => {
           credential(id: "540128ad-7a55-423e-a85c-103677df333c") {
             id
           }
-          credentials {
+          credentials(first: 1) {
             pageInfo {
               hasNextPage
               hasPreviousPage
@@ -139,7 +139,7 @@ test("Root query fields.", async (t) => {
           grant(id: "d8dcaf12-b744-4d2d-b223-09e7e5eaa922") {
             id
           }
-          grants {
+          grants(first: 1) {
             pageInfo {
               hasNextPage
               hasPreviousPage
@@ -157,7 +157,7 @@ test("Root query fields.", async (t) => {
           role(id: "ee37605c-5834-40c9-bd80-bac16d9e62a4") {
             id
           }
-          roles {
+          roles(first: 1) {
             pageInfo {
               hasNextPage
               hasPreviousPage
@@ -175,7 +175,7 @@ test("Root query fields.", async (t) => {
           user(id: "e165cbb0-86b0-4e11-9db7-eb5f742161b8") {
             id
           }
-          users {
+          users(first: 1) {
             pageInfo {
               hasNextPage
               hasPreviousPage
@@ -186,6 +186,7 @@ test("Root query fields.", async (t) => {
               cursor
               node {
                 id
+                access
               }
             }
           }

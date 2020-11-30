@@ -35,6 +35,7 @@ async function assertPermissions(
         },
         {
           basic: "r",
+          scopes: "",
         }
       )
     )) ||

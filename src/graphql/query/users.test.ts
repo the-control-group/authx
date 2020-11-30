@@ -14,6 +14,7 @@ test("Fetch users with limited read scope and page", async (t) => {
   function createUserReadScope(userId: string): string {
     const action: UserAction = {
       basic: "r",
+      scopes: "",
     };
 
     return createV2AuthXScope(
@@ -241,6 +242,7 @@ test("Fetch users with limited read scope and reverse page", async (t) => {
   function createUserReadScope(userId: string): string {
     const action: UserAction = {
       basic: "r",
+      scopes: "",
     };
 
     return createV2AuthXScope(
@@ -468,6 +470,7 @@ test("Fetch users all users scope", async (t) => {
 
   const clientAction: UserAction = {
     basic: "r",
+    scopes: "",
   };
 
   const token = await ctx.createLimitedAuthorization([
@@ -482,6 +485,7 @@ test("Fetch users all users scope", async (t) => {
             node {
               id
               name
+              access
             }
             cursor
           }
@@ -500,6 +504,7 @@ test("Fetch users all users scope", async (t) => {
               node: {
                 id: string;
                 name: string;
+                access: null | string[];
               };
             }[];
       };
@@ -514,6 +519,7 @@ test("Fetch users all users scope", async (t) => {
             node: {
               id: "0cbd3783-0424-4f35-be51-b42f07a2a987",
               name: "Dwight Schrute",
+              access: null,
             },
             cursor: "aWQ6MGNiZDM3ODMtMDQyNC00ZjM1LWJlNTEtYjQyZjA3YTJhOTg3",
           },
@@ -521,6 +527,7 @@ test("Fetch users all users scope", async (t) => {
             node: {
               id: "1691f38d-92c8-4d86-9a89-da99528cfcb5",
               name: "Dunder Mifflin Infinity",
+              access: null,
             },
             cursor: "aWQ6MTY5MWYzOGQtOTJjOC00ZDg2LTlhODktZGE5OTUyOGNmY2I1",
           },
@@ -528,6 +535,7 @@ test("Fetch users all users scope", async (t) => {
             node: {
               id: "306eabbb-cc2b-4f88-be19-4bb6ec98e5c3",
               name: "Toby Flenderson",
+              access: null,
             },
             cursor: "aWQ6MzA2ZWFiYmItY2MyYi00Zjg4LWJlMTktNGJiNmVjOThlNWMz",
           },
@@ -535,6 +543,7 @@ test("Fetch users all users scope", async (t) => {
             node: {
               id: "51192909-3664-44d5-be62-c6b45f0b0ee6",
               name: "Darryl Philbin",
+              access: null,
             },
             cursor: "aWQ6NTExOTI5MDktMzY2NC00NGQ1LWJlNjItYzZiNDVmMGIwZWU2",
           },

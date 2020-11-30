@@ -94,6 +94,7 @@ export const createUsers: GraphQLFieldConfig<
               },
               {
                 basic: "*",
+                scopes: "",
               }
             )
           ))
@@ -158,12 +159,15 @@ export const createUsers: GraphQLFieldConfig<
             // user ------------------------------------------------------------
             createV2AuthXScope(realm, userScopeContext, {
               basic: "r",
+              scopes: "",
             }),
             createV2AuthXScope(realm, userScopeContext, {
               basic: "w",
+              scopes: "",
             }),
             createV2AuthXScope(realm, userScopeContext, {
               basic: "*",
+              scopes: "",
             }),
 
             createV2AuthXScope(realm, grantScopeContext, {

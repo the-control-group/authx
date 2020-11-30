@@ -331,6 +331,7 @@ test("Root query fields.", async (t) => {
               cursor
               node {
                 id
+                access
               }
             }
           }
@@ -591,7 +592,7 @@ test("Root query fields.", async (t) => {
                       "authx:v2.authorization..{current_authorization_id}.*..*..{current_user_id}:*..*.*.",
                       "authx:v2.client...*....:r....",
                       "authx:v2.grant...*..*..{current_user_id}:*..*.*.",
-                      "authx:v2.user.......{current_user_id}:r....",
+                      "authx:v2.user.......{current_user_id}:r..*..",
                     ],
                   },
                 },
@@ -759,6 +760,16 @@ test("Root query fields.", async (t) => {
               cursor: "aWQ6MGNiZDM3ODMtMDQyNC00ZjM1LWJlNTEtYjQyZjA3YTJhOTg3",
               node: {
                 id: "0cbd3783-0424-4f35-be51-b42f07a2a987",
+                access: [
+                  "authx:v2.authorization..*.*..*..a6a0946d-eeb4-45cd-83c6-c7920f2272eb:*..*..",
+                  "authx:v2.authorization..*.....a6a0946d-eeb4-45cd-83c6-c7920f2272eb:*..*.*.",
+                  "authx:v2.authorization..c70da498-27ed-4c3b-a318-38bb220cef48.*..*..a6a0946d-eeb4-45cd-83c6-c7920f2272eb:*..*.*.",
+                  "authx:v2.client...*....:r....",
+                  "authx:v2.grant...*..*..a6a0946d-eeb4-45cd-83c6-c7920f2272eb:*..*.*.",
+                  "authx:v2.user.......a6a0946d-eeb4-45cd-83c6-c7920f2272eb:r..*..",
+                  "cms:promotions:**",
+                  "inventory:order.*:**",
+                ],
               },
             },
           ],
