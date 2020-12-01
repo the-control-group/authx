@@ -62,9 +62,9 @@ export interface CredentialData<C> {
 
 export type CredentialInstanceMap = {
   [key: string]: {
-    new (data: CredentialData<any> & { readonly recordId: string }): Credential<
-      any
-    >;
+    new (
+      data: CredentialData<any> & { readonly recordId: string }
+    ): Credential<any>;
   };
 };
 

@@ -14,8 +14,9 @@ export class OpenIdCredential extends Credential<OpenIdCredentialDetails> {
   ): Promise<OpenIdAuthority> {
     return tx instanceof DataLoaderExecutor
       ? (OpenIdAuthority.read(tx, this.authorityId) as Promise<OpenIdAuthority>)
-      : (OpenIdAuthority.read(tx, this.authorityId) as Promise<
-          OpenIdAuthority
-        >);
+      : (OpenIdAuthority.read(
+          tx,
+          this.authorityId
+        ) as Promise<OpenIdAuthority>);
   }
 }

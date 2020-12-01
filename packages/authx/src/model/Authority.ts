@@ -40,9 +40,9 @@ export interface AuthorityData<A> {
 
 export type AuthorityInstanceMap = {
   [key: string]: {
-    new (data: AuthorityData<any> & { readonly recordId: string }): Authority<
-      any
-    >;
+    new (
+      data: AuthorityData<any> & { readonly recordId: string }
+    ): Authority<any>;
   };
 };
 

@@ -8,9 +8,9 @@ export class StrategyCollection {
 
   public authorityMap: {
     readonly [name: string]: {
-      new (data: AuthorityData<any> & { readonly recordId: string }): Authority<
-        any
-      >;
+      new (
+        data: AuthorityData<any> & { readonly recordId: string }
+      ): Authority<any>;
     };
   } = {};
 

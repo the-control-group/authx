@@ -72,12 +72,14 @@ export class OpenIdAuthority extends Authority<OpenIdAuthorityDetails> {
     if (!results.rows[0]) return null;
 
     return tx instanceof DataLoaderExecutor
-      ? (OpenIdCredential.read(tx, results.rows[0].id) as Promise<
-          OpenIdCredential
-        >)
-      : (OpenIdCredential.read(tx, results.rows[0].id) as Promise<
-          OpenIdCredential
-        >);
+      ? (OpenIdCredential.read(
+          tx,
+          results.rows[0].id
+        ) as Promise<OpenIdCredential>)
+      : (OpenIdCredential.read(
+          tx,
+          results.rows[0].id
+        ) as Promise<OpenIdCredential>);
   }
 
   public async emailAuthority(
