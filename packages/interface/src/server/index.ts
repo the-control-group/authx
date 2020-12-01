@@ -62,7 +62,7 @@ export default async function createInterface(
   compiler.outputFileSystem = fs as any;
 
   // Wait for the build.
-  await new Promise((resolve, reject) => {
+  await new Promise<void>((resolve, reject) => {
     compiler.run((error, stats) => {
       if (error) {
         return reject(error);
