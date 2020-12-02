@@ -142,7 +142,7 @@ export class Authorization implements AuthorizationData {
     );
   }
 
-  public async access(
+  private async _access(
     tx: Pool | ClientBase | DataLoaderExecutor,
     realm: string
   ): Promise<string[]> {
@@ -181,6 +181,37 @@ export class Authorization implements AuthorizationData {
           ),
         ])
       : [];
+  }
+
+  private _accessMemo = new WeakMap<
+    DataLoaderExecutor,
+    Map<string, Promise<string[]>>
+  >();
+
+  public async access(
+    tx: Pool | ClientBase | DataLoaderExecutor,
+    realm: string
+  ): Promise<string[]> {
+    // Memoization must be relative to a specific execution context.
+    if (!(tx instanceof DataLoaderExecutor)) {
+      return this._access(tx, realm);
+    }
+
+    // Get the memo.
+    const memo =
+      this._accessMemo.get(tx) ?? new Map<string, Promise<string[]>>();
+    this._accessMemo.set(tx, memo);
+
+    // Return the memoized value.
+    const existingValue = memo.get(realm);
+    if (existingValue) {
+      return existingValue;
+    }
+
+    // Memoize and return a new value.
+    const newValue = this._access(tx, realm);
+    memo.set(realm, newValue);
+    return newValue;
   }
 
   public async can(
