@@ -3,6 +3,7 @@
 This is AuthX. It's named AuthX because it's an "exchange" of sorts, consolidating identities from several upstream authorities into a single identity for downstream clients. AuthX uses the OAuth2 framework in both directions, and adds a robust access control system, based on the [AuthX scope spec](packages/scopes#README.md).
 
 [![Build Status](https://travis-ci.org/the-control-group/authx.svg?branch=master)](https://travis-ci.org/the-control-group/authx)
+[![FOSSA Status](https://app.fossa.com/api/projects/git%2Bgithub.com%2Fthe-control-group%2Fauthx.svg?type=shield)](https://app.fossa.com/projects/git%2Bgithub.com%2Fthe-control-group%2Fauthx?ref=badge_shield)
 
 ---
 
@@ -77,3 +78,7 @@ This package contains the password authentication strategy.
 This package contains a CLI and small collection of utility functions for interacting with an AuthX instance.
 
 [Read More](packages/tools#README.md)
+
+
+## License
+[![FOSSA Status](https://app.fossa.com/api/projects/git%2Bgithub.com%2Fthe-control-group%2Fauthx.svg?type=large)](https://app.fossa.com/projects/git%2Bgithub.com%2Fthe-control-group%2Fauthx?ref=badge_large)
