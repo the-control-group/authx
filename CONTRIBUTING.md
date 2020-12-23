@@ -9,6 +9,8 @@ Using Docker for development is recommend, as it avoids "special cases" around c
 3. running postgres
 4. running the demo server
 
+**NOTE:** The development environment brings up a TypeScript process for each package to watch files for changes. This requires a significant amount of memory. If running Docker for Mac, please ensure you have allocated sufficient memory to your Docker virtual machine.
+
 To get started, run:
 
 ```bash
@@ -20,7 +22,7 @@ PUBLISH_PORT_HTTP=8888 PUBLISH_PORT_POSTGRES=5555 docker-compose up -d
 docker-compose ps
 
 # Tail the logs of all running containers.
-docker-compose tail -f
+docker-compose logs -f
 ```
 
 By default, running `up` does _not_ create the database schema or fill it with fixtured data. To do this, run:
