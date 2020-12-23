@@ -25,7 +25,7 @@
     "packages:test": "yarn packages test",
     "root:build": "rm -rf dist && tsc",
     "root:build:development": "rm -rf dist && tsc --watch",
-    "root:build:development:chained": "tsc --watch --preserveWatchOutput",
+    "root:build:development:chained": "tsc --watch --preserveWatchOutput --pretty",
     "root:format": "prettier --list-different --write '**/*.{json,yml,md,ts}'",
     "root:lint": "prettier -c '**/*.{json,yml,md,ts}' && eslint src --ext ts",
     "root:test": "ava --verbose",

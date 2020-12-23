@@ -53,7 +53,7 @@
     "lint": "prettier -c '**/*.{json,yml,md,ts,tsx}' && eslint src --ext ts --ext tsx",
     "build": "rm -rf dist && tsc",
     "build:development": "rm -rf dist && tsc --watch",
-    "build:development:chained": "tsc --watch --preserveWatchOutput",
+    "build:development:chained": "tsc --watch --preserveWatchOutput --pretty",
     "start": "NODE_ENV=production node dist/server",
     "start:development": "NODE_ENV=development nodemon --delay 2 --inspect dist/server",
     "test": "ava --verbose dist/*.test.js",
