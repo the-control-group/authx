@@ -354,6 +354,23 @@ export default class AuthXWebProxy extends EventEmitter {
         `);
       }
 
+      // Incorrect state.
+      const state = params.get("state");
+      if (!state || state !== cookies.get("authx.s")) {
+        response.setHeader("Cache-Control", "no-cache");
+        response.statusCode = 400;
+        meta.message =
+          "Request handled by client endpoint: display incorrect state error.";
+        return send(`
+          <html>
+            <head><title>Error</title></head>
+            <body>
+              <div>The <span style="font-family: mono;">state</span> parameter is incorrect.</div>
+            </body>
+          </html>
+        `);
+      }
+
       // No code was returned.
       const code = params.get("code");
       if (!code) {
