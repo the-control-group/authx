@@ -13,7 +13,7 @@
     "@types/pg": "^7.14.4",
     "@types/uuid": "^8.3.0",
     "pg": "^8.4.2",
-    "uuid": "^8.3.1"
+    "uuid": "^8.3.2"
   },
   "description": "",
   "devDependencies": {
@@ -21,7 +21,7 @@
     "@typescript-eslint/parser": "^4.6.1",
     "ava": "^3.5.2",
     "eslint": "^7.12.1",
-    "eslint-config-prettier": "^6.15.0",
+    "eslint-config-prettier": "^7.1.0",
     "eslint-plugin-prettier": "^3.1.1",
     "nodemon": "^2.0.2",
     "prettier": "^2.0.2",
