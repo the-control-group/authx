@@ -5,6 +5,8 @@ This is AuthX. It's named AuthX because it's an "exchange" of sorts, consolidati
 [![Build Status](https://travis-ci.org/the-control-group/authx.svg?branch=master)](https://travis-ci.org/the-control-group/authx)
 [![FOSSA Status](https://app.fossa.com/api/projects/git%2Bgithub.com%2Fthe-control-group%2Fauthx.svg?type=shield)](https://app.fossa.com/projects/git%2Bgithub.com%2Fthe-control-group%2Fauthx?ref=badge_shield)
 
+[![FOSSA Status](https://app.fossa.com/api/projects/git%2Bgithub.com%2Fthe-control-group%2Fauthx.svg?type=large)](https://app.fossa.com/projects/git%2Bgithub.com%2Fthe-control-group%2Fauthx?ref=badge_large)
+
 ---
 
 ## Contributing
@@ -78,7 +80,3 @@ This package contains the password authentication strategy.
 This package contains a CLI and small collection of utility functions for interacting with an AuthX instance.
 
 [Read More](packages/tools#README.md)
-
-
-## License
-[![FOSSA Status](https://app.fossa.com/api/projects/git%2Bgithub.com%2Fthe-control-group%2Fauthx.svg?type=large)](https://app.fossa.com/projects/git%2Bgithub.com%2Fthe-control-group%2Fauthx?ref=badge_large)
