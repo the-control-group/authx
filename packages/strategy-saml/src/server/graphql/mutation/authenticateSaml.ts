@@ -15,7 +15,7 @@ import {
   User,
 } from "@authx/authx";
 import { SamlAuthority } from "../../model/SamlAuthority";
-import { GetAssertOptions } from "saml2-js";
+import { PostAssertOptions } from "saml2-js";
 import { v4 } from "uuid";
 import { EmailAuthority, EmailCredential } from "@authx/strategy-email";
 import { SamlCredential } from "../../model/SamlCredential";
@@ -217,7 +217,7 @@ export const authenticateSaml: GraphQLFieldConfig<
         );
       }
 
-      const options: GetAssertOptions = {
+      const options: PostAssertOptions = {
         request_body: {
           SAMLResponse: args.samlResponse,
         },
@@ -231,7 +231,15 @@ export const authenticateSaml: GraphQLFieldConfig<
               if (err) {
                 reject(err);
               } else {
-                resolve(resp);
+                if (!resp.user.attributes) {
+                  resp.user.attributes = {};
+                }
+
+                resolve(
+                  resp as PostAssertResponse & {
+                    user: { attributes: { [key: string]: string } };
+                  }
+                );
               }
             });
         });
