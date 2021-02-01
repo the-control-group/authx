@@ -8,6 +8,7 @@ export interface PagingTestsConfig {
   ids: string[];
   scopes: string[];
   ctx: FunctionalTestContext;
+  public?: boolean;
 }
 
 export function pagingTests(config: PagingTestsConfig): void {
@@ -155,4 +156,36 @@ export function pagingTests(config: PagingTestsConfig): void {
       );
     }
   });
+
+  if (!config.public) {
+    test(`should not allow querying on unrelated ${config.endpointName}, ${config.testName}`, async (t) => {
+      const authorization = await config.ctx.createLimitedAuthorization([
+        "authx:v2.*.*.*.*.*.*.*.e3e67ba0-626a-4fb6-ad86-6520d4acfaf7:**",
+      ]);
+
+      const endpointName = config.endpointName || "???";
+
+      const roles: any = await config.ctx.graphQL(
+        `query {
+      ${endpointName} {
+        edges {
+          node {
+            id
+          }
+        }
+      }
+    }`,
+        authorization
+      );
+
+      const expected: any = {
+        data: {},
+      };
+      expected.data[endpointName] = {
+        edges: [],
+      };
+
+      t.deepEqual(roles, expected);
+    });
+  }
 }
