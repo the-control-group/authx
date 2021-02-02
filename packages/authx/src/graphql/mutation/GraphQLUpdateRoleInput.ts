@@ -17,7 +17,6 @@ export const GraphQLUpdateRoleInput = new GraphQLInputObjectType({
     },
     enabled: {
       type: GraphQLBoolean,
-      defaultValue: true,
     },
     name: {
       type: GraphQLString,
