@@ -17,7 +17,7 @@ export const updateRoles: GraphQLFieldConfig<
   {
     roles: {
       id: string;
-      enabled: boolean;
+      enabled: null | boolean;
       name: null | string;
       description: null | string;
       scopes: null | string[];
