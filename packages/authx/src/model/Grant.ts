@@ -6,6 +6,7 @@ import { simplify, getIntersection, isSuperset } from "@authx/scopes";
 import { NotFoundError } from "../errors";
 import { GrantAction, createV2AuthXScope } from "../util/scopes";
 import { DataLoaderExecutor, DataLoaderCache, QueryCache } from "../loader";
+import { lockEntities } from "../util/locking";
 
 export interface GrantInvocationData {
   readonly id: string;
@@ -336,6 +337,10 @@ export class Grant implements GrantData {
 
     if (typeof id !== "string" && !id.length) {
       return [];
+    }
+
+    if (options?.forUpdate) {
+      await lockEntities(tx, { grantIds: typeof id === "string" ? [id] : id });
     }
 
     const result = await tx.query(

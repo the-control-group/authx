@@ -5,6 +5,7 @@ import { Authorization } from "./Authorization";
 import { NotFoundError } from "../errors";
 import { CredentialAction, createV2AuthXScope } from "../util/scopes";
 import { DataLoaderExecutor, DataLoaderCache } from "../loader";
+import { lockEntities } from "../util/locking";
 
 export interface CredentialInvocationData {
   readonly id: string;
@@ -348,6 +349,12 @@ export abstract class Credential<C> implements CredentialData<C> {
 
     if (typeof id !== "string" && !id.length) {
       return [];
+    }
+
+    if (options?.forUpdate) {
+      await lockEntities(tx, {
+        credentialIds: typeof id === "string" ? [id] : id,
+      });
     }
 
     const result = await tx.query(
