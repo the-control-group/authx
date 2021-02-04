@@ -4,6 +4,7 @@ import { Authorization } from "./Authorization";
 import { NotFoundError } from "../errors";
 import { AuthorityAction, createV2AuthXScope } from "../util/scopes";
 import { DataLoaderExecutor, DataLoaderCache } from "../loader";
+import { lockEntities } from "../util/locking";
 
 export interface AuthorityRecordData {
   readonly id: string;
@@ -246,6 +247,12 @@ export abstract class Authority<A> implements AuthorityData<A> {
 
     if (typeof id !== "string" && !id.length) {
       return [];
+    }
+
+    if (options?.forUpdate) {
+      await lockEntities(tx, {
+        authorityIds: typeof id === "string" ? [id] : id,
+      });
     }
 
     const result = await tx.query(

@@ -5,6 +5,7 @@ import { simplify, getIntersection, isSuperset } from "@authx/scopes";
 import { NotFoundError } from "../errors";
 import { AuthorizationAction, createV2AuthXScope } from "../util/scopes";
 import { DataLoaderExecutor, DataLoaderCache } from "../loader";
+import { lockEntities } from "../util/locking";
 
 export interface AuthorizationInvocationData {
   readonly id: string;
@@ -379,6 +380,12 @@ export class Authorization implements AuthorizationData {
 
     if (typeof id !== "string" && !id.length) {
       return [];
+    }
+
+    if (options?.forUpdate) {
+      await lockEntities(tx, {
+        authorizationIds: typeof id === "string" ? [id] : id,
+      });
     }
 
     const result = await tx.query(
