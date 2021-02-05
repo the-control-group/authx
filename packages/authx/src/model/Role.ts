@@ -5,7 +5,7 @@ import { simplify, isSuperset, inject } from "@authx/scopes";
 import { NotFoundError } from "../errors";
 import { RoleAction, createV2AuthXScope } from "../util/scopes";
 import { DataLoaderExecutor, DataLoaderCache } from "../loader";
-import { lockEntities } from "../util/locking";
+import { lockEntityType } from "../util/locking";
 
 export interface RoleRecordData {
   readonly id: string;
@@ -203,7 +203,7 @@ export class Role implements RoleData {
     }
 
     if (options?.forUpdate) {
-      await lockEntities(tx, { roleIds: typeof id === "string" ? [id] : id });
+      await lockEntityType(tx, "role", typeof id === "string" ? [id] : id);
     }
 
     const result = await tx.query(
