@@ -4,7 +4,7 @@ import { Authorization } from "./Authorization";
 import { NotFoundError } from "../errors";
 import { ClientAction, createV2AuthXScope } from "../util/scopes";
 import { DataLoaderExecutor, DataLoaderCache, QueryCache } from "../loader";
-import { lockEntities } from "../util/locking";
+import { lockEntityType } from "../util/locking";
 
 export interface ClientInvocationData {
   readonly id: string;
@@ -317,7 +317,7 @@ export class Client implements ClientData {
     }
 
     if (options?.forUpdate) {
-      await lockEntities(tx, { clientIds: typeof id === "string" ? [id] : id });
+      await lockEntityType(tx, "client", typeof id === "string" ? [id] : id);
     }
 
     const result = await tx.query(
