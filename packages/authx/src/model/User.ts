@@ -7,7 +7,6 @@ import { Authorization } from "./Authorization";
 import { NotFoundError } from "../errors";
 import { UserAction, createV2AuthXScope } from "../util/scopes";
 import { DataLoaderExecutor, DataLoaderCache, QueryCache } from "../loader";
-import { lockEntityType } from "../util/locking";
 
 export interface UserRecordData {
   readonly id: string;
@@ -355,7 +354,10 @@ export class User implements UserData {
     }
 
     if (options?.forUpdate) {
-      await lockEntityType(tx, "user", typeof id === "string" ? [id] : id);
+      await tx.query(
+        `SELECT id FROM authx.user WHERE id = ANY($1) FOR UPDATE`,
+        [typeof id === "string" ? [id] : id]
+      );
     }
 
     const result = await tx.query(

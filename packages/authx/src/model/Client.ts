@@ -4,7 +4,6 @@ import { Authorization } from "./Authorization";
 import { NotFoundError } from "../errors";
 import { ClientAction, createV2AuthXScope } from "../util/scopes";
 import { DataLoaderExecutor, DataLoaderCache, QueryCache } from "../loader";
-import { lockEntityType } from "../util/locking";
 
 export interface ClientInvocationData {
   readonly id: string;
@@ -317,7 +316,10 @@ export class Client implements ClientData {
     }
 
     if (options?.forUpdate) {
-      await lockEntityType(tx, "client", typeof id === "string" ? [id] : id);
+      await tx.query(
+        `SELECT id FROM authx.client WHERE id = ANY($1) FOR UPDATE`,
+        [typeof id === "string" ? [id] : id]
+      );
     }
 
     const result = await tx.query(

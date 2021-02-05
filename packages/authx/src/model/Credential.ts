@@ -5,7 +5,6 @@ import { Authorization } from "./Authorization";
 import { NotFoundError } from "../errors";
 import { CredentialAction, createV2AuthXScope } from "../util/scopes";
 import { DataLoaderExecutor, DataLoaderCache } from "../loader";
-import { lockEntityType } from "../util/locking";
 
 export interface CredentialInvocationData {
   readonly id: string;
@@ -352,10 +351,9 @@ export abstract class Credential<C> implements CredentialData<C> {
     }
 
     if (options?.forUpdate) {
-      await lockEntityType(
-        tx,
-        "credential",
-        typeof id === "string" ? [id] : id
+      await tx.query(
+        `SELECT id FROM authx.credential WHERE id = ANY($1) FOR UPDATE`,
+        [typeof id === "string" ? [id] : id]
       );
     }
 

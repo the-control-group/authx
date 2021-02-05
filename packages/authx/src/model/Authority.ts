@@ -4,7 +4,6 @@ import { Authorization } from "./Authorization";
 import { NotFoundError } from "../errors";
 import { AuthorityAction, createV2AuthXScope } from "../util/scopes";
 import { DataLoaderExecutor, DataLoaderCache } from "../loader";
-import { lockEntityType } from "../util/locking";
 
 export interface AuthorityRecordData {
   readonly id: string;
@@ -250,7 +249,10 @@ export abstract class Authority<A> implements AuthorityData<A> {
     }
 
     if (options?.forUpdate) {
-      await lockEntityType(tx, "authority", typeof id === "string" ? [id] : id);
+      await tx.query(
+        `SELECT id FROM authx.authority WHERE id = ANY($1) FOR UPDATE`,
+        [typeof id === "string" ? [id] : id]
+      );
     }
 
     const result = await tx.query(
