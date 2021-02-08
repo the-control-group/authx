@@ -90,7 +90,7 @@ pagingTests({
   entityType: "authorization",
   ids: ["5387ece5-37a1-4573-a189-14333ebf8d88"],
   scopes: [
-    "authx:v2.authorization.*.5387ece5-37a1-4573-a189-14333ebf8d88.**.1fcb730e-f134-463a-b224-cab7e61c5ce0.**:r....",
+    "authx:v2.authorization.*.5387ece5-37a1-4573-a189-14333ebf8d88.**:r....",
   ],
   ctx: ctx,
 });

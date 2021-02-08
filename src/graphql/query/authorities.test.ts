@@ -13,4 +13,5 @@ pagingTests({
   ],
   scopes: [],
   ctx: ctx,
+  public: true,
 });

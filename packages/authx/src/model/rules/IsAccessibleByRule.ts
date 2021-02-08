@@ -90,7 +90,7 @@ export class IsAccessibleByRule extends Rule {
         for (const extracted of extractedScopes) {
           const fixedId: { [key: string]: string } = {};
           let hasAtLeastOneStar = false;
-          let scopeCorrupted = false;
+          let scopeInvalidForThisEntityType = false;
 
           for (const key in extracted.parameters) {
             if (
@@ -104,12 +104,19 @@ export class IsAccessibleByRule extends Rule {
               } else if (value) {
                 fixedId[key] = value;
               } else {
-                scopeCorrupted = true;
+                scopeInvalidForThisEntityType = true;
               }
+            } else if (
+              extracted.parameters[key].length > 0 &&
+              extracted.parameters[key] !== "*"
+            ) {
+              // This means the scope specified a specific ID, and our entity type doesn't have that ID type at all.
+              // This would be for example a fixed UserID being used to fetch a Role.
+              scopeInvalidForThisEntityType = true;
             }
           }
 
-          if (scopeCorrupted) continue;
+          if (scopeInvalidForThisEntityType) continue;
 
           if (hasAtLeastOneStar && Object.keys(fixedId).length === 0) {
             allAccess = true;
