@@ -146,7 +146,20 @@ export class Authorization implements AuthorizationData {
     tx: Pool | ClientBase | DataLoaderExecutor,
     realm: string
   ): Promise<string[]> {
+    if (!this.enabled) {
+      return [];
+    }
+
+    const user = await this.user(tx);
+    if (!user.enabled) {
+      return [];
+    }
+
     const grant = await this.grant(tx);
+    if (grant && !grant.enabled) {
+      return [];
+    }
+
     const values = {
       currentAuthorizationId: this.id,
       currentUserId: this.userId,
@@ -154,33 +167,30 @@ export class Authorization implements AuthorizationData {
       currentClientId: grant?.clientId ?? null,
     };
 
-    if (grant) {
-      return grant.enabled
-        ? getIntersection(this.scopes, await grant.access(tx, values))
-        : [];
-    }
+    return simplify([
+      ...getIntersection(
+        this.scopes,
+        grant ? await grant.access(tx, values) : await user.access(tx, values)
+      ),
 
-    const user = await this.user(tx);
-    return user.enabled
-      ? simplify([
-          ...getIntersection(this.scopes, await user.access(tx, values)),
-          createV2AuthXScope(
-            realm,
-            {
-              type: "authorization",
-              authorizationId: this.id,
-              grantId: this.grantId ?? "",
-              clientId: (await this.grant(tx))?.clientId ?? "",
-              userId: this.userId,
-            },
-            {
-              basic: "r",
-              scopes: "*",
-              secrets: "",
-            }
-          ),
-        ])
-      : [];
+      // All active authorizations have the intrinsic ability to query their
+      // own basinc information and scopes.
+      createV2AuthXScope(
+        realm,
+        {
+          type: "authorization",
+          authorizationId: this.id,
+          grantId: this.grantId ?? "",
+          clientId: grant?.clientId ?? "",
+          userId: this.userId,
+        },
+        {
+          basic: "r",
+          scopes: "*",
+          secrets: "",
+        }
+      ),
+    ]);
   }
 
   private _accessMemo = new WeakMap<
@@ -379,6 +389,13 @@ export class Authorization implements AuthorizationData {
 
     if (typeof id !== "string" && !id.length) {
       return [];
+    }
+
+    if (options?.forUpdate) {
+      await tx.query(
+        `SELECT id FROM authx.authorization WHERE id = ANY($1) FOR UPDATE`,
+        [typeof id === "string" ? [id] : id]
+      );
     }
 
     const result = await tx.query(

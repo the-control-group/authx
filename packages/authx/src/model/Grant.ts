@@ -166,10 +166,16 @@ export class Grant implements GrantData {
       currentClientId: null | string;
     }
   ): Promise<string[]> {
+    if (!this.enabled) {
+      return [];
+    }
+
     const user = await this.user(tx);
-    return user.enabled
-      ? getIntersection(this.scopes, await user.access(tx, values))
-      : [];
+    if (!user.enabled) {
+      return [];
+    }
+
+    return getIntersection(this.scopes, await user.access(tx, values));
   }
 
   public async can(

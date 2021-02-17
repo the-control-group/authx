@@ -269,13 +269,16 @@ export class User implements UserData {
       currentClientId: null | string;
     }
   ): Promise<string[]> {
-    return this.enabled
-      ? simplify(
-          (await this.roles(tx))
-            .map((role) => role.access(values))
-            .reduce((a, b) => a.concat(b), [])
-        )
-      : [];
+    if (!this.enabled) {
+      return [];
+    }
+
+    return simplify(
+      (await this.roles(tx))
+        .filter((role) => role.enabled)
+        .map((role) => role.access(values))
+        .reduce((a, b) => a.concat(b), [])
+    );
   }
 
   public async can(
