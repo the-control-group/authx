@@ -381,13 +381,6 @@ export class Authorization implements AuthorizationData {
       return [];
     }
 
-    if (options?.forUpdate) {
-      await tx.query(
-        `SELECT id FROM authx.authorization WHERE id = ANY($1) FOR UPDATE`,
-        [typeof id === "string" ? [id] : id]
-      );
-    }
-
     const result = await tx.query(
       `
       SELECT
