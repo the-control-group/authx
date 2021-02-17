@@ -103,6 +103,10 @@ export class Role implements RoleData {
     currentGrantId: null | string;
     currentClientId: null | string;
   }): string[] {
+    if (!this.enabled) {
+      return [];
+    }
+
     return inject(this.scopes, {
       /* eslint-disable camelcase */
       current_authorization_id: values.currentAuthorizationId,

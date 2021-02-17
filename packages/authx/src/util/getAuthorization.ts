@@ -37,7 +37,7 @@ export async function fromBasic(
         : undefined
     );
 
-  const grant = await authorization.user(tx);
+  const grant = await authorization.grant(tx);
   if (grant && !grant.enabled)
     throw new AuthenticationError(
       __DEV__
@@ -112,7 +112,7 @@ export async function fromBearer(
         : undefined
     );
 
-  const grant = await authorization.user(tx);
+  const grant = await authorization.grant(tx);
   if (grant && !grant.enabled)
     throw new AuthenticationError(
       __DEV__
