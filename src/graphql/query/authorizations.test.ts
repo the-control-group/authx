@@ -39,6 +39,7 @@ pagingTests({
   ids: [
     "5387ece5-37a1-4573-a189-14333ebf8d88",
     "f0e54748-c7bb-4724-ad8b-7dabb66aafa9",
+    null,
   ],
   scopes: [
     createReadScope("5387ece5-37a1-4573-a189-14333ebf8d88", "*", "*", "*"),
@@ -53,6 +54,7 @@ pagingTests({
   ids: [
     "5387ece5-37a1-4573-a189-14333ebf8d88",
     "f0e54748-c7bb-4724-ad8b-7dabb66aafa9",
+    null,
   ],
   scopes: [
     createReadScope("*", "*", "*", "e165cbb0-86b0-4e11-9db7-eb5f742161b8"),
@@ -67,6 +69,7 @@ pagingTests({
   ids: [
     "5387ece5-37a1-4573-a189-14333ebf8d88",
     "f0e54748-c7bb-4724-ad8b-7dabb66aafa9",
+    null,
   ],
   scopes: [
     createReadScope("*", "*", "d8dcaf12-b744-4d2d-b223-09e7e5eaa922", "*"),
@@ -78,7 +81,7 @@ pagingTests({
 pagingTests({
   testName: "by client ID with wildcards",
   entityType: "authorization",
-  ids: ["5387ece5-37a1-4573-a189-14333ebf8d88"],
+  ids: ["5387ece5-37a1-4573-a189-14333ebf8d88", null],
   scopes: [
     createReadScope("*", "1fcb730e-f134-463a-b224-cab7e61c5ce0", "*", "*"),
   ],
@@ -88,7 +91,7 @@ pagingTests({
 pagingTests({
   testName: "by client ID",
   entityType: "authorization",
-  ids: ["5387ece5-37a1-4573-a189-14333ebf8d88"],
+  ids: ["5387ece5-37a1-4573-a189-14333ebf8d88", null],
   scopes: [
     "authx:v2.authorization.*.5387ece5-37a1-4573-a189-14333ebf8d88.**:r....",
   ],
@@ -98,7 +101,7 @@ pagingTests({
 pagingTests({
   testName: "by grant and client ID",
   entityType: "authorization",
-  ids: ["5387ece5-37a1-4573-a189-14333ebf8d88"],
+  ids: ["5387ece5-37a1-4573-a189-14333ebf8d88", null],
   scopes: [
     createReadScope(
       "*",
