@@ -5,7 +5,12 @@ export interface PagingTestsConfig {
   testName: string;
   endpointName?: string;
   entityType: string;
-  ids: string[];
+
+  // Because authorizations are generated on the fly, their ID is not known in
+  // advance. However, these test authorizations are guaranteed to start with
+  // `ffff` and should therefore sort predictably. Use `null` here as a
+  // placeholder for the current authorization ID.
+  ids: (string | null)[];
   scopes: string[];
   ctx: FunctionalTestContext;
   public?: boolean;
@@ -18,7 +23,10 @@ export function pagingTests(config: PagingTestsConfig): void {
   if (!endpointName) throw "Need an endpoint name";
 
   test(`Forward paging for ${config.endpointName}, ${config.testName}`, async (t) => {
-    const token = await config.ctx.createLimitedAuthorization(config.scopes);
+    const [
+      currentAuthorizationId,
+      token,
+    ] = await config.ctx.createLimitedAuthorization(config.scopes);
 
     let lastCursor: string | null = null;
 
@@ -63,9 +71,11 @@ export function pagingTests(config: PagingTestsConfig): void {
         data.edges.length == 1,
         `Index ${i}: Expected ${data.edges.length} to be 1`
       );
+
+      const expectedId = config.ids[i] ?? currentAuthorizationId;
       t.assert(
-        data.edges[0].node.id == config.ids[i],
-        `Index ${i}: Expected ${data.edges[0].node.id} to be ${config.ids[i]}`
+        data.edges[0].node.id == expectedId,
+        `Index ${i}: Expected ${data.edges[0].node.id} to be ${expectedId}`
       );
 
       lastCursor = data.edges[0].cursor;
@@ -88,7 +98,10 @@ export function pagingTests(config: PagingTestsConfig): void {
   });
 
   test(`Reverse paging for ${config.endpointName}, ${config.testName}`, async (t) => {
-    const token = await config.ctx.createLimitedAuthorization(config.scopes);
+    const [
+      currentAuthorizationId,
+      token,
+    ] = await config.ctx.createLimitedAuthorization(config.scopes);
 
     let lastCursor: string | null = null;
 
@@ -133,9 +146,12 @@ export function pagingTests(config: PagingTestsConfig): void {
         data.edges.length == 1,
         `Index ${i}: Expected ${data.edges.length} to be 1`
       );
+
+      const expectedId = config.ids[i] ?? currentAuthorizationId;
+
       t.assert(
-        data.edges[0].node.id == config.ids[i],
-        `Index ${i}: Expected ${data.edges[0].node.id} to be ${config.ids[i]}`
+        data.edges[0].node.id == expectedId,
+        `Index ${i}: Expected ${data.edges[0].node.id} to be ${expectedId}`
       );
 
       lastCursor = data.edges[0].cursor;
@@ -159,7 +175,10 @@ export function pagingTests(config: PagingTestsConfig): void {
 
   if (!config.public) {
     test(`should not allow querying on unrelated ${config.endpointName}, ${config.testName}`, async (t) => {
-      const authorization = await config.ctx.createLimitedAuthorization([
+      const [
+        currentAuthorizationId,
+        token,
+      ] = await config.ctx.createLimitedAuthorization([
         "authx:v2.*.*.*.*.*.*.*.e3e67ba0-626a-4fb6-ad86-6520d4acfaf7:**",
       ]);
 
@@ -175,14 +194,26 @@ export function pagingTests(config: PagingTestsConfig): void {
         }
       }
     }`,
-        authorization
+        token
       );
 
       const expected: any = {
         data: {},
       };
+
       expected.data[endpointName] = {
-        edges: [],
+        edges:
+          // This is a special case to handle authorizations, which when active
+          // always have the ability to view themselves.
+          config.endpointName === "authorizations"
+            ? [
+                {
+                  node: {
+                    id: currentAuthorizationId,
+                  },
+                },
+              ]
+            : [],
       };
 
       t.deepEqual(roles, expected);

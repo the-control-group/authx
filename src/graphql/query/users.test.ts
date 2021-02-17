@@ -27,7 +27,7 @@ test("Fetch users with limited read scope and page", async (t) => {
     );
   }
 
-  const token = await ctx.createLimitedAuthorization([
+  const [, token] = await ctx.createLimitedAuthorization([
     createUserReadScope("0cbd3783-0424-4f35-be51-b42f07a2a987"), // Dwight Schrute
     createUserReadScope("51192909-3664-44d5-be62-c6b45f0b0ee6"), // Darryl Philbin
     createUserReadScope("d0fc4c64-a3d6-4d97-9341-07de24439bb1"), // Jim Halpert
@@ -255,7 +255,7 @@ test("Fetch users with limited read scope and reverse page", async (t) => {
     );
   }
 
-  const token = await ctx.createLimitedAuthorization([
+  const [, token] = await ctx.createLimitedAuthorization([
     createUserReadScope("0cbd3783-0424-4f35-be51-b42f07a2a987"), // Dwight Schrute
     createUserReadScope("51192909-3664-44d5-be62-c6b45f0b0ee6"), // Darryl Philbin
     createUserReadScope("d0fc4c64-a3d6-4d97-9341-07de24439bb1"), // Jim Halpert
@@ -473,7 +473,7 @@ test("Fetch users all users scope", async (t) => {
     scopes: "",
   };
 
-  const token = await ctx.createLimitedAuthorization([
+  const [, token] = await ctx.createLimitedAuthorization([
     createV2AuthXScope("authx", clientContext, clientAction),
   ]);
 
@@ -564,7 +564,7 @@ test("Fetch users incorrect scope", async (t) => {
     secrets: "r",
   };
 
-  const token = await ctx.createLimitedAuthorization([
+  const [, token] = await ctx.createLimitedAuthorization([
     createV2AuthXScope("authx", clientContext, clientAction),
   ]);
 

@@ -1,5 +1,6 @@
 import { URL } from "url";
 import test from "ava";
+import { v4 } from "uuid";
 import { setup } from "./setup";
 import { basename } from "path";
 import fetch from "node-fetch";
@@ -34,11 +35,18 @@ export class FunctionalTestContext {
     return result.json();
   }
 
-  async createLimitedAuthorization(scopes: string[]): Promise<string> {
+  async createLimitedAuthorization(
+    scopes: string[]
+  ): Promise<[string, string]> {
+    // Make sure the UUID here begins with 4 "f" characters, so that it will
+    // always sort below the other fixture IDs.
+    const id = v4().replace(/^.{4}/, "ffff");
+
     const r1 = (await this.graphQL(
       `
       mutation {
         createAuthorizations(authorizations: {
+          id: ${JSON.stringify(id)},
           enabled: true,
           userId: "a6a0946d-eeb4-45cd-83c6-c7920f2272eb",
           grantId: "e4670762-beb7-435c-94af-055b951f97e6",
@@ -61,10 +69,13 @@ export class FunctionalTestContext {
       throw new Error("Missing test authorization!");
     }
 
-    return Buffer.from(
-      `${authorization.id}:${authorization.secret}`,
-      "ascii"
-    ).toString("base64");
+    return [
+      id,
+      Buffer.from(
+        `${authorization.id}:${authorization.secret}`,
+        "ascii"
+      ).toString("base64"),
+    ];
   }
 }
 
