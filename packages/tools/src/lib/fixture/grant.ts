@@ -73,4 +73,29 @@ export const grant = [
         }
       ),
   },
+  {
+    id: "3fc15344-13f6-4863-91e9-c8ab09cfb4b7",
+    insert: (tx: ClientBase): Promise<Grant> =>
+      Grant.write(
+        tx,
+        {
+          id: "3fc15344-13f6-4863-91e9-c8ab09cfb4b7",
+          enabled: false,
+          clientId: "17436d83-6022-4101-bf9f-997f1550f57c",
+          userId: "306eabbb-cc2b-4f88-be19-4bb6ec98e5c3",
+          secrets: [
+            "M2ZjMTUzNDQtMTNmNi00ODYzLTkxZTktYzhhYjA5Y2ZiNGI3OjE1NTM5MjUzNDA6ZDE3ZGM0OTlhMmFjNDIzNWEwNTZjZTEyNGNmZGUxM2M=",
+          ],
+          codes: [
+            "M2ZjMTUzNDQtMTNmNi00ODYzLTkxZTktYzhhYjA5Y2ZiNGI3OjE1NTM5MjUzNDA6MzY5NGU0YmE2NzljNDAyNWFhNjJiMjdmZWI2NGM5MWE=",
+          ],
+          scopes: ["**:**:**"],
+        },
+        {
+          recordId: "0af9a524-88e6-47f1-bbfa-c9c749075bc6",
+          createdByAuthorizationId: "f0e54748-c7bb-4724-ad8b-7dabb66aafa9",
+          createdAt: new Date("2019-03-06T21:07:59.814Z"),
+        }
+      ),
+  },
 ];

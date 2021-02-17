@@ -68,4 +68,70 @@ export const authorization = [
         }
       ),
   },
+  {
+    id: "6d648342-5b7b-4aaf-8924-3ae3bf54966d",
+    insert: (tx: ClientBase): Promise<Authorization> =>
+      Authorization.write(
+        tx,
+        {
+          id: "6d648342-5b7b-4aaf-8924-3ae3bf54966d",
+          enabled: true,
+          userId: "dc396449-2c7d-4a23-a159-e6415ded71d2",
+          grantId: null,
+          secret:
+            "49903234add7ffb86d54be39e99e4c128a70d718317d78c9198ee041ab9109b7",
+          scopes: ["**:**:**"],
+        },
+        {
+          recordId: "6b942955-60c5-468c-b3fc-d321fb7095ee",
+          createdByAuthorizationId: "f0e54748-c7bb-4724-ad8b-7dabb66aafa9",
+          createdByCredentialId: null,
+          createdAt: new Date("2019-03-06T21:07:59.814Z"),
+        }
+      ),
+  },
+  {
+    id: "9883c6dc-7480-49d8-ae70-d50aab59205d",
+    insert: (tx: ClientBase): Promise<Authorization> =>
+      Authorization.write(
+        tx,
+        {
+          id: "9883c6dc-7480-49d8-ae70-d50aab59205d",
+          enabled: true,
+          userId: "306eabbb-cc2b-4f88-be19-4bb6ec98e5c3",
+          grantId: "3fc15344-13f6-4863-91e9-c8ab09cfb4b7",
+          secret:
+            "bf5224549f5b9c3264ebb296827e76938be7c8fe34080d67acb08d5aea89e0db",
+          scopes: ["**:**:**"],
+        },
+        {
+          recordId: "2a6ae2b0-b3f0-4401-b29a-4e5ba24684d8",
+          createdByAuthorizationId: "f0e54748-c7bb-4724-ad8b-7dabb66aafa9",
+          createdByCredentialId: null,
+          createdAt: new Date("2019-03-06T21:07:59.814Z"),
+        }
+      ),
+  },
+  {
+    id: "5de5d381-6257-4930-863b-5517402a67f7",
+    insert: (tx: ClientBase): Promise<Authorization> =>
+      Authorization.write(
+        tx,
+        {
+          id: "5de5d381-6257-4930-863b-5517402a67f7",
+          enabled: false,
+          userId: "306eabbb-cc2b-4f88-be19-4bb6ec98e5c3",
+          grantId: null,
+          secret:
+            "f3251a35903ae20208602bb38d5209c247d020d616a3e1d1a6109e009f4590d6",
+          scopes: ["**:**:**"],
+        },
+        {
+          recordId: "1dfcc20d-ab1d-47a2-a171-180d957f2425",
+          createdByAuthorizationId: "f0e54748-c7bb-4724-ad8b-7dabb66aafa9",
+          createdByCredentialId: null,
+          createdAt: new Date("2019-03-06T21:07:59.814Z"),
+        }
+      ),
+  },
 ];
