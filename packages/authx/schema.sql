@@ -1,3 +1,4 @@
+CREATE EXTENSION IF NOT EXISTS "uuid-ossp";
 CREATE SCHEMA authx;
 
 
@@ -141,13 +142,15 @@ CREATE UNIQUE INDEX ON authx.role_record USING BTREE (record_id, replacement_rec
 CREATE TABLE authx.role_record_user (
   role_record_id UUID NOT NULL,
   role_replacement_record_id UUID DEFAULT NULL,
+  role_record_user_id UUID DEFAULT uuid_generate_v4(),
   user_id UUID NOT NULL REFERENCES authx.user,
-  PRIMARY KEY (role_record_id, user_id),
+  PRIMARY KEY (role_record_user_id),
   FOREIGN KEY (role_record_id, role_replacement_record_id) REFERENCES authx.role_record (record_id, replacement_record_id) DEFERRABLE INITIALLY DEFERRED
 );
 
 CREATE INDEX ON authx.role_record_user USING BTREE (user_id, role_record_id);
 CREATE INDEX ON authx.role_record_user USING BTREE (role_record_id, role_replacement_record_id);
+CREATE UNIQUE INDEX ON authx.role_record_user (role_record_id, user_id);
 
 
 
@@ -246,10 +249,3 @@ CREATE TABLE authx.client_invocation (
 
 CREATE INDEX ON authx.client_invocation USING BTREE (entity_id, record_id);
 CREATE INDEX ON authx.client_invocation USING BTREE (created_at);
-
-CREATE EXTENSION IF NOT EXISTS "uuid-ossp";
-ALTER TABLE authx.role_record_user ADD role_record_user_id UUID DEFAULT uuid_generate_v4();
-ALTER TABLE authx.role_record_user DROP CONSTRAINT role_record_user_pkey;
-ALTER TABLE authx.role_record_user ADD PRIMARY KEY (role_record_user_id);
-
-CREATE UNIQUE INDEX ON authx.role_record_user (role_record_id, user_id);
