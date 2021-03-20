@@ -148,7 +148,7 @@ CREATE TABLE authx.role_record_user (
   FOREIGN KEY (role_record_id, role_replacement_record_id) REFERENCES authx.role_record (record_id, replacement_record_id) DEFERRABLE INITIALLY DEFERRED
 );
 
-CREATE INDEX ON authx.role_record_user USING BTREE (user_id, role_record_id);
+CREATE INDEX ON authx.role_record_user USING BTREE (user_id, role_record_id) WHERE role_replacement_record_id IS NULL;
 CREATE INDEX ON authx.role_record_user USING BTREE (role_record_id, role_replacement_record_id);
 CREATE UNIQUE INDEX ON authx.role_record_user (role_record_id, user_id);
 
