@@ -68,7 +68,7 @@ jobs:
           git tag -f -a "v$VERSION" -m "v$VERSION"
           git branch -va
           git push -f --tags
-          git push origin HEAD:master
+          git push origin HEAD:main
       - name: Publish
         env:
           NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
