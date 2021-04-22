@@ -148,6 +148,7 @@ export const GraphQLAuthorization: GraphQLObjectType<
           privateKey,
           authorization: a,
           executor,
+          rateLimiter,
         }: Context
       ): Promise<null | string> {
         if (!a) return null;
@@ -174,6 +175,8 @@ export const GraphQLAuthorization: GraphQLObjectType<
         }
 
         if (args.format === "bearer") {
+          rateLimiter.limit(authorization.id);
+
           const tokenId = v4();
           const grant = await authorization.grant(executor);
           await authorization.invoke(executor, {

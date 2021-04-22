@@ -176,6 +176,8 @@ export const authenticateEmail: GraphQLFieldConfig<
         );
       }
 
+      context.rateLimiter.limit(credential.id);
+
       // Invoke the credential.
       await credential.invoke(executor, {
         id: v4(),

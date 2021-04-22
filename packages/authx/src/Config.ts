@@ -28,6 +28,7 @@ export interface Config {
     readonly from?: string;
   }) => Promise<any>;
   readonly processSchema?: (schema: GraphQLSchema) => GraphQLSchema;
+  readonly maxRequestsPerMinute: number | null;
 }
 
 export function assertConfig(config: Config): void {
