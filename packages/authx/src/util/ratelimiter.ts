@@ -16,7 +16,7 @@ export interface RateLimiter {
 }
 
 export class LocalMemoryRateLimiter implements RateLimiter {
-  private readonly map: { [key: string]: number[] } = {};
+  private readonly map: { [key: string]: number[] } = { __proto__: null as any};
 
   constructor(
     private readonly limitPerWindow = 100,
