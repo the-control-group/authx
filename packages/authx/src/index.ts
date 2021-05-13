@@ -17,6 +17,11 @@ import { StrategyCollection } from "./StrategyCollection";
 import { UnsupportedMediaTypeError } from "./errors";
 import { createAuthXExplanations } from "./explanations";
 import { DataLoaderExecutor } from "./loader";
+import {
+  LocalMemoryRateLimiter,
+  NoOpRateLimiter,
+  RateLimiter,
+} from "./util/ratelimiter";
 
 export * from "./x";
 export * from "./errors";
@@ -33,6 +38,7 @@ type AuthXMiddleware = Middleware<any, KoaContext & { [x]: Context }>;
 
 export class AuthX extends Router<any, { [x]: Context }> {
   public readonly pool: Pool;
+  public readonly rateLimiter: RateLimiter;
   public constructor(config: Config & IRouterOptions) {
     assertConfig(config);
     super(config);
@@ -46,6 +52,10 @@ export class AuthX extends Router<any, { [x]: Context }> {
 
     // create a database pool
     this.pool = new Pool(config.pg);
+    this.rateLimiter =
+      typeof config.maxRequestsPerMinute === "number"
+        ? new LocalMemoryRateLimiter(config.maxRequestsPerMinute)
+        : new NoOpRateLimiter();
 
     // define the context middleware
     const contextMiddleware = async (
@@ -68,6 +78,8 @@ export class AuthX extends Router<any, { [x]: Context }> {
 
         if (basic) {
           authorization = await fromBasic(tx, basic);
+
+          this.rateLimiter.limit(authorization.id);
 
           // Invoke the authorization. Because the resource validates basic
           // tokens by making a GraphQL request here, each request can be
@@ -105,6 +117,7 @@ export class AuthX extends Router<any, { [x]: Context }> {
           authorization,
           explanations: explanations,
           executor: new DataLoaderExecutor(this.pool, strategies),
+          rateLimiter: this.rateLimiter,
         };
 
         ctx[x] = context;

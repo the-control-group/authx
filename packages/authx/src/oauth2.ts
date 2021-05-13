@@ -362,6 +362,8 @@ async function oAuth2Middleware(
             );
           }
 
+          ctx[x].rateLimiter.limit(paramsClientId);
+
           // Authenticate the client with its secret.
           let client;
           try {
@@ -658,6 +660,8 @@ async function oAuth2Middleware(
               paramsClientId
             );
           }
+
+          ctx[x].rateLimiter.limit(paramsClientId);
 
           const requestedScopeTemplates = paramsScope
             ? paramsScope.split(" ")

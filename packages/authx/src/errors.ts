@@ -171,3 +171,25 @@ export class NotImplementedError extends Error {
     this.status = this.statusCode = 501;
   }
 }
+
+export class TooManyRequests extends Error {
+  public fileName?: string;
+  public lineNumber?: number;
+  public status: 429 = 429;
+  public statusCode: 429 = 429;
+  public expose: boolean;
+
+  public constructor(
+    message?: string,
+    expose: boolean = true,
+    fileName?: string,
+    lineNumber?: number
+  ) {
+    super(message);
+    if (typeof fileName !== undefined) this.fileName = fileName;
+    if (typeof lineNumber !== undefined) this.lineNumber = lineNumber;
+    this.message = message || "Too many requests.";
+    this.expose = expose;
+    this.status = this.statusCode = 429;
+  }
+}

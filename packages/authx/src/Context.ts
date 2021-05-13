@@ -2,6 +2,7 @@ import { Pool } from "pg";
 import { Authorization } from "./model";
 import { Explanation } from "./util/explanations";
 import { ReadonlyDataLoaderExecutor } from "./loader";
+import { RateLimiter } from "./util/ratelimiter";
 
 export interface Context {
   readonly realm: string;
@@ -10,6 +11,7 @@ export interface Context {
   readonly publicKeys: ReadonlyArray<string>;
   readonly codeValidityDuration: number;
   readonly jwtValidityDuration: number;
+  readonly rateLimiter: RateLimiter;
   readonly sendMail: (options: {
     readonly to: string;
     readonly subject: string;

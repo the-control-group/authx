@@ -127,6 +127,7 @@ Bac/x5qiUn5fh2xM+wIDAQAB
       ssl: process.env.PGSSL === "true" ? true : false,
       user: process.env.PGUSER ?? undefined,
     },
+    maxRequestsPerMinute: null,
   });
 
   // Apply the AuthX routes to the app.

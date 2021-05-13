@@ -290,6 +290,8 @@ export const authenticateOpenId: GraphQLFieldConfig<
         throw new AuthenticationError("No such credential exists.");
       }
 
+      context.rateLimiter.limit(credential.id);
+
       // Invoke the credential.
       await credential.invoke(executor, {
         id: v4(),

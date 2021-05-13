@@ -80,6 +80,9 @@ Bac/x5qiUn5fh2xM+wIDAQAB
         ssl: process.env.PGSSL === "true" ? true : false,
         user: process.env.PGUSER ?? undefined,
       },
+      maxRequestsPerMinute: process.env.MAX_REQUESTS_PER_KEY_PER_MINUTE
+        ? parseFloat(process.env.MAX_REQUESTS_PER_KEY_PER_MINUTE)
+        : null,
     });
 
     // Apply the AuthX routes to the app.
