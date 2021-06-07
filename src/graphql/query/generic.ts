@@ -23,10 +23,8 @@ export function pagingTests(config: PagingTestsConfig): void {
   if (!endpointName) throw "Need an endpoint name";
 
   test(`Forward paging for ${config.endpointName}, ${config.testName}`, async (t) => {
-    const [
-      currentAuthorizationId,
-      token,
-    ] = await config.ctx.createLimitedAuthorization(config.scopes);
+    const [currentAuthorizationId, token] =
+      await config.ctx.createLimitedAuthorization(config.scopes);
 
     let lastCursor: string | null = null;
 
@@ -98,10 +96,8 @@ export function pagingTests(config: PagingTestsConfig): void {
   });
 
   test(`Reverse paging for ${config.endpointName}, ${config.testName}`, async (t) => {
-    const [
-      currentAuthorizationId,
-      token,
-    ] = await config.ctx.createLimitedAuthorization(config.scopes);
+    const [currentAuthorizationId, token] =
+      await config.ctx.createLimitedAuthorization(config.scopes);
 
     let lastCursor: string | null = null;
 
@@ -175,12 +171,10 @@ export function pagingTests(config: PagingTestsConfig): void {
 
   if (!config.public) {
     test(`should not allow querying on unrelated ${config.endpointName}, ${config.testName}`, async (t) => {
-      const [
-        currentAuthorizationId,
-        token,
-      ] = await config.ctx.createLimitedAuthorization([
-        "authx:v2.*.*.*.*.*.*.*.e3e67ba0-626a-4fb6-ad86-6520d4acfaf7:**",
-      ]);
+      const [currentAuthorizationId, token] =
+        await config.ctx.createLimitedAuthorization([
+          "authx:v2.*.*.*.*.*.*.*.e3e67ba0-626a-4fb6-ad86-6520d4acfaf7:**",
+        ]);
 
       const endpointName = config.endpointName || "???";
 

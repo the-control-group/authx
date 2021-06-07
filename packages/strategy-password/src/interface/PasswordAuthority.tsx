@@ -39,10 +39,8 @@ export function PasswordAuthority({
   const identityAuthorityId =
     authorities.length === 1 ? authorities[0].id : identityAuthorityState[0];
 
-  const [
-    identityAuthorityUserId,
-    setIdentityAuthorityUserId,
-  ] = useState<string>("");
+  const [identityAuthorityUserId, setIdentityAuthorityUserId] =
+    useState<string>("");
   const identityAuthority =
     (identityAuthorityId &&
       authorities.find((a) => a.id === identityAuthorityId)) ||

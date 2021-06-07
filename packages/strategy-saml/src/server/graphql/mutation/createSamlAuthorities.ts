@@ -162,13 +162,11 @@ export const createSamlAuthorities: GraphQLFieldConfig<
             }
           );
 
-          const possibleAdministrationScopes = createV2AuthorityAdministrationScopes(
-            realm,
-            {
+          const possibleAdministrationScopes =
+            createV2AuthorityAdministrationScopes(realm, {
               type: "authority",
               authorityId: id,
-            }
-          );
+            });
 
           // Add administration scopes.
           const administrationResults = await Promise.allSettled(

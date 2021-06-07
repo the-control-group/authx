@@ -172,23 +172,25 @@ t("isSuperset (invalid b)", (t) => {
   );
 });
 
-([
-  { args: ["client"], result: false },
-  { args: ["client:"], result: false },
-  { args: ["client:resource"], result: false },
-  { args: ["client:resource:"], result: true },
-  { args: ["client:resource:action."], result: true },
-  { args: ["client:resource:action:"], result: false },
-  { args: ["a.%:resource:action"], result: false },
-  { args: ["a*.b:resource:action"], result: false },
-  { args: ["client:resource:action"], result: true },
-  { args: ["a.b.c:d.e.f:g.h.i"], result: true },
-  { args: ["*.b.c:d.*.f:g.h.*"], result: true },
-  { args: ["**.b.c:d.**.f:g.h.**"], result: true },
-  { args: ["*:*:*"], result: true },
-  { args: ["**:**:**"], result: true },
-  { args: ["***:**:**"], result: false },
-] as { args: [string]; result: boolean }[]).forEach(({ args, result }) => {
+(
+  [
+    { args: ["client"], result: false },
+    { args: ["client:"], result: false },
+    { args: ["client:resource"], result: false },
+    { args: ["client:resource:"], result: true },
+    { args: ["client:resource:action."], result: true },
+    { args: ["client:resource:action:"], result: false },
+    { args: ["a.%:resource:action"], result: false },
+    { args: ["a*.b:resource:action"], result: false },
+    { args: ["client:resource:action"], result: true },
+    { args: ["a.b.c:d.e.f:g.h.i"], result: true },
+    { args: ["*.b.c:d.*.f:g.h.*"], result: true },
+    { args: ["**.b.c:d.**.f:g.h.**"], result: true },
+    { args: ["*:*:*"], result: true },
+    { args: ["**:**:**"], result: true },
+    { args: ["***:**:**"], result: false },
+  ] as { args: [string]; result: boolean }[]
+).forEach(({ args, result }) => {
   t(`isValidScopeLiteral ${args[0]} => ${result}`, (t) =>
     t.is(isValidScopeLiteral(...args), result)
   );

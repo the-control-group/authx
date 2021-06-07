@@ -507,25 +507,24 @@ async function oAuth2Middleware(
           } else {
             // Create a new authorization.
             const authorizationId = v4();
-            ctx[
-              x
-            ].authorization = rootAuthorization = await Authorization.write(
-              tx,
-              {
-                id: authorizationId,
-                enabled: true,
-                userId: user.id,
-                grantId: grant.id,
-                secret: randomBytes(16).toString("hex"),
-                scopes: ["**:**:**"],
-              },
-              {
-                recordId: v4(),
-                createdByAuthorizationId: authorizationId,
-                createdByCredentialId: null,
-                createdAt: new Date(),
-              }
-            );
+            ctx[x].authorization = rootAuthorization =
+              await Authorization.write(
+                tx,
+                {
+                  id: authorizationId,
+                  enabled: true,
+                  userId: user.id,
+                  grantId: grant.id,
+                  secret: randomBytes(16).toString("hex"),
+                  scopes: ["**:**:**"],
+                },
+                {
+                  recordId: v4(),
+                  createdByAuthorizationId: authorizationId,
+                  createdByCredentialId: null,
+                  createdAt: new Date(),
+                }
+              );
           }
 
           // Look for an existing active authorization for this grant with the
@@ -818,25 +817,24 @@ async function oAuth2Middleware(
           } else {
             // Create a new authorization.
             const authorizationId = v4();
-            ctx[
-              x
-            ].authorization = rootAuthorization = await Authorization.write(
-              tx,
-              {
-                id: authorizationId,
-                enabled: true,
-                userId: user.id,
-                grantId: grant.id,
-                secret: randomBytes(16).toString("hex"),
-                scopes: ["**:**:**"],
-              },
-              {
-                recordId: v4(),
-                createdByAuthorizationId: authorizationId,
-                createdByCredentialId: null,
-                createdAt: new Date(),
-              }
-            );
+            ctx[x].authorization = rootAuthorization =
+              await Authorization.write(
+                tx,
+                {
+                  id: authorizationId,
+                  enabled: true,
+                  userId: user.id,
+                  grantId: grant.id,
+                  secret: randomBytes(16).toString("hex"),
+                  scopes: ["**:**:**"],
+                },
+                {
+                  recordId: v4(),
+                  createdByAuthorizationId: authorizationId,
+                  createdByCredentialId: null,
+                  createdAt: new Date(),
+                }
+              );
           }
 
           // Look for an existing active authorization for this grant with the

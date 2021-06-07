@@ -331,31 +331,36 @@ export function createAuthXExplanations(
           authorityId: "(authority_id)",
           credentialId: "*",
           userId: "(user_id)",
-        } as CredentialContext)]: 'any new or existing credential belonging to both the user with id "(user_id)" and authority with id "(authority_id)"',
+        } as CredentialContext)]:
+          'any new or existing credential belonging to both the user with id "(user_id)" and authority with id "(authority_id)"',
         [createV2AuthXScopeContext({
           type: "credential",
           authorityId: "(authority_id)",
           credentialId: "*",
           userId: "{current_user_id}",
-        } as CredentialContext)]: 'any new or existing credential belonging to both the current user and authority with id "(authority_id)"',
+        } as CredentialContext)]:
+          'any new or existing credential belonging to both the current user and authority with id "(authority_id)"',
         [createV2AuthXScopeContext({
           type: "credential",
           authorityId: "*",
           credentialId: "*",
           userId: "(user_id)",
-        } as CredentialContext)]: 'any new or existing credential belonging to the user with id "(user_id)"',
+        } as CredentialContext)]:
+          'any new or existing credential belonging to the user with id "(user_id)"',
         [createV2AuthXScopeContext({
           type: "credential",
           authorityId: "*",
           credentialId: "*",
           userId: "{current_user_id}",
-        } as CredentialContext)]: "any new or existing credential belonging to the current user",
+        } as CredentialContext)]:
+          "any new or existing credential belonging to the current user",
         [createV2AuthXScopeContext({
           type: "credential",
           authorityId: "(authority_id)",
           credentialId: "*",
           userId: "*",
-        } as CredentialContext)]: 'any new or existing credential belonging to the authority with id "(authority_id)"',
+        } as CredentialContext)]:
+          'any new or existing credential belonging to the authority with id "(authority_id)"',
 
         [createV2AuthXScopeContext({
           type: "credential",
@@ -424,50 +429,58 @@ export function createAuthXExplanations(
           clientId: "(client_id)",
           grantId: "*",
           userId: "(user_id)",
-        } as GrantContext)]: 'any new or existing grant belonging to both the user with id "(user_id)" and the client with id "(client_id)"',
+        } as GrantContext)]:
+          'any new or existing grant belonging to both the user with id "(user_id)" and the client with id "(client_id)"',
         [createV2AuthXScopeContext({
           type: "grant",
           clientId: "{current_client_id}",
           grantId: "*",
           userId: "{current_user_id}",
-        } as GrantContext)]: "any new or existing grant belonging to both the current user and the current client",
+        } as GrantContext)]:
+          "any new or existing grant belonging to both the current user and the current client",
         [createV2AuthXScopeContext({
           type: "grant",
           clientId: "(client_id)",
           grantId: "*",
           userId: "{current_user_id}",
-        } as GrantContext)]: 'any new or existing grant belonging to both the current user and the client with id "(client_id)"',
+        } as GrantContext)]:
+          'any new or existing grant belonging to both the current user and the client with id "(client_id)"',
         [createV2AuthXScopeContext({
           type: "grant",
           clientId: "{current_client_id}",
           grantId: "*",
           userId: "(user_id)",
-        } as GrantContext)]: 'any new or existing grant belonging to both the user with id "(user_id)" and the current client',
+        } as GrantContext)]:
+          'any new or existing grant belonging to both the user with id "(user_id)" and the current client',
 
         [createV2AuthXScopeContext({
           type: "grant",
           clientId: "*",
           grantId: "*",
           userId: "(user_id)",
-        } as GrantContext)]: 'any new or existing grant belonging to the user with id "(user_id)"',
+        } as GrantContext)]:
+          'any new or existing grant belonging to the user with id "(user_id)"',
         [createV2AuthXScopeContext({
           type: "grant",
           clientId: "*",
           grantId: "*",
           userId: "{current_user_id}",
-        } as GrantContext)]: "any new or existing grant belonging to the current user",
+        } as GrantContext)]:
+          "any new or existing grant belonging to the current user",
         [createV2AuthXScopeContext({
           type: "grant",
           clientId: "(client_id)",
           grantId: "*",
           userId: "*",
-        } as GrantContext)]: 'any new or existing grant belonging to the client with id "(client_id)"',
+        } as GrantContext)]:
+          'any new or existing grant belonging to the client with id "(client_id)"',
         [createV2AuthXScopeContext({
           type: "grant",
           clientId: "{current_client_id}",
           grantId: "*",
           userId: "*",
-        } as GrantContext)]: "any new or existing grant belonging to the current client",
+        } as GrantContext)]:
+          "any new or existing grant belonging to the current client",
 
         [createV2AuthXScopeContext({
           type: "grant",
@@ -541,7 +554,8 @@ export function createAuthXExplanations(
           clientId: "(client_id)",
           grantId: "(grant_id)",
           userId: "(user_id)",
-        } as AuthorizationContext)]: 'the authorization with id "(authorization_id)',
+        } as AuthorizationContext)]:
+          'the authorization with id "(authorization_id)',
         [createV2AuthXScopeContext({
           type: "authorization",
           authorizationId: "{current_authorization_id}",
@@ -556,14 +570,16 @@ export function createAuthXExplanations(
           clientId: "(client_id)",
           grantId: "(grant_id)",
           userId: "(user_id)",
-        } as AuthorizationContext)]: 'any new or existing authorization belonging to the grant with id "(grant_id)"',
+        } as AuthorizationContext)]:
+          'any new or existing authorization belonging to the grant with id "(grant_id)"',
         [createV2AuthXScopeContext({
           type: "authorization",
           authorizationId: "*",
           clientId: "{current_client_id}",
           grantId: "{current_grant_id}",
           userId: "{current_user_id}",
-        } as AuthorizationContext)]: "any new or existing authorization belonging to the current grant",
+        } as AuthorizationContext)]:
+          "any new or existing authorization belonging to the current grant",
 
         [createV2AuthXScopeContext({
           type: "authorization",
@@ -571,28 +587,32 @@ export function createAuthXExplanations(
           clientId: "(client_id)",
           grantId: "*",
           userId: "(user_id)",
-        } as AuthorizationContext)]: 'any new or existing authorization belonging to both the user with id "(user_id)" and the client with id "(client_id)"',
+        } as AuthorizationContext)]:
+          'any new or existing authorization belonging to both the user with id "(user_id)" and the client with id "(client_id)"',
         [createV2AuthXScopeContext({
           type: "authorization",
           authorizationId: "*",
           clientId: "{current_client_id}",
           grantId: "*",
           userId: "{current_user_id}",
-        } as AuthorizationContext)]: "any new or existing authorization belonging to both the current user and the current client",
+        } as AuthorizationContext)]:
+          "any new or existing authorization belonging to both the current user and the current client",
         [createV2AuthXScopeContext({
           type: "authorization",
           authorizationId: "*",
           clientId: "{current_client_id}",
           grantId: "*",
           userId: "(user_id)",
-        } as AuthorizationContext)]: 'any new or existing authorization belonging to both the user with id "(user_id)" and the current client',
+        } as AuthorizationContext)]:
+          'any new or existing authorization belonging to both the user with id "(user_id)" and the current client',
         [createV2AuthXScopeContext({
           type: "authorization",
           authorizationId: "*",
           clientId: "(client_id)",
           grantId: "*",
           userId: "{current_user_id}",
-        } as AuthorizationContext)]: 'any new or existing authorization belonging to both the current user and the client with id "(client_id)"',
+        } as AuthorizationContext)]:
+          'any new or existing authorization belonging to both the current user and the client with id "(client_id)"',
 
         [createV2AuthXScopeContext({
           type: "authorization",
@@ -600,14 +620,16 @@ export function createAuthXExplanations(
           clientId: "(client_id)",
           grantId: "*",
           userId: "*",
-        } as AuthorizationContext)]: 'any new or existing authorization belonging to the client with id "(client_id)"',
+        } as AuthorizationContext)]:
+          'any new or existing authorization belonging to the client with id "(client_id)"',
         [createV2AuthXScopeContext({
           type: "authorization",
           authorizationId: "*",
           clientId: "{current_client_id}",
           grantId: "*",
           userId: "*",
-        } as AuthorizationContext)]: "any new or existing authorization belonging to the current client",
+        } as AuthorizationContext)]:
+          "any new or existing authorization belonging to the current client",
 
         [createV2AuthXScopeContext({
           type: "authorization",
@@ -615,14 +637,16 @@ export function createAuthXExplanations(
           clientId: "*",
           grantId: "*",
           userId: "(user_id)",
-        } as AuthorizationContext)]: 'any new or existing authorization belonging to the user with id "(user_id)"',
+        } as AuthorizationContext)]:
+          'any new or existing authorization belonging to the user with id "(user_id)"',
         [createV2AuthXScopeContext({
           type: "authorization",
           authorizationId: "*",
           clientId: "*",
           grantId: "*",
           userId: "{current_user_id}",
-        } as AuthorizationContext)]: "any new or existing authorization belonging to the current user",
+        } as AuthorizationContext)]:
+          "any new or existing authorization belonging to the current user",
 
         [createV2AuthXScopeContext({
           type: "authorization",

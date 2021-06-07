@@ -36,24 +36,24 @@ export const GraphQLCreateSamlAuthorityInput = new GraphQLInputObjectType({
     },
     authUrl: {
       type: new GraphQLNonNull(GraphQLString),
-      description: GraphQLSamlAuthority.getFields().matchesUsersByEmail
-        .description,
+      description:
+        GraphQLSamlAuthority.getFields().matchesUsersByEmail.description,
     },
     emailAuthorityId: {
       type: GraphQLID,
-      description: GraphQLSamlAuthority.getFields().emailAuthorityId
-        .description,
+      description:
+        GraphQLSamlAuthority.getFields().emailAuthorityId.description,
     },
     matchesUsersByEmail: {
       type: GraphQLBoolean,
-      description: GraphQLSamlAuthority.getFields().matchesUsersByEmail
-        .description,
+      description:
+        GraphQLSamlAuthority.getFields().matchesUsersByEmail.description,
       defaultValue: false,
     },
     createsUnmatchedUsers: {
       type: GraphQLBoolean,
-      description: GraphQLSamlAuthority.getFields().createsUnmatchedUsers
-        .description,
+      description:
+        GraphQLSamlAuthority.getFields().createsUnmatchedUsers.description,
       defaultValue: false,
     },
     assignsCreatedUsersToRoleIds: {
@@ -69,20 +69,21 @@ export const GraphQLCreateSamlAuthorityInput = new GraphQLInputObjectType({
     },
     serviceProviderPrivateKey: {
       type: new GraphQLNonNull(GraphQLString),
-      description: GraphQLSamlAuthority.getFields().serviceProviderPrivateKey
-        .description,
+      description:
+        GraphQLSamlAuthority.getFields().serviceProviderPrivateKey.description,
     },
     serviceProviderCertificate: {
       type: new GraphQLNonNull(GraphQLString),
-      description: GraphQLSamlAuthority.getFields().serviceProviderCertificate
-        .description,
+      description:
+        GraphQLSamlAuthority.getFields().serviceProviderCertificate.description,
     },
     identityProviderCertificates: {
       type: new GraphQLNonNull(
         new GraphQLList(new GraphQLNonNull(GraphQLString))
       ),
-      description: GraphQLSamlAuthority.getFields().identityProviderCertificates
-        .description,
+      description:
+        GraphQLSamlAuthority.getFields().identityProviderCertificates
+          .description,
     },
   }),
 });

@@ -120,7 +120,9 @@ export const updatePasswordCredentials: GraphQLFieldConfig<
                 typeof input.password === "string"
                   ? await hash(
                       input.password,
-                      (await before.authority(executor)).details.rounds
+                      (
+                        await before.authority(executor)
+                      ).details.rounds
                     )
                   : before.details.hash,
             },

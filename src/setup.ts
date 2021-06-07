@@ -14,9 +14,7 @@ import { URL } from "url";
 // This is prefixed to postgres database names.
 const prefix = "authx-test-";
 
-async function setupDatabase(
-  namespace: string
-): Promise<{
+async function setupDatabase(namespace: string): Promise<{
   database: string;
   teardownDatabase: () => Promise<void>;
 }> {

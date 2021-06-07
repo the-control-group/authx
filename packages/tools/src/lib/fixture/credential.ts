@@ -178,8 +178,7 @@ export const credential: {
           authorityUserId: "a6a0946d-eeb4-45cd-83c6-c7920f2272eb",
           userId: "a6a0946d-eeb4-45cd-83c6-c7920f2272eb",
           details: {
-            hash:
-              "$2a$04$j.W.ev.hBuIZZEKRZRpcPOmHz6SjaYtg/cO8vnBlq3lHHnFh2B1N2", // password: 123456
+            hash: "$2a$04$j.W.ev.hBuIZZEKRZRpcPOmHz6SjaYtg/cO8vnBlq3lHHnFh2B1N2", // password: 123456
           },
         },
         {
@@ -201,8 +200,7 @@ export const credential: {
           authorityUserId: "0cbd3783-0424-4f35-be51-b42f07a2a987",
           userId: "0cbd3783-0424-4f35-be51-b42f07a2a987",
           details: {
-            hash:
-              "$2a$04$VAAR33JYHsDALax5e0DO2eVkqitvn5UZOL0awZk90e7CwoxJvbrOW", // password: beets are awesome
+            hash: "$2a$04$VAAR33JYHsDALax5e0DO2eVkqitvn5UZOL0awZk90e7CwoxJvbrOW", // password: beets are awesome
           },
         },
         {
@@ -224,8 +222,7 @@ export const credential: {
           authorityUserId: "d0fc4c64-a3d6-4d97-9341-07de24439bb1",
           userId: "d0fc4c64-a3d6-4d97-9341-07de24439bb1",
           details: {
-            hash:
-              "$2a$04$9AqH/83kt7Tid5n01ysLBOs2u23S/2PUWXKf9vOzOUzyk6.kwT4R2", // password: baseball
+            hash: "$2a$04$9AqH/83kt7Tid5n01ysLBOs2u23S/2PUWXKf9vOzOUzyk6.kwT4R2", // password: baseball
           },
         },
         {
@@ -247,8 +244,7 @@ export const credential: {
           authorityUserId: "eaa9fa5e-088a-4ae2-a6ab-f120006b20a9",
           userId: "eaa9fa5e-088a-4ae2-a6ab-f120006b20a9",
           details: {
-            hash:
-              "$2a$04$EnRptYjQNyS5zo16RyuOie5QJGAuq492YhQVzoWZe96y9LYjJEU8K", // password: i love jim
+            hash: "$2a$04$EnRptYjQNyS5zo16RyuOie5QJGAuq492YhQVzoWZe96y9LYjJEU8K", // password: i love jim
           },
         },
         {
@@ -270,8 +266,7 @@ export const credential: {
           authorityUserId: "306eabbb-cc2b-4f88-be19-4bb6ec98e5c3",
           userId: "306eabbb-cc2b-4f88-be19-4bb6ec98e5c3",
           details: {
-            hash:
-              "$2a$04$bEApeUnCL0pMAZf6fNym9OO/z6SJsyN6CY773Fx1O7ZTSzgwu1pXG", // password: costa rica
+            hash: "$2a$04$bEApeUnCL0pMAZf6fNym9OO/z6SJsyN6CY773Fx1O7ZTSzgwu1pXG", // password: costa rica
           },
         },
         {
@@ -293,8 +288,7 @@ export const credential: {
           authorityUserId: "dc396449-2c7d-4a23-a159-e6415ded71d2",
           userId: "dc396449-2c7d-4a23-a159-e6415ded71d2",
           details: {
-            hash:
-              "$2a$04$GM8OJ7/Oq4H2Q.d9Yk3Ga.ffKmrUez7EYTHmEoX7jHpkDmmepl1/W", // password: you can get through today
+            hash: "$2a$04$GM8OJ7/Oq4H2Q.d9Yk3Ga.ffKmrUez7EYTHmEoX7jHpkDmmepl1/W", // password: you can get through today
           },
         },
         {
@@ -316,8 +310,7 @@ export const credential: {
           authorityUserId: "51192909-3664-44d5-be62-c6b45f0b0ee6",
           userId: "51192909-3664-44d5-be62-c6b45f0b0ee6",
           details: {
-            hash:
-              "$2a$04$cVcd/QO4.LxGRTi7g4iON.HAiFsmuKBqcIp9WvTTTWTBhbnjHMRbe", // password: whatever
+            hash: "$2a$04$cVcd/QO4.LxGRTi7g4iON.HAiFsmuKBqcIp9WvTTTWTBhbnjHMRbe", // password: whatever
           },
         },
         {
@@ -339,8 +332,7 @@ export const credential: {
           authorityUserId: "9ad4b34b-781d-44fe-ac39-9b7ac43dde21",
           userId: "9ad4b34b-781d-44fe-ac39-9b7ac43dde21",
           details: {
-            hash:
-              "$2a$04$R/nz0oaq8l4Ba0CNznZ3v.P2CRZEN/z4jN/2s1VFMPFVTQ9qQL/WO", // password: art sucks
+            hash: "$2a$04$R/nz0oaq8l4Ba0CNznZ3v.P2CRZEN/z4jN/2s1VFMPFVTQ9qQL/WO", // password: art sucks
           },
         },
         {
@@ -362,8 +354,7 @@ export const credential: {
           authorityUserId: "1691f38d-92c8-4d86-9a89-da99528cfcb5",
           userId: "1691f38d-92c8-4d86-9a89-da99528cfcb5",
           details: {
-            hash:
-              "$2a$04$SPRITTeZvQ9hI.TPkvoE0Op19wAgBlObKRQ6sz.ahjVVDFBajjFrO", // password: da8ad1c19e0f
+            hash: "$2a$04$SPRITTeZvQ9hI.TPkvoE0Op19wAgBlObKRQ6sz.ahjVVDFBajjFrO", // password: da8ad1c19e0f
           },
         },
         {
