@@ -472,8 +472,7 @@ test("Root query fields.", async (t) => {
                       description: "The password authority.",
                       rounds: 4,
                     },
-                    hash:
-                      "$2a$04$j.W.ev.hBuIZZEKRZRpcPOmHz6SjaYtg/cO8vnBlq3lHHnFh2B1N2",
+                    hash: "$2a$04$j.W.ev.hBuIZZEKRZRpcPOmHz6SjaYtg/cO8vnBlq3lHHnFh2B1N2",
                   },
                 },
               ],

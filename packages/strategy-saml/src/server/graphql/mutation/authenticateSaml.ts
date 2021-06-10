@@ -293,7 +293,8 @@ export const authenticateSaml: GraphQLFieldConfig<
               (result.user.attributes[ATTRIBUTE_FIRST_NAME] ||
                 result.user.attributes[ATTRIBUTE_LAST_NAME])
             ) {
-              userFullName = `${result.user.attributes[ATTRIBUTE_FIRST_NAME]} ${result.user.attributes[ATTRIBUTE_LAST_NAME]}`.trim();
+              userFullName =
+                `${result.user.attributes[ATTRIBUTE_FIRST_NAME]} ${result.user.attributes[ATTRIBUTE_LAST_NAME]}`.trim();
             }
 
             const newUser = await createUserByEmail(

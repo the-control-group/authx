@@ -326,15 +326,13 @@ export const createEmailCredentials: GraphQLFieldConfig<
           }
         );
 
-        const possibleAdministrationScopes = createV2CredentialAdministrationScopes(
-          realm,
-          {
+        const possibleAdministrationScopes =
+          createV2CredentialAdministrationScopes(realm, {
             type: "credential",
             authorityId: credential.authorityId,
             credentialId: id,
             userId: credential.userId,
-          }
-        );
+          });
 
         // Add administration scopes.
         const administrationResults = await Promise.allSettled(

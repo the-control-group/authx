@@ -9,42 +9,44 @@ import {
 } from "./domain";
 
 t("compare", (t) => {
-  ([
-    { before: [["a"], ["a"]], after: [["a"], ["a"]] },
-    { before: [["a"], ["b"]], after: [["a"], ["b"]] },
-    { before: [["b"], ["a"]], after: [["a"], ["b"]] },
-    { before: [[AnySingle], ["b"]], after: [[AnySingle], ["b"]] },
-    { before: [["a"], [AnySingle]], after: [[AnySingle], ["a"]] },
-    { before: [[AnyMultiple], ["b"]], after: [[AnyMultiple], ["b"]] },
-    { before: [["a"], [AnyMultiple]], after: [[AnyMultiple], ["a"]] },
-    {
-      before: [[AnyMultiple], [AnySingle]],
-      after: [[AnyMultiple], [AnySingle]],
-    },
-    {
-      before: [[AnySingle], [AnyMultiple]],
-      after: [[AnyMultiple], [AnySingle]],
-    },
-    {
-      before: [["a"], [AnySingle], [AnyMultiple]],
-      after: [[AnyMultiple], [AnySingle], ["a"]],
-    },
-    {
-      before: [["a"], [AnyMultiple], [AnySingle]],
-      after: [[AnyMultiple], [AnySingle], ["a"]],
-    },
-    {
-      before: [[AnySingle], ["a"], [AnyMultiple]],
-      after: [[AnyMultiple], [AnySingle], ["a"]],
-    },
-    {
-      before: [[AnySingle], [AnyMultiple], ["a"]],
-      after: [[AnyMultiple], [AnySingle], ["a"]],
-    },
-  ] as {
-    before: Domain[];
-    after: Domain[];
-  }[]).forEach(({ before, after }) => {
+  (
+    [
+      { before: [["a"], ["a"]], after: [["a"], ["a"]] },
+      { before: [["a"], ["b"]], after: [["a"], ["b"]] },
+      { before: [["b"], ["a"]], after: [["a"], ["b"]] },
+      { before: [[AnySingle], ["b"]], after: [[AnySingle], ["b"]] },
+      { before: [["a"], [AnySingle]], after: [[AnySingle], ["a"]] },
+      { before: [[AnyMultiple], ["b"]], after: [[AnyMultiple], ["b"]] },
+      { before: [["a"], [AnyMultiple]], after: [[AnyMultiple], ["a"]] },
+      {
+        before: [[AnyMultiple], [AnySingle]],
+        after: [[AnyMultiple], [AnySingle]],
+      },
+      {
+        before: [[AnySingle], [AnyMultiple]],
+        after: [[AnyMultiple], [AnySingle]],
+      },
+      {
+        before: [["a"], [AnySingle], [AnyMultiple]],
+        after: [[AnyMultiple], [AnySingle], ["a"]],
+      },
+      {
+        before: [["a"], [AnyMultiple], [AnySingle]],
+        after: [[AnyMultiple], [AnySingle], ["a"]],
+      },
+      {
+        before: [[AnySingle], ["a"], [AnyMultiple]],
+        after: [[AnyMultiple], [AnySingle], ["a"]],
+      },
+      {
+        before: [[AnySingle], [AnyMultiple], ["a"]],
+        after: [[AnyMultiple], [AnySingle], ["a"]],
+      },
+    ] as {
+      before: Domain[];
+      after: Domain[];
+    }[]
+  ).forEach(({ before, after }) => {
     t.deepEqual(before.sort(compare), after);
   });
 });

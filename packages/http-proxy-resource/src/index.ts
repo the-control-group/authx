@@ -258,15 +258,12 @@ export default class AuthXResourceProxy extends EventEmitter {
       const authorizationHeader = request.headers.authorization;
       if (authorizationHeader) {
         try {
-          const {
-            authorizationId,
-            authorizationSubject,
-            authorizationScopes,
-          } = await validateAuthorizationHeader(
-            this._config.authxUrl,
-            keys,
-            authorizationHeader
-          );
+          const { authorizationId, authorizationSubject, authorizationScopes } =
+            await validateAuthorizationHeader(
+              this._config.authxUrl,
+              keys,
+              authorizationHeader
+            );
 
           scopes = authorizationScopes;
           meta.authorizationId = authorizationId;
@@ -314,9 +311,8 @@ export default class AuthXResourceProxy extends EventEmitter {
       }
 
       if (behavior.requireScopes) {
-        request.headers[
-          "X-OAuth-Required-Scopes"
-        ] = behavior.requireScopes.join(" ");
+        request.headers["X-OAuth-Required-Scopes"] =
+          behavior.requireScopes.join(" ");
         response.setHeader(
           "X-OAuth-Required-Scopes",
           behavior.requireScopes.join(" ")
