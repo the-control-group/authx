@@ -46,7 +46,7 @@ export class LocalMemoryRateLimiter implements RateLimiter {
       typeof this.map[key] !== "undefined" &&
       this.map[key].length >= this.limitPerWindow
     ) {
-      throw new TooManyRequests();
+      throw new TooManyRequests(`Too many requests for key '${key}'.`);
     }
 
     if (typeof this.map[key] === "undefined") {

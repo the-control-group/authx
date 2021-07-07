@@ -27,6 +27,7 @@ test("Rate limiter over rate", async (t) => {
     limiter.limit("A");
     t.fail("4th call in the same minute should cause 429");
   } catch (ex) {
+    t.assert(ex?.message === `Too many requests for key 'A'.`);
     t.pass();
   }
 });
