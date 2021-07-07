@@ -8,8 +8,8 @@
   },
   "bugs": "https://github.com/the-control-group/authx/issues",
   "dependencies": {
-    "@authx/authx": "^3.1.0-alpha.34",
-    "@authx/strategy-password": "^3.1.0-alpha.34",
+    "@authx/authx": "^3.1.0-alpha.35",
+    "@authx/strategy-password": "^3.1.0-alpha.35",
     "@types/pg": "^7.14.11",
     "@types/uuid": "^8.3.0",
     "pg": "^8.6.0",
@@ -58,5 +58,5 @@
     "prepublishOnly": "yarn build"
   },
   "types": "dist/index.d.ts",
-  "version": "3.1.0-alpha.34"
+  "version": "3.1.0-alpha.35"
 }
