@@ -100,7 +100,7 @@ export const createUsers: GraphQLFieldConfig<
           ))
         ) {
           throw new ForbiddenError(
-            "You must be authenticated to create a user."
+            "You lack sufficient authorization to create a user."
           );
         }
 
