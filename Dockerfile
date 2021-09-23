@@ -7,6 +7,8 @@ RUN mkdir -p /workspace
 WORKDIR /workspace
 
 ADD yarn.lock /workspace/yarn.lock
+ADD .yarn /workspace/.yarn
+ADD .yarnrc.yml /workspace/.yarnrc.yml
 ADD package.json /workspace/package.json
 
 ADD packages/authx/package.json /workspace/packages/authx/package.json

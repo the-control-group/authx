@@ -57,5 +57,6 @@
       "dist/**/*.test.js"
     ],
     "timeout": "60s"
-  }
+  },
+  "packageManager": "yarn@3.0.2"
 }
