@@ -355,6 +355,7 @@ export default class AuthXResourceProxy extends EventEmitter {
       meta.message = "Request proxied." + (warning ? ` (${warning})` : "");
       meta.rule = rule;
       meta.behavior = behavior;
+      this.emit("request.proxy", meta);
       this._proxy.web(request, response, behavior.proxyOptions, (error) => {
         if (!response.headersSent) {
           const code = (error as any).code;
