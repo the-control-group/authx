@@ -75,3 +75,4 @@ jobs:
           VERSION: ${{ steps.GenerateVersion.outputs.version }}
         run: |
           scripts/run-in-packages.sh yarn npm publish --access public --tag $VERSION
+          scripts/run-in-packages.sh yarn npm publish --access public
