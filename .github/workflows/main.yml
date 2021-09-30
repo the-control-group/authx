@@ -72,5 +72,6 @@ jobs:
       - name: Publish
         env:
           YARN_NPM_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+          VERSION: ${{ steps.GenerateVersion.outputs.version }}
         run: |
           scripts/run-in-packages.sh yarn npm publish --access public --tag $VERSION
