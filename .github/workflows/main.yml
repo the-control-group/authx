@@ -75,4 +75,4 @@ jobs:
           VERSION: ${{ steps.GenerateVersion.outputs.version }}
         run: |
           echo '//registry.npmjs.org/:_authToken=${NPM_TOKEN}' > ~/.npmrc
-          scripts/run-in-packages.sh yarn publish --access public --no-git-tag-version --new-version $VERSION
+          scripts/run-in-packages.sh yarn npm publish --access public --no-git-tag-version --new-version $VERSION
