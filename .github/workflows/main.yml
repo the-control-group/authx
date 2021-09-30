@@ -71,8 +71,6 @@ jobs:
           git push origin HEAD:main
       - name: Publish
         env:
-          NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
-          VERSION: ${{ steps.GenerateVersion.outputs.version }}
+          YARN_NPM_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
         run: |
-          echo '//registry.npmjs.org/:_authToken=${NPM_TOKEN}' > ~/.npmrc
           scripts/run-in-packages.sh yarn npm publish --access public --tag $VERSION
