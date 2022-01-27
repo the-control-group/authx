@@ -48,6 +48,8 @@
     "node": ">=10"
   },
   "files": [
+    "scopes.js",
+    "scopes.d.ts",
     "dist",
     "!dist/**.test.js",
     "!dist/**.test.js.map",
