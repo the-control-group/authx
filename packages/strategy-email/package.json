@@ -29,6 +29,7 @@
     "node": ">=10"
   },
   "files": [
+    "interface.js",
     "dist",
     "!dist/**.test.js",
     "!dist/**.test.js.map",
