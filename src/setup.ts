@@ -1,5 +1,5 @@
 import Koa from "koa";
-import AuthX, { StrategyCollection } from "@authx/authx";
+import AuthX, { Config, StrategyCollection } from "@authx/authx";
 import createAuthXInterface from "@authx/interface";
 
 import email from "@authx/strategy-email";
@@ -60,7 +60,8 @@ async function setupDatabase(namespace: string): Promise<{
 }
 
 async function setupApp(
-  database: string
+  database: string,
+  configOverrides: Partial<Config> = {}
 ): Promise<{ port: number; teardownApp: () => Promise<void> }> {
   // Create a Koa app.
   const app = new Koa();
@@ -126,6 +127,7 @@ Bac/x5qiUn5fh2xM+wIDAQAB
       user: process.env.PGUSER ?? undefined,
     },
     maxRequestsPerMinute: null,
+    ...configOverrides,
   });
 
   // Apply the AuthX routes to the app.
@@ -170,11 +172,12 @@ Bac/x5qiUn5fh2xM+wIDAQAB
 }
 
 export async function setup(
-  namespace: string
+  namespace: string,
+  configOverrides: Partial<Config> = {}
 ): Promise<{ url: URL; teardown: () => Promise<void> }> {
   const { database, teardownDatabase } = await setupDatabase(namespace);
   try {
-    const { port, teardownApp } = await setupApp(database);
+    const { port, teardownApp } = await setupApp(database, configOverrides);
     return {
       url: Object.freeze(new URL(`http://localhost:${port}`)),
       async teardown(): Promise<void> {

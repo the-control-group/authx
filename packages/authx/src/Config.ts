@@ -1,6 +1,7 @@
 import { GraphQLSchema } from "graphql";
 import { StrategyCollection } from "./StrategyCollection";
 import { Strategy } from "./Strategy";
+import { InvocationRecorder } from "./InvocationRecorder";
 
 export interface Config {
   readonly realm: string;
@@ -29,6 +30,7 @@ export interface Config {
   }) => Promise<any>;
   readonly processSchema?: (schema: GraphQLSchema) => GraphQLSchema;
   readonly maxRequestsPerMinute: number | null;
+  readonly invocationRecorder?: InvocationRecorder;
 }
 
 export function assertConfig(config: Config): void {
