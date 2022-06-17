@@ -22,6 +22,10 @@ import {
   NoOpRateLimiter,
   RateLimiter,
 } from "./util/ratelimiter";
+import {
+  EagerInvocationRecorder,
+  InvocationRecorder,
+} from "./InvocationRecorder";
 
 export * from "./x";
 export * from "./errors";
@@ -39,9 +43,13 @@ type AuthXMiddleware = Middleware<any, KoaContext & { [x]: Context }>;
 export class AuthX extends Router<any, { [x]: Context }> {
   public readonly pool: Pool;
   public readonly rateLimiter: RateLimiter;
+  public readonly invocationRecorder: InvocationRecorder;
   public constructor(config: Config & IRouterOptions) {
     assertConfig(config);
     super(config);
+
+    this.invocationRecorder =
+      config.invocationRecorder ?? new EagerInvocationRecorder();
 
     const explanations = createAuthXExplanations({ [config.realm]: "AuthX" });
 
@@ -84,11 +92,16 @@ export class AuthX extends Router<any, { [x]: Context }> {
           // Invoke the authorization. Because the resource validates basic
           // tokens by making a GraphQL request here, each request can be
           // considered an invocation.
-          await authorization.invoke(tx, {
-            id: v4(),
-            format: "basic",
-            createdAt: new Date(),
-          });
+
+          this.invocationRecorder.queueAuthorizationInvocation(
+            tx,
+            authorization,
+            {
+              id: v4(),
+              format: "basic",
+              createdAt: new Date(),
+            }
+          );
         }
 
         // Bearer Token Authorization
