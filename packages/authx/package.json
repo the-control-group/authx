@@ -51,6 +51,7 @@
     "scopes.js",
     "scopes.d.ts",
     "dist",
+    "schema.sql",
     "!dist/**.test.js",
     "!dist/**.test.js.map",
     "!dist/**.test.d.ts"
