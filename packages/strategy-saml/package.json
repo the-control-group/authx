@@ -1,9 +1,9 @@
 {
   "bugs": "https://github.com/the-control-group/authx/issues",
   "dependencies": {
-    "@authx/authx": "^3.1.0-alpha.44",
-    "@authx/scopes": "^3.1.0-alpha.44",
-    "@authx/strategy-email": "^3.1.0-alpha.44",
+    "@authx/authx": "^3.1.0-alpha.45",
+    "@authx/scopes": "^3.1.0-alpha.45",
+    "@authx/strategy-email": "^3.1.0-alpha.45",
     "@types/bcrypt": "^3.0.1",
     "@types/pg": "^7.14.11",
     "@types/saml2-js": "^2.0.0",
@@ -65,5 +65,5 @@
     "prepublishOnly": "yarn build"
   },
   "types": "dist/server/index.d.ts",
-  "version": "3.1.0-alpha.44"
+  "version": "3.1.0-alpha.45"
 }
