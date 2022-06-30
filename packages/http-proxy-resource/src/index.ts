@@ -8,6 +8,8 @@ import {
   validateAuthorizationHeader,
   NotAuthorizedError,
 } from "./validateAuthorizationHeader";
+import { BearerTokenCache } from "./BearerTokenCache";
+import fetch from "node-fetch";
 export {
   validateAuthorizationHeader,
   NotAuthorizedError,
@@ -128,6 +130,14 @@ export interface Config {
   readonly readinessEndpoint?: string;
 
   /**
+   * The number of seconds for which the proxy will cache the AuthX server's
+   * token introspection response for a revocable token.
+   *
+   * @defaultValue `60`
+   */
+  readonly revocableTokenCacheDuration?: number;
+
+  /**
    * The rules the proxy will use to handle a request.
    */
   readonly rules: Rule[];
@@ -150,6 +160,7 @@ export default class AuthXResourceProxy extends EventEmitter {
   private _closed: boolean = true;
   private _closing: boolean = false;
   private _cache: AuthXKeyCache;
+  private readonly _bearerTokenCache: BearerTokenCache;
   public readonly server: Server;
 
   public constructor(config: Config) {
@@ -177,6 +188,21 @@ export default class AuthXResourceProxy extends EventEmitter {
       this._closed = true;
       this._cache.stop();
     });
+
+    const revocableTokenCacheDuration =
+      config.revocableTokenCacheDuration ?? 60;
+
+    this._bearerTokenCache = new BearerTokenCache({
+      authxUrl: config.authxUrl,
+      fetchFunc: fetch,
+      timeSource: Date.now,
+      tokenExpirySeconds: revocableTokenCacheDuration,
+      tokenRefreshSeconds: revocableTokenCacheDuration / 2,
+    });
+
+    this._bearerTokenCache.on("error", (error: Error) =>
+      this.emit("error", error)
+    );
   }
 
   private _callback = async (
@@ -262,7 +288,8 @@ export default class AuthXResourceProxy extends EventEmitter {
             await validateAuthorizationHeader(
               this._config.authxUrl,
               keys,
-              authorizationHeader
+              authorizationHeader,
+              this._bearerTokenCache
             );
 
           scopes = authorizationScopes;
@@ -275,7 +302,7 @@ export default class AuthXResourceProxy extends EventEmitter {
           } else {
             response.setHeader("Cache-Control", "no-cache");
             response.statusCode = 500;
-            meta.message = error.message;
+            meta.message = (error as any).message;
             meta.rule = rule;
             send();
 

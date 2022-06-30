@@ -16,6 +16,7 @@ let mockTarget: {
 
 let proxy: AuthXResourceProxy;
 let port: number;
+let numberOfBasicTokensProcessed: number = -1000;
 
 // const PRIVATE = `-----BEGIN RSA PRIVATE KEY-----
 // MIICXQIBAAKBgQCpLHK8iuVyzngAGvCHRyXroshmzxV3ZjDZBs0kz3mIwD0fIrUL
@@ -66,6 +67,42 @@ test.before(async () => {
           request.on("end", () => {
             if (body === '{"query": "query { keys }"}') {
               response.end(`{"data": {"keys": [${JSON.stringify(PUBLIC)}]}}`);
+            } else if (
+              request.headers.authorization
+                ?.toUpperCase()
+                ?.includes("BASIC ") &&
+              body ===
+                JSON.stringify({
+                  query: "query { viewer { token(format:BEARER) } }",
+                })
+            ) {
+              if (
+                request.headers.authorization ===
+                  "Basic ZDQ5MDIxZGUtNDllNS00MjEwLWEyYzctYzM0NzM3MDQyMTQwOkdGRk53dHZQS09QemNJZHl4=" ||
+                request.headers.authorization ===
+                  "Basic ZDQ5MDIxZGUtNDllNS00MjEwLWEyYzctYzM0NzM3MDQyMTQwOkdGRk53dHZQS09QemNJZHl4"
+              ) {
+                if (
+                  request.headers.authorization ===
+                  "Basic ZDQ5MDIxZGUtNDllNS00MjEwLWEyYzctYzM0NzM3MDQyMTQwOkdGRk53dHZQS09QemNJZHl4="
+                ) {
+                  numberOfBasicTokensProcessed++;
+                }
+                return response.end(
+                  '{"data": { "viewer": { "token": "Bearer eyJhbGciOiJSUzUxMiIsInR5cCI6IkpXVCJ9.eyJhaWQiOiI5N2FiZGVmNy0wMGMyLTQ4MjItOGQ4NS03NWRlMDM4MGI2YTAiLCJzdWIiOiIwMTU2N2EyMS01YWQyLTRkMjQtOTU3Ny1lNWVmYjI1ZmM2YjUiLCJpYXQiOjE1NTY0MDcxNzksImV4cCI6NDcxMDAwNzI0Nywic2NvcGVzIjpbInJlYWxtOnJlc291cmNlLmlkZW50aWZpZXI6YWN0aW9uIiwicmVhbG0yOioqOioiXX0.jaRosfZj_AZMGPjrO9Iu8Gmljzuq33U8FHjkF6Xm0u7p4FD6u2d1950v6EHy9RJmRdJgLSuecOLlveaSvhdQNmrjd9rXGKMlxxaXgwEOtNnhZ5QN8G5n7EATeglkJ63zzLbh_pIil_tZ-Ua2T7C_PiUfH-J71R5V-OMHxbrNmRk"}}}'
+                );
+              }
+
+              if (
+                request.headers.authorization ===
+                "Basic OWY1YmU1OTktNGU2My00NzgzLTkxNWUtNTA3OTM4ZTc0ZjFhOkdGRk53dHZQS09QemNJZHl4"
+              ) {
+                return response.end(
+                  '{"data": { "viewer": { "token": "Bearer eyJhbGciOiJSUzUxMiIsInR5cCI6IkpXVCJ9.eyJhaWQiOiJlODYyMjM4OS05MWE3LTRmODYtOTk1Ny0xNmFmYThjY2Y1NzMiLCJzdWIiOiIwMTU2N2EyMS01YWQyLTRkMjQtOTU3Ny1lNWVmYjI1ZmM2YjUiLCJpYXQiOjE1NTY0MDcxNzksImV4cCI6NDcxMDAwNzI0Nywic2NvcGVzIjpbXX0.Ac_2gr5xHw2rnDp68k2B-xeAwJjO3If-I6jFQIdAlz6cx9e--aUQlK2e9LPC2votS4e496E38p7X9VoBhxtQ5QXpSIq2-dZws4BJ2oekcU_5qzrNSqiTBh4vgPvwHcTCuWV0p_boeTNSFLWbW1AwdIt4OZbayYyoi8wvtbTOifc"}}}'
+                );
+              }
+
+              response.end('{"errors": [ "Invalid authentication" ]}');
             } else if (
               request.headers.authorization ===
               "Basic ZDQ5MDIxZGUtNDllNS00MjEwLWEyYzctYzM0NzM3MDQyMTQwOkdGRk53dHZQS09QemNJZHl4"
@@ -221,6 +258,7 @@ test.before(async () => {
   }
 
   port = address.port;
+  numberOfBasicTokensProcessed = 0;
 });
 
 test.serial("readiness depends on keys", async (t) => {
@@ -285,7 +323,7 @@ test("passthrough: invalid basic credentials", async (t) => {
         "Basic NzhkYTM4ZDAtNDZhMC00NWM2LTgyODktYTU2ZWE3NzNjZGYxOnlmVFRuQ2hNbXpZcFZBZnU=",
     },
   });
-  t.assert(result.status === 200);
+  t.deepEqual(result.status, 200);
   t.deepEqual(await result.json(), {
     url: "/passthrough",
   });
@@ -495,4 +533,18 @@ test("rewrite-url: no authorization header", async (t) => {
   t.deepEqual(await result.json(), {
     url: "/rewritten",
   });
+});
+
+test("passthrough: valid basic credentials w/ some scopes, expect revocableTokenCacheDuration to result in call being cached", async (t) => {
+  for (let i = 0; i < 3; ++i) {
+    const result = await fetch(`http://127.0.0.1:${port}/passthrough`, {
+      headers: {
+        Authorization:
+          "Basic ZDQ5MDIxZGUtNDllNS00MjEwLWEyYzctYzM0NzM3MDQyMTQwOkdGRk53dHZQS09QemNJZHl4=",
+      },
+    });
+    t.deepEqual(result.status, 200);
+  }
+
+  t.deepEqual(numberOfBasicTokensProcessed, 1);
 });
