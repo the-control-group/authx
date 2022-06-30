@@ -56,10 +56,12 @@ class BearerTokenCacheEntry {
       this.startFetchNextToken();
     }
 
-    return this.currentToken!;
+    if (!this.currentToken)
+      throw new Error("currentToken was unexpectedly null");
+    return this.currentToken;
   }
 
-  get secondsSinceLastRefresh() {
+  get secondsSinceLastRefresh(): number {
     return (
       (this.conf.timeSource() -
         (this.lastSuccessfulRefreshTime ?? this.lastRefreshRequestTime)) /
@@ -67,7 +69,7 @@ class BearerTokenCacheEntry {
     );
   }
 
-  private startFetchNextToken() {
+  private startFetchNextToken(): void {
     this.nextToken = this.fetchNextToken();
     this.nextToken.then(
       () => {
@@ -124,11 +126,12 @@ export class BearerTokenCache extends EventEmitter {
     super();
   }
 
-  getBearerToken(basicToken: string) {
+  getBearerToken(basicToken: string): Promise<string> {
     for (const k of [...this.cache.keys()]) {
+      const cacheValue = this.cache.get(k);
       if (
-        this.cache.get(k)!.secondsSinceLastRefresh >
-        this.conf.tokenExpirySeconds
+        cacheValue &&
+        cacheValue.secondsSinceLastRefresh > this.conf.tokenExpirySeconds
       ) {
         this.cache.delete(k);
       }
@@ -146,6 +149,12 @@ export class BearerTokenCache extends EventEmitter {
       );
     }
 
-    return this.cache.get(basicToken)!.token;
+    const ret = this.cache.get(basicToken)?.token;
+    if (!ret)
+      throw new Error(
+        "Unexpectedly unable to find BearerTokenCacheEntry, cache is invalid"
+      );
+
+    return ret;
   }
 }

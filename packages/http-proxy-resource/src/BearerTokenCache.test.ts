@@ -36,8 +36,8 @@ function createFetchFunc(conf: {
   };
 }
 
-function shortPause() {
-  return new Promise<void>((res, rej) => {
+function shortPause(): Promise<void> {
+  return new Promise<void>((res) => {
     setTimeout(res, 0);
   });
 }
@@ -49,7 +49,7 @@ const defaultConfig = {
 };
 
 test("successful call", async (t) => {
-  let time = 1000;
+  const time = 1000;
   const fetchFuncConf = {
     numCalls: 0,
   };
@@ -64,7 +64,7 @@ test("successful call", async (t) => {
 });
 
 test("successful pair of calls to test caching", async (t) => {
-  let time = 1000;
+  const time = 1000;
   const fetchFuncConf = {
     numCalls: 0,
   };
@@ -127,7 +127,7 @@ test("successful pair of calls 40 seconds apart", async (t) => {
 });
 
 test("successful pair of calls to different keys", async (t) => {
-  let time = 1000;
+  const time = 1000;
   const fetchFuncConf = {
     numCalls: 0,
     useOriginalToken: true,
@@ -144,7 +144,7 @@ test("successful pair of calls to different keys", async (t) => {
 });
 
 test("error calling authx", async (t) => {
-  let time = 1000;
+  const time = 1000;
   const fetchFuncConf = {
     numCalls: 0,
     throwErrorOnCalls: [1],

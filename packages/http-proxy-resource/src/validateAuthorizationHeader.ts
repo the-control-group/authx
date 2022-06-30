@@ -4,7 +4,6 @@ import {
   NotBeforeError,
   TokenExpiredError,
 } from "jsonwebtoken";
-import fetch from "node-fetch";
 import { isValidScopeLiteral } from "@authx/scopes";
 import { BearerTokenCache } from "./BearerTokenCache";
 
