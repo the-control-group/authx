@@ -124,7 +124,7 @@ export const GraphQLUser: GraphQLObjectType<User, Context> =
         ): Promise<null | Grant> {
           if (!a) return null;
           const grant = await user.grant(executor, args.clientId);
-          return grant && grant.isAccessibleBy(realm, a, executor)
+          return grant && (await grant.isAccessibleBy(realm, a, executor))
             ? grant
             : null;
 
