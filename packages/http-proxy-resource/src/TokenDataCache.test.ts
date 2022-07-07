@@ -232,6 +232,9 @@ test("successful first call but revoke on 401", async (t) => {
     timeSource: () => time,
   });
 
+  let numErrors = 0;
+  cache.on("error", () => numErrors++);
+
   t.deepEqual(await cache.getToken("BASIC abc"), FIRST_TOKEN);
   time += 35_000;
   t.deepEqual(await cache.getToken("BASIC abc"), FIRST_TOKEN);
@@ -240,7 +243,10 @@ test("successful first call but revoke on 401", async (t) => {
   try {
     await cache.getToken("BASIC abc");
     t.fail();
-  } catch (ex) {}
+  } catch (ex) {
+    t.deepEqual(numErrors, 0);
+    t.assert(true);
+  }
 });
 
 test("successful first call but revoke on blank access", async (t) => {
