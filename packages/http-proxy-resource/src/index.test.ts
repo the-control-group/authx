@@ -16,6 +16,7 @@ let mockTarget: {
 
 let proxy: AuthXResourceProxy;
 let port: number;
+let numberOfBasicTokensProcessed: number = -1000;
 
 // const PRIVATE = `-----BEGIN RSA PRIVATE KEY-----
 // MIICXQIBAAKBgQCpLHK8iuVyzngAGvCHRyXroshmzxV3ZjDZBs0kz3mIwD0fIrUL
@@ -66,6 +67,42 @@ test.before(async () => {
           request.on("end", () => {
             if (body === '{"query": "query { keys }"}') {
               response.end(`{"data": {"keys": [${JSON.stringify(PUBLIC)}]}}`);
+            } else if (
+              request.headers.authorization
+                ?.toUpperCase()
+                ?.includes("BASIC ") &&
+              body ===
+                JSON.stringify({
+                  query: "query { viewer { access id user { id } } }",
+                })
+            ) {
+              if (
+                request.headers.authorization ===
+                  "Basic ZDQ5MDIxZGUtNDllNS00MjEwLWEyYzctYzM0NzM3MDQyMTQwOkdGRk53dHZQS09QemNJZHl4=" ||
+                request.headers.authorization ===
+                  "Basic ZDQ5MDIxZGUtNDllNS00MjEwLWEyYzctYzM0NzM3MDQyMTQwOkdGRk53dHZQS09QemNJZHl4"
+              ) {
+                if (
+                  request.headers.authorization ===
+                  "Basic ZDQ5MDIxZGUtNDllNS00MjEwLWEyYzctYzM0NzM3MDQyMTQwOkdGRk53dHZQS09QemNJZHl4="
+                ) {
+                  numberOfBasicTokensProcessed++;
+                }
+                return response.end(
+                  '{"data": { "viewer": { "id": "I1", "access": ["realm:resource.identifier:action","realm2:**:*"], "user": {"id": "U1"} }}}'
+                );
+              }
+
+              if (
+                request.headers.authorization ===
+                "Basic OWY1YmU1OTktNGU2My00NzgzLTkxNWUtNTA3OTM4ZTc0ZjFhOkdGRk53dHZQS09QemNJZHl4"
+              ) {
+                return response.end(
+                  '{"data": { "viewer": { "id": "I1", "access": [], "user": {"id": "U1"} }}}'
+                );
+              }
+
+              response.end('{"errors": [ "Invalid authentication" ]}');
             } else if (
               request.headers.authorization ===
               "Basic ZDQ5MDIxZGUtNDllNS00MjEwLWEyYzctYzM0NzM3MDQyMTQwOkdGRk53dHZQS09QemNJZHl4"
@@ -221,6 +258,7 @@ test.before(async () => {
   }
 
   port = address.port;
+  numberOfBasicTokensProcessed = 0;
 });
 
 test.serial("readiness depends on keys", async (t) => {
@@ -285,7 +323,7 @@ test("passthrough: invalid basic credentials", async (t) => {
         "Basic NzhkYTM4ZDAtNDZhMC00NWM2LTgyODktYTU2ZWE3NzNjZGYxOnlmVFRuQ2hNbXpZcFZBZnU=",
     },
   });
-  t.assert(result.status === 200);
+  t.deepEqual(result.status, 200);
   t.deepEqual(await result.json(), {
     url: "/passthrough",
   });
@@ -495,4 +533,18 @@ test("rewrite-url: no authorization header", async (t) => {
   t.deepEqual(await result.json(), {
     url: "/rewritten",
   });
+});
+
+test("passthrough: valid basic credentials w/ some scopes, expect revocableTokenCacheDuration to result in call being cached", async (t) => {
+  for (let i = 0; i < 3; ++i) {
+    const result = await fetch(`http://127.0.0.1:${port}/passthrough`, {
+      headers: {
+        Authorization:
+          "Basic ZDQ5MDIxZGUtNDllNS00MjEwLWEyYzctYzM0NzM3MDQyMTQwOkdGRk53dHZQS09QemNJZHl4=",
+      },
+    });
+    t.deepEqual(result.status, 200);
+  }
+
+  t.deepEqual(numberOfBasicTokensProcessed, 1);
 });
