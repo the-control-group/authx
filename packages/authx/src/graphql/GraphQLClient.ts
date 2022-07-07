@@ -83,7 +83,7 @@ export const GraphQLClient = new GraphQLObjectType<Client, Context>({
       ): Promise<null | Grant> {
         if (!a) return null;
         const grant = await client.grant(executor, args.userId);
-        return grant && grant.isAccessibleBy(realm, a, executor) ? grant : null;
+        return grant && (await grant.isAccessibleBy(realm, a, executor)) ? grant : null;
       },
     },
   }),
