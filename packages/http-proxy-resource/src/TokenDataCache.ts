@@ -18,7 +18,7 @@ interface FetchResponse {
   json(): Promise<any>;
 }
 
-interface BearerTokenCacheConfig {
+interface TokenDataCacheConfig {
   fetchFunc: FetchFunction;
   timeSource: () => number;
   tokenRefreshSeconds: number;
@@ -26,25 +26,33 @@ interface BearerTokenCacheConfig {
   authxUrl: string;
 }
 
+export interface TokenData {
+  access: string[];
+  id: string;
+  user: {
+    id: string;
+  };
+}
+
 class NoTokenError extends Error {}
 
-class BearerTokenCacheEntry {
+class TokenDataCacheEntry {
   private lastRefreshRequestTime: number;
-  private lastSuccessfulRefreshTime: number | null = null;
+  private lastValidRefreshTime: number | null = null;
   private forceRefresh: boolean = false;
 
-  private currentToken: Promise<string> | null = null;
-  private nextToken: Promise<string> | null = null;
+  private currentToken: Promise<TokenData> | null = null;
+  private nextToken: Promise<TokenData> | null = null;
 
   constructor(
     private basicToken: string,
-    private conf: BearerTokenCacheConfig,
+    private conf: TokenDataCacheConfig,
     private errorHandler: (err: Error) => void
   ) {
     this.lastRefreshRequestTime = Date.now();
   }
 
-  get token(): Promise<string> {
+  get token(): Promise<TokenData> {
     if (this.currentToken === null) {
       this.startFetchNextToken();
       this.currentToken = this.nextToken;
@@ -64,7 +72,7 @@ class BearerTokenCacheEntry {
   get secondsSinceLastRefresh(): number {
     return (
       (this.conf.timeSource() -
-        (this.lastSuccessfulRefreshTime ?? this.lastRefreshRequestTime)) /
+        (this.lastValidRefreshTime ?? this.lastRefreshRequestTime)) /
       1_000
     );
   }
@@ -74,17 +82,23 @@ class BearerTokenCacheEntry {
     this.nextToken.then(
       () => {
         this.currentToken = this.nextToken;
-        this.lastSuccessfulRefreshTime = this.conf.timeSource();
+        this.lastValidRefreshTime = this.conf.timeSource();
       },
       (err) => {
+        if (err instanceof NoTokenError) {
+          // This error is cachable, so replace the cache with it
+          this.currentToken = this.nextToken;
+          this.lastValidRefreshTime = this.conf.timeSource();
+        } else {
+          this.forceRefresh = true;
+        }
         this.errorHandler(err);
-        this.forceRefresh = true;
       }
     );
     this.lastRefreshRequestTime = this.conf.timeSource();
   }
 
-  private async fetchNextToken(): Promise<string> {
+  private async fetchNextToken(): Promise<TokenData> {
     const response = await this.conf.fetchFunc(
       `${this.conf.authxUrl}/graphql`,
       {
@@ -94,39 +108,39 @@ class BearerTokenCacheEntry {
         },
         method: "POST",
         body: JSON.stringify({
-          query: "query { viewer { token(format:BEARER) } }",
+          query: "query { viewer { access id user { id } } }",
         }),
       }
     );
 
+    if (![200, 401].includes(response.status)) {
+      throw new Error(`Unexpected response code from AuthX ${response.status}`);
+    }
+
     const responseJson = await response.json();
 
-    const ret = responseJson?.data?.viewer?.token;
+    const ret = responseJson?.data?.viewer;
 
-    if (!ret) {
-      if ([200, 401].includes(response.status)) {
-        // This almost certainly means that the user passed an invalid BASIC token
-        // Since this is not really an error, we handle this case specially
-        throw new NoTokenError(`Response did not include a valid token.`);
-      } else {
-        throw new Error(
-          `Unexpected response code from AuthX ${response.status}`
-        );
-      }
-    }
+    if (!ret) throw new NoTokenError("Response did not include a valid token");
+    if (!Array.isArray(ret?.access))
+      throw new NoTokenError("Response did not include scopes");
+    if (!ret?.id)
+      throw new NoTokenError("Response did not include an authorization id");
+    if (!ret?.user?.id)
+      throw new NoTokenError("Response did not include a user id");
 
     return ret;
   }
 }
 
-export class BearerTokenCache extends EventEmitter {
-  private cache = new Map<string, BearerTokenCacheEntry>();
+export class TokenDataCache extends EventEmitter {
+  private cache = new Map<string, TokenDataCacheEntry>();
 
-  constructor(private conf: BearerTokenCacheConfig) {
+  constructor(private conf: TokenDataCacheConfig) {
     super();
   }
 
-  getBearerToken(basicToken: string): Promise<string> {
+  getToken(basicToken: string): Promise<TokenData> {
     for (const k of [...this.cache.keys()]) {
       const cacheValue = this.cache.get(k);
       if (
@@ -140,7 +154,7 @@ export class BearerTokenCache extends EventEmitter {
     if (!this.cache.has(basicToken)) {
       this.cache.set(
         basicToken,
-        new BearerTokenCacheEntry(basicToken, this.conf, (err) => {
+        new TokenDataCacheEntry(basicToken, this.conf, (err) => {
           // Only trigger the error event on truly unexpected errors. Other cases are simply handled as auth failures
           if (!(err instanceof NoTokenError)) {
             this.emit("error", err);
@@ -152,7 +166,7 @@ export class BearerTokenCache extends EventEmitter {
     const ret = this.cache.get(basicToken)?.token;
     if (!ret)
       throw new Error(
-        "Unexpectedly unable to find BearerTokenCacheEntry, cache is invalid"
+        "Unexpectedly unable to find TokenDataCacheEntry, cache is invalid"
       );
 
     return ret;

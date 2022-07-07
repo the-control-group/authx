@@ -5,7 +5,7 @@ import {
   TokenExpiredError,
 } from "jsonwebtoken";
 import { isValidScopeLiteral } from "@authx/scopes";
-import { BearerTokenCache } from "./BearerTokenCache";
+import { TokenDataCache } from "./TokenDataCache";
 
 const BEARER = /^BEARER\s+/i;
 const BASIC = /^BASIC\s+/i;
@@ -16,7 +16,7 @@ export async function validateAuthorizationHeader(
   authxUrl: string,
   keys: ReadonlyArray<string>,
   authorizationHeader: string,
-  bearerTokenCache: BearerTokenCache
+  tokenDataCache: TokenDataCache
 ): Promise<{
   authorizationId: string;
   authorizationSubject: string;
@@ -24,12 +24,16 @@ export async function validateAuthorizationHeader(
 }> {
   if (BASIC.test(authorizationHeader)) {
     try {
-      authorizationHeader = await bearerTokenCache.getBearerToken(
-        authorizationHeader
-      );
+      const token = await tokenDataCache.getToken(authorizationHeader);
+
+      return {
+        authorizationId: token.id,
+        authorizationSubject: token.user.id,
+        authorizationScopes: token.access,
+      };
     } catch (err) {
       throw new NotAuthorizedError(
-        "The submitted basic token could not be exchanged for a bearer token."
+        "The submitted basic token was rejected by AuthX"
       );
     }
   }

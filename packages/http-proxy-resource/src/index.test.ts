@@ -73,7 +73,7 @@ test.before(async () => {
                 ?.includes("BASIC ") &&
               body ===
                 JSON.stringify({
-                  query: "query { viewer { token(format:BEARER) } }",
+                  query: "query { viewer { access id user { id } } }",
                 })
             ) {
               if (
@@ -89,7 +89,7 @@ test.before(async () => {
                   numberOfBasicTokensProcessed++;
                 }
                 return response.end(
-                  '{"data": { "viewer": { "token": "Bearer eyJhbGciOiJSUzUxMiIsInR5cCI6IkpXVCJ9.eyJhaWQiOiI5N2FiZGVmNy0wMGMyLTQ4MjItOGQ4NS03NWRlMDM4MGI2YTAiLCJzdWIiOiIwMTU2N2EyMS01YWQyLTRkMjQtOTU3Ny1lNWVmYjI1ZmM2YjUiLCJpYXQiOjE1NTY0MDcxNzksImV4cCI6NDcxMDAwNzI0Nywic2NvcGVzIjpbInJlYWxtOnJlc291cmNlLmlkZW50aWZpZXI6YWN0aW9uIiwicmVhbG0yOioqOioiXX0.jaRosfZj_AZMGPjrO9Iu8Gmljzuq33U8FHjkF6Xm0u7p4FD6u2d1950v6EHy9RJmRdJgLSuecOLlveaSvhdQNmrjd9rXGKMlxxaXgwEOtNnhZ5QN8G5n7EATeglkJ63zzLbh_pIil_tZ-Ua2T7C_PiUfH-J71R5V-OMHxbrNmRk"}}}'
+                  '{"data": { "viewer": { "id": "I1", "access": ["realm:resource.identifier:action","realm2:**:*"], "user": {"id": "U1"} }}}'
                 );
               }
 
@@ -98,7 +98,7 @@ test.before(async () => {
                 "Basic OWY1YmU1OTktNGU2My00NzgzLTkxNWUtNTA3OTM4ZTc0ZjFhOkdGRk53dHZQS09QemNJZHl4"
               ) {
                 return response.end(
-                  '{"data": { "viewer": { "token": "Bearer eyJhbGciOiJSUzUxMiIsInR5cCI6IkpXVCJ9.eyJhaWQiOiJlODYyMjM4OS05MWE3LTRmODYtOTk1Ny0xNmFmYThjY2Y1NzMiLCJzdWIiOiIwMTU2N2EyMS01YWQyLTRkMjQtOTU3Ny1lNWVmYjI1ZmM2YjUiLCJpYXQiOjE1NTY0MDcxNzksImV4cCI6NDcxMDAwNzI0Nywic2NvcGVzIjpbXX0.Ac_2gr5xHw2rnDp68k2B-xeAwJjO3If-I6jFQIdAlz6cx9e--aUQlK2e9LPC2votS4e496E38p7X9VoBhxtQ5QXpSIq2-dZws4BJ2oekcU_5qzrNSqiTBh4vgPvwHcTCuWV0p_boeTNSFLWbW1AwdIt4OZbayYyoi8wvtbTOifc"}}}'
+                  '{"data": { "viewer": { "id": "I1", "access": [], "user": {"id": "U1"} }}}'
                 );
               }
 

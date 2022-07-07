@@ -8,7 +8,7 @@ import {
   validateAuthorizationHeader,
   NotAuthorizedError,
 } from "./validateAuthorizationHeader";
-import { BearerTokenCache } from "./BearerTokenCache";
+import { TokenDataCache } from "./TokenDataCache";
 import fetch from "node-fetch";
 export {
   validateAuthorizationHeader,
@@ -160,7 +160,7 @@ export default class AuthXResourceProxy extends EventEmitter {
   private _closed: boolean = true;
   private _closing: boolean = false;
   private _cache: AuthXKeyCache;
-  private readonly _bearerTokenCache: BearerTokenCache;
+  private readonly _tokenDataCache: TokenDataCache;
   public readonly server: Server;
 
   public constructor(config: Config) {
@@ -192,7 +192,7 @@ export default class AuthXResourceProxy extends EventEmitter {
     const revocableTokenCacheDuration =
       config.revocableTokenCacheDuration ?? 60;
 
-    this._bearerTokenCache = new BearerTokenCache({
+    this._tokenDataCache = new TokenDataCache({
       authxUrl: config.authxUrl,
       fetchFunc: fetch,
       timeSource: Date.now,
@@ -200,7 +200,7 @@ export default class AuthXResourceProxy extends EventEmitter {
       tokenRefreshSeconds: revocableTokenCacheDuration / 2,
     });
 
-    this._bearerTokenCache.on("error", (error: Error) =>
+    this._tokenDataCache.on("error", (error: Error) =>
       this.emit("error", error)
     );
   }
@@ -289,7 +289,7 @@ export default class AuthXResourceProxy extends EventEmitter {
               this._config.authxUrl,
               keys,
               authorizationHeader,
-              this._bearerTokenCache
+              this._tokenDataCache
             );
 
           scopes = authorizationScopes;
