@@ -57,7 +57,7 @@ export function Default({
               id
               name
             }
-          }  
+          }
         }
       `
     }
@@ -131,7 +131,7 @@ export function Default({
       // Clear the authorization from our cookie store.
       clearAuthorization();
     } catch (error) {
-      setErrors([error.message]);
+      setErrors([(error as any).message]);
       return;
     } finally {
       setOperating(false);

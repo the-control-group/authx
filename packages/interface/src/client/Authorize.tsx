@@ -522,7 +522,7 @@ export function Authorize({
       setSpeculativeGrantId(v4());
       window.location.replace(url.href);
     } catch (error) {
-      setErrors([error.message]);
+      setErrors([(error as any).message]);
       return;
     } finally {
       setOperating(false);
