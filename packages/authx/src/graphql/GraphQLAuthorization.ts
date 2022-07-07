@@ -37,7 +37,7 @@ export const GraphQLAuthorization: GraphQLObjectType<Authorization, Context> =
         ): Promise<null | Grant> {
           if (!a) return null;
           const grant = await authorization.grant(executor);
-          return grant && grant.isAccessibleBy(realm, a, executor)
+          return grant && (await grant.isAccessibleBy(realm, a, executor))
             ? grant
             : null;
         },
@@ -52,7 +52,7 @@ export const GraphQLAuthorization: GraphQLObjectType<Authorization, Context> =
           if (!a) return null;
 
           const user = await authorization.user(executor);
-          return user.isAccessibleBy(realm, a, executor) ? user : null;
+          return (await user.isAccessibleBy(realm, a, executor)) ? user : null;
         },
       },
       secret: {
