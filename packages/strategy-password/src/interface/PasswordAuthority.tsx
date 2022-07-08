@@ -141,7 +141,7 @@ export function PasswordAuthority({
 
       // Set the authorization.
       setAuthorization({ id: authorization.id, secret: authorization.secret });
-    } catch (error:any) {
+    } catch (error: any) {
       setErrors([error.message]);
       return;
     } finally {
