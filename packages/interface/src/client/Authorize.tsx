@@ -521,8 +521,8 @@ export function Authorize({
       setRedirecting(true);
       setSpeculativeGrantId(v4());
       window.location.replace(url.href);
-    } catch (error) {
-      setErrors([(error as any).message]);
+    } catch (error:any) {
+      setErrors([error.message]);
       return;
     } finally {
       setOperating(false);

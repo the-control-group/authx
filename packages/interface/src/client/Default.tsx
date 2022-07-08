@@ -130,8 +130,8 @@ export function Default({
 
       // Clear the authorization from our cookie store.
       clearAuthorization();
-    } catch (error) {
-      setErrors([(error as any).message]);
+    } catch (error:any) {
+      setErrors([error.message]);
       return;
     } finally {
       setOperating(false);
