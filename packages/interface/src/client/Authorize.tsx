@@ -204,7 +204,7 @@ function Checkbox({
         </div>
       </div>
       <input
-        onChange={useCallback((e) => onChange(e.currentTarget.checked), [
+        onChange={useCallback((e:React.ChangeEvent<HTMLInputElement>) => onChange(e.currentTarget.checked), [
           onChange,
         ])}
         onFocus={useCallback(() => setHasFocus(true), [setHasFocus])}
@@ -521,7 +521,7 @@ export function Authorize({
       setRedirecting(true);
       setSpeculativeGrantId(v4());
       window.location.replace(url.href);
-    } catch (error) {
+    } catch (error:any) {
       setErrors([error.message]);
       return;
     } finally {

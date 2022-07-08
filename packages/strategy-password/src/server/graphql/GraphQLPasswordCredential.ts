@@ -40,7 +40,7 @@ export const GraphQLPasswordCredential = new GraphQLObjectType<
       ): Promise<null | User> {
         if (!a) return null;
         const user = await credential.user(executor);
-        return user.isAccessibleBy(realm, a, executor) ? user : null;
+        return (await user.isAccessibleBy(realm, a, executor)) ? user : null;
       },
     },
     authority: {

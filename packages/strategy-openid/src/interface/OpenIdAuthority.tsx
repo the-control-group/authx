@@ -117,7 +117,7 @@ export function OpenIdAuthority({
           id: authorization.id,
           secret: authorization.secret,
         });
-      } catch (error) {
+      } catch (error: any) {
         setErrors([error.message]);
         return;
       } finally {

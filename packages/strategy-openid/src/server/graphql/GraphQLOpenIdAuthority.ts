@@ -135,7 +135,7 @@ export const GraphQLOpenIdAuthority = new GraphQLObjectType<
 
         const emailAuthority = await authority.emailAuthority(executor);
         return emailAuthority &&
-          emailAuthority.isAccessibleBy(realm, a, executor)
+          (await emailAuthority.isAccessibleBy(realm, a, executor))
           ? emailAuthority
           : null;
       },
