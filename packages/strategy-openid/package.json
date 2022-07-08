@@ -5,8 +5,8 @@
   },
   "bugs": "https://github.com/the-control-group/authx/issues",
   "dependencies": {
-    "@authx/scopes": "^3.1.0-alpha.46",
-    "@authx/strategy-email": "^3.1.0-alpha.46",
+    "@authx/scopes": "^3.1.0-alpha.47",
+    "@authx/strategy-email": "^3.1.0-alpha.47",
     "@types/pg": "^7.14.11",
     "@types/uuid": "^8.3.0",
     "graphql": "15.5.0",
@@ -15,7 +15,7 @@
   },
   "description": "",
   "devDependencies": {
-    "@authx/authx": "^3.1.0-alpha.46",
+    "@authx/authx": "^3.1.0-alpha.47",
     "@typescript-eslint/eslint-plugin": "^4.6.1",
     "@typescript-eslint/parser": "^4.6.1",
     "ava": "^3.5.2",
@@ -64,5 +64,5 @@
     "prepublishOnly": "yarn build"
   },
   "types": "dist/server/index.d.ts",
-  "version": "3.1.0-alpha.46"
+  "version": "3.1.0-alpha.47"
 }
