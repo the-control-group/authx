@@ -66,7 +66,7 @@ export function Default({
   const displayName = cacheValue?.data?.viewer?.user?.name;
 
   // API and errors
-  const graphql = useContext<GraphQL>(GraphQLContext);
+  const graphql = useContext<GraphQL>(GraphQLContext as any);
   const [operating, setOperating] = useState<boolean>(false);
   const [errors, setErrors] = useState<string[]>([]);
   async function onSubmit(e: FormEvent): Promise<void> {
