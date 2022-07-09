@@ -5,11 +5,11 @@ __metadata:
   version: 4
   cacheKey: 8
 
-"@authx/authx@^3.1.0-alpha.46, @authx/authx@workspace:packages/authx":
+"@authx/authx@^3.1.0-alpha.47, @authx/authx@workspace:packages/authx":
   version: 0.0.0-use.local
   resolution: "@authx/authx@workspace:packages/authx"
   dependencies:
-    "@authx/scopes": ^3.1.0-alpha.46
+    "@authx/scopes": ^3.1.0-alpha.47
     "@opencensus/core": ^0.0.22
     "@types/auth-header": ^1.0.1
     "@types/graphql-api-koa": ^2.0.2
@@ -82,7 +82,7 @@ __metadata:
   version: 0.0.0-use.local
   resolution: "@authx/http-proxy-resource@workspace:packages/http-proxy-resource"
   dependencies:
-    "@authx/scopes": ^3.1.0-alpha.46
+    "@authx/scopes": ^3.1.0-alpha.47
     "@types/http-proxy": ^1.17.5
     "@types/jsonwebtoken": ^8.5.1
     "@types/node-fetch": ^2.5.10
@@ -105,7 +105,7 @@ __metadata:
   version: 0.0.0-use.local
   resolution: "@authx/http-proxy-web@workspace:packages/http-proxy-web"
   dependencies:
-    "@authx/scopes": ^3.1.0-alpha.46
+    "@authx/scopes": ^3.1.0-alpha.47
     "@types/cookies": ^0.7.6
     "@types/http-proxy": ^1.17.5
     "@types/jsonwebtoken": ^8.5.1
@@ -130,8 +130,8 @@ __metadata:
   version: 0.0.0-use.local
   resolution: "@authx/interface@workspace:packages/interface"
   dependencies:
-    "@authx/authx": ^3.1.0-alpha.46
-    "@authx/scopes": ^3.1.0-alpha.46
+    "@authx/authx": ^3.1.0-alpha.47
+    "@authx/scopes": ^3.1.0-alpha.47
     "@types/graphql-react": ^8.1.1
     "@types/html-webpack-plugin": ^3.2.5
     "@types/memory-fs": ^0.3.3
@@ -162,7 +162,7 @@ __metadata:
   languageName: unknown
   linkType: soft
 
-"@authx/scopes@^3.1.0-alpha.46, @authx/scopes@workspace:packages/scopes":
+"@authx/scopes@^3.1.0-alpha.47, @authx/scopes@workspace:packages/scopes":
   version: 0.0.0-use.local
   resolution: "@authx/scopes@workspace:packages/scopes"
   dependencies:
@@ -178,13 +178,16 @@ __metadata:
   languageName: unknown
   linkType: soft
 
-"@authx/strategy-email@^3.1.0-alpha.46, @authx/strategy-email@workspace:packages/strategy-email":
+"@authx/strategy-email@^3.1.0-alpha.47, @authx/strategy-email@workspace:packages/strategy-email":
   version: 0.0.0-use.local
   resolution: "@authx/strategy-email@workspace:packages/strategy-email"
   dependencies:
-    "@authx/authx": ^3.1.0-alpha.46
-    "@authx/scopes": ^3.1.0-alpha.46
+    "@authx/authx": ^3.1.0-alpha.47
+    "@authx/scopes": ^3.1.0-alpha.47
+    "@types/graphql-react": ^8.1.1
     "@types/pg": ^7.14.11
+    "@types/react": ^18.0.0
+    "@types/react-dom": ^18.0.0
     "@types/uuid": ^8.3.0
     "@typescript-eslint/eslint-plugin": ^4.6.1
     "@typescript-eslint/parser": ^4.6.1
@@ -193,9 +196,12 @@ __metadata:
     eslint-config-prettier: ^8.2.0
     eslint-plugin-prettier: ^3.1.1
     graphql: 15.5.0
+    graphql-react: ^12.0.1
     nodemon: ^2.0.2
     pg: ^8.6.0
     prettier: ^2.0.2
+    react: ^18.0.0
+    react-dom: ^18.0.0
     typescript: ^4.0.5
     uuid: ^8.3.2
   peerDependencies:
@@ -207,10 +213,13 @@ __metadata:
   version: 0.0.0-use.local
   resolution: "@authx/strategy-openid@workspace:packages/strategy-openid"
   dependencies:
-    "@authx/authx": ^3.1.0-alpha.46
-    "@authx/scopes": ^3.1.0-alpha.46
-    "@authx/strategy-email": ^3.1.0-alpha.46
+    "@authx/authx": ^3.1.0-alpha.47
+    "@authx/scopes": ^3.1.0-alpha.47
+    "@authx/strategy-email": ^3.1.0-alpha.47
+    "@types/graphql-react": ^8.1.1
     "@types/pg": ^7.14.11
+    "@types/react": ^18.0.0
+    "@types/react-dom": ^18.0.0
     "@types/uuid": ^8.3.0
     "@typescript-eslint/eslint-plugin": ^4.6.1
     "@typescript-eslint/parser": ^4.6.1
@@ -219,9 +228,12 @@ __metadata:
     eslint-config-prettier: ^8.2.0
     eslint-plugin-prettier: ^3.1.1
     graphql: 15.5.0
+    graphql-react: ^12.0.1
     nodemon: ^2.0.2
     pg: ^8.6.0
     prettier: ^2.0.2
+    react: ^18.0.0
+    react-dom: ^18.0.0
     typescript: ^4.0.5
     uuid: ^8.3.2
   peerDependencies:
@@ -230,14 +242,17 @@ __metadata:
   languageName: unknown
   linkType: soft
 
-"@authx/strategy-password@^3.1.0-alpha.46, @authx/strategy-password@workspace:packages/strategy-password":
+"@authx/strategy-password@^3.1.0-alpha.47, @authx/strategy-password@workspace:packages/strategy-password":
   version: 0.0.0-use.local
   resolution: "@authx/strategy-password@workspace:packages/strategy-password"
   dependencies:
-    "@authx/authx": ^3.1.0-alpha.46
-    "@authx/scopes": ^3.1.0-alpha.46
+    "@authx/authx": ^3.1.0-alpha.47
+    "@authx/scopes": ^3.1.0-alpha.47
     "@types/bcrypt": ^3.0.1
+    "@types/graphql-react": ^8.1.1
     "@types/pg": ^7.14.11
+    "@types/react": ^18.0.0
+    "@types/react-dom": ^18.0.0
     "@types/uuid": ^8.3.0
     "@typescript-eslint/eslint-plugin": ^4.6.1
     "@typescript-eslint/parser": ^4.6.1
@@ -247,9 +262,12 @@ __metadata:
     eslint-config-prettier: ^8.2.0
     eslint-plugin-prettier: ^3.1.1
     graphql: 15.5.0
+    graphql-react: ^12.0.1
     nodemon: ^2.0.2
     pg: ^8.6.0
     prettier: ^2.0.2
+    react: ^18.0.0
+    react-dom: ^18.0.0
     typescript: ^4.0.5
     uuid: ^8.3.2
   peerDependencies:
@@ -261,11 +279,14 @@ __metadata:
   version: 0.0.0-use.local
   resolution: "@authx/strategy-saml@workspace:packages/strategy-saml"
   dependencies:
-    "@authx/authx": ^3.1.0-alpha.46
-    "@authx/scopes": ^3.1.0-alpha.46
-    "@authx/strategy-email": ^3.1.0-alpha.46
+    "@authx/authx": ^3.1.0-alpha.47
+    "@authx/scopes": ^3.1.0-alpha.47
+    "@authx/strategy-email": ^3.1.0-alpha.47
     "@types/bcrypt": ^3.0.1
+    "@types/graphql-react": ^8.1.1
     "@types/pg": ^7.14.11
+    "@types/react": ^18.0.0
+    "@types/react-dom": ^18.0.0
     "@types/saml2-js": ^2.0.0
     "@types/uuid": ^8.3.0
     "@typescript-eslint/eslint-plugin": ^4.6.1
@@ -276,11 +297,14 @@ __metadata:
     eslint-config-prettier: ^8.2.0
     eslint-plugin-prettier: ^3.1.1
     graphql: 15.5.0
+    graphql-react: ^12.0.1
     koa-body: ^4.2.0
     koa-router: ^10.0.0
     nodemon: ^2.0.2
     pg: ^8.6.0
     prettier: ^2.0.2
+    react: ^18.0.0
+    react-dom: ^18.0.0
     saml2-js: ^3.0.1
     typescript: ^4.0.5
     uuid: ^8.3.2
@@ -293,8 +317,8 @@ __metadata:
   version: 0.0.0-use.local
   resolution: "@authx/tools@workspace:packages/tools"
   dependencies:
-    "@authx/authx": ^3.1.0-alpha.46
-    "@authx/strategy-password": ^3.1.0-alpha.46
+    "@authx/authx": ^3.1.0-alpha.47
+    "@authx/strategy-password": ^3.1.0-alpha.47
     "@types/pg": ^7.14.11
     "@types/uuid": ^8.3.0
     "@typescript-eslint/eslint-plugin": ^4.6.1
