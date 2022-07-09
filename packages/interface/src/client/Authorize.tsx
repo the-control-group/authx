@@ -396,7 +396,7 @@ export function Authorize({
   );
 
   // API and errors
-  const graphql = useContext<GraphQL>(GraphQLContext);
+  const graphql = useContext<GraphQL>(GraphQLContext as any);
   const [operating, setOperating] = useState<null | boolean>(null);
   const [redirecting, setRedirecting] = useState<boolean>(false);
   const [errors, setErrors] = useState<string[]>([]);

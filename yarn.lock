@@ -5,11 +5,11 @@ __metadata:
   version: 4
   cacheKey: 8
 
-"@authx/authx@^3.1.0-alpha.47, @authx/authx@workspace:packages/authx":
+"@authx/authx@^3.1.0-alpha.48, @authx/authx@workspace:packages/authx":
   version: 0.0.0-use.local
   resolution: "@authx/authx@workspace:packages/authx"
   dependencies:
-    "@authx/scopes": ^3.1.0-alpha.47
+    "@authx/scopes": ^3.1.0-alpha.48
     "@opencensus/core": ^0.0.22
     "@types/auth-header": ^1.0.1
     "@types/graphql-api-koa": ^2.0.2
@@ -82,7 +82,7 @@ __metadata:
   version: 0.0.0-use.local
   resolution: "@authx/http-proxy-resource@workspace:packages/http-proxy-resource"
   dependencies:
-    "@authx/scopes": ^3.1.0-alpha.47
+    "@authx/scopes": ^3.1.0-alpha.48
     "@types/http-proxy": ^1.17.5
     "@types/jsonwebtoken": ^8.5.1
     "@types/node-fetch": ^2.5.10
@@ -105,7 +105,7 @@ __metadata:
   version: 0.0.0-use.local
   resolution: "@authx/http-proxy-web@workspace:packages/http-proxy-web"
   dependencies:
-    "@authx/scopes": ^3.1.0-alpha.47
+    "@authx/scopes": ^3.1.0-alpha.48
     "@types/cookies": ^0.7.6
     "@types/http-proxy": ^1.17.5
     "@types/jsonwebtoken": ^8.5.1
@@ -130,13 +130,13 @@ __metadata:
   version: 0.0.0-use.local
   resolution: "@authx/interface@workspace:packages/interface"
   dependencies:
-    "@authx/authx": ^3.1.0-alpha.47
-    "@authx/scopes": ^3.1.0-alpha.47
+    "@authx/authx": ^3.1.0-alpha.48
+    "@authx/scopes": ^3.1.0-alpha.48
     "@types/graphql-react": ^8.1.1
     "@types/html-webpack-plugin": ^3.2.5
     "@types/memory-fs": ^0.3.3
-    "@types/react": ^18.0.0
-    "@types/react-dom": ^18.0.0
+    "@types/react": ^17.0.0
+    "@types/react-dom": ^17.0.0
     "@types/webpack": ^5.28.0
     "@typescript-eslint/eslint-plugin": ^4.6.1
     "@typescript-eslint/parser": ^4.6.1
@@ -150,8 +150,8 @@ __metadata:
     koa: ^2.11.0
     memory-fs: ^0.5.0
     prettier: ^2.0.2
-    react: ^18.0.0
-    react-dom: ^18.0.0
+    react: ^17.0.0
+    react-dom: ^17.0.0
     source-map-loader: ^2.0.1
     typescript: ^4.0.5
     uuid: ^8.3.2
@@ -162,7 +162,7 @@ __metadata:
   languageName: unknown
   linkType: soft
 
-"@authx/scopes@^3.1.0-alpha.47, @authx/scopes@workspace:packages/scopes":
+"@authx/scopes@^3.1.0-alpha.48, @authx/scopes@workspace:packages/scopes":
   version: 0.0.0-use.local
   resolution: "@authx/scopes@workspace:packages/scopes"
   dependencies:
@@ -178,16 +178,16 @@ __metadata:
   languageName: unknown
   linkType: soft
 
-"@authx/strategy-email@^3.1.0-alpha.47, @authx/strategy-email@workspace:packages/strategy-email":
+"@authx/strategy-email@^3.1.0-alpha.48, @authx/strategy-email@workspace:packages/strategy-email":
   version: 0.0.0-use.local
   resolution: "@authx/strategy-email@workspace:packages/strategy-email"
   dependencies:
-    "@authx/authx": ^3.1.0-alpha.47
-    "@authx/scopes": ^3.1.0-alpha.47
+    "@authx/authx": ^3.1.0-alpha.48
+    "@authx/scopes": ^3.1.0-alpha.48
     "@types/graphql-react": ^8.1.1
     "@types/pg": ^7.14.11
-    "@types/react": ^18.0.0
-    "@types/react-dom": ^18.0.0
+    "@types/react": ^17.0.0
+    "@types/react-dom": ^17.0.0
     "@types/uuid": ^8.3.0
     "@typescript-eslint/eslint-plugin": ^4.6.1
     "@typescript-eslint/parser": ^4.6.1
@@ -200,8 +200,8 @@ __metadata:
     nodemon: ^2.0.2
     pg: ^8.6.0
     prettier: ^2.0.2
-    react: ^18.0.0
-    react-dom: ^18.0.0
+    react: ^17.0.0
+    react-dom: ^17.0.0
     typescript: ^4.0.5
     uuid: ^8.3.2
   peerDependencies:
@@ -213,13 +213,13 @@ __metadata:
   version: 0.0.0-use.local
   resolution: "@authx/strategy-openid@workspace:packages/strategy-openid"
   dependencies:
-    "@authx/authx": ^3.1.0-alpha.47
-    "@authx/scopes": ^3.1.0-alpha.47
-    "@authx/strategy-email": ^3.1.0-alpha.47
+    "@authx/authx": ^3.1.0-alpha.48
+    "@authx/scopes": ^3.1.0-alpha.48
+    "@authx/strategy-email": ^3.1.0-alpha.48
     "@types/graphql-react": ^8.1.1
     "@types/pg": ^7.14.11
-    "@types/react": ^18.0.0
-    "@types/react-dom": ^18.0.0
+    "@types/react": ^17.0.0
+    "@types/react-dom": ^17.0.0
     "@types/uuid": ^8.3.0
     "@typescript-eslint/eslint-plugin": ^4.6.1
     "@typescript-eslint/parser": ^4.6.1
@@ -232,8 +232,8 @@ __metadata:
     nodemon: ^2.0.2
     pg: ^8.6.0
     prettier: ^2.0.2
-    react: ^18.0.0
-    react-dom: ^18.0.0
+    react: ^17.0.0
+    react-dom: ^17.0.0
     typescript: ^4.0.5
     uuid: ^8.3.2
   peerDependencies:
@@ -242,17 +242,17 @@ __metadata:
   languageName: unknown
   linkType: soft
 
-"@authx/strategy-password@^3.1.0-alpha.47, @authx/strategy-password@workspace:packages/strategy-password":
+"@authx/strategy-password@^3.1.0-alpha.48, @authx/strategy-password@workspace:packages/strategy-password":
   version: 0.0.0-use.local
   resolution: "@authx/strategy-password@workspace:packages/strategy-password"
   dependencies:
-    "@authx/authx": ^3.1.0-alpha.47
-    "@authx/scopes": ^3.1.0-alpha.47
+    "@authx/authx": ^3.1.0-alpha.48
+    "@authx/scopes": ^3.1.0-alpha.48
     "@types/bcrypt": ^3.0.1
     "@types/graphql-react": ^8.1.1
     "@types/pg": ^7.14.11
-    "@types/react": ^18.0.0
-    "@types/react-dom": ^18.0.0
+    "@types/react": ^17.0.0
+    "@types/react-dom": ^17.0.0
     "@types/uuid": ^8.3.0
     "@typescript-eslint/eslint-plugin": ^4.6.1
     "@typescript-eslint/parser": ^4.6.1
@@ -266,8 +266,8 @@ __metadata:
     nodemon: ^2.0.2
     pg: ^8.6.0
     prettier: ^2.0.2
-    react: ^18.0.0
-    react-dom: ^18.0.0
+    react: ^17.0.0
+    react-dom: ^17.0.0
     typescript: ^4.0.5
     uuid: ^8.3.2
   peerDependencies:
@@ -279,14 +279,14 @@ __metadata:
   version: 0.0.0-use.local
   resolution: "@authx/strategy-saml@workspace:packages/strategy-saml"
   dependencies:
-    "@authx/authx": ^3.1.0-alpha.47
-    "@authx/scopes": ^3.1.0-alpha.47
-    "@authx/strategy-email": ^3.1.0-alpha.47
+    "@authx/authx": ^3.1.0-alpha.48
+    "@authx/scopes": ^3.1.0-alpha.48
+    "@authx/strategy-email": ^3.1.0-alpha.48
     "@types/bcrypt": ^3.0.1
     "@types/graphql-react": ^8.1.1
     "@types/pg": ^7.14.11
-    "@types/react": ^18.0.0
-    "@types/react-dom": ^18.0.0
+    "@types/react": ^17.0.0
+    "@types/react-dom": ^17.0.0
     "@types/saml2-js": ^2.0.0
     "@types/uuid": ^8.3.0
     "@typescript-eslint/eslint-plugin": ^4.6.1
@@ -303,8 +303,8 @@ __metadata:
     nodemon: ^2.0.2
     pg: ^8.6.0
     prettier: ^2.0.2
-    react: ^18.0.0
-    react-dom: ^18.0.0
+    react: ^17.0.0
+    react-dom: ^17.0.0
     saml2-js: ^3.0.1
     typescript: ^4.0.5
     uuid: ^8.3.2
@@ -317,8 +317,8 @@ __metadata:
   version: 0.0.0-use.local
   resolution: "@authx/tools@workspace:packages/tools"
   dependencies:
-    "@authx/authx": ^3.1.0-alpha.47
-    "@authx/strategy-password": ^3.1.0-alpha.47
+    "@authx/authx": ^3.1.0-alpha.48
+    "@authx/strategy-password": ^3.1.0-alpha.48
     "@types/pg": ^7.14.11
     "@types/uuid": ^8.3.0
     "@typescript-eslint/eslint-plugin": ^4.6.1
@@ -2240,16 +2240,16 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@types/react-dom@npm:^18.0.0":
-  version: 18.0.6
-  resolution: "@types/react-dom@npm:18.0.6"
+"@types/react-dom@npm:^17.0.0":
+  version: 17.0.17
+  resolution: "@types/react-dom@npm:17.0.17"
   dependencies:
-    "@types/react": "*"
-  checksum: db571047af1a567631758700b9f7d143e566df939cfe5fbf7535347cc0c726a1cdbb5e3f8566d076e54cf708b6c1166689de194a9ba09ee35efc9e1d45911685
+    "@types/react": ^17
+  checksum: 23caf98aa03e968811560f92a2c8f451694253ebe16b670929b24eaf0e7fa62ba549abe9db0ac028a9d8a9086acd6ab9c6c773f163fa21224845edbc00ba6232
   languageName: node
   linkType: hard
 
-"@types/react@npm:*, @types/react@npm:^18.0.0":
+"@types/react@npm:*":
   version: 18.0.15
   resolution: "@types/react@npm:18.0.15"
   dependencies:
@@ -2257,6 +2257,17 @@ __metadata:
     "@types/scheduler": "*"
     csstype: ^3.0.2
   checksum: e22cc388d1c145aa184787e44dc28db4789976c704cd5db475c170bb76a560eb81def5f346cfe750949bb3d43ad88822b8cbb9f19b1286e3795892a8263e7715
+  languageName: node
+  linkType: hard
+
+"@types/react@npm:^17, @types/react@npm:^17.0.0":
+  version: 17.0.47
+  resolution: "@types/react@npm:17.0.47"
+  dependencies:
+    "@types/prop-types": "*"
+    "@types/scheduler": "*"
+    csstype: ^3.0.2
+  checksum: 2e7fe0eb630cb77da03b6da308c58728c01b38e878118e9ff5cd8045181c8d4f32dc936e328f46a62cadb56e1fe4c5a911b5113584f93a99e1f35df7f059246b
   languageName: node
   linkType: hard
 
@@ -8709,15 +8720,16 @@ fsevents@~2.3.2:
   languageName: node
   linkType: hard
 
-"react-dom@npm:^18.0.0":
-  version: 18.2.0
-  resolution: "react-dom@npm:18.2.0"
+"react-dom@npm:^17.0.0":
+  version: 17.0.2
+  resolution: "react-dom@npm:17.0.2"
   dependencies:
     loose-envify: ^1.1.0
-    scheduler: ^0.23.0
+    object-assign: ^4.1.1
+    scheduler: ^0.20.2
   peerDependencies:
-    react: ^18.2.0
-  checksum: 7d323310bea3a91be2965f9468d552f201b1c27891e45ddc2d6b8f717680c95a75ae0bc1e3f5cf41472446a2589a75aed4483aee8169287909fcd59ad149e8cc
+    react: 17.0.2
+  checksum: 1c1eaa3bca7c7228d24b70932e3d7c99e70d1d04e13bb0843bbf321582bc25d7961d6b8a6978a58a598af2af496d1cedcfb1bf65f6b0960a0a8161cb8dab743c
   languageName: node
   linkType: hard
 
@@ -8728,12 +8740,13 @@ fsevents@~2.3.2:
   languageName: node
   linkType: hard
 
-"react@npm:^18.0.0":
-  version: 18.2.0
-  resolution: "react@npm:18.2.0"
+"react@npm:^17.0.0":
+  version: 17.0.2
+  resolution: "react@npm:17.0.2"
   dependencies:
     loose-envify: ^1.1.0
-  checksum: 88e38092da8839b830cda6feef2e8505dec8ace60579e46aa5490fc3dc9bba0bd50336507dc166f43e3afc1c42939c09fe33b25fae889d6f402721dcd78fca1b
+    object-assign: ^4.1.1
+  checksum: b254cc17ce3011788330f7bbf383ab653c6848902d7936a87b09d835d091e3f295f7e9dd1597c6daac5dc80f90e778c8230218ba8ad599f74adcc11e33b9d61b
   languageName: node
   linkType: hard
 
@@ -9197,12 +9210,13 @@ resolve@^2.0.0-next.3:
   languageName: node
   linkType: hard
 
-"scheduler@npm:^0.23.0":
-  version: 0.23.0
-  resolution: "scheduler@npm:0.23.0"
+"scheduler@npm:^0.20.2":
+  version: 0.20.2
+  resolution: "scheduler@npm:0.20.2"
   dependencies:
     loose-envify: ^1.1.0
-  checksum: d79192eeaa12abef860c195ea45d37cbf2bbf5f66e3c4dcd16f54a7da53b17788a70d109ee3d3dde1a0fd50e6a8fc171f4300356c5aee4fc0171de526bf35f8a
+    object-assign: ^4.1.1
+  checksum: c4b35cf967c8f0d3e65753252d0f260271f81a81e427241295c5a7b783abf4ea9e905f22f815ab66676f5313be0a25f47be582254db8f9241b259213e999b8fc
   languageName: node
   linkType: hard
 

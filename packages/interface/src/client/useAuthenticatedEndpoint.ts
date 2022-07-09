@@ -15,7 +15,7 @@ export function useAuthenticatedEndpoint(
   authorization: null | Authorization,
   clearAuthorization: () => void
 ): { fetchOptionsOverride: GraphQLFetchOptionsOverride } {
-  const graphql = useContext(GraphQLContext);
+  const graphql = useContext(GraphQLContext as any) as any;
   if (!graphql)
     throw new Error(
       "The hook `useAuthenticatedEndpoint` must only be called inside a `GraphQLContext`."
