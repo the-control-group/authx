@@ -184,7 +184,10 @@ __metadata:
   dependencies:
     "@authx/authx": ^3.1.0-alpha.46
     "@authx/scopes": ^3.1.0-alpha.46
+    "@types/graphql-react": ^8.1.1
     "@types/pg": ^7.14.11
+    "@types/react": ^18.0.0
+    "@types/react-dom": ^18.0.0
     "@types/uuid": ^8.3.0
     "@typescript-eslint/eslint-plugin": ^4.6.1
     "@typescript-eslint/parser": ^4.6.1
@@ -193,9 +196,12 @@ __metadata:
     eslint-config-prettier: ^8.2.0
     eslint-plugin-prettier: ^3.1.1
     graphql: 15.5.0
+    graphql-react: ^12.0.1
     nodemon: ^2.0.2
     pg: ^8.6.0
     prettier: ^2.0.2
+    react: ^18.0.0
+    react-dom: ^18.0.0
     typescript: ^4.0.5
     uuid: ^8.3.2
   peerDependencies:
@@ -210,7 +216,10 @@ __metadata:
     "@authx/authx": ^3.1.0-alpha.46
     "@authx/scopes": ^3.1.0-alpha.46
     "@authx/strategy-email": ^3.1.0-alpha.46
+    "@types/graphql-react": ^8.1.1
     "@types/pg": ^7.14.11
+    "@types/react": ^18.0.0
+    "@types/react-dom": ^18.0.0
     "@types/uuid": ^8.3.0
     "@typescript-eslint/eslint-plugin": ^4.6.1
     "@typescript-eslint/parser": ^4.6.1
@@ -219,9 +228,12 @@ __metadata:
     eslint-config-prettier: ^8.2.0
     eslint-plugin-prettier: ^3.1.1
     graphql: 15.5.0
+    graphql-react: ^12.0.1
     nodemon: ^2.0.2
     pg: ^8.6.0
     prettier: ^2.0.2
+    react: ^18.0.0
+    react-dom: ^18.0.0
     typescript: ^4.0.5
     uuid: ^8.3.2
   peerDependencies:
@@ -237,7 +249,10 @@ __metadata:
     "@authx/authx": ^3.1.0-alpha.46
     "@authx/scopes": ^3.1.0-alpha.46
     "@types/bcrypt": ^3.0.1
+    "@types/graphql-react": ^8.1.1
     "@types/pg": ^7.14.11
+    "@types/react": ^18.0.0
+    "@types/react-dom": ^18.0.0
     "@types/uuid": ^8.3.0
     "@typescript-eslint/eslint-plugin": ^4.6.1
     "@typescript-eslint/parser": ^4.6.1
@@ -247,9 +262,12 @@ __metadata:
     eslint-config-prettier: ^8.2.0
     eslint-plugin-prettier: ^3.1.1
     graphql: 15.5.0
+    graphql-react: ^12.0.1
     nodemon: ^2.0.2
     pg: ^8.6.0
     prettier: ^2.0.2
+    react: ^18.0.0
+    react-dom: ^18.0.0
     typescript: ^4.0.5
     uuid: ^8.3.2
   peerDependencies:
@@ -265,7 +283,10 @@ __metadata:
     "@authx/scopes": ^3.1.0-alpha.46
     "@authx/strategy-email": ^3.1.0-alpha.46
     "@types/bcrypt": ^3.0.1
+    "@types/graphql-react": ^8.1.1
     "@types/pg": ^7.14.11
+    "@types/react": ^18.0.0
+    "@types/react-dom": ^18.0.0
     "@types/saml2-js": ^2.0.0
     "@types/uuid": ^8.3.0
     "@typescript-eslint/eslint-plugin": ^4.6.1
@@ -276,11 +297,14 @@ __metadata:
     eslint-config-prettier: ^8.2.0
     eslint-plugin-prettier: ^3.1.1
     graphql: 15.5.0
+    graphql-react: ^12.0.1
     koa-body: ^4.2.0
     koa-router: ^10.0.0
     nodemon: ^2.0.2
     pg: ^8.6.0
     prettier: ^2.0.2
+    react: ^18.0.0
+    react-dom: ^18.0.0
     saml2-js: ^3.0.1
     typescript: ^4.0.5
     uuid: ^8.3.2
