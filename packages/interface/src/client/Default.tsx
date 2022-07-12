@@ -57,7 +57,7 @@ export function Default({
               id
               name
             }
-          }
+          }  
         }
       `
     }
@@ -66,7 +66,7 @@ export function Default({
   const displayName = cacheValue?.data?.viewer?.user?.name;
 
   // API and errors
-  const graphql = useContext<GraphQL>(GraphQLContext as any);
+  const graphql = useContext<GraphQL>(GraphQLContext);
   const [operating, setOperating] = useState<boolean>(false);
   const [errors, setErrors] = useState<string[]>([]);
   async function onSubmit(e: FormEvent): Promise<void> {
@@ -130,7 +130,7 @@ export function Default({
 
       // Clear the authorization from our cookie store.
       clearAuthorization();
-    } catch (error:any) {
+    } catch (error) {
       setErrors([error.message]);
       return;
     } finally {

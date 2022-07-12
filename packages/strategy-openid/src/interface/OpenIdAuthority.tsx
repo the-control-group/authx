@@ -117,7 +117,7 @@ export function OpenIdAuthority({
           id: authorization.id,
           secret: authorization.secret,
         });
-      } catch (error: any) {
+      } catch (error) {
         setErrors([error.message]);
         return;
       } finally {
@@ -127,7 +127,7 @@ export function OpenIdAuthority({
   }, []);
 
   // API and errors
-  const graphql = useContext<GraphQL>(GraphQLContext as any);
+  const graphql = useContext<GraphQL>(GraphQLContext);
   const [errors, setErrors] = useState<string[]>([]);
   async function onSubmit(e: FormEvent): Promise<void> {
     e.preventDefault();

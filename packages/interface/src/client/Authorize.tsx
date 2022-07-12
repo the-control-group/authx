@@ -204,7 +204,7 @@ function Checkbox({
         </div>
       </div>
       <input
-        onChange={useCallback((e:React.ChangeEvent<HTMLInputElement>) => onChange(e.currentTarget.checked), [
+        onChange={useCallback((e) => onChange(e.currentTarget.checked), [
           onChange,
         ])}
         onFocus={useCallback(() => setHasFocus(true), [setHasFocus])}
@@ -396,7 +396,7 @@ export function Authorize({
   );
 
   // API and errors
-  const graphql = useContext<GraphQL>(GraphQLContext as any);
+  const graphql = useContext<GraphQL>(GraphQLContext);
   const [operating, setOperating] = useState<null | boolean>(null);
   const [redirecting, setRedirecting] = useState<boolean>(false);
   const [errors, setErrors] = useState<string[]>([]);
@@ -521,7 +521,7 @@ export function Authorize({
       setRedirecting(true);
       setSpeculativeGrantId(v4());
       window.location.replace(url.href);
-    } catch (error:any) {
+    } catch (error) {
       setErrors([error.message]);
       return;
     } finally {

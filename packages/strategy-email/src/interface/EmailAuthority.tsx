@@ -64,7 +64,7 @@ export function EmailAuthority({
   }, []);
 
   // API and errors
-  const graphql = useContext<GraphQL>(GraphQLContext as any);
+  const graphql = useContext<GraphQL>(GraphQLContext);
   const [operating, setOperating] = useState<boolean>(false);
   const [errors, setErrors] = useState<string[]>([]);
   async function onSubmit(e: FormEvent): Promise<void> {
@@ -140,7 +140,7 @@ export function EmailAuthority({
 
       // Set the authorization.
       setAuthorization({ id: authorization.id, secret: authorization.secret });
-    } catch (error: any) {
+    } catch (error) {
       setErrors([error.message]);
       return;
     } finally {
