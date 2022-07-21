@@ -2,14 +2,14 @@
 # Manual changes might be lost - proceed with caution!
 
 __metadata:
-  version: 4
+  version: 6
   cacheKey: 8
 
-"@authx/authx@^3.1.0-alpha.48, @authx/authx@workspace:packages/authx":
+"@authx/authx@^3.1.0-alpha.49, @authx/authx@workspace:packages/authx":
   version: 0.0.0-use.local
   resolution: "@authx/authx@workspace:packages/authx"
   dependencies:
-    "@authx/scopes": ^3.1.0-alpha.48
+    "@authx/scopes": ^3.1.0-alpha.49
     "@opencensus/core": ^0.0.22
     "@types/auth-header": ^1.0.1
     "@types/graphql-api-koa": ^2.0.2
@@ -82,7 +82,7 @@ __metadata:
   version: 0.0.0-use.local
   resolution: "@authx/http-proxy-resource@workspace:packages/http-proxy-resource"
   dependencies:
-    "@authx/scopes": ^3.1.0-alpha.48
+    "@authx/scopes": ^3.1.0-alpha.49
     "@types/http-proxy": ^1.17.5
     "@types/jsonwebtoken": ^8.5.1
     "@types/node-fetch": ^2.5.10
@@ -105,7 +105,7 @@ __metadata:
   version: 0.0.0-use.local
   resolution: "@authx/http-proxy-web@workspace:packages/http-proxy-web"
   dependencies:
-    "@authx/scopes": ^3.1.0-alpha.48
+    "@authx/scopes": ^3.1.0-alpha.49
     "@types/cookies": ^0.7.6
     "@types/http-proxy": ^1.17.5
     "@types/jsonwebtoken": ^8.5.1
@@ -130,8 +130,8 @@ __metadata:
   version: 0.0.0-use.local
   resolution: "@authx/interface@workspace:packages/interface"
   dependencies:
-    "@authx/authx": ^3.1.0-alpha.48
-    "@authx/scopes": ^3.1.0-alpha.48
+    "@authx/authx": ^3.1.0-alpha.49
+    "@authx/scopes": ^3.1.0-alpha.49
     "@types/graphql-react": ^8.1.1
     "@types/html-webpack-plugin": ^3.2.5
     "@types/memory-fs": ^0.3.3
@@ -162,7 +162,7 @@ __metadata:
   languageName: unknown
   linkType: soft
 
-"@authx/scopes@^3.1.0-alpha.48, @authx/scopes@workspace:packages/scopes":
+"@authx/scopes@^3.1.0-alpha.49, @authx/scopes@workspace:packages/scopes":
   version: 0.0.0-use.local
   resolution: "@authx/scopes@workspace:packages/scopes"
   dependencies:
@@ -178,12 +178,12 @@ __metadata:
   languageName: unknown
   linkType: soft
 
-"@authx/strategy-email@^3.1.0-alpha.48, @authx/strategy-email@workspace:packages/strategy-email":
+"@authx/strategy-email@^3.1.0-alpha.49, @authx/strategy-email@workspace:packages/strategy-email":
   version: 0.0.0-use.local
   resolution: "@authx/strategy-email@workspace:packages/strategy-email"
   dependencies:
-    "@authx/authx": ^3.1.0-alpha.48
-    "@authx/scopes": ^3.1.0-alpha.48
+    "@authx/authx": ^3.1.0-alpha.49
+    "@authx/scopes": ^3.1.0-alpha.49
     "@types/graphql-react": ^8.1.1
     "@types/pg": ^7.14.11
     "@types/react": ^17.0.0
@@ -213,9 +213,9 @@ __metadata:
   version: 0.0.0-use.local
   resolution: "@authx/strategy-openid@workspace:packages/strategy-openid"
   dependencies:
-    "@authx/authx": ^3.1.0-alpha.48
-    "@authx/scopes": ^3.1.0-alpha.48
-    "@authx/strategy-email": ^3.1.0-alpha.48
+    "@authx/authx": ^3.1.0-alpha.49
+    "@authx/scopes": ^3.1.0-alpha.49
+    "@authx/strategy-email": ^3.1.0-alpha.49
     "@types/graphql-react": ^8.1.1
     "@types/pg": ^7.14.11
     "@types/react": ^17.0.0
@@ -242,12 +242,12 @@ __metadata:
   languageName: unknown
   linkType: soft
 
-"@authx/strategy-password@^3.1.0-alpha.48, @authx/strategy-password@workspace:packages/strategy-password":
+"@authx/strategy-password@^3.1.0-alpha.49, @authx/strategy-password@workspace:packages/strategy-password":
   version: 0.0.0-use.local
   resolution: "@authx/strategy-password@workspace:packages/strategy-password"
   dependencies:
-    "@authx/authx": ^3.1.0-alpha.48
-    "@authx/scopes": ^3.1.0-alpha.48
+    "@authx/authx": ^3.1.0-alpha.49
+    "@authx/scopes": ^3.1.0-alpha.49
     "@types/bcrypt": ^3.0.1
     "@types/graphql-react": ^8.1.1
     "@types/pg": ^7.14.11
@@ -279,9 +279,9 @@ __metadata:
   version: 0.0.0-use.local
   resolution: "@authx/strategy-saml@workspace:packages/strategy-saml"
   dependencies:
-    "@authx/authx": ^3.1.0-alpha.48
-    "@authx/scopes": ^3.1.0-alpha.48
-    "@authx/strategy-email": ^3.1.0-alpha.48
+    "@authx/authx": ^3.1.0-alpha.49
+    "@authx/scopes": ^3.1.0-alpha.49
+    "@authx/strategy-email": ^3.1.0-alpha.49
     "@types/bcrypt": ^3.0.1
     "@types/graphql-react": ^8.1.1
     "@types/pg": ^7.14.11
@@ -317,8 +317,8 @@ __metadata:
   version: 0.0.0-use.local
   resolution: "@authx/tools@workspace:packages/tools"
   dependencies:
-    "@authx/authx": ^3.1.0-alpha.48
-    "@authx/strategy-password": ^3.1.0-alpha.48
+    "@authx/authx": ^3.1.0-alpha.49
+    "@authx/strategy-password": ^3.1.0-alpha.49
     "@types/pg": ^7.14.11
     "@types/uuid": ^8.3.0
     "@typescript-eslint/eslint-plugin": ^4.6.1
@@ -3223,7 +3223,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"browserslist@npm:4.21.1, browserslist@npm:^4.14.5":
+"browserslist@npm:^4.14.5":
   version: 4.21.1
   resolution: "browserslist@npm:4.21.1"
   dependencies:
@@ -5117,10 +5117,10 @@ __metadata:
 
 "fsevents@patch:fsevents@~2.3.2#~builtin<compat/fsevents>":
   version: 2.3.2
-  resolution: "fsevents@patch:fsevents@npm%3A2.3.2#~builtin<compat/fsevents>::version=2.3.2&hash=1cc4b2"
+  resolution: "fsevents@patch:fsevents@npm%3A2.3.2#~builtin<compat/fsevents>::version=2.3.2&hash=18f3a7"
   dependencies:
     node-gyp: latest
-  checksum: 78db9daf1f6526a49cefee3917cc988f62dc7f25b5dd80ad6de4ffc4af7f0cab7491ac737626ff53e482a111bc53aac9e411fe3602458eca36f6a003ecf69c16
+  conditions: os=darwin
   languageName: node
   linkType: hard
 
@@ -5130,6 +5130,7 @@ fsevents@~2.3.2:
   dependencies:
     node-gyp: latest
   checksum: 97ade64e75091afee5265e6956cb72ba34db7819b4c3e94c431d4be2b19b8bb7a2d4116da417950c3425f17c8fe693d25e20212cac583ac1521ad066b77ae31f
+  conditions: os=darwin
   languageName: node
   linkType: hard
 
@@ -9055,27 +9056,27 @@ resolve@^2.0.0-next.3:
 
 "resolve@patch:resolve@^1.10.0#~builtin<compat/resolve>":
   version: 1.22.1
-  resolution: "resolve@patch:resolve@npm%3A1.22.1#~builtin<compat/resolve>::version=1.22.1&hash=00b1ff"
+  resolution: "resolve@patch:resolve@npm%3A1.22.1#~builtin<compat/resolve>::version=1.22.1&hash=07638b"
   dependencies:
     is-core-module: ^2.9.0
     path-parse: ^1.0.7
     supports-preserve-symlinks-flag: ^1.0.0
   bin:
     resolve: bin/resolve
-  checksum: d45553550a85af4c6c310a4d9790b60f1fcbdbb1b7ca93f1ad8e06424d69aa6782d59bd93a4c085777baf6159ecc1dbe432299a6027c4837de4db5851a5d3435
+  checksum: 5656f4d0bedcf8eb52685c1abdf8fbe73a1603bb1160a24d716e27a57f6cecbe2432ff9c89c2bd57542c3a7b9d14b1882b73bfe2e9d7849c9a4c0b8b39f02b8b
   languageName: node
   linkType: hard
 
 "resolve@patch:resolve@^2.0.0-next.3#~builtin<compat/resolve>":
   version: 2.0.0-next.4
-  resolution: "resolve@patch:resolve@npm%3A2.0.0-next.4#~builtin<compat/resolve>::version=2.0.0-next.4&hash=00b1ff"
+  resolution: "resolve@patch:resolve@npm%3A2.0.0-next.4#~builtin<compat/resolve>::version=2.0.0-next.4&hash=07638b"
   dependencies:
     is-core-module: ^2.9.0
     path-parse: ^1.0.7
     supports-preserve-symlinks-flag: ^1.0.0
   bin:
     resolve: bin/resolve
-  checksum: 6813d545fa80defd71142e2b472676bf9d71d7cddd6cacb4bd8a91e952c07cc435f31833862b819961ad1067143891dce29e64873cfa844a4c69e011ae4c1ec7
+  checksum: 4bf9f4f8a458607af90518ff73c67a4bc1a38b5a23fef2bb0ccbd45e8be89820a1639b637b0ba377eb2be9eedfb1739a84cde24fe4cd670c8207d8fea922b011
   languageName: node
   linkType: hard
 
@@ -10143,11 +10144,11 @@ resolve@^2.0.0-next.3:
 
 "typescript@patch:typescript@^4.0.5#~builtin<compat/typescript>, typescript@patch:typescript@^4.2.4#~builtin<compat/typescript>":
   version: 4.7.4
-  resolution: "typescript@patch:typescript@npm%3A4.7.4#~builtin<compat/typescript>::version=4.7.4&hash=32657b"
+  resolution: "typescript@patch:typescript@npm%3A4.7.4#~builtin<compat/typescript>::version=4.7.4&hash=f456af"
   bin:
     tsc: bin/tsc
     tsserver: bin/tsserver
-  checksum: 0b078b97f27848c2d10fc0777b7cb4cb85374426620edac25b2fe62459a4344569655e7f1a989d0ce9d5618cdeb958451eb2ee9436e78f7af86a99e800df967b
+  checksum: 9096d8f6c16cb80ef3bf96fcbbd055bf1c4a43bd14f3b7be45a9fbe7ada46ec977f604d5feed3263b4f2aa7d4c7477ce5f9cd87de0d6feedec69a983f3a4f93e
   languageName: node
   linkType: hard
 
