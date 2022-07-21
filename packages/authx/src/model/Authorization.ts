@@ -174,7 +174,7 @@ export class Authorization implements AuthorizationData {
       ),
 
       // All active authorizations have the intrinsic ability to query their
-      // own basinc information and scopes, and basic information about their
+      // own basic information and scopes, and basic information about their
       // user.
       createV2AuthXScope(
         realm,
