@@ -196,11 +196,11 @@ export class Authorization implements AuthorizationData {
         realm,
         {
           type: "user",
-          userId: this.userId
+          userId: this.userId,
         },
         {
           basic: "r",
-          scopes: ""
+          scopes: "",
         }
       ),
     ]);
