@@ -29,7 +29,7 @@ interface TokenDataCacheConfig {
 export interface TokenData {
   access: string[];
   id: string;
-  user: {
+  user: null | {
     id: string;
   };
 }
@@ -126,8 +126,6 @@ class TokenDataCacheEntry {
       throw new NoTokenError("Response did not include scopes");
     if (!ret?.id)
       throw new NoTokenError("Response did not include an authorization id");
-    if (!ret?.user?.id)
-      throw new NoTokenError("Response did not include a user id");
 
     return ret;
   }

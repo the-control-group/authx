@@ -19,7 +19,7 @@ export async function validateAuthorizationHeader(
   tokenDataCache: TokenDataCache
 ): Promise<{
   authorizationId: string;
-  authorizationSubject: string;
+  authorizationSubject?: string;
   authorizationScopes: string[];
 }> {
   if (BASIC.test(authorizationHeader)) {
@@ -28,7 +28,7 @@ export async function validateAuthorizationHeader(
 
       return {
         authorizationId: token.id,
-        authorizationSubject: token.user.id,
+        authorizationSubject: token.user?.id,
         authorizationScopes: token.access,
       };
     } catch (err) {
