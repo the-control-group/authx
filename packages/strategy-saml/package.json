@@ -1,9 +1,9 @@
 {
   "bugs": "https://github.com/the-control-group/authx/issues",
   "dependencies": {
-    "@authx/authx": "^3.1.0-alpha.49",
-    "@authx/scopes": "^3.1.0-alpha.49",
-    "@authx/strategy-email": "^3.1.0-alpha.49",
+    "@authx/authx": "^3.1.0-alpha.50",
+    "@authx/scopes": "^3.1.0-alpha.50",
+    "@authx/strategy-email": "^3.1.0-alpha.50",
     "@types/bcrypt": "^3.0.1",
     "@types/graphql-react": "^8.1.1",
     "@types/pg": "^7.14.11",
@@ -71,5 +71,5 @@
     "prepublishOnly": "yarn build"
   },
   "types": "dist/server/index.d.ts",
-  "version": "3.1.0-alpha.49"
+  "version": "3.1.0-alpha.50"
 }
