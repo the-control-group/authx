@@ -37,7 +37,7 @@ test("Fetch users with limited read scope and page", async (t) => {
   const target = (await ctx.graphQL(
     `
       query {
-        users {
+        users(first: 5) {
           pageInfo {
             hasNextPage
             hasPreviousPage
@@ -88,6 +88,20 @@ test("Fetch users with limited read scope and page", async (t) => {
           },
           {
             node: {
+              id: "51192909-3664-44d5-be62-c6b45f0b0ee6",
+              name: "Darryl Philbin",
+            },
+            cursor: "aWQ6NTExOTI5MDktMzY2NC00NGQ1LWJlNjItYzZiNDVmMGIwZWU2",
+          },
+          {
+            cursor: "aWQ6YTZhMDk0NmQtZWViNC00NWNkLTgzYzYtYzc5MjBmMjI3MmVi",
+            node: {
+              id: "a6a0946d-eeb4-45cd-83c6-c7920f2272eb",
+              name: "Michael Scott",
+            },
+          },
+          {
+            node: {
               id: "d0fc4c64-a3d6-4d97-9341-07de24439bb1",
               name: "Jim Halpert",
             },
@@ -99,13 +113,6 @@ test("Fetch users with limited read scope and page", async (t) => {
               name: "Pam Beesly-Halpert",
             },
             cursor: "aWQ6ZWFhOWZhNWUtMDg4YS00YWUyLWE2YWItZjEyMDAwNmIyMGE5",
-          },
-          {
-            node: {
-              id: "51192909-3664-44d5-be62-c6b45f0b0ee6",
-              name: "Darryl Philbin",
-            },
-            cursor: "aWQ6NTExOTI5MDktMzY2NC00NGQ1LWJlNjItYzZiNDVmMGIwZWU2",
           },
         ],
       },
@@ -167,11 +174,11 @@ test("Fetch users with limited read scope and page", async (t) => {
             cursor: "aWQ6NTExOTI5MDktMzY2NC00NGQ1LWJlNjItYzZiNDVmMGIwZWU2",
           },
           {
+            cursor: "aWQ6YTZhMDk0NmQtZWViNC00NWNkLTgzYzYtYzc5MjBmMjI3MmVi",
             node: {
-              id: "d0fc4c64-a3d6-4d97-9341-07de24439bb1",
-              name: "Jim Halpert",
+              id: "a6a0946d-eeb4-45cd-83c6-c7920f2272eb",
+              name: "Michael Scott",
             },
-            cursor: "aWQ6ZDBmYzRjNjQtYTNkNi00ZDk3LTkzNDEtMDdkZTI0NDM5YmIx",
           },
         ],
       },
@@ -225,6 +232,13 @@ test("Fetch users with limited read scope and page", async (t) => {
       users: {
         pageInfo: { hasNextPage: false, hasPreviousPage: false },
         edges: [
+          {
+            node: {
+              id: "d0fc4c64-a3d6-4d97-9341-07de24439bb1",
+              name: "Jim Halpert",
+            },
+            cursor: "aWQ6ZDBmYzRjNjQtYTNkNi00ZDk3LTkzNDEtMDdkZTI0NDM5YmIx",
+          },
           {
             node: {
               id: "eaa9fa5e-088a-4ae2-a6ab-f120006b20a9",
@@ -329,7 +343,7 @@ test("Fetch users with limited read scope and reverse page", async (t) => {
   const target2 = (await ctx.graphQL(
     `
   query {
-    users(last:2, before:"${target.data?.users?.edges?.[0]?.cursor ?? ""}") {
+    users(last: 3, before:"${target.data?.users?.edges?.[0]?.cursor ?? ""}") {
       pageInfo {
         hasNextPage
         hasPreviousPage
@@ -384,6 +398,16 @@ test("Fetch users with limited read scope and reverse page", async (t) => {
               name: "Darryl Philbin",
             },
             cursor: "aWQ6NTExOTI5MDktMzY2NC00NGQ1LWJlNjItYzZiNDVmMGIwZWU2",
+          },
+
+          // This is an intrinsic ability of the authorization belonging to
+          // Michael Scott.
+          {
+            cursor: "aWQ6YTZhMDk0NmQtZWViNC00NWNkLTgzYzYtYzc5MjBmMjI3MmVi",
+            node: {
+              id: "a6a0946d-eeb4-45cd-83c6-c7920f2272eb",
+              name: "Michael Scott",
+            },
           },
         ],
       },
@@ -600,7 +624,25 @@ test("Fetch users incorrect scope", async (t) => {
     };
   };
 
-  t.deepEqual(target, { data: { users: { edges: [] } } });
+  t.deepEqual(
+    target,
+    {
+      data: {
+        users: {
+          edges: [
+            {
+              cursor: "aWQ6YTZhMDk0NmQtZWViNC00NWNkLTgzYzYtYzc5MjBmMjI3MmVi",
+              node: {
+                id: "a6a0946d-eeb4-45cd-83c6-c7920f2272eb",
+                name: "Michael Scott",
+              },
+            },
+          ],
+        },
+      },
+    },
+    "Only has access to the user associated with the authorization."
+  );
 });
 
 test("Fetch users anonymous scope", async (t) => {
