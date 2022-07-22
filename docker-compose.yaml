@@ -23,7 +23,7 @@ services:
 
   # This container installs node modules into the node_modules volume.
   installer:
-    image: node:14.11.0
+    image: node:16.16.0
     working_dir: /workspace
     command: yarn
     environment:
@@ -40,7 +40,7 @@ services:
   builder:
     depends_on:
       - installer
-    image: node:14.11.0
+    image: node:16.16.0
     working_dir: /workspace
     command: ./scripts/await.sh node_modules/.bin/lerna yarn build:development:chained
     environment:
@@ -58,7 +58,7 @@ services:
     depends_on:
       - builder
       - postgres
-    image: node:14.11.0
+    image: node:16.16.0
     working_dir: /workspace
     command: ./scripts/await.sh node_modules/.bin/nodemon ./scripts/await.sh dist/server.js yarn start:development
     environment:
