@@ -5,11 +5,11 @@ __metadata:
   version: 6
   cacheKey: 8
 
-"@authx/authx@^3.1.0-alpha.49, @authx/authx@workspace:^, @authx/authx@workspace:packages/authx":
+"@authx/authx@^3.1.0-alpha.50, @authx/authx@workspace:^, @authx/authx@workspace:packages/authx":
   version: 0.0.0-use.local
   resolution: "@authx/authx@workspace:packages/authx"
   dependencies:
-    "@authx/scopes": ^3.1.0-alpha.49
+    "@authx/scopes": ^3.1.0-alpha.50
     "@opencensus/core": ^0.0.22
     "@types/auth-header": ^1.0.1
     "@types/graphql-api-koa": ^2.0.2
@@ -82,7 +82,7 @@ __metadata:
   version: 0.0.0-use.local
   resolution: "@authx/http-proxy-resource@workspace:packages/http-proxy-resource"
   dependencies:
-    "@authx/scopes": ^3.1.0-alpha.49
+    "@authx/scopes": ^3.1.0-alpha.50
     "@types/http-proxy": ^1.17.5
     "@types/jsonwebtoken": ^8.5.1
     "@types/node-fetch": ^2.5.10
@@ -105,7 +105,7 @@ __metadata:
   version: 0.0.0-use.local
   resolution: "@authx/http-proxy-web@workspace:packages/http-proxy-web"
   dependencies:
-    "@authx/scopes": ^3.1.0-alpha.49
+    "@authx/scopes": ^3.1.0-alpha.50
     "@types/cookies": ^0.7.6
     "@types/http-proxy": ^1.17.5
     "@types/jsonwebtoken": ^8.5.1
@@ -130,8 +130,8 @@ __metadata:
   version: 0.0.0-use.local
   resolution: "@authx/interface@workspace:packages/interface"
   dependencies:
-    "@authx/authx": ^3.1.0-alpha.49
-    "@authx/scopes": ^3.1.0-alpha.49
+    "@authx/authx": ^3.1.0-alpha.50
+    "@authx/scopes": ^3.1.0-alpha.50
     "@types/graphql-react": ^8.1.1
     "@types/html-webpack-plugin": ^3.2.5
     "@types/memory-fs": ^0.3.3
@@ -162,7 +162,7 @@ __metadata:
   languageName: unknown
   linkType: soft
 
-"@authx/scopes@^3.1.0-alpha.49, @authx/scopes@workspace:^, @authx/scopes@workspace:packages/scopes":
+"@authx/scopes@^3.1.0-alpha.50, @authx/scopes@workspace:^, @authx/scopes@workspace:packages/scopes":
   version: 0.0.0-use.local
   resolution: "@authx/scopes@workspace:packages/scopes"
   dependencies:
@@ -178,12 +178,12 @@ __metadata:
   languageName: unknown
   linkType: soft
 
-"@authx/strategy-email@^3.1.0-alpha.49, @authx/strategy-email@workspace:^, @authx/strategy-email@workspace:packages/strategy-email":
+"@authx/strategy-email@^3.1.0-alpha.50, @authx/strategy-email@workspace:^, @authx/strategy-email@workspace:packages/strategy-email":
   version: 0.0.0-use.local
   resolution: "@authx/strategy-email@workspace:packages/strategy-email"
   dependencies:
-    "@authx/authx": ^3.1.0-alpha.49
-    "@authx/scopes": ^3.1.0-alpha.49
+    "@authx/authx": ^3.1.0-alpha.50
+    "@authx/scopes": ^3.1.0-alpha.50
     "@types/graphql-react": ^8.1.1
     "@types/pg": ^7.14.11
     "@types/react": ^17.0.0
@@ -213,9 +213,9 @@ __metadata:
   version: 0.0.0-use.local
   resolution: "@authx/strategy-openid@workspace:packages/strategy-openid"
   dependencies:
-    "@authx/authx": ^3.1.0-alpha.49
-    "@authx/scopes": ^3.1.0-alpha.49
-    "@authx/strategy-email": ^3.1.0-alpha.49
+    "@authx/authx": ^3.1.0-alpha.50
+    "@authx/scopes": ^3.1.0-alpha.50
+    "@authx/strategy-email": ^3.1.0-alpha.50
     "@types/graphql-react": ^8.1.1
     "@types/pg": ^7.14.11
     "@types/react": ^17.0.0
@@ -242,12 +242,12 @@ __metadata:
   languageName: unknown
   linkType: soft
 
-"@authx/strategy-password@^3.1.0-alpha.49, @authx/strategy-password@workspace:^, @authx/strategy-password@workspace:packages/strategy-password":
+"@authx/strategy-password@^3.1.0-alpha.50, @authx/strategy-password@workspace:^, @authx/strategy-password@workspace:packages/strategy-password":
   version: 0.0.0-use.local
   resolution: "@authx/strategy-password@workspace:packages/strategy-password"
   dependencies:
-    "@authx/authx": ^3.1.0-alpha.49
-    "@authx/scopes": ^3.1.0-alpha.49
+    "@authx/authx": ^3.1.0-alpha.50
+    "@authx/scopes": ^3.1.0-alpha.50
     "@types/bcrypt": ^3.0.1
     "@types/graphql-react": ^8.1.1
     "@types/pg": ^7.14.11
@@ -279,9 +279,9 @@ __metadata:
   version: 0.0.0-use.local
   resolution: "@authx/strategy-saml@workspace:packages/strategy-saml"
   dependencies:
-    "@authx/authx": ^3.1.0-alpha.49
-    "@authx/scopes": ^3.1.0-alpha.49
-    "@authx/strategy-email": ^3.1.0-alpha.49
+    "@authx/authx": ^3.1.0-alpha.50
+    "@authx/scopes": ^3.1.0-alpha.50
+    "@authx/strategy-email": ^3.1.0-alpha.50
     "@types/bcrypt": ^3.0.1
     "@types/graphql-react": ^8.1.1
     "@types/pg": ^7.14.11
@@ -317,8 +317,8 @@ __metadata:
   version: 0.0.0-use.local
   resolution: "@authx/tools@workspace:packages/tools"
   dependencies:
-    "@authx/authx": ^3.1.0-alpha.49
-    "@authx/strategy-password": ^3.1.0-alpha.49
+    "@authx/authx": ^3.1.0-alpha.50
+    "@authx/strategy-password": ^3.1.0-alpha.50
     "@types/pg": ^7.14.11
     "@types/uuid": ^8.3.0
     "@typescript-eslint/eslint-plugin": ^4.6.1
@@ -2668,9 +2668,9 @@ __metadata:
   linkType: hard
 
 "@xmldom/xmldom@npm:^0.7.0":
-  version: 0.7.5
-  resolution: "@xmldom/xmldom@npm:0.7.5"
-  checksum: 8d7ec35c1ef6183b4f621df08e01d7e61f244fb964a4719025e65fe6ac06fac418919be64fb40fe5908e69158ef728f2d936daa082db326fe04603012b5f2a84
+  version: 0.7.8
+  resolution: "@xmldom/xmldom@npm:0.7.8"
+  checksum: 3bae232f9e6e8218a2c4ab4baa0e2afd5d15d070236cd14b36a59261e5bc9ab26ddf919671fd3ed7474552c7528cf659f14993fdb12f26418f568121f8f4385f
   languageName: node
   linkType: hard
 
