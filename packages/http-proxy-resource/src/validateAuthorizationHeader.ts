@@ -10,7 +10,11 @@ import { TokenDataCache } from "./TokenDataCache";
 const BEARER = /^BEARER\s+/i;
 const BASIC = /^BASIC\s+/i;
 
-export class NotAuthorizedError extends Error {}
+export class NotAuthorizedError extends Error {
+  constructor(message: string, public readonly cause?: any) {
+    super(message);
+  }
+}
 
 export async function validateAuthorizationHeader(
   authxUrl: string,
@@ -33,7 +37,8 @@ export async function validateAuthorizationHeader(
       };
     } catch (err) {
       throw new NotAuthorizedError(
-        "The submitted basic token was rejected by AuthX"
+        "The submitted basic token was rejected by AuthX",
+        err
       );
     }
   }
