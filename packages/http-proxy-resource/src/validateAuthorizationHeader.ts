@@ -11,7 +11,7 @@ const BEARER = /^BEARER\s+/i;
 const BASIC = /^BASIC\s+/i;
 
 export class NotAuthorizedError extends Error {
-  constructor(message: string, public readonly cause?: Error) {
+  constructor(message: string, public readonly cause?: any) {
     super(message);
   }
 }
