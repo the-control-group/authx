@@ -27,7 +27,7 @@ jobs:
           echo "Version is $VERSION"
           [ ! -z "$VERSION" ]
           echo "::set-output name=version::$VERSION"
-      - uses: actions/checkout@v2.3.4
+      - uses: actions/checkout@v3.6.0
       - name: Use Node 16
         uses: actions/setup-node@v2.1.5
         with:
