@@ -2,10 +2,10 @@ version: "3.7"
 
 volumes:
   postgres:
-  authx-init:
 
 services:
 
+  # This container runs the database.
   postgres:
     image: postgres:9.6.17
     restart: always
@@ -20,29 +20,47 @@ services:
         published: ${PUBLISH_PORT_POSTGRES}
         protocol: tcp
         mode: host
+    user: postgres
+    healthcheck:
+      test: ["CMD", "pg_isready"]
+      start_period: 5s
+      start_interval: 10s
+      interval: 10s
+      timeout: 3s
+      retries: 3
 
-  # This container installs node modules into the node_modules volume.
+  # This container installs node modules from the package-lock.json file.
   installer:
     image: node:16.16.0
     working_dir: /workspace
-    command: ./scripts/install.sh
+
+    # We would rather ignore scripts, but this repo depends on bcrypt, which
+    # requires a build step.
+    # command: npm ci --ignore-scripts
+    command: scripts/install.sh
+
     environment:
       NODE_ENV: development
     volumes:
       - type: bind
         source: .
         target: /workspace
-      - type: volume
-        source: authx-init
-        target: /var/tmp/authx-init
+    healthcheck:
+      test: ["CMD", "test", "-f", "/tmp/package-lock.json"]
+      start_period: 5s
+      start_interval: 10s
+      interval: 10s
+      timeout: 3s
+      retries: 6
 
   # This container watches for changes and builds the application.
   builder:
     depends_on:
-      - installer
+      installer:
+        condition: service_healthy
+        restart: false
     image: node:16.16.0
     working_dir: /workspace
-    entrypoint: ./scripts/await.sh /var/tmp/authx-init/installer-complete
     command: npm run build:development:chained
     environment:
       NODE_ENV: development
@@ -50,18 +68,25 @@ services:
       - type: bind
         source: .
         target: /workspace
-      - type: volume
-        source: authx-init
-        target: /var/tmp/authx-init
+    healthcheck:
+      test: ["CMD", "test", "-f", "dist/server.js"]
+      start_period: 5s
+      start_interval: 10s
+      interval: 10s
+      timeout: 3s
+      retries: 6
 
   # This container runs the server.
   server:
     depends_on:
-      - builder
-      - postgres
+      builder:
+        condition: service_healthy
+        restart: false
+      postgres:
+        condition: service_healthy
+        restart: false
     image: node:16.16.0
     working_dir: /workspace
-    entrypoint: ./scripts/await.sh /var/tmp/authx-init/installer-complete ./scripts/await.sh dist/server.js
     command: npm run start:development
     environment:
       NODE_ENV: development
@@ -72,9 +97,6 @@ services:
       - type: bind
         source: .
         target: /workspace
-      - type: volume
-        source: authx-init
-        target: /var/tmp/authx-init
     ports:
       - target: 80
         published: ${PUBLISH_PORT_HTTP}

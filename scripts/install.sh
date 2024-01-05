@@ -1,6 +1,6 @@
 while true; do
     # Check if the current and previous package-lock.json are the same
-    if ( [ -f /var/tmp/authx-init/installer-complete ] && cmp -s ./package-lock.json /var/tmp/authx-init/installer-complete ); then
+    if ( [ -f /tmp/package-lock.json ] && cmp -s ./package-lock.json /tmp/package-lock.json ); then
         echo "No changes detected in package-lock.json; sleeping..."
         sleep 10
         continue
@@ -8,7 +8,7 @@ while true; do
 
     # Install dependencies and copy the new package-lock.json
     echo "Changes detected in package-lock.json; installing packages..."
-    rm -f /var/tmp/authx-init/installer-complete
-    npm ci && cp package-lock.json /var/tmp/authx-init/installer-complete
+    rm -f /tmp/package-lock.json
+    npm install --package-lock-only && cp package-lock.json /tmp/package-lock.json
     sleep 10
 done

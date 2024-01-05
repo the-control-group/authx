@@ -22,7 +22,7 @@ ADD packages/strategy-saml/package.json /workspace/packages/strategy-saml/packag
 ADD packages/tools/package.json /workspace/packages/tools/package.json
 
 # Install all dependencies
-RUN npm ci
+RUN npm ci --ignore-scripts
 
 # Add in the entire working directory
 ADD . /workspace
