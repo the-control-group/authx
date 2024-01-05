@@ -195,7 +195,7 @@ export default class AuthXClientProxy extends EventEmitter {
     [refreshToken: string]: {
       [hash: string]: string;
     };
-  } = {};
+  } = Object.create(null);
 
   /**
    * A request fetches fresh access tokens from AuthX.
@@ -208,7 +208,7 @@ export default class AuthXClientProxy extends EventEmitter {
         timeout: ReturnType<typeof setTimeout>;
       };
     };
-  } = {};
+  } = Object.create(null);
 
   /**
    * A refresh timeout is responsible for initiating a request to AuthX that
@@ -218,7 +218,7 @@ export default class AuthXClientProxy extends EventEmitter {
     [refreshToken: string]: {
       [hash: string]: ReturnType<typeof setTimeout>;
     };
-  } = {};
+  } = Object.create(null);
 
   /**
    * An eviction timeout is responsible for preventing tokens from being
@@ -230,7 +230,7 @@ export default class AuthXClientProxy extends EventEmitter {
     [refreshToken: string]: {
       [hash: string]: ReturnType<typeof setTimeout>;
     };
-  } = {};
+  } = Object.create(null);
 
   /**
    * An expiration timeout is responsible for removing expired tokens from the
@@ -241,7 +241,7 @@ export default class AuthXClientProxy extends EventEmitter {
     [refreshToken: string]: {
       [hash: string]: ReturnType<typeof setTimeout>;
     };
-  } = {};
+  } = Object.create(null);
 
   public readonly server: Server;
 
@@ -458,7 +458,7 @@ export default class AuthXClientProxy extends EventEmitter {
 
     // Create a new eviction timeout.
     this._evictionTimeouts[refreshToken] =
-      this._evictionTimeouts[refreshToken] || {};
+      this._evictionTimeouts[refreshToken] || Object.create(null);
     this._evictionTimeouts[refreshToken][hash] = setTimeout(
       () => this._evict(refreshToken, hash),
       (this._config.evictDormantCachedTokensThreshold || 600) * 1000
@@ -584,7 +584,7 @@ export default class AuthXClientProxy extends EventEmitter {
 
             // Set an expiration timeout.
             this._expirationTimeouts[refreshToken] =
-              this._expirationTimeouts[refreshToken] || {};
+              this._expirationTimeouts[refreshToken] || Object.create(null);
             if (this._expirationTimeouts[refreshToken][hash]) {
               clearTimeout(this._expirationTimeouts[refreshToken][hash]);
             }
@@ -599,7 +599,7 @@ export default class AuthXClientProxy extends EventEmitter {
 
             // Set a refresh timeout.
             this._refreshTimeouts[refreshToken] =
-              this._refreshTimeouts[refreshToken] || {};
+              this._refreshTimeouts[refreshToken] || Object.create(null);
             if (this._refreshTimeouts[refreshToken][hash]) {
               clearTimeout(this._refreshTimeouts[refreshToken][hash]);
             }
@@ -611,7 +611,7 @@ export default class AuthXClientProxy extends EventEmitter {
 
           // Cache the access token.
           this._accessTokens[refreshToken] =
-            this._accessTokens[refreshToken] || {};
+            this._accessTokens[refreshToken] || Object.create(null);
           this._accessTokens[refreshToken][hash] = accessToken;
 
           return accessToken;
@@ -632,7 +632,7 @@ export default class AuthXClientProxy extends EventEmitter {
           // using incorrect credentials), and don't retry those.
           if (retry) {
             this._refreshTimeouts[refreshToken] =
-              this._refreshTimeouts[refreshToken] || {};
+              this._refreshTimeouts[refreshToken] || Object.create(null);
             if (this._refreshTimeouts[refreshToken][hash]) {
               clearTimeout(this._refreshTimeouts[refreshToken][hash]);
             }
@@ -664,7 +664,8 @@ export default class AuthXClientProxy extends EventEmitter {
     };
 
     // Store the request.
-    this._requests[refreshToken] = this._requests[refreshToken] || {};
+    this._requests[refreshToken] =
+      this._requests[refreshToken] || Object.create(null);
     this._requests[refreshToken][hash] = request;
     return request.promise;
   }
