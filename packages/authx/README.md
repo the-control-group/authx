@@ -75,7 +75,7 @@ Credentials connect users to authorities. A user can have multiple credentials o
 
 ### Scripts
 
-These scripts can be run using `npm run <script>` or `yarn <script>`; when relevant, the following environment variables can be set to modify their behavior:
+These scripts can be run using `npm run <script>`; when relevant, the following environment variables can be set to modify their behavior:
 
 - `PORT`: HTTP port to listen
 - `PGHOST`: postgres host

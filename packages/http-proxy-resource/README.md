@@ -211,7 +211,7 @@ The `sub` field of the JWT payload must be the user ID, and authorized scopes mu
 
 ### Scripts
 
-These scripts can be run using `npm run <script>` or `yarn <script>`.
+These scripts can be run using `npm run <script>`.
 
 #### `format`
 

@@ -36,15 +36,15 @@ jobs:
         uses: actions/cache@v2.1.5
         with:
           path: "**/node_modules"
-          key: ${{ runner.os }}-build-${{ hashFiles('**/yarn.lock') }}
+          key: ${{ runner.os }}-build-${{ hashFiles('**/package-lock.lock') }}
       - name: Install Dependencies and Test
-        run: yarn install
+        run: npm ci
       - name: Build
-        run: yarn run build
+        run: npm run build
       - name: Lint
-        run: yarn run lint
+        run: npm run lint
       - name: Test
-        run: yarn run test
+        run: npm run test
         env:
           PORT: 12000
           PGHOST: 127.0.0.1
@@ -56,8 +56,8 @@ jobs:
         env:
           VERSION: ${{ steps.GenerateVersion.outputs.version }}
         run: |
-          yarn run lerna version --no-git-tag-version -y "$VERSION"
-          yarn format
+          npm run lerna version --no-git-tag-version -y "$VERSION"
+          npm run format
       - name: Repush
         env:
           VERSION: ${{ steps.GenerateVersion.outputs.version }}
@@ -71,8 +71,8 @@ jobs:
           git push origin HEAD:main
       - name: Publish
         env:
-          YARN_NPM_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+          NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
           VERSION: ${{ steps.GenerateVersion.outputs.version }}
         run: |
-          scripts/run-in-packages.sh yarn npm publish --access public --tag $VERSION
-          scripts/run-in-packages.sh yarn npm publish --access public
+          scripts/run-in-packages.sh npm publish --access public --tag $VERSION
+          scripts/run-in-packages.sh npm publish --access public

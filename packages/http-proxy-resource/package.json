@@ -51,7 +51,7 @@
     "build:development:chained": "tsc --watch --preserveWatchOutput --pretty",
     "test": "ava --verbose dist/*.test.js",
     "test:development": "ava --verbose dist/*.test.js --watch",
-    "prepublishOnly": "yarn build"
+    "prepublishOnly": "npm run build"
   },
   "types": "./dist/index.d.ts",
   "version": "3.1.0-alpha.52"

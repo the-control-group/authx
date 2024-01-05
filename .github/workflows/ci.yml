@@ -1,6 +1,7 @@
 name: CI
 
-on: [push, pull_request]
+on:
+  - pull_request
 
 jobs:
   build:
@@ -24,15 +25,15 @@ jobs:
         uses: actions/cache@v2.1.5
         with:
           path: "**/node_modules"
-          key: ${{ runner.os }}-build-${{ hashFiles('**/yarn.lock') }}
+          key: ${{ runner.os }}-build-${{ hashFiles('package-lock.json') }}
       - name: Install Dependencies and Test
-        run: yarn install
+        run: npm ci
       - name: Build
-        run: yarn run build
+        run: npm run build
       - name: Lint
-        run: yarn run lint
+        run: npm run lint
       - name: Test
-        run: yarn run test
+        run: npm run test
         env:
           PORT: 12000
           PGHOST: 127.0.0.1

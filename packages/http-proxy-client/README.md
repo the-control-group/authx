@@ -220,7 +220,7 @@ interface Behavior {
 
 ### Scripts
 
-These scripts can be run using `npm run <script>` or `yarn <script>`.
+These scripts can be run using `npm run <script>`.
 
 #### `format`
 

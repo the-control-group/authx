@@ -19,10 +19,10 @@
   ],
   "scripts": {
     "packages": "lerna run",
-    "packages:build": "yarn packages build",
-    "packages:format": "yarn packages format",
-    "packages:lint": "yarn packages lint",
-    "packages:test": "yarn packages test",
+    "packages:build": "npm run packages build",
+    "packages:format": "npm run packages format",
+    "packages:lint": "npm run packages lint",
+    "packages:test": "npm run packages test",
     "root:build": "rm -rf dist && tsc",
     "root:build:development": "rm -rf dist && tsc --watch",
     "root:build:development:chained": "tsc --watch --preserveWatchOutput --pretty",
@@ -30,14 +30,14 @@
     "root:lint": "prettier -c '**/*.{json,yml,md,ts}' && eslint src --ext ts",
     "root:test": "ava --verbose",
     "root:test:development": "ava --verbose --watch dist/*.test.js",
-    "build": "yarn packages:build && echo '\n\n  ---------- ' && yarn root:build",
-    "build:development": "yarn packages:build:development & yarn root:build:development",
-    "build:development:chained": "lerna run --parallel build:development:chained & yarn root:build:development:chained",
-    "format": "yarn packages:format && echo '\n\n  ---------- ' && yarn root:format",
-    "lint": "yarn packages:lint && echo '\n\n  ---------- ' && yarn root:lint",
+    "build": "npm run packages:build && echo '\n\n  ---------- ' && npm run root:build",
+    "build:development": "npm run packages:build:development & npm run root:build:development",
+    "build:development:chained": "lerna run --parallel build:development:chained & npm run root:build:development:chained",
+    "format": "npm run packages:format && echo '\n\n  ---------- ' && npm run root:format",
+    "lint": "npm run packages:lint && echo '\n\n  ---------- ' && npm run root:lint",
     "start": "node dist/server",
     "start:development": "nodemon --delay 2 --inspect dist/server",
-    "test": "yarn packages:test && echo '\n\n  ---------- ' && yarn root:test"
+    "test": "npm run packages:test && echo '\n\n  ---------- ' && npm run root:test"
   },
   "devDependencies": {
     "@typescript-eslint/eslint-plugin": "^4.22.0",
@@ -58,7 +58,6 @@
     ],
     "timeout": "60s"
   },
-  "packageManager": "yarn@3.2.2",
   "dependencies": {
     "@authx/authx": "workspace:^",
     "@authx/interface": "workspace:^",
