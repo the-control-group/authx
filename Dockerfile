@@ -6,10 +6,8 @@ FROM node:16 AS base
 RUN mkdir -p /workspace
 WORKDIR /workspace
 
-ADD yarn.lock /workspace/yarn.lock
-ADD .yarn /workspace/.yarn
-ADD .yarnrc.yml /workspace/.yarnrc.yml
 ADD package.json /workspace/package.json
+ADD package-lock.json /workspace/package-lock.json
 
 ADD packages/authx/package.json /workspace/packages/authx/package.json
 ADD packages/http-proxy-client/package.json /workspace/packages/http-proxy-client/package.json
@@ -24,7 +22,7 @@ ADD packages/strategy-saml/package.json /workspace/packages/strategy-saml/packag
 ADD packages/tools/package.json /workspace/packages/tools/package.json
 
 # Install all dependencies
-RUN yarn install --immutable
+RUN npm ci
 
 # Add in the entire working directory
 ADD . /workspace

@@ -69,7 +69,7 @@
     "start:development": "NODE_ENV=development nodemon --inspect dist/server/server",
     "test": "ava --verbose dist/*.test.js",
     "test:development": "ava --verbose --watch dist/*.test.js",
-    "prepublishOnly": "yarn build"
+    "prepublishOnly": "npm run build"
   },
   "types": "dist/server/index.d.ts",
   "version": "3.1.0-alpha.52"

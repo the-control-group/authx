@@ -25,7 +25,7 @@ services:
   installer:
     image: node:16.16.0
     working_dir: /workspace
-    command: yarn
+    command: npm ci
     environment:
       NODE_ENV: development
     volumes:
@@ -42,7 +42,7 @@ services:
       - installer
     image: node:16.16.0
     working_dir: /workspace
-    command: ./scripts/await.sh node_modules/.bin/lerna yarn build:development:chained
+    command: ./scripts/await.sh node_modules/.bin/lerna npm run build:development:chained
     environment:
       NODE_ENV: development
     volumes:
@@ -60,7 +60,7 @@ services:
       - postgres
     image: node:16.16.0
     working_dir: /workspace
-    command: ./scripts/await.sh node_modules/.bin/nodemon ./scripts/await.sh dist/server.js yarn start:development
+    command: ./scripts/await.sh node_modules/.bin/nodemon ./scripts/await.sh dist/server.js npm run start:development
     environment:
       NODE_ENV: development
       PGHOST: postgres
