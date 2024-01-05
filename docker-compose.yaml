@@ -2,7 +2,7 @@ version: "3.7"
 
 volumes:
   postgres:
-  node_modules:
+  authx-init:
 
 services:
 
@@ -25,7 +25,7 @@ services:
   installer:
     image: node:16.16.0
     working_dir: /workspace
-    command: npm ci
+    command: ./scripts/install.sh
     environment:
       NODE_ENV: development
     volumes:
@@ -33,8 +33,8 @@ services:
         source: .
         target: /workspace
       - type: volume
-        source: node_modules
-        target: /workspace/node_modules
+        source: authx-init
+        target: /var/tmp/authx-init
 
   # This container watches for changes and builds the application.
   builder:
@@ -42,7 +42,8 @@ services:
       - installer
     image: node:16.16.0
     working_dir: /workspace
-    command: ./scripts/await.sh node_modules/.bin/lerna npm run build:development:chained
+    entrypoint: ./scripts/await.sh /var/tmp/authx-init/installer-complete
+    command: npm run build:development:chained
     environment:
       NODE_ENV: development
     volumes:
@@ -50,8 +51,8 @@ services:
         source: .
         target: /workspace
       - type: volume
-        source: node_modules
-        target: /workspace/node_modules
+        source: authx-init
+        target: /var/tmp/authx-init
 
   # This container runs the server.
   server:
@@ -60,7 +61,8 @@ services:
       - postgres
     image: node:16.16.0
     working_dir: /workspace
-    command: ./scripts/await.sh node_modules/.bin/nodemon ./scripts/await.sh dist/server.js npm run start:development
+    entrypoint: ./scripts/await.sh /var/tmp/authx-init/installer-complete ./scripts/await.sh dist/server.js
+    command: npm run start:development
     environment:
       NODE_ENV: development
       PGHOST: postgres
@@ -71,8 +73,8 @@ services:
         source: .
         target: /workspace
       - type: volume
-        source: node_modules
-        target: /workspace/node_modules
+        source: authx-init
+        target: /var/tmp/authx-init
     ports:
       - target: 80
         published: ${PUBLISH_PORT_HTTP}

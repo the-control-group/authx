@@ -43,7 +43,7 @@ The `server` service in docker compose is an ideal place for running tests, eith
 
 ```bash
 # Run the entire test suite.
-docker compose run --rm server npx test
+docker compose run --rm server npm test
 
 # Run a bash container and execute tests in a specific package.
 docker compose run --rm server bash
