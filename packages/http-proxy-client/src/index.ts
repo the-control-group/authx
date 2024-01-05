@@ -664,7 +664,8 @@ export default class AuthXClientProxy extends EventEmitter {
     };
 
     // Store the request.
-    this._requests[refreshToken] = this._requests[refreshToken] || Object.create(null);
+    this._requests[refreshToken] =
+      this._requests[refreshToken] || Object.create(null);
     this._requests[refreshToken][hash] = request;
     return request.promise;
   }
