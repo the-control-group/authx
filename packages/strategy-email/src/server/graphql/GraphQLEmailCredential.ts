@@ -13,8 +13,8 @@ import {
   GraphQLNode,
   Context,
 } from "@authx/authx";
-import { EmailCredential, EmailAuthority } from "../model";
-import { GraphQLEmailAuthority } from "./GraphQLEmailAuthority";
+import { EmailCredential, EmailAuthority } from "../model/index.js";
+import { GraphQLEmailAuthority } from "./GraphQLEmailAuthority.js";
 
 // Credential
 // ----------

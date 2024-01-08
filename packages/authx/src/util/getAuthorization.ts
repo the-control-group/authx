@@ -1,7 +1,7 @@
 import { ClientBase } from "pg";
 import { verify, TokenExpiredError } from "jsonwebtoken";
-import { Authorization } from "../model";
-import { NotFoundError, AuthenticationError } from "../errors";
+import { Authorization } from "../model/index.js";
+import { NotFoundError, AuthenticationError } from "../errors.js";
 
 const __DEV__ = process.env.NODE_ENV !== "production";
 

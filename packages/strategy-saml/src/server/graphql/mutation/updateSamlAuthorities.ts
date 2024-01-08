@@ -11,9 +11,9 @@ import {
   validateIdFormat,
   ValidationError,
 } from "@authx/authx";
-import { SamlAuthority } from "../../model";
-import { GraphQLSamlAuthority } from "../GraphQLSamlAuthority";
-import { GraphQLUpdateSamlAuthorityInput } from "./GraphQLUpdateSamlAuthorityInput";
+import { SamlAuthority } from "../../model/index.js";
+import { GraphQLSamlAuthority } from "../GraphQLSamlAuthority.js";
+import { GraphQLUpdateSamlAuthorityInput } from "./GraphQLUpdateSamlAuthorityInput.js";
 
 export const updateSamlAuthorities: GraphQLFieldConfig<
   any,

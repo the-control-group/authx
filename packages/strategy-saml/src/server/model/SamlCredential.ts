@@ -1,6 +1,6 @@
 import { Credential, DataLoaderExecutor } from "@authx/authx";
 import { ClientBase, Pool } from "pg";
-import { SamlAuthority } from "./SamlAuthority";
+import { SamlAuthority } from "./SamlAuthority.js";
 
 // eslint-disable-next-line
 export interface SamlCredentialDetails {}

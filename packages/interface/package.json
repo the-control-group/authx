@@ -7,33 +7,32 @@
   "dependencies": {
     "@authx/authx": "^3.1.0-alpha.52",
     "@authx/scopes": "^3.1.0-alpha.52",
-    "@types/graphql-react": "^8.1.1",
-    "@types/html-webpack-plugin": "^3.2.5",
-    "@types/memory-fs": "^0.3.3",
-    "@types/react": "^17.0.0",
-    "@types/react-dom": "^17.0.0",
-    "@types/webpack": "^5.28.0",
-    "graphql-react": "^12.0.1",
-    "html-webpack-plugin": "^5.3.1",
+    "@types/graphql-react": "^8.1.7",
+    "@types/memory-fs": "^0.3.7",
+    "@types/react": "^18.2.46",
+    "@types/react-dom": "^18.2.18",
+    "@types/webpack": "^5.28.5",
+    "graphql-react": "^20.0.0",
+    "html-webpack-plugin": "^5.6.0",
     "memory-fs": "^0.5.0",
-    "react": "^17.0.0",
-    "react-dom": "^17.0.0",
-    "source-map-loader": "^2.0.1",
-    "uuid": "^8.3.2",
-    "webpack": "^5.33.2"
+    "react": "^18.2.0",
+    "react-dom": "^18.2.0",
+    "source-map-loader": "^4.0.2",
+    "uuid": "^9.0.1",
+    "webpack": "^5.89.0"
   },
   "description": "",
   "devDependencies": {
-    "@typescript-eslint/eslint-plugin": "^4.6.1",
-    "@typescript-eslint/parser": "^4.6.1",
-    "ava": "^3.5.2",
-    "eslint": "^7.12.1",
-    "eslint-config-prettier": "^8.2.0",
-    "eslint-plugin-prettier": "^3.1.1",
-    "eslint-plugin-react": "^7.20.6",
-    "koa": "^2.11.0",
-    "prettier": "^2.0.2",
-    "typescript": "^4.0.5"
+    "@typescript-eslint/eslint-plugin": "^6.17.0",
+    "@typescript-eslint/parser": "^6.17.0",
+    "ava": "^6.0.1",
+    "eslint": "^8.56.0",
+    "eslint-config-prettier": "^9.1.0",
+    "eslint-plugin-prettier": "^5.1.2",
+    "eslint-plugin-react": "^7.33.2",
+    "koa": "^2.15.0",
+    "prettier": "^3.1.1",
+    "typescript": "^5.3.3"
   },
   "engines": {
     "node": ">=10"
@@ -71,6 +70,7 @@
     "test:development": "ava --verbose --watch dist/*.test.js",
     "prepublishOnly": "npm run build"
   },
+  "type": "module",
   "types": "dist/server/index.d.ts",
   "version": "3.1.0-alpha.52"
 }

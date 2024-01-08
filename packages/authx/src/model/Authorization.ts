@@ -1,10 +1,10 @@
 import { Pool, ClientBase } from "pg";
-import { User } from "./User";
-import { Grant } from "./Grant";
+import { User } from "./User.js";
+import { Grant } from "./Grant.js";
 import { simplify, getIntersection, isSuperset } from "@authx/scopes";
-import { NotFoundError } from "../errors";
-import { AuthorizationAction, createV2AuthXScope } from "../util/scopes";
-import { DataLoaderExecutor, DataLoaderCache } from "../loader";
+import { NotFoundError } from "../errors.js";
+import { AuthorizationAction, createV2AuthXScope } from "../util/scopes.js";
+import { DataLoaderExecutor, DataLoaderCache } from "../loader.js";
 
 export interface AuthorizationInvocationData {
   readonly id: string;

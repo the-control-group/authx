@@ -1,5 +1,5 @@
 import test from "ava";
-import { TokenDataCache, FetchFunction, TokenData } from "./TokenDataCache";
+import { TokenDataCache, FetchFunction, TokenData } from "./TokenDataCache.js";
 
 const FIRST_TOKEN = { access: ["test:r:r"], id: "I1", user: { id: "U1" } };
 const SECOND_TOKEN = { access: ["test2:r:r"], id: "I5", user: { id: "U5" } };

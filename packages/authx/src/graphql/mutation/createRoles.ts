@@ -1,21 +1,21 @@
 import { v4 } from "uuid";
-import { filter } from "../../util/filter";
+import { filter } from "../../util/filter.js";
 import { Pool, PoolClient } from "pg";
 import { isSuperset, simplify } from "@authx/scopes";
 import { GraphQLFieldConfig, GraphQLList, GraphQLNonNull } from "graphql";
-import { Context } from "../../Context";
-import { GraphQLRole } from "../GraphQLRole";
-import { Role } from "../../model";
-import { DataLoaderExecutor } from "../../loader";
-import { validateIdFormat } from "../../util/validateIdFormat";
-import { createV2AuthXScope } from "../../util/scopes";
+import { Context } from "../../Context.js";
+import { GraphQLRole } from "../GraphQLRole.js";
+import { Role } from "../../model/index.js";
+import { DataLoaderExecutor } from "../../loader.js";
+import { validateIdFormat } from "../../util/validateIdFormat.js";
+import { createV2AuthXScope } from "../../util/scopes.js";
 import {
   ForbiddenError,
   ConflictError,
   NotFoundError,
   ValidationError,
-} from "../../errors";
-import { GraphQLCreateRoleInput } from "./GraphQLCreateRoleInput";
+} from "../../errors.js";
+import { GraphQLCreateRoleInput } from "./GraphQLCreateRoleInput.js";
 
 export const createRoles: GraphQLFieldConfig<
   any,

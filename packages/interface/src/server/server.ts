@@ -1,5 +1,5 @@
 import Koa from "koa";
-import createInterfaceMiddleware from ".";
+import createInterfaceMiddleware from "./index.js";
 
 (async () => {
   const app = new Koa();

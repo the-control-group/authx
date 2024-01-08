@@ -12,9 +12,9 @@ import {
   validateIdFormat,
   DataLoaderExecutor,
 } from "@authx/authx";
-import { PasswordCredential } from "../../model";
-import { GraphQLPasswordCredential } from "../GraphQLPasswordCredential";
-import { GraphQLUpdatePasswordCredentialInput } from "./GraphQLUpdatePasswordCredentialInput";
+import { PasswordCredential } from "../../model/index.js";
+import { GraphQLPasswordCredential } from "../GraphQLPasswordCredential.js";
+import { GraphQLUpdatePasswordCredentialInput } from "./GraphQLUpdatePasswordCredentialInput.js";
 
 export const updatePasswordCredentials: GraphQLFieldConfig<
   any,

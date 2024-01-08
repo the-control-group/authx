@@ -1,5 +1,5 @@
 import test from "ava";
-import { filter } from "./filter";
+import { filter } from "./filter.js";
 
 test("Async filter.", async (t) => {
   t.deepEqual(

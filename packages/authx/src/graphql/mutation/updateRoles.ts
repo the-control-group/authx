@@ -2,14 +2,14 @@ import { v4 } from "uuid";
 import { Pool, PoolClient } from "pg";
 import { isSuperset } from "@authx/scopes";
 import { GraphQLFieldConfig, GraphQLList, GraphQLNonNull } from "graphql";
-import { Context } from "../../Context";
-import { GraphQLRole } from "../GraphQLRole";
-import { Role } from "../../model";
-import { DataLoaderExecutor } from "../../loader";
-import { filter } from "../../util/filter";
-import { validateIdFormat } from "../../util/validateIdFormat";
-import { ForbiddenError, ValidationError } from "../../errors";
-import { GraphQLUpdateRoleInput } from "./GraphQLUpdateRoleInput";
+import { Context } from "../../Context.js";
+import { GraphQLRole } from "../GraphQLRole.js";
+import { Role } from "../../model/index.js";
+import { DataLoaderExecutor } from "../../loader.js";
+import { filter } from "../../util/filter.js";
+import { validateIdFormat } from "../../util/validateIdFormat.js";
+import { ForbiddenError, ValidationError } from "../../errors.js";
+import { GraphQLUpdateRoleInput } from "./GraphQLUpdateRoleInput.js";
 
 export const updateRoles: GraphQLFieldConfig<
   any,

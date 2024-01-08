@@ -1,6 +1,6 @@
 import { ConnectionArguments } from "graphql-relay";
-import { Rule } from "./Rule";
-import { CursorConnection } from "../../graphql/connection/CursorConnection";
+import { Rule } from "./Rule.js";
+import { CursorConnection } from "../../graphql/connection/CursorConnection.js";
 
 /**
  * Rule that handles pagination if the user is paging forwards through the data

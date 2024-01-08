@@ -7,36 +7,36 @@ import { Context as KoaContext, Next as KoaNext, Middleware } from "koa";
 import { parse } from "auth-header";
 import { Pool } from "pg";
 
-import x from "./x";
-import oauth2 from "./oauth2";
-import { Config, assertConfig } from "./Config";
-import { Context } from "./Context";
-import { createSchema } from "./graphql";
-import { fromBasic, fromBearer } from "./util/getAuthorization";
-import { StrategyCollection } from "./StrategyCollection";
-import { UnsupportedMediaTypeError } from "./errors";
-import { createAuthXExplanations } from "./explanations";
-import { DataLoaderExecutor } from "./loader";
+import x from "./x.js";
+import oauth2 from "./oauth2.js";
+import { Config, assertConfig } from "./Config.js";
+import { Context } from "./Context.js";
+import { createSchema } from "./graphql/index.js";
+import { fromBasic, fromBearer } from "./util/getAuthorization.js";
+import { StrategyCollection } from "./StrategyCollection.js";
+import { UnsupportedMediaTypeError } from "./errors.js";
+import { createAuthXExplanations } from "./explanations.js";
+import { DataLoaderExecutor } from "./loader.js";
 import {
   LocalMemoryRateLimiter,
   NoOpRateLimiter,
   RateLimiter,
-} from "./util/ratelimiter";
+} from "./util/ratelimiter.js";
 import {
   EagerInvocationRecorder,
   InvocationRecorder,
-} from "./InvocationRecorder";
+} from "./InvocationRecorder.js";
 
-export * from "./x";
-export * from "./errors";
-export * from "./loader";
-export * from "./model";
-export * from "./graphql";
-export * from "./Strategy";
-export * from "./StrategyCollection";
-export * from "./Config";
-export * from "./Context";
-export * from "./util/validateIdFormat";
+export * from "./x.js";
+export * from "./errors.js";
+export * from "./loader.js";
+export * from "./model/index.js";
+export * from "./graphql/index.js";
+export * from "./Strategy.js";
+export * from "./StrategyCollection.js";
+export * from "./Config.js";
+export * from "./Context.js";
+export * from "./util/validateIdFormat.js";
 
 type AuthXMiddleware = Middleware<any, KoaContext & { [x]: Context }>;
 
@@ -163,7 +163,7 @@ export class AuthX extends Router<any, { [x]: Context }> {
         await next();
       },
 
-      body({ multipart: false, urlencoded: false, text: false, json: true }),
+      body.default({ multipart: false, urlencoded: false, text: false, json: true }),
 
       execute({
         schema: config.processSchema
@@ -182,7 +182,7 @@ export class AuthX extends Router<any, { [x]: Context }> {
     // GraphiQL
     // ========
     // This is a graphical (get it, graph-i-QL) interface to the AuthX API.
-    this.all("/graphiql", createPlaygroundMiddleware({ endpoint: "/graphql" }));
+    this.all("/graphiql", createPlaygroundMiddleware.default({ endpoint: "/graphql" }));
 
     // OAuth
     // =====
@@ -199,7 +199,7 @@ export class AuthX extends Router<any, { [x]: Context }> {
     this.post(
       "/",
       contextMiddleware as AuthXMiddleware,
-      body({ multipart: false, urlencoded: true, text: false, json: true }),
+      body.default({ multipart: false, urlencoded: true, text: false, json: true }),
       oauth2 as AuthXMiddleware
     );
 

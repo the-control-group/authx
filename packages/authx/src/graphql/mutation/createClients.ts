@@ -4,19 +4,19 @@ import { URL } from "url";
 import { randomBytes } from "crypto";
 import { GraphQLFieldConfig, GraphQLList, GraphQLNonNull } from "graphql";
 import { isSuperset, simplify } from "@authx/scopes";
-import { Context } from "../../Context";
-import { GraphQLClient } from "../GraphQLClient";
-import { Client, Role } from "../../model";
-import { DataLoaderExecutor } from "../../loader";
-import { validateIdFormat } from "../../util/validateIdFormat";
-import { createV2AuthXScope } from "../../util/scopes";
+import { Context } from "../../Context.js";
+import { GraphQLClient } from "../GraphQLClient.js";
+import { Client, Role } from "../../model/index.js";
+import { DataLoaderExecutor } from "../../loader.js";
+import { validateIdFormat } from "../../util/validateIdFormat.js";
+import { createV2AuthXScope } from "../../util/scopes.js";
 import {
   ForbiddenError,
   ConflictError,
   NotFoundError,
   ValidationError,
-} from "../../errors";
-import { GraphQLCreateClientInput } from "./GraphQLCreateClientInput";
+} from "../../errors.js";
+import { GraphQLCreateClientInput } from "./GraphQLCreateClientInput.js";
 
 export const createClients: GraphQLFieldConfig<
   any,

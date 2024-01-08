@@ -5,8 +5,8 @@ import {
   AnySingle,
   AnyMultiple,
   normalize,
-} from "./scope";
-import { ParameterizedScope } from "./parameter";
+} from "./scope.js";
+import { ParameterizedScope } from "./parameter.js";
 
 export const LITERAL_SEGMENT = /^[a-zA-Z0-9_-]*$/;
 export const TEMPLATE_SEGMENT = /^\{[a-zA-Z0-9_-]+\}$/;

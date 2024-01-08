@@ -17,12 +17,12 @@ import {
 import {
   createV2AuthXScope,
   createV2AuthorityAdministrationScopes,
-} from "@authx/authx/scopes";
+} from "@authx/authx/scopes.js";
 
 import { isSuperset, simplify } from "@authx/scopes";
-import { OpenIdAuthority } from "../../model";
-import { GraphQLOpenIdAuthority } from "../GraphQLOpenIdAuthority";
-import { GraphQLCreateOpenIdAuthorityInput } from "./GraphQLCreateOpenIdAuthorityInput";
+import { OpenIdAuthority } from "../../model/index.js";
+import { GraphQLOpenIdAuthority } from "../GraphQLOpenIdAuthority.js";
+import { GraphQLCreateOpenIdAuthorityInput } from "./GraphQLCreateOpenIdAuthorityInput.js";
 
 export const createOpenIdAuthorities: GraphQLFieldConfig<
   any,

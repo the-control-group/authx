@@ -13,8 +13,8 @@ import {
   GraphQLNode,
   Context,
 } from "@authx/authx";
-import { OpenIdCredential, OpenIdAuthority } from "../model";
-import { GraphQLOpenIdAuthority } from "./GraphQLOpenIdAuthority";
+import { OpenIdCredential, OpenIdAuthority } from "../model/index.js";
+import { GraphQLOpenIdAuthority } from "./GraphQLOpenIdAuthority.js";
 
 // Credential
 // ----------

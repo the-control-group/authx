@@ -1,4 +1,4 @@
-import { Rule } from "./Rule";
+import { Rule } from "./Rule.js";
 import { extract } from "@authx/scopes";
 
 /**

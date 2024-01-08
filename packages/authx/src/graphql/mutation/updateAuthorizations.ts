@@ -1,12 +1,12 @@
 import { v4 } from "uuid";
 import { Pool, PoolClient } from "pg";
 import { GraphQLFieldConfig, GraphQLList, GraphQLNonNull } from "graphql";
-import { Context } from "../../Context";
-import { GraphQLAuthorization } from "../GraphQLAuthorization";
-import { Authorization } from "../../model";
-import { DataLoaderExecutor } from "../../loader";
-import { ForbiddenError } from "../../errors";
-import { GraphQLUpdateAuthorizationInput } from "./GraphQLUpdateAuthorizationInput";
+import { Context } from "../../Context.js";
+import { GraphQLAuthorization } from "../GraphQLAuthorization.js";
+import { Authorization } from "../../model/index.js";
+import { DataLoaderExecutor } from "../../loader.js";
+import { ForbiddenError } from "../../errors.js";
+import { GraphQLUpdateAuthorizationInput } from "./GraphQLUpdateAuthorizationInput.js";
 
 export const updateAuthorizations: GraphQLFieldConfig<
   any,

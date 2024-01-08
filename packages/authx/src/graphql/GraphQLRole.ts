@@ -14,12 +14,12 @@ import {
   ConnectionArguments,
 } from "graphql-relay";
 
-import { Role } from "../model";
-import { Context } from "../Context";
-import { GraphQLUserConnection } from "./GraphQLUserConnection";
-import { GraphQLScopeTemplate } from "./GraphQLScopeTemplate";
-import { GraphQLNode } from "./GraphQLNode";
-import { filter } from "../util/filter";
+import { Role } from "../model/index.js";
+import { Context } from "../Context.js";
+import { GraphQLUserConnection } from "./GraphQLUserConnection.js";
+import { GraphQLScopeTemplate } from "./GraphQLScopeTemplate.js";
+import { GraphQLNode } from "./GraphQLNode.js";
+import { filter } from "../util/filter.js";
 
 export const GraphQLRole = new GraphQLObjectType<Role, Context>({
   name: "Role",

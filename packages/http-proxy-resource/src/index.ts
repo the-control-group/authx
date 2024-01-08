@@ -1,19 +1,20 @@
 import { EventEmitter } from "events";
 import { createServer, Server, IncomingMessage, ServerResponse } from "http";
-import { createProxyServer, ServerOptions } from "http-proxy";
+import httpProxy, {ServerOptions} from "http-proxy";
+const { createProxyServer } = httpProxy;
 import { isEqual, isSuperset } from "@authx/scopes";
-import { AuthXKeyCache } from "./AuthXKeyCache";
-export { AuthXKeyCache } from "./AuthXKeyCache";
+import { AuthXKeyCache } from "./AuthXKeyCache.js";
+export { AuthXKeyCache } from "./AuthXKeyCache.js";
 import {
   validateAuthorizationHeader,
   NotAuthorizedError,
-} from "./validateAuthorizationHeader";
-import { TokenDataCache } from "./TokenDataCache";
+} from "./validateAuthorizationHeader.js";
+import { TokenDataCache } from "./TokenDataCache.js";
 import fetch from "node-fetch";
 export {
   validateAuthorizationHeader,
   NotAuthorizedError,
-} from "./validateAuthorizationHeader";
+} from "./validateAuthorizationHeader.js";
 
 export interface Behavior {
   /**

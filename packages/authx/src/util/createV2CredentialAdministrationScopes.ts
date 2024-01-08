@@ -1,4 +1,4 @@
-import { createV2AuthXScope, CredentialContext } from "./scopes";
+import { createV2AuthXScope, CredentialContext } from "./scopes.js";
 
 export function createV2CredentialAdministrationScopes(
   realm: string,

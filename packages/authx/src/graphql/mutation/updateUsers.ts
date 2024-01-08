@@ -1,13 +1,13 @@
 import { v4 } from "uuid";
 import { Pool, PoolClient } from "pg";
 import { GraphQLFieldConfig, GraphQLNonNull, GraphQLList } from "graphql";
-import { Context } from "../../Context";
-import { GraphQLUser } from "../GraphQLUser";
-import { User } from "../../model";
-import { DataLoaderExecutor } from "../../loader";
-import { validateIdFormat } from "../../util/validateIdFormat";
-import { ForbiddenError, ValidationError } from "../../errors";
-import { GraphQLUpdateUserInput } from "./GraphQLUpdateUserInput";
+import { Context } from "../../Context.js";
+import { GraphQLUser } from "../GraphQLUser.js";
+import { User } from "../../model/index.js";
+import { DataLoaderExecutor } from "../../loader.js";
+import { validateIdFormat } from "../../util/validateIdFormat.js";
+import { ForbiddenError, ValidationError } from "../../errors.js";
+import { GraphQLUpdateUserInput } from "./GraphQLUpdateUserInput.js";
 
 export const updateUsers: GraphQLFieldConfig<
   any,

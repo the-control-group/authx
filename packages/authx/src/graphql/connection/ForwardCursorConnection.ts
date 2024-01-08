@@ -1,7 +1,7 @@
 import { Connection, Edge, PageInfo } from "graphql-relay";
-import { Node } from "./Node";
-import { CursorConnection } from "./CursorConnection";
-import { ForwardCursorRule } from "../../model/rules/ForwardCursorRule";
+import { Node } from "./Node.js";
+import { CursorConnection } from "./CursorConnection.js";
+import { ForwardCursorRule } from "../../model/rules/ForwardCursorRule.js";
 
 /**
  * Connection class for if the user is using forward pagination
@@ -14,7 +14,12 @@ export class ForwardCursorConnection<T extends Node> implements Connection<T> {
   pageInfo: PageInfo;
 
   constructor(elements: T[], cursorRule: ForwardCursorRule) {
-    this.pageInfo = {};
+    this.pageInfo = {
+      startCursor: null,
+      endCursor: null,
+      hasPreviousPage: false,
+      hasNextPage: false,
+    };
 
     elements.sort((a, b) => a.id.localeCompare(b.id));
 

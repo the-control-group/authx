@@ -1,6 +1,6 @@
 import { Pool, ClientBase } from "pg";
 import { Credential, DataLoaderExecutor } from "@authx/authx";
-import { OpenIdAuthority } from "./OpenIdAuthority";
+import { OpenIdAuthority } from "./OpenIdAuthority.js";
 
 // Credential
 // ----------

@@ -1,6 +1,7 @@
 {
   "private": true,
   "main": "dist/server",
+  "type": "module",
   "workspaces": [
     "packages/authx",
     "packages/http-proxy-client",
@@ -14,43 +15,42 @@
     "packages/strategy-saml",
     "packages/tools"
   ],
-  "nohoist": [
-    "packages/authx-interface/html-webpack-plugin"
-  ],
   "scripts": {
-    "packages": "lerna run",
+    "build:development:chained": "lerna run --parallel build:development:chained & npm run root:build:development:chained",
+    "build:development": "npm run packages:build:development & npm run root:build:development",
+    "build": "npm run packages:build && echo '\n\n  ---------- ' && npm run root:build",
+    "format": "npm run packages:format && echo '\n\n  ---------- ' && npm run root:format",
+    "lint": "npm run packages:lint && echo '\n\n  ---------- ' && npm run root:lint",
     "packages:build": "npm run packages build",
     "packages:format": "npm run packages format",
     "packages:lint": "npm run packages lint",
     "packages:test": "npm run packages test",
-    "root:build": "rm -rf dist && tsc",
-    "root:build:development": "rm -rf dist && tsc --watch",
+    "packages": "lerna run",
     "root:build:development:chained": "tsc --watch --preserveWatchOutput --pretty",
+    "root:build:development": "rm -rf dist && tsc --watch",
+    "root:build": "rm -rf dist && tsc",
     "root:format": "prettier --list-different --write '**/*.{json,yml,md,ts}'",
     "root:lint": "prettier -c '**/*.{json,yml,md,ts}' && eslint src --ext ts",
-    "root:test": "ava --verbose",
     "root:test:development": "ava --verbose --watch dist/*.test.js",
-    "build": "npm run packages:build && echo '\n\n  ---------- ' && npm run root:build",
-    "build:development": "npm run packages:build:development & npm run root:build:development",
-    "build:development:chained": "lerna run --parallel build:development:chained & npm run root:build:development:chained",
-    "format": "npm run packages:format && echo '\n\n  ---------- ' && npm run root:format",
-    "lint": "npm run packages:lint && echo '\n\n  ---------- ' && npm run root:lint",
-    "start": "node dist/server",
+    "root:test": "ava --verbose",
     "start:development": "nodemon --delay 2 --inspect dist/server",
-    "test": "npm run packages:test && echo '\n\n  ---------- ' && npm run root:test"
+    "start": "node dist/server",
+    "test": "npm run packages:test && echo '\n\n  ---------- ' && npm run root:test",
+    "update": "npx npm-check-updates -u && lerna exec --parallel -- npx ncu -u && npm i && npm update"
   },
   "devDependencies": {
-    "@typescript-eslint/eslint-plugin": "^4.22.0",
-    "@typescript-eslint/parser": "^4.22.0",
-    "ava": "^3.15.0",
-    "eslint": "^7.24.0",
-    "eslint-config-prettier": "^8.2.0",
-    "eslint-plugin-prettier": "^3.4.0",
-    "koa": "^2.13.1",
-    "lerna": "^5.0.0",
-    "nodemon": "^2.0.7",
-    "prettier": "^2.1.1",
-    "typescript": "^4.2.4"
+    "@typescript-eslint/eslint-plugin": "^6.17.0",
+    "@typescript-eslint/parser": "^6.17.0",
+    "ava": "^6.0.1",
+    "eslint": "^8.56.0",
+    "eslint-config-prettier": "^9.1.0",
+    "eslint-plugin-prettier": "^5.1.2",
+    "koa": "^2.15.0",
+    "lerna": "^8.0.2",
+    "nodemon": "^3.0.2",
+    "npm-check-updates": "^16.14.12",
+    "prettier": "^3.1.1",
+    "typescript": "^5.3.3"
   },
   "ava": {
     "files": [

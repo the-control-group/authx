@@ -11,9 +11,9 @@ import {
   validateIdFormat,
   ValidationError,
 } from "@authx/authx";
-import { SamlCredential } from "../../model";
-import { GraphQLSamlCredential } from "../GraphQLSamlCredential";
-import { GraphQLUpdateSamlCredentialInput } from "./GraphQLUpdateSamlCredentialInput";
+import { SamlCredential } from "../../model/index.js";
+import { GraphQLSamlCredential } from "../GraphQLSamlCredential.js";
+import { GraphQLUpdateSamlCredentialInput } from "./GraphQLUpdateSamlCredentialInput.js";
 
 export const updateSamlCredentials: GraphQLFieldConfig<
   any,

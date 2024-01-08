@@ -9,7 +9,7 @@ import {
 } from "graphql";
 
 import { Context, GraphQLAuthority, GraphQLNode } from "@authx/authx";
-import { EmailAuthority } from "../model";
+import { EmailAuthority } from "../model/index.js";
 
 // Authority
 // ---------

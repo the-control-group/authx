@@ -1,6 +1,5 @@
 import Router from "koa-router";
 import body from "koa-body";
-import fetch from "node-fetch";
 import { Context, x } from "@authx/authx";
 
 export function samlRouterFactory(): Router<any, { [x]: Context }> {
@@ -8,7 +7,7 @@ export function samlRouterFactory(): Router<any, { [x]: Context }> {
 
   router.post(
     "/:authorityId/assert",
-    body({ multipart: true, urlencoded: true, text: true, json: true }),
+    body.default({ multipart: true, urlencoded: true, text: true, json: true }),
     async (ctx) => {
       const base = ctx[x].base;
       const saml = ctx.request.body ? ctx.request.body.SAMLResponse : "";

@@ -1,11 +1,12 @@
-import {
+import jsonwebtoken from "jsonwebtoken";
+const {
   verify,
   JsonWebTokenError,
   NotBeforeError,
   TokenExpiredError,
-} from "jsonwebtoken";
+} = jsonwebtoken;
 import { isValidScopeLiteral } from "@authx/scopes";
-import { TokenDataCache } from "./TokenDataCache";
+import { TokenDataCache } from "./TokenDataCache.js";
 
 const BEARER = /^BEARER\s+/i;
 const BASIC = /^BASIC\s+/i;

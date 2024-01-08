@@ -22,10 +22,10 @@ import {
   ReadonlyDataLoaderExecutor,
 } from "@authx/authx";
 
-import { createV2AuthXScope } from "@authx/authx/scopes";
+import { createV2AuthXScope } from "@authx/authx/scopes.js";
 
 import { isSuperset } from "@authx/scopes";
-import { PasswordAuthority } from "../../model";
+import { PasswordAuthority } from "../../model/index.js";
 const __DEV__ = process.env.NODE_ENV !== "production";
 
 export const authenticatePassword: GraphQLFieldConfig<

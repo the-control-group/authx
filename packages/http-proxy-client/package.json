@@ -5,24 +5,23 @@
   },
   "bugs": "https://github.com/the-control-group/authx/issues",
   "dependencies": {
-    "@types/http-proxy": "^1.17.5",
-    "@types/jsonwebtoken": "^8.5.1",
-    "@types/node-fetch": "^2.5.10",
-    "abort-controller": "^3.0.0",
+    "@types/http-proxy": "^1.17.14",
+    "@types/jsonwebtoken": "^9.0.5",
+    "@types/node-fetch": "^2.6.10",
     "http-proxy": "^1.18.1",
-    "jsonwebtoken": "^8.5.1",
-    "node-fetch": "^2.5.0"
+    "jsonwebtoken": "^9.0.2",
+    "node-fetch": "^3.3.2"
   },
   "description": "",
   "devDependencies": {
-    "@typescript-eslint/eslint-plugin": "^4.6.1",
-    "@typescript-eslint/parser": "^4.6.1",
-    "ava": "^3.5.2",
-    "eslint": "^7.12.1",
-    "eslint-config-prettier": "^8.2.0",
-    "eslint-plugin-prettier": "^3.1.1",
-    "prettier": "^2.0.2",
-    "typescript": "^4.0.5"
+    "@typescript-eslint/eslint-plugin": "^6.17.0",
+    "@typescript-eslint/parser": "^6.17.0",
+    "ava": "^6.0.1",
+    "eslint": "^8.56.0",
+    "eslint-config-prettier": "^9.1.0",
+    "eslint-plugin-prettier": "^5.1.2",
+    "prettier": "^3.1.1",
+    "typescript": "^5.3.3"
   },
   "engines": {
     "node": ">=6"
@@ -52,6 +51,7 @@
     "test:development": "ava --verbose dist/*.test.js --watch",
     "prepublishOnly": "npm run build"
   },
+  "type": "module",
   "types": "./dist/index.d.ts",
   "version": "3.1.0-alpha.52"
 }

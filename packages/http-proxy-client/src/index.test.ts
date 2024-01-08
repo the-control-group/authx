@@ -1,6 +1,6 @@
 import test from "ava";
 import { createServer, Server } from "http";
-import AuthXClientProxy from ".";
+import AuthXClientProxy from "./index.js";
 import fetch from "node-fetch";
 
 const nowInSeconds = Math.floor(Date.now() / 1000);
@@ -189,6 +189,14 @@ test.before(async () => {
   }
 
   port = address.port;
+});
+
+test.after(async () => {
+  await Promise.all([
+    proxy.close(),
+    new Promise((resolve) => mockAuthX.server.close(resolve)),
+    new Promise((resolve) => mockTarget.server.close(resolve)),
+  ]);
 });
 
 test("readiness endpoint", async (t) => {

@@ -1,7 +1,7 @@
 import { GraphQLFieldConfig, GraphQLID, GraphQLNonNull } from "graphql";
-import { Context } from "../../Context";
-import { GraphQLCredential } from "../GraphQLCredential";
-import { Credential } from "../../model";
+import { Context } from "../../Context.js";
+import { GraphQLCredential } from "../GraphQLCredential.js";
+import { Credential } from "../../model/index.js";
 
 export const credential: GraphQLFieldConfig<
   any,

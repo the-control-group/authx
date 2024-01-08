@@ -1,9 +1,9 @@
 import { Authority, DataLoaderExecutor, QueryCache } from "@authx/authx";
 import { ClientBase, Pool } from "pg";
-import { SamlCredential } from "./SamlCredential";
-import { AuthorityData } from "@authx/authx/src/model/Authority";
+import { SamlCredential } from "./SamlCredential.js";
+import { AuthorityData } from "@authx/authx";
 import { IdentityProvider, ServiceProvider } from "saml2-js";
-import { Role } from "@authx/authx/dist/model/Role";
+import { Role } from "@authx/authx";
 
 export interface SamlAuthorityDetails {
   entityId: string;

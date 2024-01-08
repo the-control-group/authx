@@ -1,6 +1,6 @@
 import { GraphQLObjectType, GraphQLString, GraphQLNonNull } from "graphql";
-import { GraphQLCredential } from "./GraphQLCredential";
-import { GraphQLEdge } from "./GraphQLEdge";
+import { GraphQLCredential } from "./GraphQLCredential.js";
+import { GraphQLEdge } from "./GraphQLEdge.js";
 
 export const GraphQLCredentialEdge = new GraphQLObjectType({
   name: "CredentialEdge",

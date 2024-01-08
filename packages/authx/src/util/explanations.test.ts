@@ -1,5 +1,5 @@
 import test from "ava";
-import { generate, match } from "./explanations";
+import { generate, match } from "./explanations.js";
 
 const userExplanationTemplates = [
   {

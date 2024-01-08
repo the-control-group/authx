@@ -7,7 +7,7 @@ import {
   GraphQLObjectType,
 } from "graphql";
 
-import { PasswordAuthority } from "../model";
+import { PasswordAuthority } from "../model/index.js";
 import { GraphQLAuthority, GraphQLNode, Context } from "@authx/authx";
 
 // Authority

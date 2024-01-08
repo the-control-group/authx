@@ -3,7 +3,7 @@ import { Authority, DataLoaderExecutor, QueryCache } from "@authx/authx";
 import {
   PasswordCredentialDetails,
   PasswordCredential,
-} from "./PasswordCredential";
+} from "./PasswordCredential.js";
 
 // Authority
 // ---------

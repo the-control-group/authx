@@ -1,7 +1,7 @@
-import { Pool, ClientBase, QueryResult, QueryConfig } from "pg";
+import { Pool, ClientBase, QueryResult, QueryConfig, QueryResultRow } from "pg";
 import DataLoader from "dataloader";
-import { NotFoundError } from "./errors";
-import { StrategyCollection } from "./StrategyCollection";
+import { NotFoundError } from "./errors.js";
+import { StrategyCollection } from "./StrategyCollection.js";
 import createHash from "object-hash";
 
 export class DataLoaderExecutor<
@@ -71,7 +71,7 @@ export class DataLoaderCache<M extends { id: string }> {
   }
 }
 
-export class QueryCache<T> {
+export class QueryCache<T extends QueryResultRow> {
   private _map = new WeakMap<
     DataLoaderExecutor,
     Map<string, Promise<QueryResult<T>>>

@@ -1,16 +1,9 @@
 {
+  "extends": "../../tsconfig.json",
   "compilerOptions": {
-    "lib": ["es2018", "es2019", "es2020", "dom"],
-    "target": "es2018",
-    "module": "commonjs",
+    "lib": ["ES2022", "DOM"],
     "outDir": "./dist",
-    "declaration": true,
     "declarationDir": "./dist",
-    "rootDir": "./src",
-    "strict": true,
-    "esModuleInterop": true,
-    "skipLibCheck": true,
-    "sourceMap": true,
     "jsx": "react"
   },
   "include": ["./src/**/*"]

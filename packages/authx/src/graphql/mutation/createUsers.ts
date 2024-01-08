@@ -2,19 +2,19 @@ import { v4 } from "uuid";
 import { Pool, PoolClient } from "pg";
 import { GraphQLFieldConfig, GraphQLNonNull, GraphQLList } from "graphql";
 import { isSuperset, simplify } from "@authx/scopes";
-import { Context } from "../../Context";
-import { GraphQLUser } from "../GraphQLUser";
-import { User, UserType, Role } from "../../model";
-import { DataLoaderExecutor } from "../../loader";
-import { validateIdFormat } from "../../util/validateIdFormat";
-import { createV2AuthXScope } from "../../util/scopes";
+import { Context } from "../../Context.js";
+import { GraphQLUser } from "../GraphQLUser.js";
+import { User, UserType, Role } from "../../model/index.js";
+import { DataLoaderExecutor } from "../../loader.js";
+import { validateIdFormat } from "../../util/validateIdFormat.js";
+import { createV2AuthXScope } from "../../util/scopes.js";
 import {
   ForbiddenError,
   ConflictError,
   NotFoundError,
   ValidationError,
-} from "../../errors";
-import { GraphQLCreateUserInput } from "./GraphQLCreateUserInput";
+} from "../../errors.js";
+import { GraphQLCreateUserInput } from "./GraphQLCreateUserInput.js";
 
 export const createUsers: GraphQLFieldConfig<
   any,

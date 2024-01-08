@@ -1,5 +1,5 @@
 import { performance } from "perf_hooks";
-import { TooManyRequests } from "../errors";
+import { TooManyRequests } from "../errors.js";
 
 /**
  * Applies a simple in-memory rate limiting scheme. This system is designed to prevent a single

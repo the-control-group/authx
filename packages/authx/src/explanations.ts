@@ -2,7 +2,7 @@ import {
   DomainDescriptionMap,
   generate,
   Explanation,
-} from "./util/explanations";
+} from "./util/explanations.js";
 
 import {
   AuthorityAction,
@@ -21,7 +21,7 @@ import {
   UserContext,
   createV2AuthXScopeAction,
   createV2AuthXScopeContext,
-} from "./util/scopes";
+} from "./util/scopes.js";
 
 export function createAuthXExplanations(
   realm: DomainDescriptionMap = {

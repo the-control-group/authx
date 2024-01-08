@@ -1,7 +1,7 @@
-import { Context } from "./Context";
-import { Strategy } from "./Strategy";
+import { Context } from "./Context.js";
+import { Strategy } from "./Strategy.js";
 import { GraphQLFieldConfig, GraphQLNamedType } from "graphql";
-import { Authority, AuthorityData, Credential, CredentialData } from "./model";
+import { Authority, AuthorityData, Credential, CredentialData } from "./model/index.js";
 
 export class StrategyCollection {
   public map: { [name: string]: Strategy } = {};

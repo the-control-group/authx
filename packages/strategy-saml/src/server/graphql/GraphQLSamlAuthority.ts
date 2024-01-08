@@ -8,9 +8,9 @@ import {
 } from "graphql";
 
 import { Context, GraphQLAuthority, GraphQLNode } from "@authx/authx";
-import { SamlAuthority } from "../model";
-import { GraphQLRole } from "@authx/authx/dist/graphql/GraphQLRole";
-import { Role } from "@authx/authx/dist/model/Role";
+import { SamlAuthority } from "../model/index.js";
+import { GraphQLRole } from "@authx/authx";
+import { Role } from "@authx/authx";
 
 export async function filter<T>(
   iter: Iterable<T>,

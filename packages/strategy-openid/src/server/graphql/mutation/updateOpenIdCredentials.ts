@@ -11,9 +11,9 @@ import {
   validateIdFormat,
   DataLoaderExecutor,
 } from "@authx/authx";
-import { OpenIdCredential } from "../../model";
-import { GraphQLOpenIdCredential } from "../GraphQLOpenIdCredential";
-import { GraphQLUpdateOpenIdCredentialInput } from "./GraphQLUpdateOpenIdCredentialInput";
+import { OpenIdCredential } from "../../model/index.js";
+import { GraphQLOpenIdCredential } from "../GraphQLOpenIdCredential.js";
+import { GraphQLUpdateOpenIdCredentialInput } from "./GraphQLUpdateOpenIdCredentialInput.js";
 
 export const updateOpenIdCredentials: GraphQLFieldConfig<
   any,

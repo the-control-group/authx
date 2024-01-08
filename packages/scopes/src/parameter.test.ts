@@ -1,13 +1,13 @@
 import test from "ava";
-import { extract } from "./parameter";
+import { extract } from "./parameter.js";
 
-import { AnySingle } from "./scope";
+import { AnySingle } from "./scope.js";
 
 import {
   parseScopeLiteral,
   parseParameterizedScopeLiteral,
   InvalidParameterizedScopeError,
-} from "./parse";
+} from "./parse.js";
 
 test("extract(template, scopes) - single segment, concrete value", (t) => {
   t.deepEqual(

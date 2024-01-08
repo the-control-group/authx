@@ -1,9 +1,9 @@
 import { createHash } from "crypto";
-import AbortController from "abort-controller";
 import { EventEmitter } from "events";
 import fetch from "node-fetch";
 import { createServer, Server, IncomingMessage, ServerResponse } from "http";
-import { createProxyServer, ServerOptions } from "http-proxy";
+import httpProxy, {ServerOptions} from "http-proxy";
+const { createProxyServer  } = httpProxy
 import { decode } from "jsonwebtoken";
 
 export interface Behavior {
@@ -543,9 +543,21 @@ export default class AuthXClientProxy extends EventEmitter {
           }
 
           const refreshResponseBody = await refreshResponse.json();
-          if (refreshResponseBody.error) {
+          if (
+            typeof refreshResponseBody !== "object" ||
+            refreshResponseBody === null
+          ) {
+            throw new Error(`Invalid refresh response returned from AuthX.`);
+          }
+
+          if ("error" in refreshResponseBody) {
             throw new Error(
-              refreshResponseBody.error_message || refreshResponseBody.error
+              "error_message" in refreshResponseBody &&
+              typeof refreshResponseBody.error_message === "string"
+                ? refreshResponseBody.error_message
+                : typeof refreshResponseBody.error === "string"
+                  ? refreshResponseBody.error
+                  : "Unknown error reported by AuthX",
             );
           }
 
@@ -555,14 +567,16 @@ export default class AuthXClientProxy extends EventEmitter {
             throw new Error("Request aborted.");
           }
 
-          const accessToken = refreshResponseBody.access_token;
+          const accessToken = 'access_token' in refreshResponseBody && typeof refreshResponseBody.access_token === "string" ? refreshResponseBody.access_token : '';
           if (!accessToken) {
             throw new Error("No access token returned.");
           }
 
           // This code is designed to make sure we keep track of when tokens will expire, and refresh them before they do.
           // BASIC tokens never expire, so this is not applicable to them.
-          if (refreshResponseBody.token_type?.toLowerCase() === "bearer") {
+
+          const tokenType = 'token_type' in refreshResponseBody && typeof refreshResponseBody.token_type === "string" ? refreshResponseBody.token_type : '';
+          if (tokenType?.toLowerCase() === "bearer") {
             const payload = decode(accessToken);
             if (!payload || typeof payload !== "object") {
               throw new Error("Invalid token payload.");

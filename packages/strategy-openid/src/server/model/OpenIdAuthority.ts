@@ -1,7 +1,7 @@
 import { Pool, ClientBase } from "pg";
 import { Authority, Role, DataLoaderExecutor, QueryCache } from "@authx/authx";
 import { EmailAuthority } from "@authx/strategy-email";
-import { OpenIdCredential } from "./OpenIdCredential";
+import { OpenIdCredential } from "./OpenIdCredential.js";
 
 // Authority
 // ---------

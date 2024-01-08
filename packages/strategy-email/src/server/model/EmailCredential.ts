@@ -1,6 +1,6 @@
 import { Pool, ClientBase } from "pg";
 import { Credential, DataLoaderExecutor } from "@authx/authx";
-import { EmailAuthority } from "./EmailAuthority";
+import { EmailAuthority } from "./EmailAuthority.js";
 
 // Credential
 // ----------

@@ -4,7 +4,7 @@ import {
   GraphQLNonNull,
   GraphQLString,
 } from "graphql";
-import { Context } from "../../Context";
+import { Context } from "../../Context.js";
 
 export const keys: GraphQLFieldConfig<
   any,

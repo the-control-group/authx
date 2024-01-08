@@ -1,12 +1,12 @@
 import { Pool, ClientBase } from "pg";
-import { Credential, CredentialData } from "./Credential";
-import { Grant } from "./Grant";
-import { Role } from "./Role";
+import { Credential, CredentialData } from "./Credential.js";
+import { Grant } from "./Grant.js";
+import { Role } from "./Role.js";
 import { simplify, isSuperset } from "@authx/scopes";
-import { Authorization } from "./Authorization";
-import { NotFoundError } from "../errors";
-import { UserAction, createV2AuthXScope } from "../util/scopes";
-import { DataLoaderExecutor, DataLoaderCache, QueryCache } from "../loader";
+import { Authorization } from "./Authorization.js";
+import { NotFoundError } from "../errors.js";
+import { UserAction, createV2AuthXScope } from "../util/scopes.js";
+import { DataLoaderExecutor, DataLoaderCache, QueryCache } from "../loader.js";
 
 export interface UserRecordData {
   readonly id: string;

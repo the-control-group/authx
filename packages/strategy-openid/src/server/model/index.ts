@@ -1,2 +1,2 @@
-export * from "./OpenIdAuthority";
-export * from "./OpenIdCredential";
+export * from "./OpenIdAuthority.js";
+export * from "./OpenIdCredential.js";

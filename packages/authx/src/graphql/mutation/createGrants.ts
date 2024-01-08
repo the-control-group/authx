@@ -3,19 +3,19 @@ import { Pool, PoolClient } from "pg";
 import { randomBytes } from "crypto";
 import { isSuperset, simplify } from "@authx/scopes";
 import { GraphQLFieldConfig, GraphQLList, GraphQLNonNull } from "graphql";
-import { Context } from "../../Context";
-import { GraphQLGrant } from "../GraphQLGrant";
-import { Grant, Role } from "../../model";
-import { DataLoaderExecutor } from "../../loader";
-import { validateIdFormat } from "../../util/validateIdFormat";
-import { createV2AuthXScope } from "../../util/scopes";
+import { Context } from "../../Context.js";
+import { GraphQLGrant } from "../GraphQLGrant.js";
+import { Grant, Role } from "../../model/index.js";
+import { DataLoaderExecutor } from "../../loader.js";
+import { validateIdFormat } from "../../util/validateIdFormat.js";
+import { createV2AuthXScope } from "../../util/scopes.js";
 import {
   ForbiddenError,
   ConflictError,
   NotFoundError,
   ValidationError,
-} from "../../errors";
-import { GraphQLCreateGrantInput } from "./GraphQLCreateGrantInput";
+} from "../../errors.js";
+import { GraphQLCreateGrantInput } from "./GraphQLCreateGrantInput.js";
 
 export const createGrants: GraphQLFieldConfig<
   any,

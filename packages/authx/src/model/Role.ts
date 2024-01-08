@@ -1,10 +1,10 @@
 import { Pool, ClientBase } from "pg";
-import { User } from "./User";
-import { Authorization } from "./Authorization";
+import { User } from "./User.js";
+import { Authorization } from "./Authorization.js";
 import { simplify, isSuperset, inject } from "@authx/scopes";
-import { NotFoundError } from "../errors";
-import { RoleAction, createV2AuthXScope } from "../util/scopes";
-import { DataLoaderExecutor, DataLoaderCache } from "../loader";
+import { NotFoundError } from "../errors.js";
+import { RoleAction, createV2AuthXScope } from "../util/scopes.js";
+import { DataLoaderExecutor, DataLoaderCache } from "../loader.js";
 
 export interface RoleRecordData {
   readonly id: string;

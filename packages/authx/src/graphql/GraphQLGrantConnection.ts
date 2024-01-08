@@ -1,7 +1,7 @@
 import { GraphQLList, GraphQLNonNull, GraphQLObjectType } from "graphql";
-import { GraphQLPageInfo } from "./GraphQLPageInfo";
-import { GraphQLGrantEdge } from "./GraphQLGrantEdge";
-import { GraphQLConnection } from "./GraphQLConnection";
+import { GraphQLPageInfo } from "./GraphQLPageInfo.js";
+import { GraphQLGrantEdge } from "./GraphQLGrantEdge.js";
+import { GraphQLConnection } from "./GraphQLConnection.js";
 
 export const GraphQLGrantConnection = new GraphQLObjectType({
   name: "GrantConnection",

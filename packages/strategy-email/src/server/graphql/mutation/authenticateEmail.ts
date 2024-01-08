@@ -22,11 +22,11 @@ import {
   ReadonlyDataLoaderExecutor,
 } from "@authx/authx";
 
-import { createV2AuthXScope } from "@authx/authx/scopes";
+import { createV2AuthXScope } from "@authx/authx/scopes.js";
 
 import { isSuperset } from "@authx/scopes";
-import { EmailAuthority } from "../../model";
-import { substitute } from "../../substitute";
+import { EmailAuthority } from "../../model/index.js";
+import { substitute } from "../../substitute.js";
 
 const __DEV__ = process.env.NODE_ENV !== "production";
 

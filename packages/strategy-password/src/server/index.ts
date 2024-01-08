@@ -1,5 +1,5 @@
 import { Strategy } from "@authx/authx";
-import { PasswordAuthority, PasswordCredential } from "./model";
+import { PasswordAuthority, PasswordCredential } from "./model/index.js";
 import {
   authenticatePassword,
   createPasswordAuthorities,
@@ -12,10 +12,10 @@ import {
   GraphQLCreatePasswordCredentialInput,
   GraphQLUpdatePasswordAuthorityInput,
   GraphQLUpdatePasswordCredentialInput,
-} from "./graphql";
+} from "./graphql/index.js";
 
-export * from "./model";
-export * from "./graphql";
+export * from "./model/index.js";
+export * from "./graphql/index.js";
 
 const strategy: Strategy = {
   name: "password",

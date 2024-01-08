@@ -11,9 +11,9 @@ import {
   validateIdFormat,
   DataLoaderExecutor,
 } from "@authx/authx";
-import { EmailCredential } from "../../model";
-import { GraphQLEmailCredential } from "../GraphQLEmailCredential";
-import { GraphQLUpdateEmailCredentialInput } from "./GraphQLUpdateEmailCredentialInput";
+import { EmailCredential } from "../../model/index.js";
+import { GraphQLEmailCredential } from "../GraphQLEmailCredential.js";
+import { GraphQLUpdateEmailCredentialInput } from "./GraphQLUpdateEmailCredentialInput.js";
 
 export const updateEmailCredentials: GraphQLFieldConfig<
   any,

@@ -1,7 +1,7 @@
 import { GraphQLSchema } from "graphql";
-import { StrategyCollection } from "./StrategyCollection";
-import { Strategy } from "./Strategy";
-import { InvocationRecorder } from "./InvocationRecorder";
+import { StrategyCollection } from "./StrategyCollection.js";
+import { Strategy } from "./Strategy.js";
+import { InvocationRecorder } from "./InvocationRecorder.js";
 
 export interface Config {
   readonly realm: string;

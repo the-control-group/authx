@@ -6,7 +6,7 @@ import {
   getIntersection,
   isSuperset,
   compare,
-} from "./domain";
+} from "./domain.js";
 
 t("compare", (t) => {
   (

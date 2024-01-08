@@ -9,15 +9,15 @@ import {
 
 import jwt from "jsonwebtoken";
 import { v4 } from "uuid";
-import { Grant, Authorization, User } from "../model";
-import { Context } from "../Context";
-import { GraphQLExplanation } from "./GraphQLExplanation";
-import { GraphQLGrant } from "./GraphQLGrant";
-import { GraphQLUser } from "./GraphQLUser";
-import { GraphQLTokenFormat } from "./GraphQLTokenFormat";
-import { GraphQLScope } from "./GraphQLScope";
-import { Explanation, match } from "../util/explanations";
-import { GraphQLNode } from "./GraphQLNode";
+import { Grant, Authorization, User } from "../model/index.js";
+import { Context } from "../Context.js";
+import { GraphQLExplanation } from "./GraphQLExplanation.js";
+import { GraphQLGrant } from "./GraphQLGrant.js";
+import { GraphQLUser } from "./GraphQLUser.js";
+import { GraphQLTokenFormat } from "./GraphQLTokenFormat.js";
+import { GraphQLScope } from "./GraphQLScope.js";
+import { Explanation, match } from "../util/explanations.js";
+import { GraphQLNode } from "./GraphQLNode.js";
 
 export const GraphQLAuthorization: GraphQLObjectType<Authorization, Context> =
   new GraphQLObjectType<Authorization, Context>({

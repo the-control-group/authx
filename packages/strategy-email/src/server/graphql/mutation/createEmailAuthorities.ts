@@ -17,12 +17,12 @@ import {
 import {
   createV2AuthXScope,
   createV2AuthorityAdministrationScopes,
-} from "@authx/authx/scopes";
+} from "@authx/authx/scopes.js";
 
 import { isSuperset, simplify } from "@authx/scopes";
-import { EmailAuthority } from "../../model";
-import { GraphQLEmailAuthority } from "../GraphQLEmailAuthority";
-import { GraphQLCreateEmailAuthorityInput } from "./GraphQLCreateEmailAuthorityInput";
+import { EmailAuthority } from "../../model/index.js";
+import { GraphQLEmailAuthority } from "../GraphQLEmailAuthority.js";
+import { GraphQLCreateEmailAuthorityInput } from "./GraphQLCreateEmailAuthorityInput.js";
 
 export const createEmailAuthorities: GraphQLFieldConfig<
   any,

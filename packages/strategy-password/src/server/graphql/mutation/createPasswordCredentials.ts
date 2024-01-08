@@ -19,12 +19,12 @@ import {
 import {
   createV2AuthXScope,
   createV2CredentialAdministrationScopes,
-} from "@authx/authx/scopes";
+} from "@authx/authx/scopes.js";
 
 import { isSuperset, simplify } from "@authx/scopes";
-import { PasswordCredential, PasswordAuthority } from "../../model";
-import { GraphQLPasswordCredential } from "../GraphQLPasswordCredential";
-import { GraphQLCreatePasswordCredentialInput } from "./GraphQLCreatePasswordCredentialInput";
+import { PasswordCredential, PasswordAuthority } from "../../model/index.js";
+import { GraphQLPasswordCredential } from "../GraphQLPasswordCredential.js";
+import { GraphQLCreatePasswordCredentialInput } from "./GraphQLCreatePasswordCredentialInput.js";
 
 export const createPasswordCredentials: GraphQLFieldConfig<
   any,

@@ -16,10 +16,10 @@ import {
   GraphQLContext,
 } from "graphql-react";
 
-import { createV2AuthXScope } from "@authx/authx/scopes";
+import { createV2AuthXScope } from "@authx/authx/scopes.js";
 
 import { isSuperset, getDifference, simplify, inject } from "@authx/scopes";
-import { match } from "@authx/authx/dist/util/explanations";
+import { match } from "@authx/authx/dist/util/explanations.js";
 
 import { v4 } from "uuid";
 

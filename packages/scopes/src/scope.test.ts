@@ -8,10 +8,10 @@ import {
   isEqual,
   normalize,
   simplify,
-} from "./scope";
+} from "./scope.js";
 
-import { print } from "./print";
-import { parseScopeLiteral } from "./parse";
+import { print } from "./print.js";
+import { parseScopeLiteral } from "./parse.js";
 
 [
   { a: ["a:b:c"], b: ["a:b:c"], result: true },

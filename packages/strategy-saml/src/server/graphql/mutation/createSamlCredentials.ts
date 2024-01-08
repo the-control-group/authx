@@ -18,12 +18,12 @@ import {
 import {
   createV2AuthXScope,
   createV2CredentialAdministrationScopes,
-} from "@authx/authx/scopes";
+} from "@authx/authx/scopes.js";
 
 import { isSuperset, simplify } from "@authx/scopes";
-import { SamlAuthority, SamlCredential } from "../../model";
-import { GraphQLSamlCredential } from "../GraphQLSamlCredential";
-import { GraphQLCreateSamlCredentialInput } from "./GraphQLCreateSamlCredentialInput";
+import { SamlAuthority, SamlCredential } from "../../model/index.js";
+import { GraphQLSamlCredential } from "../GraphQLSamlCredential.js";
+import { GraphQLCreateSamlCredentialInput } from "./GraphQLCreateSamlCredentialInput.js";
 
 export const createSamlCredentials: GraphQLFieldConfig<
   any,

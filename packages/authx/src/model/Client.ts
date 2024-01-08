@@ -1,9 +1,9 @@
 import { Pool, ClientBase } from "pg";
-import { Grant } from "./Grant";
-import { Authorization } from "./Authorization";
-import { NotFoundError } from "../errors";
-import { ClientAction, createV2AuthXScope } from "../util/scopes";
-import { DataLoaderExecutor, DataLoaderCache, QueryCache } from "../loader";
+import { Grant } from "./Grant.js";
+import { Authorization } from "./Authorization.js";
+import { NotFoundError } from "../errors.js";
+import { ClientAction, createV2AuthXScope } from "../util/scopes.js";
+import { DataLoaderExecutor, DataLoaderCache, QueryCache } from "../loader.js";
 
 export interface ClientInvocationData {
   readonly id: string;

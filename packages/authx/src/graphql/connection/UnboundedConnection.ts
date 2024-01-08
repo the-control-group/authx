@@ -1,13 +1,18 @@
-import { Node } from "./Node";
+import { Node } from "./Node.js";
 import { Connection, Edge, PageInfo } from "graphql-relay";
-import { CursorConnection } from "./CursorConnection";
+import { CursorConnection } from "./CursorConnection.js";
 
 export class UnboundedConnection<T extends Node> implements Connection<T> {
   edges: Array<Edge<T>>;
   pageInfo: PageInfo;
 
   constructor(elements: T[]) {
-    this.pageInfo = {};
+    this.pageInfo = {
+      startCursor: null,
+      endCursor: null,
+      hasPreviousPage: false,
+      hasNextPage: false,
+    };
 
     this.pageInfo.hasNextPage = false;
     this.pageInfo.hasPreviousPage = false;

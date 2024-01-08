@@ -6,15 +6,15 @@
   "bugs": "https://github.com/the-control-group/authx/issues",
   "description": "",
   "devDependencies": {
-    "@typescript-eslint/eslint-plugin": "^4.6.1",
-    "@typescript-eslint/parser": "^4.6.1",
-    "ava": "^3.5.2",
-    "eslint": "^7.12.1",
-    "eslint-config-prettier": "^8.2.0",
-    "eslint-plugin-prettier": "^3.1.1",
-    "nodemon": "^2.0.2",
-    "prettier": "^2.0.2",
-    "typescript": "^4.0.5"
+    "@typescript-eslint/eslint-plugin": "^6.17.0",
+    "@typescript-eslint/parser": "^6.17.0",
+    "ava": "^6.0.1",
+    "eslint": "^8.56.0",
+    "eslint-config-prettier": "^9.1.0",
+    "eslint-plugin-prettier": "^5.1.2",
+    "nodemon": "^3.0.2",
+    "prettier": "^3.1.1",
+    "typescript": "^5.3.3"
   },
   "engines": {
     "node": ">=6"
@@ -34,7 +34,7 @@
     "pattern"
   ],
   "license": "MIT",
-  "main": "dist",
+  "main": "dist/index.js",
   "name": "@authx/scopes",
   "repository": "https://github.com/the-control-group/authx",
   "scripts": {
@@ -47,6 +47,7 @@
     "test:development": "ava --verbose --watch dist/*.test.js",
     "prepublishOnly": "npm run build"
   },
+  "type": "module",
   "types": "dist/index.d.ts",
   "version": "3.1.0-alpha.52"
 }

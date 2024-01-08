@@ -11,9 +11,9 @@ import {
   validateIdFormat,
   DataLoaderExecutor,
 } from "@authx/authx";
-import { EmailAuthority } from "../../model";
-import { GraphQLEmailAuthority } from "../GraphQLEmailAuthority";
-import { GraphQLUpdateEmailAuthorityInput } from "./GraphQLUpdateEmailAuthorityInput";
+import { EmailAuthority } from "../../model/index.js";
+import { GraphQLEmailAuthority } from "../GraphQLEmailAuthority.js";
+import { GraphQLUpdateEmailAuthorityInput } from "./GraphQLUpdateEmailAuthorityInput.js";
 
 export const updateEmailAuthorities: GraphQLFieldConfig<
   any,

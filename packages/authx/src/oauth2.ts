@@ -2,14 +2,14 @@ import { v4 } from "uuid";
 import { Pool } from "pg";
 import jwt from "jsonwebtoken";
 import { randomBytes } from "crypto";
-import { Context } from "./Context";
-import { Client, Grant, Authorization, User } from "./model";
-import { NotFoundError } from "./errors";
-import { createV2AuthXScope } from "./util/scopes";
-import { DataLoaderExecutor } from "./loader";
+import { Context } from "./Context.js";
+import { Client, Grant, Authorization, User } from "./model/index.js";
+import { NotFoundError } from "./errors.js";
+import { createV2AuthXScope } from "./util/scopes.js";
+import { DataLoaderExecutor } from "./loader.js";
 import { inject, isEqual, isValidScopeTemplate } from "@authx/scopes";
 import { Context as KoaContext } from "koa";
-import x from "./x";
+import x from "./x.js";
 
 async function assertPermissions(
   realm: string,

@@ -4,9 +4,9 @@ import {
   isSuperset as domainIsSuperset,
   compare as compareDomain,
   normalize as normalizeDomain,
-} from "./domain";
+} from "./domain.js";
 
-export { Domain, Segment, AnySingle, AnyMultiple } from "./domain";
+export { Domain, Segment, AnySingle, AnyMultiple } from "./domain.js";
 
 export type Scope = Domain[];
 

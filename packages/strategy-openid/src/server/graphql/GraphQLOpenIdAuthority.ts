@@ -15,7 +15,7 @@ import {
   Role,
 } from "@authx/authx";
 import { GraphQLEmailAuthority, EmailAuthority } from "@authx/strategy-email";
-import { OpenIdAuthority } from "../model";
+import { OpenIdAuthority } from "../model/index.js";
 
 export async function filter<T>(
   iter: Iterable<T>,

@@ -17,12 +17,12 @@ import {
 import {
   createV2AuthXScope,
   createV2AuthorityAdministrationScopes,
-} from "@authx/authx/scopes";
+} from "@authx/authx/scopes.js";
 
 import { isSuperset, simplify } from "@authx/scopes";
-import { PasswordAuthority } from "../../model";
-import { GraphQLPasswordAuthority } from "../GraphQLPasswordAuthority";
-import { GraphQLCreatePasswordAuthorityInput } from "./GraphQLCreatePasswordAuthorityInput";
+import { PasswordAuthority } from "../../model/index.js";
+import { GraphQLPasswordAuthority } from "../GraphQLPasswordAuthority.js";
+import { GraphQLCreatePasswordAuthorityInput } from "./GraphQLCreatePasswordAuthorityInput.js";
 
 export const createPasswordAuthorities: GraphQLFieldConfig<
   any,

@@ -14,16 +14,16 @@ import {
   ConnectionArguments,
 } from "graphql-relay";
 
-import { Grant, Client, User } from "../model";
-import { Context } from "../Context";
-import { GraphQLClient } from "./GraphQLClient";
-import { GraphQLUser } from "./GraphQLUser";
-import { GraphQLAuthorizationConnection } from "./GraphQLAuthorizationConnection";
-import { GraphQLExplanation } from "./GraphQLExplanation";
-import { GraphQLScope } from "./GraphQLScope";
-import { GraphQLNode } from "./GraphQLNode";
-import { filter } from "../util/filter";
-import { Explanation, match } from "../util/explanations";
+import { Grant, Client, User } from "../model/index.js";
+import { Context } from "../Context.js";
+import { GraphQLClient } from "./GraphQLClient.js";
+import { GraphQLUser } from "./GraphQLUser.js";
+import { GraphQLAuthorizationConnection } from "./GraphQLAuthorizationConnection.js";
+import { GraphQLExplanation } from "./GraphQLExplanation.js";
+import { GraphQLScope } from "./GraphQLScope.js";
+import { GraphQLNode } from "./GraphQLNode.js";
+import { filter } from "../util/filter.js";
+import { Explanation, match } from "../util/explanations.js";
 
 export const GraphQLGrant: GraphQLObjectType<Grant, Context> =
   new GraphQLObjectType<Grant, Context>({

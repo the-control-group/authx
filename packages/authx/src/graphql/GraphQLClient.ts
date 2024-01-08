@@ -10,13 +10,13 @@ import {
 
 import { connectionFromArray, connectionArgs } from "graphql-relay";
 
-import { Grant } from "../model";
-import { Client } from "../model";
-import { Context } from "../Context";
-import { GraphQLGrant } from "./GraphQLGrant";
-import { GraphQLGrantConnection } from "./GraphQLGrantConnection";
-import { GraphQLNode } from "./GraphQLNode";
-import { filter } from "../util/filter";
+import { Grant } from "../model/index.js";
+import { Client } from "../model/index.js";
+import { Context } from "../Context.js";
+import { GraphQLGrant } from "./GraphQLGrant.js";
+import { GraphQLGrantConnection } from "./GraphQLGrantConnection.js";
+import { GraphQLNode } from "./GraphQLNode.js";
+import { filter } from "../util/filter.js";
 
 export const GraphQLClient = new GraphQLObjectType<Client, Context>({
   name: "Client",

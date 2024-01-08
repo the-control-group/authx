@@ -11,9 +11,9 @@ import {
   validateIdFormat,
   DataLoaderExecutor,
 } from "@authx/authx";
-import { PasswordAuthority } from "../../model";
-import { GraphQLPasswordAuthority } from "../GraphQLPasswordAuthority";
-import { GraphQLUpdatePasswordAuthorityInput } from "./GraphQLUpdatePasswordAuthorityInput";
+import { PasswordAuthority } from "../../model/index.js";
+import { GraphQLPasswordAuthority } from "../GraphQLPasswordAuthority.js";
+import { GraphQLUpdatePasswordAuthorityInput } from "./GraphQLUpdatePasswordAuthorityInput.js";
 
 export const updatePasswordAuthorities: GraphQLFieldConfig<
   any,

@@ -14,18 +14,18 @@ import {
   ConnectionArguments,
 } from "graphql-relay";
 
-import { User, Grant } from "../model";
-import { Context } from "../Context";
-import { GraphQLRoleConnection } from "./GraphQLRoleConnection";
-import { GraphQLUserType } from "./GraphQLUserType";
-import { GraphQLGrant } from "./GraphQLGrant";
-import { GraphQLGrantConnection } from "./GraphQLGrantConnection";
-import { GraphQLAuthorizationConnection } from "./GraphQLAuthorizationConnection";
-import { GraphQLCredentialConnection } from "./GraphQLCredentialConnection";
-import { GraphQLNode } from "./GraphQLNode";
-import { GraphQLScope } from "./GraphQLScope";
+import { User, Grant } from "../model/index.js";
+import { Context } from "../Context.js";
+import { GraphQLRoleConnection } from "./GraphQLRoleConnection.js";
+import { GraphQLUserType } from "./GraphQLUserType.js";
+import { GraphQLGrant } from "./GraphQLGrant.js";
+import { GraphQLGrantConnection } from "./GraphQLGrantConnection.js";
+import { GraphQLAuthorizationConnection } from "./GraphQLAuthorizationConnection.js";
+import { GraphQLCredentialConnection } from "./GraphQLCredentialConnection.js";
+import { GraphQLNode } from "./GraphQLNode.js";
+import { GraphQLScope } from "./GraphQLScope.js";
 
-import { filter } from "../util/filter";
+import { filter } from "../util/filter.js";
 
 export const GraphQLUser: GraphQLObjectType<User, Context> =
   new GraphQLObjectType({

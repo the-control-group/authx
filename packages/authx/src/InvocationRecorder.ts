@@ -1,6 +1,6 @@
 import { ClientBase, Pool } from "pg";
-import { DataLoaderExecutor } from "./loader";
-import { Authorization, AuthorizationInvocation } from "./model";
+import { DataLoaderExecutor } from "./loader.js";
+import { Authorization, AuthorizationInvocation } from "./model/index.js";
 
 export interface InvocationRecorder {
   /**

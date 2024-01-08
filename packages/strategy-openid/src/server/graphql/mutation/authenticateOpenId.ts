@@ -9,8 +9,6 @@ import { Pool, PoolClient } from "pg";
 import jwt from "jsonwebtoken";
 import { randomBytes } from "crypto";
 import { v4 } from "uuid";
-import fetch from "node-fetch";
-import FormData from "form-data";
 
 import {
   Context,
@@ -25,11 +23,11 @@ import {
   ReadonlyDataLoaderExecutor,
 } from "@authx/authx";
 
-import { createV2AuthXScope } from "@authx/authx/scopes";
+import { createV2AuthXScope } from "@authx/authx/scopes.js";
 
 import { isSuperset } from "@authx/scopes";
 import { EmailAuthority } from "@authx/strategy-email";
-import { OpenIdAuthority, OpenIdCredential } from "../../model";
+import { OpenIdAuthority, OpenIdCredential } from "../../model/index.js";
 
 export const authenticateOpenId: GraphQLFieldConfig<
   any,

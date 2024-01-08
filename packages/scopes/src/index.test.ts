@@ -10,7 +10,7 @@ import {
   isValidScopeLiteral,
   normalize,
   simplify,
-} from "./index";
+} from "./index.js";
 
 t("getDifference (valid)", (t) => {
   t.deepEqual(

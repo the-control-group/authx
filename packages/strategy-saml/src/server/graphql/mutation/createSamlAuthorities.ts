@@ -17,12 +17,12 @@ import {
 import {
   createV2AuthorityAdministrationScopes,
   createV2AuthXScope,
-} from "@authx/authx/scopes";
+} from "@authx/authx/scopes.js";
 
 import { isSuperset, simplify } from "@authx/scopes";
-import { SamlAuthority, SamlAuthorityDetails } from "../../model";
-import { GraphQLSamlAuthority } from "../GraphQLSamlAuthority";
-import { GraphQLCreateSamlAuthorityInput } from "./GraphQLCreateSamlAuthorityInput";
+import { SamlAuthority, SamlAuthorityDetails } from "../../model/index.js";
+import { GraphQLSamlAuthority } from "../GraphQLSamlAuthority.js";
+import { GraphQLCreateSamlAuthorityInput } from "./GraphQLCreateSamlAuthorityInput.js";
 
 interface AuthorityWithAdministration extends SamlAuthorityDetails {
   enabled: boolean;

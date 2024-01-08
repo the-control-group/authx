@@ -6,8 +6,8 @@ import {
   GraphQLObjectType,
 } from "graphql";
 
-import { PasswordCredential, PasswordAuthority } from "../model";
-import { GraphQLPasswordAuthority } from "./GraphQLPasswordAuthority";
+import { PasswordCredential, PasswordAuthority } from "../model/index.js";
+import { GraphQLPasswordAuthority } from "./GraphQLPasswordAuthority.js";
 import {
   User,
   GraphQLCredential,

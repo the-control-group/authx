@@ -6,8 +6,8 @@ import {
   GraphQLInputObjectType,
 } from "graphql";
 
-import { GraphQLAdministrationInput } from "../GraphQLAdministrationInput";
-import { GraphQLScope } from "../GraphQLScope";
+import { GraphQLAdministrationInput } from "../GraphQLAdministrationInput.js";
+import { GraphQLScope } from "../GraphQLScope.js";
 
 export const GraphQLCreateGrantInput = new GraphQLInputObjectType({
   name: "CreateGrantInput",

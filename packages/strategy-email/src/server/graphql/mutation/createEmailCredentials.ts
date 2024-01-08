@@ -19,13 +19,13 @@ import {
 import {
   createV2AuthXScope,
   createV2CredentialAdministrationScopes,
-} from "@authx/authx/scopes";
+} from "@authx/authx/scopes.js";
 
 import { isSuperset, simplify } from "@authx/scopes";
-import { EmailCredential, EmailAuthority } from "../../model";
-import { GraphQLEmailCredential } from "../GraphQLEmailCredential";
-import { substitute } from "../../substitute";
-import { GraphQLCreateEmailCredentialInput } from "./GraphQLCreateEmailCredentialInput";
+import { EmailCredential, EmailAuthority } from "../../model/index.js";
+import { GraphQLEmailCredential } from "../GraphQLEmailCredential.js";
+import { substitute } from "../../substitute.js";
+import { GraphQLCreateEmailCredentialInput } from "./GraphQLCreateEmailCredentialInput.js";
 
 export const createEmailCredentials: GraphQLFieldConfig<
   any,

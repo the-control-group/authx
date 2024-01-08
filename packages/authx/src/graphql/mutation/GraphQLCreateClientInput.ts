@@ -7,7 +7,7 @@ import {
   GraphQLInputObjectType,
 } from "graphql";
 
-import { GraphQLAdministrationInput } from "../GraphQLAdministrationInput";
+import { GraphQLAdministrationInput } from "../GraphQLAdministrationInput.js";
 
 export const GraphQLCreateClientInput = new GraphQLInputObjectType({
   name: "CreateClientInput",

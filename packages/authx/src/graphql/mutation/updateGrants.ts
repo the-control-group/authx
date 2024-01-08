@@ -2,13 +2,13 @@ import { v4 } from "uuid";
 import { Pool, PoolClient } from "pg";
 import { randomBytes } from "crypto";
 import { GraphQLFieldConfig, GraphQLList, GraphQLNonNull } from "graphql";
-import { Context } from "../../Context";
-import { GraphQLGrant } from "../GraphQLGrant";
-import { Grant } from "../../model";
-import { DataLoaderExecutor } from "../../loader";
-import { validateIdFormat } from "../../util/validateIdFormat";
-import { ForbiddenError, ValidationError } from "../../errors";
-import { GraphQLUpdateGrantInput } from "./GraphQLUpdateGrantInput";
+import { Context } from "../../Context.js";
+import { GraphQLGrant } from "../GraphQLGrant.js";
+import { Grant } from "../../model/index.js";
+import { DataLoaderExecutor } from "../../loader.js";
+import { validateIdFormat } from "../../util/validateIdFormat.js";
+import { ForbiddenError, ValidationError } from "../../errors.js";
+import { GraphQLUpdateGrantInput } from "./GraphQLUpdateGrantInput.js";
 
 export const updateGrants: GraphQLFieldConfig<
   any,

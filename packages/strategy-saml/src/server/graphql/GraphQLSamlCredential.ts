@@ -13,8 +13,8 @@ import {
   GraphQLUser,
   User,
 } from "@authx/authx";
-import { SamlAuthority, SamlCredential } from "../model";
-import { GraphQLSamlAuthority } from "./GraphQLSamlAuthority";
+import { SamlAuthority, SamlCredential } from "../model/index.js";
+import { GraphQLSamlAuthority } from "./GraphQLSamlAuthority.js";
 
 // Credential
 // ----------

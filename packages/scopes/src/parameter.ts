@@ -4,7 +4,7 @@ import {
   AnyMultiple,
   getIntersection,
   isSuperset,
-} from "./scope";
+} from "./scope.js";
 
 export interface ParameterizedScope {
   scope: Scope;

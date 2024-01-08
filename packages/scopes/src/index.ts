@@ -4,11 +4,11 @@ export {
   MissingValueError,
   InvalidParameterizedScopeError,
   inject,
-} from "./parse";
+} from "./parse.js";
 
-import * as PARAMETER from "./parameter";
+import * as PARAMETER from "./parameter.js";
 
-import * as SCOPE from "./scope";
+import * as SCOPE from "./scope.js";
 import {
   parseScopeLiteral,
   parseScopeTemplate,
@@ -16,8 +16,8 @@ import {
   parseParameterizedScopeTemplate,
   InvalidScopeError,
   InvalidParameterizedScopeError,
-} from "./parse";
-import { print } from "./print";
+} from "./parse.js";
+import { print } from "./print.js";
 
 export function getDifference(
   collectionA: string[],

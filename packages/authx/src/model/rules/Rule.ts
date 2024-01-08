@@ -1,5 +1,5 @@
 import { QueryResult } from "pg";
-import { ReadonlyDataLoaderExecutor } from "../../loader";
+import { ReadonlyDataLoaderExecutor } from "../../loader.js";
 
 export interface BuiltQuery {
   query: string;

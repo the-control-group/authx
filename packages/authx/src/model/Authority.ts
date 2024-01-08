@@ -1,9 +1,9 @@
 import { Pool, ClientBase } from "pg";
-import { Credential } from "./Credential";
-import { Authorization } from "./Authorization";
-import { NotFoundError } from "../errors";
-import { AuthorityAction, createV2AuthXScope } from "../util/scopes";
-import { DataLoaderExecutor, DataLoaderCache } from "../loader";
+import { Credential } from "./Credential.js";
+import { Authorization } from "./Authorization.js";
+import { NotFoundError } from "../errors.js";
+import { AuthorityAction, createV2AuthXScope } from "../util/scopes.js";
+import { DataLoaderExecutor, DataLoaderCache } from "../loader.js";
 
 export interface AuthorityRecordData {
   readonly id: string;

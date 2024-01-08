@@ -1,6 +1,6 @@
 import { GraphQLObjectType, GraphQLString, GraphQLNonNull } from "graphql";
-import { GraphQLGrant } from "./GraphQLGrant";
-import { GraphQLEdge } from "./GraphQLEdge";
+import { GraphQLGrant } from "./GraphQLGrant.js";
+import { GraphQLEdge } from "./GraphQLEdge.js";
 
 export const GraphQLGrantEdge = new GraphQLObjectType({
   name: "GrantEdge",

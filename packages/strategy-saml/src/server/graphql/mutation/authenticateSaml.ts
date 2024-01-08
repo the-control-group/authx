@@ -14,16 +14,16 @@ import {
   ReadonlyDataLoaderExecutor,
   User,
 } from "@authx/authx";
-import { SamlAuthority } from "../../model/SamlAuthority";
+import { SamlAuthority } from "../../model/SamlAuthority.js";
 import { PostAssertOptions } from "saml2-js";
 import { v4 } from "uuid";
 import { EmailAuthority, EmailCredential } from "@authx/strategy-email";
-import { SamlCredential } from "../../model/SamlCredential";
+import { SamlCredential } from "../../model/SamlCredential.js";
 import { isSuperset } from "@authx/scopes";
-import { createV2AuthXScope } from "@authx/authx/dist/util/scopes";
+import { createV2AuthXScope } from "@authx/authx/dist/util/scopes.js";
 import { randomBytes } from "crypto";
 import { Pool, PoolClient } from "pg";
-import { Role } from "@authx/authx/dist/model/Role";
+import { Role } from "@authx/authx";
 
 const ATTRIBUTE_COMMON_NAME = "urn:oid:2.5.4.3";
 const ATTRIBUTE_DISPLAY_NAME = "urn:oid:2.16.840.1.113730.3.1.241";

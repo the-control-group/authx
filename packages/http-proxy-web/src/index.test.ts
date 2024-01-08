@@ -1,7 +1,7 @@
 import test from "ava";
 import { URL } from "url";
 import { createServer, Server, IncomingMessage } from "http";
-import AuthXWebProxy, { Config } from ".";
+import AuthXWebProxy, { Config } from "./index.js";
 import fetch, { Headers } from "node-fetch";
 
 // These static values are derived as such:
@@ -43,7 +43,7 @@ test.before(async () => {
         });
         request.on("end", () => {
           const requestBody = JSON.parse(
-            Buffer.concat(chunks).toString("utf8")
+            Buffer.concat(chunks).toString("utf8"),
           );
 
           response.statusCode = 200;
@@ -59,7 +59,7 @@ test.before(async () => {
               expires_in: 3600,
               scope: "AuthX:user.equal.self:read.basic",
               /* eslint-enabme camelcase */
-            })
+            }),
           );
         });
       });
@@ -98,7 +98,7 @@ test.before(async () => {
             url: request.url,
             cookie: request.headers.cookie,
             Authorization: request.headers.authorization,
-          })
+          }),
         );
       });
 
@@ -208,6 +208,15 @@ test.before(async () => {
   basicProxyPort = basicAddress.port;
 });
 
+test.after(async () => {
+  await Promise.all([
+    bearerProxy.close(),
+    basicProxy.close(),
+    new Promise(resolve => mockAuthX.server.close(resolve)),
+    new Promise(resolve => mockTarget.server.close(resolve)),
+  ])
+})
+
 test("readiness endpoint", async (t) => {
   const response = await fetch(`http://127.0.0.1:${bearerProxyPort}/_ready`);
   t.is(response.status, 200);
@@ -223,7 +232,7 @@ test("anonymous - 401", async (t) => {
       headers: {
         referer: "/foo",
       },
-    }
+    },
   );
   t.is(response.status, 401);
   const location = response.headers.get("Location");
@@ -234,7 +243,7 @@ test("anonymous - 401", async (t) => {
   t.is(url.searchParams.get("response_type"), "code");
   t.is(
     url.searchParams.get("client_id"),
-    "3ac01e62-faba-4644-b4c0-7979775717ac"
+    "3ac01e62-faba-4644-b4c0-7979775717ac",
   );
   t.is(url.searchParams.get("redirect_uri"), "http://127.0.0.1:5734");
   t.is(url.searchParams.get("scope"), "AuthX:user.equal.self:read.basic");
@@ -247,7 +256,7 @@ test("anonymous - 401", async (t) => {
     response.headers.get("set-cookie"),
     `authx.s=${
       url.searchParams.get("state") || ""
-    }; path=/; httponly, authx.d=/foo; path=/; httponly`
+    }; path=/; httponly, authx.d=/foo; path=/; httponly`,
   );
 });
 
@@ -256,7 +265,7 @@ test("anonymous - 200", async (t) => {
     `http://127.0.0.1:${bearerProxyPort}/static/logo`,
     {
       redirect: "manual",
-    }
+    },
   );
   t.is(response.status, 200);
 });
@@ -274,7 +283,7 @@ test("anonymous - 303", async (t) => {
   t.is(url.searchParams.get("response_type"), "code");
   t.is(
     url.searchParams.get("client_id"),
-    "3ac01e62-faba-4644-b4c0-7979775717ac"
+    "3ac01e62-faba-4644-b4c0-7979775717ac",
   );
   t.is(url.searchParams.get("redirect_uri"), "http://127.0.0.1:5734");
   t.is(url.searchParams.get("scope"), "AuthX:user.equal.self:read.basic");
@@ -287,7 +296,7 @@ test("anonymous - 303", async (t) => {
     response.headers.get("set-cookie"),
     `authx.s=${
       url.searchParams.get("state") || ""
-    }; path=/; httponly, authx.d=/admin; path=/; httponly`
+    }; path=/; httponly, authx.d=/admin; path=/; httponly`,
   );
 });
 
@@ -296,7 +305,7 @@ test("use token from cookie (bearer)", async (t) => {
   headers.append("cookie", "authx.r=9a64774762a4cdece006b0007e7795eaa1709a34");
   headers.append(
     "cookie",
-    `authx.t.2jmj7l5rSw0yVb_vlWAYkK_YBwk=eyJhbGciOiJSUzUxMiIsInR5cCI6IkpXVCJ9.eyJzY29wZXMiOltdLCJpYXQiOjE1NTY2MDMxMTAsImV4cCI6NDcxMDIwMzExMCwiYXVkIjoiZmUyNDc4YjUtN2I2MC00Y2VkLWFhZjgtNmM5YjRhMmU3M2Y2IiwiaXNzIjoiYXV0aHgiLCJzdWIiOiIxNmE2MDcyMi1mNzJmLTQyYTEtODRmOC01YWY4MGJhYWMyODkifQ.GEd75BHZP3c4NGv3te9bDLQ9hPV0B6lFxydfuBw-4k9KNP5330xQjrAY4Wu-S9thAGS2cXfHyFWR2cKfBDDno6_NivSJHszBs_ErDSAHCJsZ4Ej1VJmPXpePfXbdAmMd6Ug6dEsmmV1lO_gpICHqnVwj2KWGUPvwbN7VVdufy7g`
+    `authx.t.2jmj7l5rSw0yVb_vlWAYkK_YBwk=eyJhbGciOiJSUzUxMiIsInR5cCI6IkpXVCJ9.eyJzY29wZXMiOltdLCJpYXQiOjE1NTY2MDMxMTAsImV4cCI6NDcxMDIwMzExMCwiYXVkIjoiZmUyNDc4YjUtN2I2MC00Y2VkLWFhZjgtNmM5YjRhMmU3M2Y2IiwiaXNzIjoiYXV0aHgiLCJzdWIiOiIxNmE2MDcyMi1mNzJmLTQyYTEtODRmOC01YWY4MGJhYWMyODkifQ.GEd75BHZP3c4NGv3te9bDLQ9hPV0B6lFxydfuBw-4k9KNP5330xQjrAY4Wu-S9thAGS2cXfHyFWR2cKfBDDno6_NivSJHszBs_ErDSAHCJsZ4Ej1VJmPXpePfXbdAmMd6Ug6dEsmmV1lO_gpICHqnVwj2KWGUPvwbN7VVdufy7g`,
   );
   const response = await fetch(`http://127.0.0.1:${bearerProxyPort}/admin`, {
     redirect: "manual",
@@ -318,7 +327,7 @@ test("use token from cookie (basic, valid)", async (t) => {
   headers.append("cookie", "authx.r=9a64774762a4cdece006b0007e7795eaa1709a34");
   headers.append(
     "cookie",
-    `authx.t.2jmj7l5rSw0yVb_vlWAYkK_YBwk=ODNkY2VmYzUtZWIyYi00YTJhLTk1NjMtYjJmZjJmMjEyYzYwOjRmOTk1YTdiMjQzNWNhNWM5YjZjNTQ3MGVjNTZhMjZiYjY4MzMyM2E=`
+    `authx.t.2jmj7l5rSw0yVb_vlWAYkK_YBwk=ODNkY2VmYzUtZWIyYi00YTJhLTk1NjMtYjJmZjJmMjEyYzYwOjRmOTk1YTdiMjQzNWNhNWM5YjZjNTQ3MGVjNTZhMjZiYjY4MzMyM2E=`,
   );
   const response = await fetch(`http://127.0.0.1:${basicProxyPort}/admin`, {
     redirect: "manual",
@@ -340,7 +349,7 @@ test("use token from cookie (basic, invalid)", async (t) => {
   headers.append("cookie", "authx.r=9a64774762a4cdece006b0007e7795eaa1709a34");
   headers.append(
     "cookie",
-    `authx.t.2jmj7l5rSw0yVb_vlWAYkK_YBwk=YWRhMTJhZDQtYWRmZi00YzU1LTkzOTQtYTAxNWFkZjdlNzE1OmExNjJlZDY2NmRkZmY3NjI1MDQxOTg0ZDI1MGZlYjFkY2YwNWQyNzA=`
+    `authx.t.2jmj7l5rSw0yVb_vlWAYkK_YBwk=YWRhMTJhZDQtYWRmZi00YzU1LTkzOTQtYTAxNWFkZjdlNzE1OmExNjJlZDY2NmRkZmY3NjI1MDQxOTg0ZDI1MGZlYjFkY2YwNWQyNzA=`,
   );
   const response = await fetch(`http://127.0.0.1:${basicProxyPort}/admin`, {
     redirect: "manual",
@@ -350,7 +359,7 @@ test("use token from cookie (basic, invalid)", async (t) => {
   t.is(response.status, 401);
   t.is(
     response.headers.get("set-cookie"),
-    "authx.t.2jmj7l5rSw0yVb_vlWAYkK_YBwk=; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT; httponly"
+    "authx.t.2jmj7l5rSw0yVb_vlWAYkK_YBwk=; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT; httponly",
   );
 
   t.deepEqual(await response.json(), {
@@ -365,7 +374,7 @@ test("fetch token from authx (bearer)", async (t) => {
   headers.append("cookie", "authx.r=9a64774762a4cdece006b0007e7795eaa1709a34");
   headers.append(
     "cookie",
-    `authx.t.2jmj7l5rSw0yVb_vlWAYkK_YBwk=eyJhbGciOiJSUzUxMiIsInR5cCI6IkpXVCJ9.eyJzY29wZXMiOltdLCJpYXQiOjE1NTY2MDMxMTAsImV4cCI6NDcxMDIwMzExMCwiYXVkIjoiZmUyNDc4YjUtN2I2MC00Y2VkLWFhZjgtNmM5YjRhMmU3M2Y2IiwiaXNzIjoiYXV0aHgiLCJzdWIiOiIxNmE2MDcyMi1mNzJmLTQyYTEtODRmOC01YWY4MGJhYWMyODkifQ.GEd75BHZP3c4NGv3te9bDLQ9hPV0B6lFxydfuBw-4k9KNP5330xQjrAY4Wu-S9thAGS2cXfHyFWR2cKfBDDno6_NivSJHszBs_ErDSAHCJsZ4Ej1VJmPXpePfXbdAmMd6Ug6dEsmmV1lO_gpICHqnVwj2KWGUPvwbN7VVdufy7g`
+    `authx.t.2jmj7l5rSw0yVb_vlWAYkK_YBwk=eyJhbGciOiJSUzUxMiIsInR5cCI6IkpXVCJ9.eyJzY29wZXMiOltdLCJpYXQiOjE1NTY2MDMxMTAsImV4cCI6NDcxMDIwMzExMCwiYXVkIjoiZmUyNDc4YjUtN2I2MC00Y2VkLWFhZjgtNmM5YjRhMmU3M2Y2IiwiaXNzIjoiYXV0aHgiLCJzdWIiOiIxNmE2MDcyMi1mNzJmLTQyYTEtODRmOC01YWY4MGJhYWMyODkifQ.GEd75BHZP3c4NGv3te9bDLQ9hPV0B6lFxydfuBw-4k9KNP5330xQjrAY4Wu-S9thAGS2cXfHyFWR2cKfBDDno6_NivSJHszBs_ErDSAHCJsZ4Ej1VJmPXpePfXbdAmMd6Ug6dEsmmV1lO_gpICHqnVwj2KWGUPvwbN7VVdufy7g`,
   );
   const response = await fetch(
     `http://127.0.0.1:${bearerProxyPort}/api/authx`,
@@ -373,13 +382,13 @@ test("fetch token from authx (bearer)", async (t) => {
       method: "POST",
       redirect: "manual",
       headers,
-    }
+    },
   );
 
   t.is(response.status, 200);
   t.is(
     response.headers.get("set-cookie"),
-    "authx.r=c89900b6a34123900274e90f87f7adc0c1ab8d93; path=/; httponly, authx.t.JvVNJVB5EzHJcWVP-FqK-nxVIa4=eyJhbGciOiJSUzUxMiIsInR5cCI6IkpXVCJ9.eyJzY29wZXMiOlsiQXV0aFg6dXNlci5lcXVhbC5zZWxmOnJlYWQuYmFzaWMiXSwiaWF0IjoxNTU2NjAzOTU5LCJleHAiOjQ3MTAyMDM5NTksImF1ZCI6ImZlMjQ3OGI1LTdiNjAtNGNlZC1hYWY4LTZjOWI0YTJlNzNmNiIsImlzcyI6ImF1dGh4Iiwic3ViIjoiMTZhNjA3MjItZjcyZi00MmExLTg0ZjgtNWFmODBiYWFjMjg5In0.hB7N3Ibdc-LX9gTkarWPXpjr6gFPRpFVnKND2CXS1XHq6ePzhLIs-Bn3ksHOvkpDzx96z7x_8pQwgHXg_DgUNcpUP-eFuk156wxJ7rpuG5aV-wUmAAg-yLnMjXWx65VUf7J-JvVtRVHlkzahLA1n0drf4Fll-hoTJ6qaOHidUlo; path=/; httponly"
+    "authx.r=c89900b6a34123900274e90f87f7adc0c1ab8d93; path=/; httponly, authx.t.JvVNJVB5EzHJcWVP-FqK-nxVIa4=eyJhbGciOiJSUzUxMiIsInR5cCI6IkpXVCJ9.eyJzY29wZXMiOlsiQXV0aFg6dXNlci5lcXVhbC5zZWxmOnJlYWQuYmFzaWMiXSwiaWF0IjoxNTU2NjAzOTU5LCJleHAiOjQ3MTAyMDM5NTksImF1ZCI6ImZlMjQ3OGI1LTdiNjAtNGNlZC1hYWY4LTZjOWI0YTJlNzNmNiIsImlzcyI6ImF1dGh4Iiwic3ViIjoiMTZhNjA3MjItZjcyZi00MmExLTg0ZjgtNWFmODBiYWFjMjg5In0.hB7N3Ibdc-LX9gTkarWPXpjr6gFPRpFVnKND2CXS1XHq6ePzhLIs-Bn3ksHOvkpDzx96z7x_8pQwgHXg_DgUNcpUP-eFuk156wxJ7rpuG5aV-wUmAAg-yLnMjXWx65VUf7J-JvVtRVHlkzahLA1n0drf4Fll-hoTJ6qaOHidUlo; path=/; httponly",
   );
   t.deepEqual(await response.json(), {
     url: "/graphql",
@@ -393,7 +402,7 @@ test("fetch token from authx (basic)", async (t) => {
   headers.append("cookie", "authx.r=9a64774762a4cdece006b0007e7795eaa1709a34");
   headers.append(
     "cookie",
-    `authx.t.2jmj7l5rSw0yVb_vlWAYkK_YBwk=ODNkY2VmYzUtZWIyYi00YTJhLTk1NjMtYjJmZjJmMjEyYzYwOjRmOTk1YTdiMjQzNWNhNWM5YjZjNTQ3MGVjNTZhMjZiYjY4MzMyM2E=`
+    `authx.t.2jmj7l5rSw0yVb_vlWAYkK_YBwk=ODNkY2VmYzUtZWIyYi00YTJhLTk1NjMtYjJmZjJmMjEyYzYwOjRmOTk1YTdiMjQzNWNhNWM5YjZjNTQ3MGVjNTZhMjZiYjY4MzMyM2E=`,
   );
   const response = await fetch(`http://127.0.0.1:${basicProxyPort}/api/authx`, {
     method: "POST",
@@ -404,7 +413,7 @@ test("fetch token from authx (basic)", async (t) => {
   t.is(response.status, 200);
   t.is(
     response.headers.get("set-cookie"),
-    "authx.r=c89900b6a34123900274e90f87f7adc0c1ab8d93; path=/; httponly, authx.t.JvVNJVB5EzHJcWVP-FqK-nxVIa4=NjM3MmRmZjMtMzcwOC00MWMyLWE5ZjQtNjMyZWExNDg1MTZkOjkwNDg5OTExN2M3ZDgwNWE4NGYxM2ZiYzEwNWYxMDhjMDIzMGFhOGM=; path=/; httponly"
+    "authx.r=c89900b6a34123900274e90f87f7adc0c1ab8d93; path=/; httponly, authx.t.JvVNJVB5EzHJcWVP-FqK-nxVIa4=NjM3MmRmZjMtMzcwOC00MWMyLWE5ZjQtNjMyZWExNDg1MTZkOjkwNDg5OTExN2M3ZDgwNWE4NGYxM2ZiYzEwNWYxMDhjMDIzMGFhOGM=; path=/; httponly",
   );
   t.deepEqual(await response.json(), {
     url: "/graphql",

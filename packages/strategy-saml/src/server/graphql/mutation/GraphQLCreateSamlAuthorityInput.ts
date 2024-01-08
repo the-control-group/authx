@@ -6,7 +6,7 @@ import {
   GraphQLNonNull,
   GraphQLString,
 } from "graphql";
-import { GraphQLSamlAuthority } from "../GraphQLSamlAuthority";
+import { GraphQLSamlAuthority } from "../GraphQLSamlAuthority.js";
 import { GraphQLAdministrationInput } from "@authx/authx";
 
 export const GraphQLCreateSamlAuthorityInput = new GraphQLInputObjectType({

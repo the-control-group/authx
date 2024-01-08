@@ -1,6 +1,6 @@
 import test from "ava";
 import { createServer, Server } from "http";
-import AuthXResourceProxy from ".";
+import AuthXResourceProxy from "./index.js";
 import fetch from "node-fetch";
 
 let mockAuthX: {
@@ -260,6 +260,14 @@ test.before(async () => {
   port = address.port;
   numberOfBasicTokensProcessed = 0;
 });
+
+test.after(async () => {
+  await Promise.all([
+    proxy.close(),
+    new Promise(resolve => mockAuthX.server.close(resolve)),
+    new Promise(resolve => mockTarget.server.close(resolve)),
+  ])
+})
 
 test.serial("readiness depends on keys", async (t) => {
   const result1 = await fetch(`http://127.0.0.1:${port}/_ready`);

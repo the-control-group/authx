@@ -3,7 +3,7 @@ import { Credential, DataLoaderExecutor } from "@authx/authx";
 import {
   PasswordAuthorityDetails,
   PasswordAuthority,
-} from "./PasswordAuthority";
+} from "./PasswordAuthority.js";
 
 // Credential
 // ----------

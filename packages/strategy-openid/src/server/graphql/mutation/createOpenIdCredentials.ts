@@ -1,7 +1,5 @@
 import { v4 } from "uuid";
 import { Pool, PoolClient } from "pg";
-import fetch from "node-fetch";
-import FormData from "form-data";
 import jwt from "jsonwebtoken";
 import { GraphQLFieldConfig, GraphQLNonNull, GraphQLList } from "graphql";
 
@@ -22,12 +20,12 @@ import {
 import {
   createV2AuthXScope,
   createV2CredentialAdministrationScopes,
-} from "@authx/authx/scopes";
+} from "@authx/authx/scopes.js";
 
 import { isSuperset, simplify } from "@authx/scopes";
-import { OpenIdCredential, OpenIdAuthority } from "../../model";
-import { GraphQLOpenIdCredential } from "../GraphQLOpenIdCredential";
-import { GraphQLCreateOpenIdCredentialInput } from "./GraphQLCreateOpenIdCredentialInput";
+import { OpenIdCredential, OpenIdAuthority } from "../../model/index.js";
+import { GraphQLOpenIdCredential } from "../GraphQLOpenIdCredential.js";
+import { GraphQLCreateOpenIdCredentialInput } from "./GraphQLCreateOpenIdCredentialInput.js";
 
 export const createOpenIdCredentials: GraphQLFieldConfig<
   any,
