@@ -134,52 +134,52 @@ export interface UserAction {
 export function createV2AuthXScope(
   realm: string,
   context: AuthorityContext,
-  action: AuthorityAction
+  action: AuthorityAction,
 ): string;
 
 export function createV2AuthXScope(
   realm: string,
   context: AuthorizationContext,
-  action: AuthorizationAction
+  action: AuthorizationAction,
 ): string;
 
 export function createV2AuthXScope(
   realm: string,
   context: ClientContext,
-  action: ClientAction
+  action: ClientAction,
 ): string;
 
 export function createV2AuthXScope(
   realm: string,
   context: CredentialContext,
-  action: CredentialAction
+  action: CredentialAction,
 ): string;
 
 export function createV2AuthXScope(
   realm: string,
   context: GrantContext,
-  action: GrantAction
+  action: GrantAction,
 ): string;
 
 export function createV2AuthXScope(
   realm: string,
   context: RoleContext,
-  action: RoleAction
+  action: RoleAction,
 ): string;
 
 export function createV2AuthXScope(
   realm: string,
   context: UserContext,
-  action: UserAction
+  action: UserAction,
 ): string;
 
 export function createV2AuthXScope(
   realm: string,
   context: Context,
-  action: Action
+  action: Action,
 ): string {
   return `${realm}:${createV2AuthXScopeContext(
-    context
+    context,
   )}:${createV2AuthXScopeAction(action)}`;
 }
 

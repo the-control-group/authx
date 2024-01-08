@@ -13,12 +13,12 @@ interface Authorization {
 
 export function useAuthenticatedEndpoint(
   authorization: null | Authorization,
-  clearAuthorization: () => void
+  clearAuthorization: () => void,
 ): { fetchOptionsOverride: GraphQLFetchOptionsOverride } {
   const graphql = useContext(GraphQLContext as any) as any;
   if (!graphql)
     throw new Error(
-      "The hook `useAuthenticatedEndpoint` must only be called inside a `GraphQLContext`."
+      "The hook `useAuthenticatedEndpoint` must only be called inside a `GraphQLContext`.",
     );
 
   // Clear authorization if we get a 401 from the server
@@ -50,11 +50,11 @@ export function useAuthenticatedEndpoint(
             : new Headers(options.headers);
         options.headers.append(
           "Authorization",
-          `Basic ${btoa(`${authorization.id}:${authorization.secret}`)}`
+          `Basic ${btoa(`${authorization.id}:${authorization.secret}`)}`,
         );
       }
     },
-    [authorization]
+    [authorization],
   );
 
   return { fetchOptionsOverride };

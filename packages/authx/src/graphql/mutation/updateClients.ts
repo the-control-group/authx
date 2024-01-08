@@ -32,7 +32,7 @@ export const updateClients: GraphQLFieldConfig<
   args: {
     clients: {
       type: new GraphQLNonNull(
-        new GraphQLList(new GraphQLNonNull(GraphQLUpdateClientInput))
+        new GraphQLList(new GraphQLNonNull(GraphQLUpdateClientInput)),
       ),
     },
   },
@@ -49,7 +49,7 @@ export const updateClients: GraphQLFieldConfig<
 
     if (!(pool instanceof pg.Pool)) {
       throw new Error(
-        "INVARIANT: The executor connection is expected to be an instance of Pool."
+        "INVARIANT: The executor connection is expected to be an instance of Pool.",
       );
     }
 
@@ -66,7 +66,7 @@ export const updateClients: GraphQLFieldConfig<
             new URL(url);
           } catch (error) {
             throw new ValidationError(
-              "The provided `addUrls` list contains an invalid URL."
+              "The provided `addUrls` list contains an invalid URL.",
             );
           }
         }
@@ -77,7 +77,7 @@ export const updateClients: GraphQLFieldConfig<
         // Make sure this transaction is used for queries made by the executor.
         const executor = new DataLoaderExecutor<Pool | PoolClient>(
           tx,
-          strategies
+          strategies,
         );
 
         await tx.query("BEGIN DEFERRABLE");
@@ -93,7 +93,7 @@ export const updateClients: GraphQLFieldConfig<
           }))
         ) {
           throw new ForbiddenError(
-            "You do not have permission to update this client."
+            "You do not have permission to update this client.",
           );
         }
 
@@ -118,7 +118,7 @@ export const updateClients: GraphQLFieldConfig<
           }))
         ) {
           throw new ForbiddenError(
-            "You do not have permission to update this client's secrets."
+            "You do not have permission to update this client's secrets.",
           );
         }
 
@@ -154,7 +154,7 @@ export const updateClients: GraphQLFieldConfig<
             recordId: v4(),
             createdByAuthorizationId: a.id,
             createdAt: new Date(),
-          }
+          },
         );
 
         await tx.query("COMMIT");

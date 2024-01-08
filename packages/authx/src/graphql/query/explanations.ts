@@ -14,7 +14,7 @@ export const explanations: GraphQLFieldConfig<
   resolve(
     source,
     args,
-    { explanations }
+    { explanations },
   ): ReadonlyArray<{ scope: string; description: string }> {
     return explanations;
   },

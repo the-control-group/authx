@@ -39,7 +39,7 @@ export const createGrants: GraphQLFieldConfig<
   args: {
     grants: {
       type: new GraphQLNonNull(
-        new GraphQLList(new GraphQLNonNull(GraphQLCreateGrantInput))
+        new GraphQLList(new GraphQLNonNull(GraphQLCreateGrantInput)),
       ),
     },
   },
@@ -56,7 +56,7 @@ export const createGrants: GraphQLFieldConfig<
 
     if (!(pool instanceof pg.Pool)) {
       throw new Error(
-        "INVARIANT: The executor connection is expected to be an instance of Pool."
+        "INVARIANT: The executor connection is expected to be an instance of Pool.",
       );
     }
 
@@ -80,7 +80,7 @@ export const createGrants: GraphQLFieldConfig<
       for (const { roleId } of input.administration) {
         if (!validateIdFormat(roleId)) {
           throw new ValidationError(
-            "The provided `administration` list contains a `roleId` that is an invalid ID."
+            "The provided `administration` list contains a `roleId` that is an invalid ID.",
           );
         }
       }
@@ -90,7 +90,7 @@ export const createGrants: GraphQLFieldConfig<
         // Make sure this transaction is used for queries made by the executor.
         const executor = new DataLoaderExecutor<Pool | PoolClient>(
           tx,
-          strategies
+          strategies,
         );
 
         if (
@@ -109,12 +109,12 @@ export const createGrants: GraphQLFieldConfig<
                 basic: "*",
                 scopes: "*",
                 secrets: "*",
-              }
-            )
+              },
+            ),
           ))
         ) {
           throw new ForbiddenError(
-            "You do not have permission to create this grant."
+            "You do not have permission to create this grant.",
           );
         }
 
@@ -144,12 +144,12 @@ export const createGrants: GraphQLFieldConfig<
               clientId: input.clientId,
               secrets: [
                 Buffer.from(
-                  [id, now, randomBytes(16).toString("hex")].join(":")
+                  [id, now, randomBytes(16).toString("hex")].join(":"),
                 ).toString("base64"),
               ],
               codes: [
                 Buffer.from(
-                  [id, now, randomBytes(16).toString("hex")].join(":")
+                  [id, now, randomBytes(16).toString("hex")].join(":"),
                 ).toString("base64"),
               ],
               scopes: input.scopes,
@@ -158,7 +158,7 @@ export const createGrants: GraphQLFieldConfig<
               recordId: v4(),
               createdByAuthorizationId: a.id,
               createdAt: new Date(),
-            }
+            },
           );
 
           const grantScopeContext = {
@@ -272,7 +272,7 @@ export const createGrants: GraphQLFieldConfig<
                 })
               ) {
                 throw new ForbiddenError(
-                  `You do not have permission to modify the scopes of role ${roleId}.`
+                  `You do not have permission to modify the scopes of role ${roleId}.`,
                 );
               }
 
@@ -283,7 +283,7 @@ export const createGrants: GraphQLFieldConfig<
                   scopes: simplify([
                     ...administrationRoleBefore.scopes,
                     ...possibleAdministrationScopes.filter((possible) =>
-                      isSuperset(scopes, possible)
+                      isSuperset(scopes, possible),
                     ),
                   ]),
                 },
@@ -291,13 +291,13 @@ export const createGrants: GraphQLFieldConfig<
                   recordId: v4(),
                   createdByAuthorizationId: a.id,
                   createdAt: new Date(),
-                }
+                },
               );
 
               // Clear and prime the loader.
               Role.clear(executor, administrationRole.id);
               Role.prime(executor, administrationRole.id, administrationRole);
-            })
+            }),
           );
 
           for (const result of administrationResults) {

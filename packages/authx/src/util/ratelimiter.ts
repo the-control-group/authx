@@ -23,7 +23,7 @@ export class LocalMemoryRateLimiter implements RateLimiter {
   constructor(
     private readonly limitPerWindow = 100,
     private readonly window = 60 * 1_000,
-    private readonly timeSource: () => number = performance.now
+    private readonly timeSource: () => number = performance.now,
   ) {}
 
   limit(key: string): void {

@@ -88,7 +88,7 @@ test.before(async () => {
                   numberOfBasicTokensProcessed++;
                 }
                 return response.end(
-                  '{"data": { "viewer": { "id": "I1", "access": ["realm:resource.identifier:action","realm2:**:*"], "user": {"id": "U1"} }}}'
+                  '{"data": { "viewer": { "id": "I1", "access": ["realm:resource.identifier:action","realm2:**:*"], "user": {"id": "U1"} }}}',
                 );
               }
 
@@ -97,7 +97,7 @@ test.before(async () => {
                 "Basic OWY1YmU1OTktNGU2My00NzgzLTkxNWUtNTA3OTM4ZTc0ZjFhOkdGRk53dHZQS09QemNJZHl4"
               ) {
                 return response.end(
-                  '{"data": { "viewer": { "id": "I1", "access": [], "user": {"id": "U1"} }}}'
+                  '{"data": { "viewer": { "id": "I1", "access": [], "user": {"id": "U1"} }}}',
                 );
               }
 
@@ -107,18 +107,18 @@ test.before(async () => {
               "Basic ZDQ5MDIxZGUtNDllNS00MjEwLWEyYzctYzM0NzM3MDQyMTQwOkdGRk53dHZQS09QemNJZHl4"
             ) {
               response.end(
-                '{"data": { "viewer": { "id": "d49021de-49e5-4210-a2c7-c34737042140", "enabled": true, "access": ["realm:resource.identifier:action", "realm2:**:*"], "user": { "id": "cc7a9f08-2c1b-43bb-888c-d0469914d013" } } }}'
+                '{"data": { "viewer": { "id": "d49021de-49e5-4210-a2c7-c34737042140", "enabled": true, "access": ["realm:resource.identifier:action", "realm2:**:*"], "user": { "id": "cc7a9f08-2c1b-43bb-888c-d0469914d013" } } }}',
               );
             } else if (
               request.headers.authorization ===
               "Basic OWY1YmU1OTktNGU2My00NzgzLTkxNWUtNTA3OTM4ZTc0ZjFhOkdGRk53dHZQS09QemNJZHl4"
             ) {
               response.end(
-                '{"data": { "viewer": { "id": "d49021de-49e5-4210-a2c7-c34737042140", "enabled": true, "access": [], "user": { "id": "cc7a9f08-2c1b-43bb-888c-d0469914d013" } } }}'
+                '{"data": { "viewer": { "id": "d49021de-49e5-4210-a2c7-c34737042140", "enabled": true, "access": [], "user": { "id": "cc7a9f08-2c1b-43bb-888c-d0469914d013" } } }}',
               );
             } else {
               response.end(
-                '{"errors": [ "Query not known by the mock AuthX server." ]}'
+                '{"errors": [ "Query not known by the mock AuthX server." ]}',
               );
             }
           });
@@ -162,7 +162,7 @@ test.before(async () => {
             "X-OAuth-Scopes": request.headers["x-oauth-scopes"],
             "X-OAuth-Required-Scopes":
               request.headers["x-oauth-required-scopes"],
-          })
+          }),
         );
       });
 
@@ -187,7 +187,7 @@ test.before(async () => {
     {
       server: Server;
       port: number;
-    }
+    },
   ];
 
   mockAuthX = mocks[0];
@@ -263,17 +263,17 @@ test.before(async () => {
 test.after(async () => {
   await Promise.all([
     proxy.close(),
-    new Promise(resolve => mockAuthX.server.close(resolve)),
-    new Promise(resolve => mockTarget.server.close(resolve)),
-  ])
-})
+    new Promise((resolve) => mockAuthX.server.close(resolve)),
+    new Promise((resolve) => mockTarget.server.close(resolve)),
+  ]);
+});
 
 test.serial("readiness depends on keys", async (t) => {
   const result1 = await fetch(`http://127.0.0.1:${port}/_ready`);
   t.assert(result1.status === 503);
   t.assert(
     (await result1.text()) === "NOT READY",
-    "Must return NOT READY before keys are loaded."
+    "Must return NOT READY before keys are loaded.",
   );
 
   const ready = new Promise((resolve) => proxy.once("ready", resolve));
@@ -284,7 +284,7 @@ test.serial("readiness depends on keys", async (t) => {
   t.assert(result2.status === 200);
   t.assert(
     (await result2.text()) === "READY",
-    "Must return READY once the keys are loaded."
+    "Must return READY once the keys are loaded.",
   );
 });
 
@@ -372,7 +372,7 @@ test("passthrough-with-token: invalid bearer token", async (t) => {
         Authorization:
           "Bearer eyJhbGciOiJSUzUxMiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIwMTU2N2EyMS01YWQyLTRkMjQtOTU3Ny1lNWVmYjI1ZmM2YjUiLCJpYXQiOjE1NTY0MDcxNzksImV4cCI6MTU1NjQwNzQ3OSwic2NvcGVzIjpbXX0.C-cbh7Je6n-wafJWBSwadfOcq4vwABvI-CvvB82AJuInwd4zCCIww4hq5zH9GXJxSZfquGfus4QjJ8L0E2qgGJsN9ix5UzZTCZzimSX-jr_PDDm88CiYzVvyh2QgI5QcnOzFEMPNyNjlttr0wG8WSn1MAX2uW8PbFxOQKGrXjEg",
       },
-    }
+    },
   );
   t.assert(result.status === 200);
   t.deepEqual(await result.json(), {
@@ -388,7 +388,7 @@ test("passthrough-with-token: invalid basic credentials", async (t) => {
         Authorization:
           "Basic NzhkYTM4ZDAtNDZhMC00NWM2LTgyODktYTU2ZWE3NzNjZGYxOnlmVFRuQ2hNbXpZcFZBZnU=",
       },
-    }
+    },
   );
   t.assert(result.status === 200);
   t.deepEqual(await result.json(), {
@@ -404,7 +404,7 @@ test("passthrough-with-token: valid bearer token w/ empty scopes", async (t) => 
         Authorization:
           "Bearer eyJhbGciOiJSUzUxMiIsInR5cCI6IkpXVCJ9.eyJhaWQiOiJlODYyMjM4OS05MWE3LTRmODYtOTk1Ny0xNmFmYThjY2Y1NzMiLCJzdWIiOiIwMTU2N2EyMS01YWQyLTRkMjQtOTU3Ny1lNWVmYjI1ZmM2YjUiLCJpYXQiOjE1NTY0MDcxNzksImV4cCI6NDcxMDAwNzI0Nywic2NvcGVzIjpbXX0.Ac_2gr5xHw2rnDp68k2B-xeAwJjO3If-I6jFQIdAlz6cx9e--aUQlK2e9LPC2votS4e496E38p7X9VoBhxtQ5QXpSIq2-dZws4BJ2oekcU_5qzrNSqiTBh4vgPvwHcTCuWV0p_boeTNSFLWbW1AwdIt4OZbayYyoi8wvtbTOifc",
       },
-    }
+    },
   );
   t.assert(result.status === 200);
   t.deepEqual(await result.json(), {
@@ -423,7 +423,7 @@ test("passthrough-with-token: valid basic credentials w/ empty scopes", async (t
         Authorization:
           "Basic OWY1YmU1OTktNGU2My00NzgzLTkxNWUtNTA3OTM4ZTc0ZjFhOkdGRk53dHZQS09QemNJZHl4",
       },
-    }
+    },
   );
   t.assert(result.status === 200);
   t.deepEqual(await result.json(), {

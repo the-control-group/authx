@@ -142,7 +142,7 @@ interface Rule {
     | Behavior
     | ((
         request: IncomingMessage,
-        response: ServerResponse
+        response: ServerResponse,
       ) => Behavior | undefined);
 }
 ```

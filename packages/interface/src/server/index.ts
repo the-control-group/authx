@@ -10,11 +10,11 @@ class BuildError extends Error {
   public errors: ReadonlyArray<string | Error> = [];
 }
 
-const __dirname = fileURLToPath(new URL('.', import.meta.url));
+const __dirname = fileURLToPath(new URL(".", import.meta.url));
 
 export default async function createInterface(
   realm: string,
-  strategies: ReadonlyArray<string>
+  strategies: ReadonlyArray<string>,
 ): Promise<(ctx: any, next: () => Promise<any>) => Promise<any>> {
   const fs = new MemoryFileSystem();
 
@@ -92,7 +92,7 @@ export default async function createInterface(
     const path = decodeURIComponent(
       ctx._matchedRoute
         ? ctx.request.path.replace(RegExp(`^${ctx._matchedRoute}`), "")
-        : ctx.request.path
+        : ctx.request.path,
     );
 
     // Don't serve TypeScript definitions or test files.
@@ -104,7 +104,7 @@ export default async function createInterface(
     const filePath = join(
       __dirname,
       "../client/",
-      extname(path) ? path : join(path, "index.html")
+      extname(path) ? path : join(path, "index.html"),
     );
 
     // The requested file does not exist.
@@ -130,7 +130,7 @@ export default async function createInterface(
       case ".js":
         ctx.response.set(
           "Content-Type",
-          "application/javascript'; charset=utf-8"
+          "application/javascript'; charset=utf-8",
         );
         break;
     }

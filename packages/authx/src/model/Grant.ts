@@ -91,7 +91,7 @@ export class Grant implements GrantData {
       basic: "r",
       scopes: "",
       secrets: "",
-    }
+    },
   ): Promise<boolean> {
     if (
       await a.can(
@@ -105,8 +105,8 @@ export class Grant implements GrantData {
             userId: this.userId,
             clientId: this.clientId,
           },
-          action
-        )
+          action,
+        ),
       )
     ) {
       return true;
@@ -134,7 +134,7 @@ export class Grant implements GrantData {
   }
 
   public async authorizations(
-    tx: Pool | ClientBase | DataLoaderExecutor
+    tx: Pool | ClientBase | DataLoaderExecutor,
   ): Promise<Authorization[]> {
     const ids = (
       await queryCache.query(
@@ -147,7 +147,7 @@ export class Grant implements GrantData {
           AND replacement_record_id IS NULL
         ORDER BY id ASC
         `,
-        [this.id]
+        [this.id],
       )
     ).rows.map(({ id }) => id);
 
@@ -164,7 +164,7 @@ export class Grant implements GrantData {
       currentUserId: null | string;
       currentGrantId: null | string;
       currentClientId: null | string;
-    }
+    },
   ): Promise<string[]> {
     if (!this.enabled) {
       return [];
@@ -186,7 +186,7 @@ export class Grant implements GrantData {
       currentGrantId: null | string;
       currentClientId: null | string;
     },
-    scope: string
+    scope: string,
   ): Promise<boolean> {
     return isSuperset(await this.access(tx, values), scope);
   }
@@ -208,7 +208,7 @@ export class Grant implements GrantData {
       WHERE entity_id = $1
       ORDER BY created_at DESC
       `,
-      [this.id]
+      [this.id],
     );
 
     return result.rows.map(
@@ -219,7 +219,7 @@ export class Grant implements GrantData {
           createdByAuthorizationId: row.created_by_authorization_id,
           createdAt: row.created_at,
           entityId: row.entity_id,
-        })
+        }),
     );
   }
 
@@ -228,7 +228,7 @@ export class Grant implements GrantData {
     data: {
       id: string;
       createdAt: Date;
-    }
+    },
   ): Promise<GrantInvocation> {
     // insert the new invocation
     const result = await (tx instanceof DataLoaderExecutor
@@ -251,7 +251,7 @@ export class Grant implements GrantData {
         record_id,
         created_at
       `,
-      [data.id, this.id, this.recordId, data.createdAt]
+      [data.id, this.id, this.recordId, data.createdAt],
     );
 
     if (result.rows.length !== 1) {
@@ -283,7 +283,7 @@ export class Grant implements GrantData {
       WHERE entity_id = $1
       ORDER BY created_at DESC
       `,
-      [this.id]
+      [this.id],
     );
 
     return result.rows.map(
@@ -293,7 +293,7 @@ export class Grant implements GrantData {
           recordId: row.record_id,
           entityId: row.entity_id,
           createdAt: row.created_at,
-        })
+        }),
     );
   }
 
@@ -301,32 +301,32 @@ export class Grant implements GrantData {
   public static read(
     tx: DataLoaderExecutor,
     id: string,
-    options?: { forUpdate?: false }
+    options?: { forUpdate?: false },
   ): Promise<Grant>;
 
   public static read(
     tx: DataLoaderExecutor,
     id: readonly string[],
-    options?: { forUpdate?: false }
+    options?: { forUpdate?: false },
   ): Promise<Grant[]>;
 
   // Read using a connection.
   public static read(
     tx: Pool | ClientBase,
     id: string,
-    options?: { forUpdate?: boolean }
+    options?: { forUpdate?: boolean },
   ): Promise<Grant>;
 
   public static read(
     tx: Pool | ClientBase,
     id: readonly string[],
-    options?: { forUpdate?: boolean }
+    options?: { forUpdate?: boolean },
   ): Promise<Grant[]>;
 
   public static async read(
     tx: Pool | ClientBase | DataLoaderExecutor,
     id: readonly string[] | string,
-    options?: { forUpdate?: boolean }
+    options?: { forUpdate?: boolean },
   ): Promise<Grant[] | Grant> {
     if (tx instanceof DataLoaderExecutor) {
       const loader = cache.get(tx);
@@ -347,7 +347,7 @@ export class Grant implements GrantData {
     if (options?.forUpdate) {
       await tx.query(
         `SELECT id FROM authx.grant WHERE id = ANY($1) FOR UPDATE`,
-        [typeof id === "string" ? [id] : id]
+        [typeof id === "string" ? [id] : id],
       );
     }
 
@@ -368,12 +368,12 @@ export class Grant implements GrantData {
         AND replacement_record_id IS NULL
       ${options?.forUpdate ? "FOR UPDATE" : ""}
       `,
-      [typeof id === "string" ? [id] : id]
+      [typeof id === "string" ? [id] : id],
     );
 
     if (result.rows.length > (typeof id === "string" ? 1 : id.length)) {
       throw new Error(
-        "INVARIANT: Read must never return more records than requested."
+        "INVARIANT: Read must never return more records than requested.",
       );
     }
 
@@ -388,7 +388,7 @@ export class Grant implements GrantData {
           recordId: row.record_id,
           clientId: row.client_id,
           userId: row.user_id,
-        })
+        }),
     );
 
     return typeof id === "string" ? grants[0] : grants;
@@ -401,7 +401,7 @@ export class Grant implements GrantData {
       recordId: string;
       createdByAuthorizationId: string;
       createdAt: Date;
-    }
+    },
   ): Promise<Grant> {
     // ensure that the entity ID exists
     await tx.query(
@@ -412,7 +412,7 @@ export class Grant implements GrantData {
         ($1)
       ON CONFLICT DO NOTHING
       `,
-      [data.id]
+      [data.id],
     );
 
     // replace the previous record
@@ -425,12 +425,12 @@ export class Grant implements GrantData {
         AND replacement_record_id IS NULL
       RETURNING entity_id AS id, record_id
       `,
-      [data.id, metadata.recordId]
+      [data.id, metadata.recordId],
     );
 
     if (previous.rows.length > 1) {
       throw new Error(
-        "INVARIANT: It must be impossible to replace more than one record."
+        "INVARIANT: It must be impossible to replace more than one record.",
       );
     }
 
@@ -473,7 +473,7 @@ export class Grant implements GrantData {
         [...new Set(data.secrets)],
         [...new Set(data.codes)],
         simplify([...data.scopes]),
-      ]
+      ],
     );
 
     if (next.rows.length !== 1) {
@@ -496,7 +496,7 @@ export class Grant implements GrantData {
   public static prime(
     executor: DataLoaderExecutor,
     id: string,
-    value: Grant
+    value: Grant,
   ): void {
     cache.get(executor).prime(id, value);
   }
@@ -505,10 +505,10 @@ export class Grant implements GrantData {
 const cache = new DataLoaderCache(
   async (
     executor: DataLoaderExecutor,
-    ids: readonly string[]
+    ids: readonly string[],
   ): Promise<Grant[]> => {
     return Grant.read(executor.connection, ids);
-  }
+  },
 );
 
 const queryCache = new QueryCache<{ id: string }>();

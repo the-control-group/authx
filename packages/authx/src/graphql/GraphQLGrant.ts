@@ -39,7 +39,7 @@ export const GraphQLGrant: GraphQLObjectType<Grant, Context> =
         async resolve(
           grant,
           args,
-          { realm, authorization: a, executor }: Context
+          { realm, authorization: a, executor }: Context,
         ): Promise<null | User> {
           if (!a) return null;
           const user = await grant.user(executor);
@@ -51,7 +51,7 @@ export const GraphQLGrant: GraphQLObjectType<Grant, Context> =
         async resolve(
           grant,
           args,
-          { realm, authorization: a, executor }: Context
+          { realm, authorization: a, executor }: Context,
         ): Promise<null | Client> {
           if (!a) return null;
           const client = await grant.client(executor);
@@ -65,7 +65,7 @@ export const GraphQLGrant: GraphQLObjectType<Grant, Context> =
         async resolve(
           grant,
           args,
-          { realm, authorization: a, executor }: Context
+          { realm, authorization: a, executor }: Context,
         ): Promise<null | string[]> {
           return a &&
             (await grant.isAccessibleBy(realm, a, executor, {
@@ -82,7 +82,7 @@ export const GraphQLGrant: GraphQLObjectType<Grant, Context> =
         async resolve(
           grant,
           args,
-          { realm, authorization: a, executor }: Context
+          { realm, authorization: a, executor }: Context,
         ): Promise<null | string[]> {
           return a &&
             (await grant.isAccessibleBy(realm, a, executor, {
@@ -100,7 +100,7 @@ export const GraphQLGrant: GraphQLObjectType<Grant, Context> =
         async resolve(
           grant,
           args,
-          { realm, authorization: a, executor }: Context
+          { realm, authorization: a, executor }: Context,
         ): Promise<null | string[]> {
           return a &&
             (await grant.isAccessibleBy(realm, a, executor, {
@@ -119,7 +119,7 @@ export const GraphQLGrant: GraphQLObjectType<Grant, Context> =
         async resolve(
           grant,
           args,
-          { realm, authorization: a, executor }: Context
+          { realm, authorization: a, executor }: Context,
         ): Promise<null | string[]> {
           return a &&
             (await grant.isAccessibleBy(realm, a, executor, {
@@ -142,7 +142,7 @@ export const GraphQLGrant: GraphQLObjectType<Grant, Context> =
         async resolve(
           grant,
           args,
-          { realm, authorization: a, executor, explanations }: Context
+          { realm, authorization: a, executor, explanations }: Context,
         ): Promise<null | Explanation[]> {
           if (
             !a ||
@@ -171,16 +171,16 @@ export const GraphQLGrant: GraphQLObjectType<Grant, Context> =
         async resolve(
           grant,
           args: ConnectionArguments,
-          { realm, authorization: a, executor }: Context
+          { realm, authorization: a, executor }: Context,
         ) {
           return a
             ? connectionFromArray(
                 await filter(
                   await grant.authorizations(executor),
                   (authorization) =>
-                    authorization.isAccessibleBy(realm, a, executor)
+                    authorization.isAccessibleBy(realm, a, executor),
                 ),
-                args
+                args,
               )
             : null;
         },

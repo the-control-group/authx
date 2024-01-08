@@ -54,18 +54,18 @@ test.before(async () => {
                   iss: "authx",
                   sub: "c79a01a2-0ed7-45c5-93b8-bc921d5cf368",
                   aud: body.client_id,
-                })
+                }),
               )
                 .toString("base64")
                 .replace(
                   /=*$/,
-                  ""
+                  "",
                 )}.SflKxwRJSMeKKF2QT4fwpMeJf36POk6yJV_adQssw5c`,
               refresh_token: body.refresh_token,
               expires_in: 3600,
               scope: body.scope,
               /* eslint-enable camelcase */
-            })
+            }),
           );
         });
       });
@@ -109,7 +109,7 @@ test.before(async () => {
           JSON.stringify({
             url: request.url,
             token: JSON.parse(decoded),
-          })
+          }),
         );
       });
 
@@ -231,7 +231,7 @@ test("with static token", async (t) => {
 
 test("with static token and scopes", async (t) => {
   const result = await fetch(
-    `http://127.0.0.1:${port}/with-static-token-and-scopes`
+    `http://127.0.0.1:${port}/with-static-token-and-scopes`,
   );
   t.assert(result.status === 200);
   t.deepEqual(await result.json(), {
@@ -249,7 +249,7 @@ test("with static token and scopes", async (t) => {
 
 test("with dynamic token and scopes", async (t) => {
   const result = await fetch(
-    `http://127.0.0.1:${port}/with-dynamic-token-and-scopes`
+    `http://127.0.0.1:${port}/with-dynamic-token-and-scopes`,
   );
   t.assert(result.status === 200);
   t.deepEqual(await result.json(), {

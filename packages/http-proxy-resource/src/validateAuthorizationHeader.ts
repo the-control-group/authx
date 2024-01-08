@@ -1,10 +1,6 @@
 import jsonwebtoken from "jsonwebtoken";
-const {
-  verify,
-  JsonWebTokenError,
-  NotBeforeError,
-  TokenExpiredError,
-} = jsonwebtoken;
+const { verify, JsonWebTokenError, NotBeforeError, TokenExpiredError } =
+  jsonwebtoken;
 import { isValidScopeLiteral } from "@authx/scopes";
 import { TokenDataCache } from "./TokenDataCache.js";
 
@@ -12,7 +8,10 @@ const BEARER = /^BEARER\s+/i;
 const BASIC = /^BASIC\s+/i;
 
 export class NotAuthorizedError extends Error {
-  constructor(message: string, public readonly cause?: any) {
+  constructor(
+    message: string,
+    public readonly cause?: any,
+  ) {
     super(message);
   }
 }
@@ -21,7 +20,7 @@ export async function validateAuthorizationHeader(
   authxUrl: string,
   keys: ReadonlyArray<string>,
   authorizationHeader: string,
-  tokenDataCache: TokenDataCache
+  tokenDataCache: TokenDataCache,
 ): Promise<{
   authorizationId: string;
   authorizationSubject: string;
@@ -39,7 +38,7 @@ export async function validateAuthorizationHeader(
     } catch (err) {
       throw new NotAuthorizedError(
         "The submitted basic token was rejected by AuthX",
-        err
+        err,
       );
     }
   }
@@ -59,30 +58,30 @@ export async function validateAuthorizationHeader(
         // Ensure the token payload is correctly formatted.
         if (typeof payload !== "object") {
           throw new Error(
-            "A cryptographically verified token contained a malformed payload."
+            "A cryptographically verified token contained a malformed payload.",
           );
         }
 
         if (
           !Array.isArray(payload.scopes) ||
           !payload.scopes.every(
-            (scope) => typeof scope === "string" && isValidScopeLiteral(scope)
+            (scope) => typeof scope === "string" && isValidScopeLiteral(scope),
           )
         ) {
           throw new Error(
-            "A cryptographically verified token contained a malformed scope."
+            "A cryptographically verified token contained a malformed scope.",
           );
         }
 
         if (typeof payload.aid !== "string") {
           throw new Error(
-            "A cryptographically verified token contained a malformed aid."
+            "A cryptographically verified token contained a malformed aid.",
           );
         }
 
         if (typeof payload.sub !== "string") {
           throw new Error(
-            "A cryptographically verified token contained a malformed sub."
+            "A cryptographically verified token contained a malformed sub.",
           );
         }
 
@@ -111,11 +110,11 @@ export async function validateAuthorizationHeader(
     }
 
     throw new NotAuthorizedError(
-      "The submitted bearer token failed validation."
+      "The submitted bearer token failed validation.",
     );
   }
 
   throw new NotAuthorizedError(
-    "The submitted authorization header was malformed."
+    "The submitted authorization header was malformed.",
   );
 }

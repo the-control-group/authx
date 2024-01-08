@@ -36,7 +36,7 @@ export const GraphQLOpenIdCredential = new GraphQLObjectType<
       async resolve(
         credential,
         args,
-        { realm, authorization: a, executor }: Context
+        { realm, authorization: a, executor }: Context,
       ): Promise<null | User> {
         if (!a) return null;
         const user = await credential.user(executor);
@@ -48,7 +48,7 @@ export const GraphQLOpenIdCredential = new GraphQLObjectType<
       async resolve(
         credential,
         args,
-        { executor }: Context
+        { executor }: Context,
       ): Promise<null | OpenIdAuthority> {
         return credential.authority(executor);
       },

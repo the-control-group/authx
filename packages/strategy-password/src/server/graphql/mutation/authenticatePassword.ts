@@ -65,7 +65,7 @@ export const authenticatePassword: GraphQLFieldConfig<
     const pool = executor.connection;
     if (!(pool instanceof pg.Pool)) {
       throw new Error(
-        "INVARIANT: The executor connection is expected to be an instance of Pool."
+        "INVARIANT: The executor connection is expected to be an instance of Pool.",
       );
     }
 
@@ -74,7 +74,7 @@ export const authenticatePassword: GraphQLFieldConfig<
       // Make sure this transaction is used for queries made by the executor.
       const executor = new DataLoaderExecutor<Pool | PoolClient>(
         tx,
-        strategies
+        strategies,
       );
 
       await tx.query("BEGIN DEFERRABLE");
@@ -83,14 +83,14 @@ export const authenticatePassword: GraphQLFieldConfig<
       const authority = await Authority.read(
         tx,
         args.passwordAuthorityId,
-        strategies
+        strategies,
       );
 
       if (!(authority instanceof PasswordAuthority)) {
         throw new AuthenticationError(
           __DEV__
             ? "The authority uses a strategy other than password."
-            : undefined
+            : undefined,
         );
       }
 
@@ -109,12 +109,12 @@ export const authenticatePassword: GraphQLFieldConfig<
             AND enabled = true
             AND replacement_record_id IS NULL
           `,
-          [args.identityAuthorityId, args.identityAuthorityUserId]
+          [args.identityAuthorityId, args.identityAuthorityUserId],
         );
 
         if (results.rows.length > 1) {
           throw new Error(
-            "INVARIANT: There cannot be more than one active credential with the same authorityId and authorityUserId."
+            "INVARIANT: There cannot be more than one active credential with the same authorityId and authorityUserId.",
           );
         }
 
@@ -123,7 +123,7 @@ export const authenticatePassword: GraphQLFieldConfig<
 
       if (!userId) {
         throw new AuthenticationError(
-          __DEV__ ? "Unable to find user identity." : undefined
+          __DEV__ ? "Unable to find user identity." : undefined,
         );
       }
 
@@ -132,14 +132,14 @@ export const authenticatePassword: GraphQLFieldConfig<
 
       if (!credential) {
         throw new AuthenticationError(
-          __DEV__ ? "No such credential exists." : undefined
+          __DEV__ ? "No such credential exists." : undefined,
         );
       }
 
       // Check the password.
       if (!(await compare(args.password, credential.details.hash))) {
         throw new AuthenticationError(
-          __DEV__ ? "The password is incorrect." : undefined
+          __DEV__ ? "The password is incorrect." : undefined,
         );
       }
 
@@ -178,12 +178,12 @@ export const authenticatePassword: GraphQLFieldConfig<
               basic: "*",
               scopes: "*",
               secrets: "*",
-            }
-          )
+            },
+          ),
         )
       ) {
         throw new ForbiddenError(
-          "You do not have permission to create this authorization"
+          "You do not have permission to create this authorization",
         );
       }
 
@@ -203,7 +203,7 @@ export const authenticatePassword: GraphQLFieldConfig<
           createdByAuthorizationId: authorizationId,
           createdByCredentialId: credential.id,
           createdAt: new Date(),
-        }
+        },
       );
 
       // Invoke the new authorization, since it will be used for the remainder

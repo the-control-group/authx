@@ -3,7 +3,7 @@ import { Rule } from "./Rule.js";
 export class FieldRule extends Rule {
   constructor(
     private fieldName: string,
-    private targetValue: number | string | boolean
+    private targetValue: number | string | boolean,
   ) {
     super();
   }

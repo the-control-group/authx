@@ -17,7 +17,7 @@ export class CursorRule {
 
   static addToRuleListIfNeeded(
     ruleList: Rule[],
-    args: ConnectionArguments
+    args: ConnectionArguments,
   ): Rule[] {
     const cursorRule = this.create(args);
     if (cursorRule) ruleList.push(cursorRule);

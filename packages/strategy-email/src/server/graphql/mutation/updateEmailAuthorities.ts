@@ -42,7 +42,7 @@ export const updateEmailAuthorities: GraphQLFieldConfig<
   args: {
     authorities: {
       type: new GraphQLNonNull(
-        new GraphQLList(new GraphQLNonNull(GraphQLUpdateEmailAuthorityInput))
+        new GraphQLList(new GraphQLNonNull(GraphQLUpdateEmailAuthorityInput)),
       ),
     },
   },
@@ -55,13 +55,13 @@ export const updateEmailAuthorities: GraphQLFieldConfig<
 
     if (!a) {
       throw new ForbiddenError(
-        "You must be authenticated to update an authority."
+        "You must be authenticated to update an authority.",
       );
     }
 
     if (!(pool instanceof pg.Pool)) {
       throw new Error(
-        "INVARIANT: The executor connection is expected to be an instance of Pool."
+        "INVARIANT: The executor connection is expected to be an instance of Pool.",
       );
     }
 
@@ -76,7 +76,7 @@ export const updateEmailAuthorities: GraphQLFieldConfig<
         // Make sure this transaction is used for queries made by the executor.
         const executor = new DataLoaderExecutor<Pool | PoolClient>(
           tx,
-          strategies
+          strategies,
         );
 
         await tx.query("BEGIN DEFERRABLE");
@@ -87,7 +87,7 @@ export const updateEmailAuthorities: GraphQLFieldConfig<
 
         if (!(before instanceof EmailAuthority)) {
           throw new NotFoundError(
-            "The authority uses a strategy other than email."
+            "The authority uses a strategy other than email.",
           );
         }
 
@@ -98,7 +98,7 @@ export const updateEmailAuthorities: GraphQLFieldConfig<
           }))
         ) {
           throw new ForbiddenError(
-            "You do not have permission to update this authority."
+            "You do not have permission to update this authority.",
           );
         }
 
@@ -119,7 +119,7 @@ export const updateEmailAuthorities: GraphQLFieldConfig<
           }))
         ) {
           throw new ForbiddenError(
-            "You do not have permission to update this authority's details."
+            "You do not have permission to update this authority's details.",
           );
         }
 
@@ -188,7 +188,7 @@ export const updateEmailAuthorities: GraphQLFieldConfig<
             recordId: v4(),
             createdByAuthorizationId: a.id,
             createdAt: new Date(),
-          }
+          },
         );
 
         await tx.query("COMMIT");

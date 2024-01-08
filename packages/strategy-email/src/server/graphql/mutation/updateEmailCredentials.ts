@@ -30,7 +30,7 @@ export const updateEmailCredentials: GraphQLFieldConfig<
   args: {
     credentials: {
       type: new GraphQLNonNull(
-        new GraphQLList(new GraphQLNonNull(GraphQLUpdateEmailCredentialInput))
+        new GraphQLList(new GraphQLNonNull(GraphQLUpdateEmailCredentialInput)),
       ),
     },
   },
@@ -43,13 +43,13 @@ export const updateEmailCredentials: GraphQLFieldConfig<
 
     if (!a) {
       throw new ForbiddenError(
-        "You must be authenticated to update an credential."
+        "You must be authenticated to update an credential.",
       );
     }
 
     if (!(pool instanceof pg.Pool)) {
       throw new Error(
-        "INVARIANT: The executor connection is expected to be an instance of Pool."
+        "INVARIANT: The executor connection is expected to be an instance of Pool.",
       );
     }
 
@@ -64,7 +64,7 @@ export const updateEmailCredentials: GraphQLFieldConfig<
         // Make sure this transaction is used for queries made by the executor.
         const executor = new DataLoaderExecutor<Pool | PoolClient>(
           tx,
-          strategies
+          strategies,
         );
 
         await tx.query("BEGIN DEFERRABLE");
@@ -84,7 +84,7 @@ export const updateEmailCredentials: GraphQLFieldConfig<
           }))
         ) {
           throw new ForbiddenError(
-            "You do not have permission to update this credential."
+            "You do not have permission to update this credential.",
           );
         }
 
@@ -101,7 +101,7 @@ export const updateEmailCredentials: GraphQLFieldConfig<
             recordId: v4(),
             createdByAuthorizationId: a.id,
             createdAt: new Date(),
-          }
+          },
         );
 
         await tx.query("COMMIT");

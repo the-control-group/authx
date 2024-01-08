@@ -45,7 +45,7 @@ export const updateSamlAuthorities: GraphQLFieldConfig<
   args: {
     authorities: {
       type: new GraphQLNonNull(
-        new GraphQLList(new GraphQLNonNull(GraphQLUpdateSamlAuthorityInput))
+        new GraphQLList(new GraphQLNonNull(GraphQLUpdateSamlAuthorityInput)),
       ),
     },
   },
@@ -58,13 +58,13 @@ export const updateSamlAuthorities: GraphQLFieldConfig<
 
     if (!a) {
       throw new ForbiddenError(
-        "You must be authenticated to update an authority."
+        "You must be authenticated to update an authority.",
       );
     }
 
     if (!(pool instanceof pg.Pool)) {
       throw new Error(
-        "INVARIANT: The executor connection is expected to be an instance of Pool."
+        "INVARIANT: The executor connection is expected to be an instance of Pool.",
       );
     }
 
@@ -80,7 +80,7 @@ export const updateSamlAuthorities: GraphQLFieldConfig<
         !validateIdFormat(input.emailAuthorityId)
       ) {
         throw new ValidationError(
-          "The provided `emailAuthorityId` is an invalid ID."
+          "The provided `emailAuthorityId` is an invalid ID.",
         );
       }
 
@@ -89,7 +89,7 @@ export const updateSamlAuthorities: GraphQLFieldConfig<
         // Make sure this transaction is used for queries made by the executor.
         const executor = new DataLoaderExecutor<Pool | PoolClient>(
           tx,
-          strategies
+          strategies,
         );
 
         await tx.query("BEGIN DEFERRABLE");
@@ -109,7 +109,7 @@ export const updateSamlAuthorities: GraphQLFieldConfig<
           }))
         ) {
           throw new ForbiddenError(
-            "You do not have permission to update this authority."
+            "You do not have permission to update this authority.",
           );
         }
 
@@ -129,7 +129,7 @@ export const updateSamlAuthorities: GraphQLFieldConfig<
           }))
         ) {
           throw new ForbiddenError(
-            "You do not have permission to update this authority's details."
+            "You do not have permission to update this authority's details.",
           );
         }
         const authority = await SamlAuthority.write(
@@ -165,12 +165,12 @@ export const updateSamlAuthorities: GraphQLFieldConfig<
                   ? input.createsUnmatchedUsers
                   : before.details.createsUnmatchedUsers,
               assignsCreatedUsersToRoleIds: Array.isArray(
-                input.assignsCreatedUsersToRoleIds
+                input.assignsCreatedUsersToRoleIds,
               )
                 ? input.assignsCreatedUsersToRoleIds
                 : before.details.assignsCreatedUsersToRoleIds,
               identityProviderCertificates: Array.isArray(
-                input.identityProviderCertificates
+                input.identityProviderCertificates,
               )
                 ? input.identityProviderCertificates
                 : before.details.identityProviderCertificates,
@@ -192,7 +192,7 @@ export const updateSamlAuthorities: GraphQLFieldConfig<
             recordId: v4(),
             createdByAuthorizationId: a.id,
             createdAt: new Date(),
-          }
+          },
         );
 
         await tx.query("COMMIT");

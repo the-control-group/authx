@@ -19,7 +19,7 @@ export class InvalidScopeError extends Error {}
 
 function parseScopeSegment(
   segmentString: string,
-  allowTemplateSegments = false
+  allowTemplateSegments = false,
 ): Segment {
   if (segmentString === "**") {
     return AnyMultiple;
@@ -56,7 +56,7 @@ function parseScope(scopeString: string, allowTemplateSegments = false): Scope {
   const domainStrings = scopeString.split(":");
   if (domainStrings.length !== 3) {
     throw new InvalidScopeError(
-      "The scope does not contain exactly 3 domains."
+      "The scope does not contain exactly 3 domains.",
     );
   }
 
@@ -78,7 +78,7 @@ export class InvalidParameterizedScopeError extends Error {}
 
 function parseParameterizedScope(
   scopeString: string,
-  allowTemplateSegments: boolean
+  allowTemplateSegments: boolean,
 ): ParameterizedScope {
   const names: Set<string> = new Set();
   const positions: Map<number, Map<number, string>> = new Map();
@@ -87,7 +87,7 @@ function parseParameterizedScope(
   const domainStrings = scopeString.split(":");
   if (domainStrings.length !== 3) {
     throw new InvalidParameterizedScopeError(
-      "The parameterized scope does not contain exactly 3 domains."
+      "The parameterized scope does not contain exactly 3 domains.",
     );
   }
 
@@ -112,7 +112,7 @@ function parseParameterizedScope(
         // Ensure uniqueness of parameter name.
         if (names.has(name)) {
           throw new InvalidParameterizedScopeError(
-            `A parameter name of "${name}" is used multiple times.`
+            `A parameter name of "${name}" is used multiple times.`,
           );
         } else {
           names.add(name);
@@ -138,7 +138,7 @@ function parseParameterizedScope(
           domainIndexOfFirstAnyMultiple < domainIndexOfMostRecentParameter
         ) {
           throw new InvalidParameterizedScopeError(
-            "A parameter has `**` on both sides."
+            "A parameter has `**` on both sides.",
           );
         }
 
@@ -162,7 +162,7 @@ function parseParameterizedScope(
       }
 
       throw new InvalidParameterizedScopeError(
-        "The parameterized scope contains an invalid segment."
+        "The parameterized scope contains an invalid segment.",
       );
     }
   }
@@ -174,13 +174,13 @@ function parseParameterizedScope(
 }
 
 export function parseParameterizedScopeLiteral(
-  scopeString: string
+  scopeString: string,
 ): ParameterizedScope {
   return parseParameterizedScope(scopeString, false);
 }
 
 export function parseParameterizedScopeTemplate(
-  scopeString: string
+  scopeString: string,
 ): ParameterizedScope {
   return parseParameterizedScope(scopeString, true);
 }
@@ -230,15 +230,15 @@ function isValidInjectionSegment(segmentString: string): boolean {
 
 export function inject(
   scope: string,
-  values: { [key: string]: null | string }
+  values: { [key: string]: null | string },
 ): null | string;
 export function inject(
   collection: string[],
-  values: { [key: string]: null | string }
+  values: { [key: string]: null | string },
 ): string[];
 export function inject(
   scopeString: string | string[],
-  values: { [key: string]: null | string }
+  values: { [key: string]: null | string },
 ): null | string | string[] {
   if (Array.isArray(scopeString)) {
     return scopeString
@@ -258,7 +258,7 @@ export function inject(
         .map((segmentString) => {
           if (!isValidInjectionSegment(segmentString)) {
             throw new InvalidScopeError(
-              "A scope in templateOrCollection is invalid."
+              "A scope in templateOrCollection is invalid.",
             );
           }
 
@@ -283,7 +283,7 @@ export function inject(
             if (!isValidInjectionSegment(value)) {
               throw new InvalidValueError(
                 `The value of an injected template variable is an invalid scope segment.`,
-                name
+                name,
               );
             }
 
@@ -293,10 +293,10 @@ export function inject(
           // If no value was set, we will throw an error.
           throw new MissingValueError(
             `No value was available for template variable named "${name}".`,
-            name
+            name,
           );
         })
-        .join(".")
+        .join("."),
     )
     .join(":");
 }

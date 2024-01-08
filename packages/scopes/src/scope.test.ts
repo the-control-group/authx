@@ -24,8 +24,8 @@ import { parseScopeLiteral } from "./parse.js";
   t(`isEqual ${a} ${b} => ${result}`, (t) =>
     t.deepEqual(
       isEqual(a.map(parseScopeLiteral), b.map(parseScopeLiteral)),
-      result
-    )
+      result,
+    ),
   );
 });
 
@@ -52,7 +52,7 @@ import { parseScopeLiteral } from "./parse.js";
   { scope: "**.**.**:resource:action", result: "*.*.**:resource:action" },
 ].forEach(({ scope, result }) => {
   t(`normalize template ${scope} => ${result}`, (t) =>
-    t.is(print(normalize(parseScopeLiteral(scope))), result)
+    t.is(print(normalize(parseScopeLiteral(scope))), result),
   );
 });
 
@@ -208,10 +208,10 @@ import { parseScopeLiteral } from "./parse.js";
   t(`getDifference ${a} ${b} => ${result}`, (t) =>
     t.deepEqual(
       getDifference(a.map(parseScopeLiteral), b.map(parseScopeLiteral)).map(
-        print
+        print,
       ),
-      result
-    )
+      result,
+    ),
   );
 });
 
@@ -359,7 +359,10 @@ import { parseScopeLiteral } from "./parse.js";
   { a: ["a:b:c", "x:y:z"], b: ["a:b:c", "x:y:z"], result: true },
 ].forEach(({ a, b, result }) => {
   t(`isSuperset ${a} ${b} => ${result}`, (t) =>
-    t.is(isSuperset(a.map(parseScopeLiteral), b.map(parseScopeLiteral)), result)
+    t.is(
+      isSuperset(a.map(parseScopeLiteral), b.map(parseScopeLiteral)),
+      result,
+    ),
   );
 });
 
@@ -508,8 +511,8 @@ import { parseScopeLiteral } from "./parse.js";
   t(`hasIntersection ${a} ${b} => ${result}`, (t) =>
     t.is(
       hasIntersection(a.map(parseScopeLiteral), b.map(parseScopeLiteral)),
-      result
-    )
+      result,
+    ),
   );
 });
 
@@ -545,7 +548,7 @@ import { parseScopeLiteral } from "./parse.js";
       getIntersection(a.map(parseScopeLiteral), b.map(parseScopeLiteral))
         .map(print)
         .sort(),
-      result
+      result,
     );
   });
 });
@@ -584,7 +587,7 @@ import { parseScopeLiteral } from "./parse.js";
   t(`simplify - (${scopes.join(") • (")}) => ${result}`, (t) => {
     t.deepEqual(
       simplify(scopes.map(parseScopeLiteral)).map(print).sort(),
-      result.sort()
+      result.sort(),
     );
   });
 });

@@ -50,16 +50,16 @@ export const GraphQLUser: GraphQLObjectType<User, Context> =
         async resolve(
           user,
           args: ConnectionArguments,
-          { realm, authorization: a, executor }: Context
+          { realm, authorization: a, executor }: Context,
         ) {
           return a
             ? connectionFromArray(
                 await filter(
                   await user.authorizations(executor),
                   (authorization) =>
-                    authorization.isAccessibleBy(realm, a, executor)
+                    authorization.isAccessibleBy(realm, a, executor),
                 ),
-                args
+                args,
               )
             : null;
         },
@@ -74,14 +74,14 @@ export const GraphQLUser: GraphQLObjectType<User, Context> =
         async resolve(
           user,
           args: ConnectionArguments,
-          { realm, authorization: a, executor }: Context
+          { realm, authorization: a, executor }: Context,
         ) {
           return a
             ? connectionFromArray(
                 await filter(await user.credentials(executor), (credential) =>
-                  credential.isAccessibleBy(realm, a, executor)
+                  credential.isAccessibleBy(realm, a, executor),
                 ),
-                args
+                args,
               )
             : null;
         },
@@ -96,14 +96,14 @@ export const GraphQLUser: GraphQLObjectType<User, Context> =
         async resolve(
           user,
           args,
-          { realm, authorization: a, executor }: Context
+          { realm, authorization: a, executor }: Context,
         ) {
           return a
             ? connectionFromArray(
                 await filter(await user.grants(executor), (grant) =>
-                  grant.isAccessibleBy(realm, a, executor)
+                  grant.isAccessibleBy(realm, a, executor),
                 ),
-                args
+                args,
               )
             : null;
         },
@@ -120,7 +120,7 @@ export const GraphQLUser: GraphQLObjectType<User, Context> =
         resolve: async function resolve(
           user: User,
           args: { clientId: string },
-          { realm, authorization: a, executor }: Context
+          { realm, authorization: a, executor }: Context,
         ): Promise<null | Grant> {
           if (!a) return null;
           const grant = await user.grant(executor, args.clientId);
@@ -142,7 +142,7 @@ export const GraphQLUser: GraphQLObjectType<User, Context> =
         async resolve(
           user,
           args,
-          { realm, authorization: a, executor }: Context
+          { realm, authorization: a, executor }: Context,
         ) {
           return a
             ? connectionFromArray(
@@ -154,9 +154,9 @@ export const GraphQLUser: GraphQLObjectType<User, Context> =
                       basic: "r",
                       scopes: "",
                       users: "r",
-                    }))
+                    })),
                 ),
-                args
+                args,
               )
             : null;
         },
@@ -166,7 +166,7 @@ export const GraphQLUser: GraphQLObjectType<User, Context> =
         async resolve(
           user,
           args,
-          { realm, authorization: a, executor }: Context
+          { realm, authorization: a, executor }: Context,
         ): Promise<null | string[]> {
           if (!a) return null;
 

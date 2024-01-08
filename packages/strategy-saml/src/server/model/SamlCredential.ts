@@ -7,7 +7,7 @@ export interface SamlCredentialDetails {}
 
 export class SamlCredential extends Credential<SamlCredentialDetails> {
   async authority(
-    tx: Pool | ClientBase | DataLoaderExecutor
+    tx: Pool | ClientBase | DataLoaderExecutor,
   ): Promise<SamlAuthority> {
     return tx instanceof DataLoaderExecutor
       ? (SamlAuthority.read(tx, this.authorityId) as Promise<SamlAuthority>)

@@ -28,7 +28,7 @@ export const GraphQLScopeTemplate = new GraphQLScalarType({
   },
   parseLiteral(
     valueNode: ValueNode,
-    variables?: null | { [key: string]: any }
+    variables?: null | { [key: string]: any },
   ) {
     const string = GraphQLString.parseLiteral(valueNode, variables);
     if (!isValidScopeTemplate(string)) {

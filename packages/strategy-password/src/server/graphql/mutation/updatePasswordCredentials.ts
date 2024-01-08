@@ -33,8 +33,8 @@ export const updatePasswordCredentials: GraphQLFieldConfig<
     credentials: {
       type: new GraphQLNonNull(
         new GraphQLList(
-          new GraphQLNonNull(GraphQLUpdatePasswordCredentialInput)
-        )
+          new GraphQLNonNull(GraphQLUpdatePasswordCredentialInput),
+        ),
       ),
     },
   },
@@ -47,13 +47,13 @@ export const updatePasswordCredentials: GraphQLFieldConfig<
 
     if (!a) {
       throw new ForbiddenError(
-        "You must be authenticated to update an credential."
+        "You must be authenticated to update an credential.",
       );
     }
 
     if (!(pool instanceof pg.Pool)) {
       throw new Error(
-        "INVARIANT: The executor connection is expected to be an instance of Pool."
+        "INVARIANT: The executor connection is expected to be an instance of Pool.",
       );
     }
 
@@ -68,7 +68,7 @@ export const updatePasswordCredentials: GraphQLFieldConfig<
         // Make sure this transaction is used for queries made by the executor.
         const executor = new DataLoaderExecutor<Pool | PoolClient>(
           tx,
-          strategies
+          strategies,
         );
 
         await tx.query("BEGIN DEFERRABLE");
@@ -79,7 +79,7 @@ export const updatePasswordCredentials: GraphQLFieldConfig<
 
         if (!(before instanceof PasswordCredential)) {
           throw new NotFoundError(
-            "The authority uses a strategy other than password."
+            "The authority uses a strategy other than password.",
           );
         }
 
@@ -90,7 +90,7 @@ export const updatePasswordCredentials: GraphQLFieldConfig<
           }))
         ) {
           throw new ForbiddenError(
-            "You do not have permission to update this credential."
+            "You do not have permission to update this credential.",
           );
         }
 
@@ -102,7 +102,7 @@ export const updatePasswordCredentials: GraphQLFieldConfig<
           }))
         ) {
           throw new ForbiddenError(
-            "You do not have permission to update this credential's details."
+            "You do not have permission to update this credential's details.",
           );
         }
 
@@ -120,9 +120,7 @@ export const updatePasswordCredentials: GraphQLFieldConfig<
                 typeof input.password === "string"
                   ? await hash(
                       input.password,
-                      (
-                        await before.authority(executor)
-                      ).details.rounds
+                      (await before.authority(executor)).details.rounds,
                     )
                   : before.details.hash,
             },
@@ -131,7 +129,7 @@ export const updatePasswordCredentials: GraphQLFieldConfig<
             recordId: v4(),
             createdByAuthorizationId: a.id,
             createdAt: new Date(),
-          }
+          },
         );
 
         await tx.query("COMMIT");

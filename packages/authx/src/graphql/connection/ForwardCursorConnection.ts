@@ -34,7 +34,7 @@ export class ForwardCursorConnection<T extends Node> implements Connection<T> {
       if (elements.length > 0) {
         this.pageInfo.startCursor = CursorConnection.toCursor(elements[0].id);
         this.pageInfo.endCursor = CursorConnection.toCursor(
-          elements[elements.length - 1].id
+          elements[elements.length - 1].id,
         );
       }
     }

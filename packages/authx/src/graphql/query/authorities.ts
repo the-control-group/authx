@@ -32,7 +32,7 @@ export const authorities: GraphQLFieldConfig<
 
     const rules = CursorRule.addToRuleListIfNeeded(
       [new NoReplacementRecord()],
-      args
+      args,
     );
 
     if (!args.includeDisabled) rules.push(new FieldRule("enabled", true));
@@ -43,7 +43,7 @@ export const authorities: GraphQLFieldConfig<
         SELECT entity_id AS id
         FROM authx.authority_record
         `,
-      rules
+      rules,
     );
 
     if (!ids.rows.length) {
@@ -62,9 +62,9 @@ export const authorities: GraphQLFieldConfig<
       args,
       await Authority.read(
         executor,
-        ids.rows.map(({ id }) => id)
+        ids.rows.map(({ id }) => id),
       ),
-      rules
+      rules,
     );
   },
 };

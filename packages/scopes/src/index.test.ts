@@ -16,18 +16,18 @@ t("getDifference (valid)", (t) => {
   t.deepEqual(
     getDifference(
       ["realm.b:resource:action", "realm.a:resource:action"],
-      ["realm.*:resource:action"]
+      ["realm.*:resource:action"],
     ),
-    ["realm.*:resource:action"]
+    ["realm.*:resource:action"],
   );
 });
 t("getDifference (template)", (t) => {
   t.deepEqual(
     getDifference(
       ["realm.b:{resource}:action", "realm.a:{resource}:action"],
-      ["realm.*:{resource}:action"]
+      ["realm.*:{resource}:action"],
     ),
-    ["realm.*:{resource}:action"]
+    ["realm.*:{resource}:action"],
   );
 });
 t("getDifference (invalid a)", (t) => {
@@ -35,9 +35,9 @@ t("getDifference (invalid a)", (t) => {
     () =>
       getDifference(
         ["realm.b:resource:act:ion", "realm.a:resource:action"],
-        ["realm.*:resource:action"]
+        ["realm.*:resource:action"],
       ),
-    { instanceOf: InvalidScopeError }
+    { instanceOf: InvalidScopeError },
   );
 });
 t("getDifference (invalid b)", (t) => {
@@ -45,9 +45,9 @@ t("getDifference (invalid b)", (t) => {
     () =>
       getDifference(
         ["realm.b:resource:action", "realm.a:resource:action"],
-        ["realm.*:resource:act:ion"]
+        ["realm.*:resource:act:ion"],
       ),
-    { instanceOf: InvalidScopeError }
+    { instanceOf: InvalidScopeError },
   );
 });
 
@@ -55,9 +55,9 @@ t("getIntersection (valid)", (t) => {
   t.deepEqual(
     getIntersection(
       ["realm.b:resource:action", "realm.a:resource:action"],
-      "realm.*:resource:action"
+      "realm.*:resource:action",
     ),
-    ["realm.a:resource:action", "realm.b:resource:action"]
+    ["realm.a:resource:action", "realm.b:resource:action"],
   );
 });
 
@@ -65,9 +65,9 @@ t("getIntersection (template)", (t) => {
   t.deepEqual(
     getIntersection(
       ["realm.b:{resource}:action", "realm.a:{resource}:action"],
-      "realm.*:{resource}:action"
+      "realm.*:{resource}:action",
     ),
-    ["realm.a:{resource}:action", "realm.b:{resource}:action"]
+    ["realm.a:{resource}:action", "realm.b:{resource}:action"],
   );
 });
 t("getIntersection (invalid a)", (t) => {
@@ -75,9 +75,9 @@ t("getIntersection (invalid a)", (t) => {
     () =>
       getIntersection(
         ["realm.b:resource:act:ion", "realm.a:resource:action"],
-        "realm.*:resource:action"
+        "realm.*:resource:action",
       ),
-    { instanceOf: InvalidScopeError }
+    { instanceOf: InvalidScopeError },
   );
 });
 t("getIntersection (invalid b)", (t) => {
@@ -85,9 +85,9 @@ t("getIntersection (invalid b)", (t) => {
     () =>
       getIntersection(
         ["realm.b:resource:action", "realm.a:resource:act:ion"],
-        "realm.*:resource:action"
+        "realm.*:resource:action",
       ),
-    { instanceOf: InvalidScopeError }
+    { instanceOf: InvalidScopeError },
   );
 });
 
@@ -95,18 +95,18 @@ t("hasIntersection (valid)", (t) => {
   t.deepEqual(
     hasIntersection(
       ["realm.b:resource:action", "realm.a:resource:action"],
-      "realm.*:resource:action"
+      "realm.*:resource:action",
     ),
-    true
+    true,
   );
 });
 t("hasIntersection (template)", (t) => {
   t.deepEqual(
     hasIntersection(
       ["realm.b:{resource}:action", "realm.a:{resource}:action"],
-      "realm.*:{resource}:action"
+      "realm.*:{resource}:action",
     ),
-    true
+    true,
   );
 });
 t("hasIntersection (invalid a)", (t) => {
@@ -114,9 +114,9 @@ t("hasIntersection (invalid a)", (t) => {
     () =>
       hasIntersection(
         ["realm.b:resource:act:ion", "realm.a:resource:action"],
-        "realm.*:resource:action"
+        "realm.*:resource:action",
       ),
-    { instanceOf: InvalidScopeError }
+    { instanceOf: InvalidScopeError },
   );
 });
 t("hasIntersection (invalid b)", (t) => {
@@ -124,9 +124,9 @@ t("hasIntersection (invalid b)", (t) => {
     () =>
       hasIntersection(
         ["realm.b:resource:action", "realm.a:resource:act:ion"],
-        "realm.*:resource:action"
+        "realm.*:resource:action",
       ),
-    { instanceOf: InvalidScopeError }
+    { instanceOf: InvalidScopeError },
   );
 });
 
@@ -137,7 +137,7 @@ t("isSuperset (valid string, valid string) false", (t) => {
 t("isSuperset (valid string, valid string) true", (t) => {
   t.deepEqual(
     isEqual("realm.**:resource:action", "realm.**:resource:action"),
-    true
+    true,
   );
 });
 
@@ -150,25 +150,25 @@ t("isSuperset (valid string, valid string) true", (t) => {
 t("isSuperset (valid)", (t) => {
   t.deepEqual(
     isSuperset("realm.**:resource:action", "realm.a:resource:action"),
-    true
+    true,
   );
 });
 t("isSuperset (template)", (t) => {
   t.deepEqual(
     isSuperset("realm.**:{resource}:action", "realm.a:{resource}:action"),
-    true
+    true,
   );
 });
 t("isSuperset (invalid a)", (t) => {
   t.throws(
     () => isSuperset("realm.**:resource:act:ion", "realm.a:resource:action"),
-    { instanceOf: InvalidScopeError }
+    { instanceOf: InvalidScopeError },
   );
 });
 t("isSuperset (invalid b)", (t) => {
   t.throws(
     () => isSuperset("realm.**:resource:action", "realm.a:resource:act:ion"),
-    { instanceOf: InvalidScopeError }
+    { instanceOf: InvalidScopeError },
   );
 });
 
@@ -192,7 +192,7 @@ t("isSuperset (invalid b)", (t) => {
   ] as { args: [string]; result: boolean }[]
 ).forEach(({ args, result }) => {
   t(`isValidScopeLiteral ${args[0]} => ${result}`, (t) =>
-    t.is(isValidScopeLiteral(...args), result)
+    t.is(isValidScopeLiteral(...args), result),
   );
 });
 
@@ -221,18 +221,18 @@ t("normalize (invalid)", (t) => {
 t("simplify (valid)", (t) => {
   t.deepEqual(
     simplify(["realm.b:resource:action", "realm.*:resource:action"]),
-    ["realm.*:resource:action"]
+    ["realm.*:resource:action"],
   );
 });
 t("simplify (template)", (t) => {
   t.deepEqual(
     simplify(["realm.b:{resource}:action", "realm.*:{resource}:action"]),
-    ["realm.*:{resource}:action"]
+    ["realm.*:{resource}:action"],
   );
 });
 t("simplify (invalid)", (t) => {
   t.throws(
     () => simplify(["realm.a:resource:action", "realm.b:resource:act:ion"]),
-    { instanceOf: InvalidScopeError }
+    { instanceOf: InvalidScopeError },
   );
 });

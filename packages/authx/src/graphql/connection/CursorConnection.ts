@@ -29,14 +29,14 @@ export class CursorConnection {
   static connectionFromRules<T extends Node>(
     args: ConnectionArguments,
     elements: T[],
-    rules: Rule[]
+    rules: Rule[],
   ): Connection<T> {
     const forwardCursorRule = rules.find(
-      (it) => it instanceof ForwardCursorRule
+      (it) => it instanceof ForwardCursorRule,
     ) as ForwardCursorRule | undefined;
 
     const reverseCursorRule = rules.find(
-      (it) => it instanceof ReverseCursorRule
+      (it) => it instanceof ReverseCursorRule,
     ) as ReverseCursorRule | undefined;
 
     if (forwardCursorRule) {

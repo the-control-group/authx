@@ -43,13 +43,13 @@ export function assertConfig(config: Config): void {
 
   if (typeof config.codeValidityDuration !== "number") {
     throw new Error(
-      "The config option `codeValidityDuration` must be a number."
+      "The config option `codeValidityDuration` must be a number.",
     );
   }
 
   if (typeof config.jwtValidityDuration !== "number") {
     throw new Error(
-      "The config option `jwtValidityDuration` must be a number."
+      "The config option `jwtValidityDuration` must be a number.",
     );
   }
 
@@ -63,13 +63,13 @@ export function assertConfig(config: Config): void {
 
   if (config.publicKeys.some((key): boolean => typeof key !== "string")) {
     throw new Error(
-      "The config option `publicKeys` must only include strings."
+      "The config option `publicKeys` must only include strings.",
     );
   }
 
   if (!config.publicKeys.length) {
     throw new Error(
-      "The config option `publicKeys` must include at least one key."
+      "The config option `publicKeys` must include at least one key.",
     );
   }
 
@@ -82,7 +82,7 @@ export function assertConfig(config: Config): void {
     !Array.isArray(config.strategies)
   ) {
     throw new Error(
-      "The config option `strategies` must either be an instance of `StrategyCollection` or an array of `Strategy` instances."
+      "The config option `strategies` must either be an instance of `StrategyCollection` or an array of `Strategy` instances.",
     );
   }
 
@@ -95,7 +95,7 @@ export function assertConfig(config: Config): void {
     typeof config.processSchema !== "function"
   ) {
     throw new Error(
-      "The config option `processSchema` must be a function if defined."
+      "The config option `processSchema` must be a function if defined.",
     );
   }
 }

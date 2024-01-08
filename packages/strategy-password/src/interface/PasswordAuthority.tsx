@@ -49,7 +49,7 @@ export function PasswordAuthority({
   // Default to using an email address
   if (!identityAuthorityId) {
     const firstEmailAuthority = authorities.find(
-      (a) => a.__typename === "EmailAuthority"
+      (a) => a.__typename === "EmailAuthority",
     );
     if (firstEmailAuthority) {
       setIdentityAuthorityId(firstEmailAuthority.id);
@@ -192,8 +192,8 @@ export function PasswordAuthority({
                 (identityAuthority.__typename === "EmailAuthority"
                   ? "email"
                   : identityAuthority.__typename === "PhoneAuthority"
-                  ? "tel"
-                  : null)) ||
+                    ? "tel"
+                    : null)) ||
               "text"
             }
             value={identityAuthorityUserId}

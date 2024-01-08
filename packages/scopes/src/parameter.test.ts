@@ -13,7 +13,7 @@ test("extract(template, scopes) - single segment, concrete value", (t) => {
   t.deepEqual(
     extract(
       parseParameterizedScopeLiteral("foo:(bar):baz"),
-      ["foo:aaa:baz"].map(parseScopeLiteral)
+      ["foo:aaa:baz"].map(parseScopeLiteral),
     ),
     [
       {
@@ -23,7 +23,7 @@ test("extract(template, scopes) - single segment, concrete value", (t) => {
           bar: "aaa",
         },
       },
-    ]
+    ],
   );
 });
 
@@ -31,7 +31,7 @@ test("extract(template, scopes) - single segment, any single value", (t) => {
   t.deepEqual(
     extract(
       parseParameterizedScopeLiteral("foo:(bar):baz"),
-      ["foo:*:baz"].map(parseScopeLiteral)
+      ["foo:*:baz"].map(parseScopeLiteral),
     ),
     [
       {
@@ -41,7 +41,7 @@ test("extract(template, scopes) - single segment, any single value", (t) => {
           bar: AnySingle,
         },
       },
-    ]
+    ],
   );
 });
 
@@ -49,7 +49,7 @@ test("extract(template, scopes) - single segment, any multiple value", (t) => {
   t.deepEqual(
     extract(
       parseParameterizedScopeLiteral("foo:(bar):baz"),
-      ["foo:**:baz"].map(parseScopeLiteral)
+      ["foo:**:baz"].map(parseScopeLiteral),
     ),
     [
       {
@@ -59,7 +59,7 @@ test("extract(template, scopes) - single segment, any multiple value", (t) => {
           bar: AnySingle,
         },
       },
-    ]
+    ],
   );
 });
 
@@ -67,7 +67,7 @@ test("extract(template, scopes) - multiple segments, any multiple value", (t) =>
   t.deepEqual(
     extract(
       parseParameterizedScopeLiteral("foo:(a).b.(c):baz"),
-      ["foo:**:baz"].map(parseScopeLiteral)
+      ["foo:**:baz"].map(parseScopeLiteral),
     ),
     [
       {
@@ -78,7 +78,7 @@ test("extract(template, scopes) - multiple segments, any multiple value", (t) =>
           c: AnySingle,
         },
       },
-    ]
+    ],
   );
 });
 
@@ -86,7 +86,7 @@ test("extract(template, scopes) - multiple segments with prefix any multiple, an
   t.deepEqual(
     extract(
       parseParameterizedScopeLiteral("foo:**.(a).b.(c):baz"),
-      ["foo:**:baz"].map(parseScopeLiteral)
+      ["foo:**:baz"].map(parseScopeLiteral),
     ),
     [
       {
@@ -97,7 +97,7 @@ test("extract(template, scopes) - multiple segments with prefix any multiple, an
           c: AnySingle,
         },
       },
-    ]
+    ],
   );
 });
 
@@ -105,7 +105,7 @@ test("extract(template, scopes) - multiple segments with suffix any multiple, an
   t.deepEqual(
     extract(
       parseParameterizedScopeLiteral("foo:(a).b.(c).**:baz"),
-      ["foo:**:baz"].map(parseScopeLiteral)
+      ["foo:**:baz"].map(parseScopeLiteral),
     ),
     [
       {
@@ -116,7 +116,7 @@ test("extract(template, scopes) - multiple segments with suffix any multiple, an
           c: AnySingle,
         },
       },
-    ]
+    ],
   );
 });
 
@@ -124,7 +124,7 @@ test("extract(template, scopes) - multiple segments with infix any multiple, any
   t.deepEqual(
     extract(
       parseParameterizedScopeLiteral("foo:(a).**.(c):baz"),
-      ["foo:**:baz"].map(parseScopeLiteral)
+      ["foo:**:baz"].map(parseScopeLiteral),
     ),
     [
       {
@@ -135,7 +135,7 @@ test("extract(template, scopes) - multiple segments with infix any multiple, any
           c: AnySingle,
         },
       },
-    ]
+    ],
   );
 });
 
@@ -143,7 +143,7 @@ test("extract(template, scopes) - multiple segments with infix any multiple, any
   t.deepEqual(
     extract(
       parseParameterizedScopeLiteral("foo:(a).**.(c):baz"),
-      ["foo:*.*.*:baz"].map(parseScopeLiteral)
+      ["foo:*.*.*:baz"].map(parseScopeLiteral),
     ),
     [
       {
@@ -154,7 +154,7 @@ test("extract(template, scopes) - multiple segments with infix any multiple, any
           c: AnySingle,
         },
       },
-    ]
+    ],
   );
 });
 
@@ -162,9 +162,9 @@ test("extract(template, scopes) - ", (t) => {
   t.deepEqual(
     extract(
       parseParameterizedScopeLiteral("foo:(a).b.*:baz"),
-      ["foo:a.b.c:baz"].map(parseScopeLiteral)
+      ["foo:a.b.c:baz"].map(parseScopeLiteral),
     ),
-    []
+    [],
   );
 });
 
@@ -173,8 +173,8 @@ test("extract(template, scopes) - multiple segments with surrounding any multipl
     () =>
       extract(
         parseParameterizedScopeLiteral("foo:**.(a).**:baz"),
-        ["foo:*.*.*:baz"].map(parseScopeLiteral)
+        ["foo:*.*.*:baz"].map(parseScopeLiteral),
       ),
-    { instanceOf: InvalidParameterizedScopeError }
+    { instanceOf: InvalidParameterizedScopeError },
   );
 });

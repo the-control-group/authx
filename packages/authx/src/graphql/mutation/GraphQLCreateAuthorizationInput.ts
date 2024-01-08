@@ -28,7 +28,7 @@ export const GraphQLCreateAuthorizationInput = new GraphQLInputObjectType({
     },
     scopes: {
       type: new GraphQLNonNull(
-        new GraphQLList(new GraphQLNonNull(GraphQLScope))
+        new GraphQLList(new GraphQLNonNull(GraphQLScope)),
       ),
     },
     administration: {

@@ -29,7 +29,7 @@ export const GraphQLCreateRoleInput = new GraphQLInputObjectType({
     },
     scopes: {
       type: new GraphQLNonNull(
-        new GraphQLList(new GraphQLNonNull(GraphQLScopeTemplate))
+        new GraphQLList(new GraphQLNonNull(GraphQLScopeTemplate)),
       ),
     },
     userIds: {

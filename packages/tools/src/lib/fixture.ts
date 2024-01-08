@@ -15,31 +15,31 @@ export async function fixture(tx: ClientBase | Client): Promise<void> {
   await Promise.all([
     tx.query(
       "INSERT INTO authx.grant (id) SELECT id FROM UNNEST($1::uuid[]) AS id",
-      [grant.map(({ id }) => id)]
+      [grant.map(({ id }) => id)],
     ),
     tx.query(
       "INSERT INTO authx.authority (id) SELECT id FROM UNNEST($1::uuid[]) AS id",
-      [authority.map(({ id }) => id)]
+      [authority.map(({ id }) => id)],
     ),
     tx.query(
       "INSERT INTO authx.client (id) SELECT id FROM UNNEST($1::uuid[]) AS id",
-      [client.map(({ id }) => id)]
+      [client.map(({ id }) => id)],
     ),
     tx.query(
       "INSERT INTO authx.credential (id) SELECT id FROM UNNEST($1::uuid[]) AS id",
-      [credential.map(({ id }) => id)]
+      [credential.map(({ id }) => id)],
     ),
     tx.query(
       "INSERT INTO authx.role (id) SELECT id FROM UNNEST($1::uuid[]) AS id",
-      [role.map(({ id }) => id)]
+      [role.map(({ id }) => id)],
     ),
     tx.query(
       "INSERT INTO authx.authorization (id) SELECT id FROM UNNEST($1::uuid[]) AS id",
-      [authorization.map(({ id }) => id)]
+      [authorization.map(({ id }) => id)],
     ),
     tx.query(
       "INSERT INTO authx.user (id) SELECT id FROM UNNEST($1::uuid[]) AS id",
-      [user.map(({ id }) => id)]
+      [user.map(({ id }) => id)],
     ),
   ]);
 

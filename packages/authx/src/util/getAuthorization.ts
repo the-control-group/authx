@@ -1,5 +1,6 @@
 import { ClientBase } from "pg";
-import jasonwebtoken from "jsonwebtoken"; const { verify, TokenExpiredError } = jasonwebtoken;
+import jasonwebtoken from "jsonwebtoken";
+const { verify, TokenExpiredError } = jasonwebtoken;
 import { Authorization } from "../model/index.js";
 import { NotFoundError, AuthenticationError } from "../errors.js";
 
@@ -7,7 +8,7 @@ const __DEV__ = process.env.NODE_ENV !== "production";
 
 export async function fromBasic(
   tx: ClientBase,
-  basic: string
+  basic: string,
 ): Promise<Authorization> {
   const [id, secret] = Buffer.from(basic, "base64").toString().split(":", 2);
   let authorization;
@@ -19,7 +20,7 @@ export async function fromBasic(
     throw new AuthenticationError(
       __DEV__
         ? "Unable to find the authorization specified in the HTTP authorization header."
-        : undefined
+        : undefined,
     );
   }
 
@@ -27,14 +28,14 @@ export async function fromBasic(
     throw new AuthenticationError(
       __DEV__
         ? "The authorization specified in HTTP authorization header is disabled."
-        : undefined
+        : undefined,
     );
 
   if (authorization.secret !== secret)
     throw new AuthenticationError(
       __DEV__
         ? "The secret specified in HTTP authorization header was incorrect."
-        : undefined
+        : undefined,
     );
 
   const grant = await authorization.grant(tx);
@@ -42,14 +43,14 @@ export async function fromBasic(
     throw new AuthenticationError(
       __DEV__
         ? "The grant of the authorization specified in HTTP authorization header is disabled."
-        : undefined
+        : undefined,
     );
 
   if (!(await authorization.user(tx)).enabled)
     throw new AuthenticationError(
       __DEV__
         ? "The user of the authorization specified in HTTP authorization header is disabled."
-        : undefined
+        : undefined,
     );
 
   return authorization;
@@ -58,7 +59,7 @@ export async function fromBasic(
 export async function fromBearer(
   tx: ClientBase,
   keys: string[],
-  bearer: string
+  bearer: string,
 ): Promise<Authorization> {
   let payload;
   let authorization;
@@ -91,7 +92,7 @@ export async function fromBearer(
     throw new AuthenticationError(
       __DEV__
         ? "The token specified in the HTTP authorization header was invalid."
-        : undefined
+        : undefined,
     );
 
   try {
@@ -101,7 +102,7 @@ export async function fromBearer(
     throw new AuthenticationError(
       __DEV__
         ? "Unable to find the authorization specified in the HTTP authorization header."
-        : undefined
+        : undefined,
     );
   }
 
@@ -109,7 +110,7 @@ export async function fromBearer(
     throw new AuthenticationError(
       __DEV__
         ? "The authorization specified in HTTP authorization header is disabled."
-        : undefined
+        : undefined,
     );
 
   const grant = await authorization.grant(tx);
@@ -117,21 +118,21 @@ export async function fromBearer(
     throw new AuthenticationError(
       __DEV__
         ? "The grant of the authorization specified in HTTP authorization header is disabled."
-        : undefined
+        : undefined,
     );
 
   if (authorization.userId !== payload.sub)
     throw new AuthenticationError(
       __DEV__
         ? "INVARIANT: The authorization belongs to a different user than the token."
-        : undefined
+        : undefined,
     );
 
   if (!(await authorization.user(tx)).enabled)
     throw new AuthenticationError(
       __DEV__
         ? "The user of the authorization specified in HTTP authorization header is disabled."
-        : undefined
+        : undefined,
     );
 
   return authorization;

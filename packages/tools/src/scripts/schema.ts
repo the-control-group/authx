@@ -1,4 +1,4 @@
-import pg, { Pool } from "pg";
+import pg from "pg";
 import { schema } from "../lib/schema.js";
 
 export default async (): Promise<void> => {

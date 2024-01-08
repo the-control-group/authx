@@ -66,7 +66,7 @@ export function SamlAuthority({
 
     // Save the current URL for internal redirection.
     window.document.cookie = `strategy.saml.destination=${encodeURIComponent(
-      window.location.href
+      window.location.href,
     )}`;
 
     window.location.href = authority.authUrlWithParams;

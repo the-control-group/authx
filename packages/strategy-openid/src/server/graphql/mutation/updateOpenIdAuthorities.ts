@@ -41,7 +41,7 @@ export const updateOpenIdAuthorities: GraphQLFieldConfig<
   args: {
     authorities: {
       type: new GraphQLNonNull(
-        new GraphQLList(new GraphQLNonNull(GraphQLUpdateOpenIdAuthorityInput))
+        new GraphQLList(new GraphQLNonNull(GraphQLUpdateOpenIdAuthorityInput)),
       ),
     },
   },
@@ -54,13 +54,13 @@ export const updateOpenIdAuthorities: GraphQLFieldConfig<
 
     if (!a) {
       throw new ForbiddenError(
-        "You must be authenticated to update an authority."
+        "You must be authenticated to update an authority.",
       );
     }
 
     if (!(pool instanceof pg.Pool)) {
       throw new Error(
-        "INVARIANT: The executor connection is expected to be an instance of Pool."
+        "INVARIANT: The executor connection is expected to be an instance of Pool.",
       );
     }
 
@@ -76,7 +76,7 @@ export const updateOpenIdAuthorities: GraphQLFieldConfig<
         !validateIdFormat(input.emailAuthorityId)
       ) {
         throw new ValidationError(
-          "The provided `emailAuthorityId` is an invalid ID."
+          "The provided `emailAuthorityId` is an invalid ID.",
         );
       }
 
@@ -85,7 +85,7 @@ export const updateOpenIdAuthorities: GraphQLFieldConfig<
         // Make sure this transaction is used for queries made by the executor.
         const executor = new DataLoaderExecutor<Pool | PoolClient>(
           tx,
-          strategies
+          strategies,
         );
 
         await tx.query("BEGIN DEFERRABLE");
@@ -105,7 +105,7 @@ export const updateOpenIdAuthorities: GraphQLFieldConfig<
           }))
         ) {
           throw new ForbiddenError(
-            "You do not have permission to update this authority."
+            "You do not have permission to update this authority.",
           );
         }
 
@@ -118,7 +118,7 @@ export const updateOpenIdAuthorities: GraphQLFieldConfig<
           }))
         ) {
           throw new ForbiddenError(
-            "You do not have permission to update this authority's details."
+            "You do not have permission to update this authority's details.",
           );
         }
         const authority = await OpenIdAuthority.write(
@@ -152,7 +152,7 @@ export const updateOpenIdAuthorities: GraphQLFieldConfig<
                   ? input.clientSecret
                   : before.details.clientSecret,
               restrictsAccountsToHostedDomains: Array.isArray(
-                input.restrictsAccountsToHostedDomains
+                input.restrictsAccountsToHostedDomains,
               )
                 ? input.restrictsAccountsToHostedDomains
                 : before.details.restrictsAccountsToHostedDomains,
@@ -171,7 +171,7 @@ export const updateOpenIdAuthorities: GraphQLFieldConfig<
                   ? input.createsUnmatchedUsers
                   : before.details.createsUnmatchedUsers,
               assignsCreatedUsersToRoleIds: Array.isArray(
-                input.assignsCreatedUsersToRoleIds
+                input.assignsCreatedUsersToRoleIds,
               )
                 ? input.assignsCreatedUsersToRoleIds
                 : before.details.assignsCreatedUsersToRoleIds,
@@ -181,7 +181,7 @@ export const updateOpenIdAuthorities: GraphQLFieldConfig<
             recordId: v4(),
             createdByAuthorizationId: a.id,
             createdAt: new Date(),
-          }
+          },
         );
 
         await tx.query("COMMIT");

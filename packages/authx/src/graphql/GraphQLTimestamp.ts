@@ -37,7 +37,7 @@ function parseLiteral(
   ast:
     | { kind: typeof Kind.INT; value: number }
     | { kind: typeof Kind.STRING; value: string }
-    | any
+    | any,
 ): null | Date {
   if (ast.kind === Kind.INT || ast.kind === Kind.STRING) {
     return parseValue(ast.value);

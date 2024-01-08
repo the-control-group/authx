@@ -5,7 +5,7 @@ import { StrategyCollection } from "./StrategyCollection.js";
 import createHash from "object-hash";
 
 export class DataLoaderExecutor<
-  T extends ClientBase | Pool = ClientBase | Pool
+  T extends ClientBase | Pool = ClientBase | Pool,
 > {
   public connection: T;
   public readonly strategies: StrategyCollection;
@@ -17,14 +17,14 @@ export class DataLoaderExecutor<
 }
 
 export type ReadonlyDataLoaderExecutor<
-  T extends ClientBase | Pool = ClientBase | Pool
+  T extends ClientBase | Pool = ClientBase | Pool,
 > = DataLoaderExecutor<T> & {
   readonly connection: T;
 };
 
 export type Reader<M> = (
   executor: DataLoaderExecutor,
-  ids: readonly string[]
+  ids: readonly string[],
 ) => Promise<M[]>;
 
 export class DataLoaderCache<M extends { id: string }> {
@@ -44,7 +44,7 @@ export class DataLoaderCache<M extends { id: string }> {
 
     const read = this._read;
     loader = new DataLoader<string, M>(async function (
-      ids: readonly string[]
+      ids: readonly string[],
     ): Promise<(M | Error)[]> {
       // Get the results from the read in whatever order the database found
       // most efficient.
@@ -80,7 +80,7 @@ export class QueryCache<T extends QueryResultRow> {
   query(
     tx: Pool | ClientBase | DataLoaderExecutor,
     query: string | QueryConfig<unknown[]>,
-    parameters: unknown[]
+    parameters: unknown[],
   ): Promise<QueryResult<T>> {
     // Queries using a direct connection or connection pool bypass the cache.
     if (!(tx instanceof DataLoaderExecutor)) {

@@ -211,10 +211,10 @@ test.after(async () => {
   await Promise.all([
     bearerProxy.close(),
     basicProxy.close(),
-    new Promise(resolve => mockAuthX.server.close(resolve)),
-    new Promise(resolve => mockTarget.server.close(resolve)),
-  ])
-})
+    new Promise((resolve) => mockAuthX.server.close(resolve)),
+    new Promise((resolve) => mockTarget.server.close(resolve)),
+  ]);
+});
 
 test("readiness endpoint", async (t) => {
   const response = await fetch(`http://127.0.0.1:${bearerProxyPort}/_ready`);

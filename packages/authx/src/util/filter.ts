@@ -1,7 +1,7 @@
 const EMPTY: unique symbol = Symbol("empty");
 export async function filter<T>(
   iter: Iterable<T>,
-  callback: (item: T, index: number) => boolean | Promise<boolean>
+  callback: (item: T, index: number) => boolean | Promise<boolean>,
 ): Promise<T[]> {
   const array = [...iter];
 
@@ -11,7 +11,7 @@ export async function filter<T>(
   await Promise.all(
     array.map(async (item: T, index: number) => {
       if (await callback(item, index)) result[index] = item;
-    })
+    }),
   );
 
   return result.filter((r): r is T => r !== EMPTY);

@@ -60,7 +60,7 @@ export const authenticateOpenId: GraphQLFieldConfig<
     const pool = executor.connection;
     if (!(pool instanceof pg.Pool)) {
       throw new Error(
-        "INVARIANT: The executor connection is expected to be an instance of Pool."
+        "INVARIANT: The executor connection is expected to be an instance of Pool.",
       );
     }
 
@@ -69,7 +69,7 @@ export const authenticateOpenId: GraphQLFieldConfig<
       // Make sure this transaction is used for queries made by the executor.
       const executor = new DataLoaderExecutor<Pool | PoolClient>(
         tx,
-        strategies
+        strategies,
       );
 
       await tx.query("BEGIN DEFERRABLE");
@@ -79,7 +79,7 @@ export const authenticateOpenId: GraphQLFieldConfig<
 
       if (!(authority instanceof OpenIdAuthority)) {
         throw new AuthenticationError(
-          "The authority uses a strategy other than openid."
+          "The authority uses a strategy other than openid.",
         );
       }
 
@@ -91,7 +91,7 @@ export const authenticateOpenId: GraphQLFieldConfig<
       requestBody.append("code", args.code);
       requestBody.append(
         "redirect_uri",
-        `${base}?authorityId=${args.authorityId}`
+        `${base}?authorityId=${args.authorityId}`,
       );
 
       const response = await fetch(authority.details.tokenUrl, {
@@ -111,7 +111,7 @@ export const authenticateOpenId: GraphQLFieldConfig<
       if (!responseBody || !responseBody.id_token) {
         throw new Error(
           (responseBody && responseBody.error) ||
-            "Invalid response returned by authority."
+            "Invalid response returned by authority.",
         );
       }
 
@@ -163,11 +163,11 @@ export const authenticateOpenId: GraphQLFieldConfig<
         authority.details.restrictsAccountsToHostedDomains.length &&
         (!token.hd ||
           !authority.details.restrictsAccountsToHostedDomains.includes(
-            token.hd
+            token.hd,
           ))
       ) {
         throw new AuthenticationError(
-          `The hosted domain "${token.hd || ""}" is not allowed.`
+          `The hosted domain "${token.hd || ""}" is not allowed.`,
         );
       }
 
@@ -186,7 +186,7 @@ export const authenticateOpenId: GraphQLFieldConfig<
       ) {
         const emailAuthority = await EmailAuthority.read(
           executor,
-          authority.details.emailAuthorityId
+          authority.details.emailAuthorityId,
         );
 
         const emailCredential =
@@ -209,7 +209,7 @@ export const authenticateOpenId: GraphQLFieldConfig<
               recordId: v4(),
               createdByAuthorizationId: authorizationId,
               createdAt: new Date(),
-            }
+            },
           );
         }
       }
@@ -228,7 +228,7 @@ export const authenticateOpenId: GraphQLFieldConfig<
             recordId: v4(),
             createdByAuthorizationId: authorizationId,
             createdAt: new Date(),
-          }
+          },
         );
 
         credential = await OpenIdCredential.write(
@@ -245,7 +245,7 @@ export const authenticateOpenId: GraphQLFieldConfig<
             recordId: v4(),
             createdByAuthorizationId: authorizationId,
             createdAt: new Date(),
-          }
+          },
         );
 
         // Assign the new user to the configured roles.
@@ -255,8 +255,8 @@ export const authenticateOpenId: GraphQLFieldConfig<
         ) {
           const roles = await Promise.all(
             authority.details.assignsCreatedUsersToRoleIds.map((id) =>
-              Role.read(executor, id)
-            )
+              Role.read(executor, id),
+            ),
           );
 
           const roleResults = await Promise.allSettled(
@@ -271,9 +271,9 @@ export const authenticateOpenId: GraphQLFieldConfig<
                   recordId: v4(),
                   createdByAuthorizationId: authorizationId,
                   createdAt: new Date(),
-                }
-              )
-            )
+                },
+              ),
+            ),
           );
 
           for (const result of roleResults) {
@@ -321,12 +321,12 @@ export const authenticateOpenId: GraphQLFieldConfig<
               basic: "*",
               scopes: "*",
               secrets: "*",
-            }
-          )
+            },
+          ),
         )
       ) {
         throw new ForbiddenError(
-          "You do not have permission to create this authorization"
+          "You do not have permission to create this authorization",
         );
       }
 
@@ -346,7 +346,7 @@ export const authenticateOpenId: GraphQLFieldConfig<
           createdByAuthorizationId: authorizationId,
           createdByCredentialId: credential.id,
           createdAt: new Date(),
-        }
+        },
       );
 
       // Invoke the new authorization, since it will be used for the remainder

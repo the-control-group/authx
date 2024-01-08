@@ -101,9 +101,9 @@ Bac/x5qiUn5fh2xM+wIDAQAB
                 JSON.stringify(
                   Object.assign(
                     { level: "info", message: error.message },
-                    error
-                  )
-                )
+                    error,
+                  ),
+                ),
               );
             else
               console.error(
@@ -114,11 +114,11 @@ Bac/x5qiUn5fh2xM+wIDAQAB
                       message: error.message,
                       stack: error.stack,
                     },
-                    error
-                  )
-                )
+                    error,
+                  ),
+                ),
               );
-          }
+          },
     );
 
     // Start listening.

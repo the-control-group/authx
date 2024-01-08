@@ -26,7 +26,7 @@ export class IsAccessibleByRule extends Rule {
   constructor(
     private readonly realm: string,
     private readonly access: string[],
-    private readonly entityType: AccessibleEntityType
+    private readonly entityType: AccessibleEntityType,
   ) {
     super();
   }
@@ -151,7 +151,7 @@ export class IsAccessibleByRule extends Rule {
                   }
                 })
                 .join(" AND ") +
-              ")"
+              ")",
           );
 
           for (const key in fixedId) {

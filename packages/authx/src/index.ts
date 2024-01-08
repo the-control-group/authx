@@ -69,7 +69,7 @@ export class AuthX extends Router<any, { [x]: Context }> {
     // define the context middleware
     const contextMiddleware = async (
       ctx: KoaContext & { [x]: Context },
-      next: KoaNext
+      next: KoaNext,
     ): Promise<void> => {
       const tx = await this.pool.connect();
       try {
@@ -101,7 +101,7 @@ export class AuthX extends Router<any, { [x]: Context }> {
               id: v4(),
               format: "basic",
               createdAt: new Date(),
-            }
+            },
           );
         }
 
@@ -121,7 +121,7 @@ export class AuthX extends Router<any, { [x]: Context }> {
         // An authorization header exists, but did not match a known format.
         if (ctx.request.header.authorization && !authorization) {
           throw new Error(
-            "An authorization header must be of either HTTP Basic or Bearer format."
+            "An authorization header must be of either HTTP Basic or Bearer format.",
           );
         }
 
@@ -158,13 +158,18 @@ export class AuthX extends Router<any, { [x]: Context }> {
       async (ctx, next) => {
         if (!ctx.is("json"))
           throw new UnsupportedMediaTypeError(
-            "Requests to the AuthX GraphQL endpoint MUST specify a Content-Type of `application/json`."
+            "Requests to the AuthX GraphQL endpoint MUST specify a Content-Type of `application/json`.",
           );
 
         await next();
       },
 
-      body.default({ multipart: false, urlencoded: false, text: false, json: true }),
+      body.default({
+        multipart: false,
+        urlencoded: false,
+        text: false,
+        json: true,
+      }),
 
       execute({
         schema: config.processSchema
@@ -177,13 +182,16 @@ export class AuthX extends Router<any, { [x]: Context }> {
             contextValue,
           };
         },
-      })
+      }),
     );
 
     // GraphiQL
     // ========
     // This is a graphical (get it, graph-i-QL) interface to the AuthX API.
-    this.all("/graphiql", createPlaygroundMiddleware.default({ endpoint: "/graphql" }));
+    this.all(
+      "/graphiql",
+      createPlaygroundMiddleware.default({ endpoint: "/graphql" }),
+    );
 
     // OAuth
     // =====
@@ -200,8 +208,13 @@ export class AuthX extends Router<any, { [x]: Context }> {
     this.post(
       "/",
       contextMiddleware as AuthXMiddleware,
-      body.default({ multipart: false, urlencoded: true, text: false, json: true }),
-      oauth2 as AuthXMiddleware
+      body.default({
+        multipart: false,
+        urlencoded: true,
+        text: false,
+        json: true,
+      }),
+      oauth2 as AuthXMiddleware,
     );
 
     for (const strategyName in strategies.map) {
@@ -213,7 +226,7 @@ export class AuthX extends Router<any, { [x]: Context }> {
           `/strategy/${strategyName}`,
           contextMiddleware,
           strategyRouter.routes(),
-          strategyRouter.allowedMethods()
+          strategyRouter.allowedMethods(),
         );
       }
     }

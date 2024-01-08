@@ -1,6 +1,6 @@
 import { ClientBase, Client } from "pg";
 import fs from "fs";
-import { fileURLToPath} from "url";
+import { fileURLToPath } from "url";
 
 const sql = fs
   .readFileSync(fileURLToPath(import.meta.resolve("@authx/authx/schema.sql")))

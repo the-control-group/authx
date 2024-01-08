@@ -67,22 +67,22 @@ export function simplify(collection: Scope[]): Scope[] {
 
 export function getIntersection(
   collectionA: Scope[],
-  collectionB: Scope[]
+  collectionB: Scope[],
 ): Scope[] {
   return simplify(
     collectionA
       .map((a) =>
         collectionB
           .map((b) => intersect([], a, b))
-          .reduce((x, y) => [...x, ...y], [])
+          .reduce((x, y) => [...x, ...y], []),
       )
-      .reduce((x, y) => [...x, ...y], [])
+      .reduce((x, y) => [...x, ...y], []),
   );
 }
 
 export function hasIntersection(
   collectionA: Scope[],
-  collectionB: Scope[]
+  collectionB: Scope[],
 ): boolean {
   return getIntersection(collectionA, collectionB).length > 0;
 }
@@ -120,27 +120,29 @@ export function isEqual(collectionA: Scope[], collectionB: Scope[]): boolean {
 
 export function getDifference(
   collectionA: Scope[],
-  collectionB: Scope[]
+  collectionB: Scope[],
 ): Scope[] {
   return collectionA.reduce((remaining, a) => {
     return remaining.filter(
       (b) =>
         a.length !== b.length ||
-        a.some((domainA: Domain, i: number) => !domainIsSuperset(domainA, b[i]))
+        a.some(
+          (domainA: Domain, i: number) => !domainIsSuperset(domainA, b[i]),
+        ),
     );
   }, collectionB);
 }
 
 export function isSuperset(
   collectionA: Scope[],
-  collectionB: Scope[]
+  collectionB: Scope[],
 ): boolean {
   return getDifference(collectionA, collectionB).length === 0;
 }
 
 export function isStrictSuperset(
   collectionA: Scope[],
-  collectionB: Scope[]
+  collectionB: Scope[],
 ): boolean {
   return (
     !isEqual(collectionA, collectionB) && isSuperset(collectionA, collectionB)
@@ -153,7 +155,7 @@ export function isSubset(collectionA: Scope[], collectionB: Scope[]): boolean {
 
 export function isStrictSubset(
   collectionA: Scope[],
-  collectionB: Scope[]
+  collectionB: Scope[],
 ): boolean {
   return (
     !isEqual(collectionA, collectionB) && isSubset(collectionA, collectionB)

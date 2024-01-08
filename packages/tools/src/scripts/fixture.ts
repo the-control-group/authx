@@ -1,4 +1,4 @@
-import pg, { Pool } from "pg";
+import pg from "pg";
 import { fixture } from "../lib/fixture.js";
 
 export default async (): Promise<void> => {

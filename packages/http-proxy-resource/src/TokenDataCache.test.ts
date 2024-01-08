@@ -33,7 +33,7 @@ function createFetchFunc(conf: {
               viewer: {
                 id: fetchConf.headers.Authorization.replace(
                   "BASIC ",
-                  "BEARER 22"
+                  "BEARER 22",
                 ),
                 access: ["a"],
                 user: { id: "B" },

@@ -18,10 +18,10 @@ import createInterfaceMiddleware from "./index.js";
           !address
             ? ""
             : typeof address === "string"
-            ? address
-            : `http://localhost:${address.port}.`
-        }`
+              ? address
+              : `http://localhost:${address.port}.`
+        }`,
       );
-    }
+    },
   );
 })();

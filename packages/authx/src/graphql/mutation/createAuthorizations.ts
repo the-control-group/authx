@@ -39,7 +39,7 @@ export const createAuthorizations: GraphQLFieldConfig<
   args: {
     authorizations: {
       type: new GraphQLNonNull(
-        new GraphQLList(new GraphQLNonNull(GraphQLCreateAuthorizationInput))
+        new GraphQLList(new GraphQLNonNull(GraphQLCreateAuthorizationInput)),
       ),
     },
   },
@@ -52,13 +52,13 @@ export const createAuthorizations: GraphQLFieldConfig<
 
     if (!a) {
       throw new ForbiddenError(
-        "You must be authenticated to create an authorization."
+        "You must be authenticated to create an authorization.",
       );
     }
 
     if (!(pool instanceof pg.Pool)) {
       throw new Error(
-        "INVARIANT: The executor connection is expected to be an instance of Pool."
+        "INVARIANT: The executor connection is expected to be an instance of Pool.",
       );
     }
 
@@ -85,7 +85,7 @@ export const createAuthorizations: GraphQLFieldConfig<
       for (const { roleId } of input.administration) {
         if (!validateIdFormat(roleId)) {
           throw new ValidationError(
-            "The provided `administration` list contains a `roleId` that is an invalid ID."
+            "The provided `administration` list contains a `roleId` that is an invalid ID.",
           );
         }
       }
@@ -95,7 +95,7 @@ export const createAuthorizations: GraphQLFieldConfig<
         // Make sure this transaction is used for queries made by the executor.
         const executor = new DataLoaderExecutor<Pool | PoolClient>(
           tx,
-          strategies
+          strategies,
         );
 
         const grant = input.grantId
@@ -119,12 +119,12 @@ export const createAuthorizations: GraphQLFieldConfig<
                 basic: "*",
                 scopes: "*",
                 secrets: "*",
-              }
-            )
+              },
+            ),
           ))
         ) {
           throw new ForbiddenError(
-            "You do not have permission to create this authorization."
+            "You do not have permission to create this authorization.",
           );
         }
 
@@ -159,7 +159,7 @@ export const createAuthorizations: GraphQLFieldConfig<
               createdByAuthorizationId: a.id,
               createdByCredentialId: null,
               createdAt: new Date(),
-            }
+            },
           );
 
           const authorizationScopeContext = {
@@ -218,7 +218,7 @@ export const createAuthorizations: GraphQLFieldConfig<
                 })
               ) {
                 throw new ForbiddenError(
-                  `You do not have permission to modify the scopes of role ${roleId}.`
+                  `You do not have permission to modify the scopes of role ${roleId}.`,
                 );
               }
 
@@ -229,7 +229,7 @@ export const createAuthorizations: GraphQLFieldConfig<
                   scopes: simplify([
                     ...administrationRoleBefore.scopes,
                     ...possibleAdministrationScopes.filter((possible) =>
-                      isSuperset(scopes, possible)
+                      isSuperset(scopes, possible),
                     ),
                   ]),
                 },
@@ -237,13 +237,13 @@ export const createAuthorizations: GraphQLFieldConfig<
                   recordId: v4(),
                   createdByAuthorizationId: a.id,
                   createdAt: new Date(),
-                }
+                },
               );
 
               // Clear and prime the loader.
               Role.clear(executor, administrationRole.id);
               Role.prime(executor, administrationRole.id, administrationRole);
-            })
+            }),
           );
 
           for (const result of administrationResults) {

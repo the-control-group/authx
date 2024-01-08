@@ -63,7 +63,7 @@ export const authenticateEmail: GraphQLFieldConfig<
     const pool = executor.connection;
     if (!(pool instanceof pg.Pool)) {
       throw new Error(
-        "INVARIANT: The executor connection is expected to be an instance of Pool."
+        "INVARIANT: The executor connection is expected to be an instance of Pool.",
       );
     }
 
@@ -72,7 +72,7 @@ export const authenticateEmail: GraphQLFieldConfig<
       // Make sure this transaction is used for queries made by the executor.
       const executor = new DataLoaderExecutor<Pool | PoolClient>(
         tx,
-        strategies
+        strategies,
       );
 
       await tx.query("BEGIN DEFERRABLE");
@@ -84,7 +84,7 @@ export const authenticateEmail: GraphQLFieldConfig<
         throw new AuthenticationError(
           __DEV__
             ? "The authority uses a strategy other than email."
-            : undefined
+            : undefined,
         );
       }
 
@@ -92,7 +92,7 @@ export const authenticateEmail: GraphQLFieldConfig<
       const credential = await authority.credential(executor, args.email);
       if (!credential) {
         throw new AuthenticationError(
-          __DEV__ ? "No such credential exists." : undefined
+          __DEV__ ? "No such credential exists." : undefined,
         );
       }
 
@@ -109,14 +109,14 @@ export const authenticateEmail: GraphQLFieldConfig<
               // Make sure we're using the same email
               if ((payload as any).email !== args.email) {
                 throw new ForbiddenError(
-                  "This proof was generated for a different email address."
+                  "This proof was generated for a different email address.",
                 );
               }
 
               // Make sure this is for the same user
               if ((payload as any).sub) {
                 throw new ForbiddenError(
-                  "This proof was generated for a specific user."
+                  "This proof was generated for a specific user.",
                 );
               }
 
@@ -148,7 +148,7 @@ export const authenticateEmail: GraphQLFieldConfig<
             algorithm: "RS512",
             expiresIn: authority.details.proofValidityDuration,
             jwtid: proofId,
-          }
+          },
         );
 
         const url =
@@ -163,16 +163,16 @@ export const authenticateEmail: GraphQLFieldConfig<
           subject: authority.details.authenticationEmailSubject,
           text: substitute(
             { proof, url },
-            authority.details.authenticationEmailText
+            authority.details.authenticationEmailText,
           ),
           html: substitute(
             { proof, url },
-            authority.details.authenticationEmailHtml
+            authority.details.authenticationEmailHtml,
           ),
         });
 
         throw new ForbiddenError(
-          "An email has been sent to this address with a code that can be used to prove control."
+          "An email has been sent to this address with a code that can be used to prove control.",
         );
       }
 
@@ -211,12 +211,12 @@ export const authenticateEmail: GraphQLFieldConfig<
               basic: "*",
               scopes: "*",
               secrets: "*",
-            }
-          )
+            },
+          ),
         )
       ) {
         throw new ForbiddenError(
-          "You do not have permission to create this authorization"
+          "You do not have permission to create this authorization",
         );
       }
 
@@ -236,7 +236,7 @@ export const authenticateEmail: GraphQLFieldConfig<
           createdByAuthorizationId: authorizationId,
           createdByCredentialId: credential.id,
           createdAt: new Date(),
-        }
+        },
       );
 
       // Invoke the new authorization, since it will be used for the remainder

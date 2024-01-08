@@ -28,7 +28,7 @@ export const GraphQLCreateClientInput = new GraphQLInputObjectType({
     },
     urls: {
       type: new GraphQLNonNull(
-        new GraphQLList(new GraphQLNonNull(GraphQLString))
+        new GraphQLList(new GraphQLNonNull(GraphQLString)),
       ),
     },
     administration: {

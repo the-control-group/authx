@@ -18,7 +18,7 @@ export interface InvocationRecorder {
       id: string;
       format: string;
       createdAt: Date;
-    }
+    },
   ): Promise<AuthorizationInvocation>;
 }
 
@@ -30,7 +30,7 @@ export class EagerInvocationRecorder implements InvocationRecorder {
       id: string;
       format: string;
       createdAt: Date;
-    }
+    },
   ): Promise<AuthorizationInvocation> {
     return await authorization.invoke(tx, data);
   }

@@ -32,7 +32,7 @@ export const GraphQLPasswordAuthority = new GraphQLObjectType<
       async resolve(
         authority,
         args,
-        { realm, authorization: a, executor }: Context
+        { realm, authorization: a, executor }: Context,
       ): Promise<null | number> {
         return a &&
           (await authority.isAccessibleBy(realm, a, executor, {

@@ -1,7 +1,7 @@
 import { randomBytes } from "crypto";
 import { hash } from "bcrypt";
 import { v4 } from "uuid";
-import pg, { Pool } from "pg";
+import pg from "pg";
 import { bootstrap } from "../lib/bootstrap.js";
 import { User, Role, Authorization } from "@authx/authx";
 import {

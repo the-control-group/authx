@@ -49,8 +49,8 @@ export const createPasswordCredentials: GraphQLFieldConfig<
     credentials: {
       type: new GraphQLNonNull(
         new GraphQLList(
-          new GraphQLNonNull(GraphQLCreatePasswordCredentialInput)
-        )
+          new GraphQLNonNull(GraphQLCreatePasswordCredentialInput),
+        ),
       ),
     },
   },
@@ -63,13 +63,13 @@ export const createPasswordCredentials: GraphQLFieldConfig<
 
     if (!a) {
       throw new ForbiddenError(
-        "You must be authenticated to create a credential."
+        "You must be authenticated to create a credential.",
       );
     }
 
     if (!(pool instanceof pg.Pool)) {
       throw new Error(
-        "INVARIANT: The executor connection is expected to be an instance of Pool."
+        "INVARIANT: The executor connection is expected to be an instance of Pool.",
       );
     }
 
@@ -82,7 +82,7 @@ export const createPasswordCredentials: GraphQLFieldConfig<
       // Validate `authorityId`.
       if (!validateIdFormat(input.authorityId)) {
         throw new ValidationError(
-          "The provided `authorityId` is an invalid ID."
+          "The provided `authorityId` is an invalid ID.",
         );
       }
 
@@ -95,7 +95,7 @@ export const createPasswordCredentials: GraphQLFieldConfig<
       for (const { roleId } of input.administration) {
         if (!validateIdFormat(roleId)) {
           throw new ValidationError(
-            "The provided `administration` list contains a `roleId` that is an invalid ID."
+            "The provided `administration` list contains a `roleId` that is an invalid ID.",
           );
         }
       }
@@ -105,7 +105,7 @@ export const createPasswordCredentials: GraphQLFieldConfig<
         // Make sure this transaction is used for queries made by the executor.
         const executor = new DataLoaderExecutor<Pool | PoolClient>(
           tx,
-          strategies
+          strategies,
         );
 
         // The user cannot create a credential for this user and authority.
@@ -124,12 +124,12 @@ export const createPasswordCredentials: GraphQLFieldConfig<
               {
                 basic: "*",
                 details: "*",
-              }
-            )
+              },
+            ),
           ))
         ) {
           throw new ForbiddenError(
-            "You do not have permission to create this credential."
+            "You do not have permission to create this credential.",
           );
         }
 
@@ -154,11 +154,11 @@ export const createPasswordCredentials: GraphQLFieldConfig<
           const authority = await Authority.read(
             tx,
             input.authorityId,
-            strategies
+            strategies,
           );
           if (!(authority instanceof PasswordAuthority)) {
             throw new NotFoundError(
-              "No password authority exists with this ID."
+              "No password authority exists with this ID.",
             );
           }
 
@@ -178,7 +178,7 @@ export const createPasswordCredentials: GraphQLFieldConfig<
               recordId: v4(),
               createdByAuthorizationId: a.id,
               createdAt: new Date(),
-            }
+            },
           );
 
           const possibleAdministrationScopes =
@@ -204,7 +204,7 @@ export const createPasswordCredentials: GraphQLFieldConfig<
                 })
               ) {
                 throw new ForbiddenError(
-                  `You do not have permission to modify the scopes of role ${roleId}.`
+                  `You do not have permission to modify the scopes of role ${roleId}.`,
                 );
               }
 
@@ -215,7 +215,7 @@ export const createPasswordCredentials: GraphQLFieldConfig<
                   scopes: simplify([
                     ...administrationRoleBefore.scopes,
                     ...possibleAdministrationScopes.filter((possible) =>
-                      isSuperset(scopes, possible)
+                      isSuperset(scopes, possible),
                     ),
                   ]),
                 },
@@ -223,13 +223,13 @@ export const createPasswordCredentials: GraphQLFieldConfig<
                   recordId: v4(),
                   createdByAuthorizationId: a.id,
                   createdAt: new Date(),
-                }
+                },
               );
 
               // Clear and prime the loader.
               Role.clear(executor, administrationRole.id);
               Role.prime(executor, administrationRole.id, administrationRole);
-            })
+            }),
           );
 
           for (const result of administrationResults) {

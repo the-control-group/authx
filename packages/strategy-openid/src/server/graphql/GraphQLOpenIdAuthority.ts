@@ -19,13 +19,13 @@ import { OpenIdAuthority } from "../model/index.js";
 
 export async function filter<T>(
   iter: Iterable<T>,
-  callback: (item: T, index: number) => boolean | Promise<boolean>
+  callback: (item: T, index: number) => boolean | Promise<boolean>,
 ): Promise<T[]> {
   const result: T[] = [];
   await Promise.all(
     [...iter].map(async (item: T, index: number) => {
       if (await callback(item, index)) result.push(item);
-    })
+    }),
   );
 
   return result;
@@ -62,7 +62,7 @@ export const GraphQLOpenIdAuthority = new GraphQLObjectType<
       async resolve(
         authority,
         args,
-        { realm, authorization: a, executor }: Context
+        { realm, authorization: a, executor }: Context,
       ): Promise<null | string> {
         return a &&
           (await authority.isAccessibleBy(realm, a, executor, {
@@ -86,7 +86,7 @@ export const GraphQLOpenIdAuthority = new GraphQLObjectType<
       async resolve(
         authority,
         args,
-        { realm, authorization: a, executor }: Context
+        { realm, authorization: a, executor }: Context,
       ): Promise<null | string> {
         return a &&
           (await authority.isAccessibleBy(realm, a, executor, {
@@ -104,7 +104,7 @@ export const GraphQLOpenIdAuthority = new GraphQLObjectType<
       async resolve(
         authority,
         args,
-        { realm, authorization: a, executor }: Context
+        { realm, authorization: a, executor }: Context,
       ): Promise<null | string[]> {
         return a &&
           (await authority.isAccessibleBy(realm, a, executor, {
@@ -121,7 +121,7 @@ export const GraphQLOpenIdAuthority = new GraphQLObjectType<
       async resolve(
         authority,
         args,
-        { realm, authorization: a, executor }: Context
+        { realm, authorization: a, executor }: Context,
       ): Promise<null | EmailAuthority> {
         if (
           !a ||
@@ -147,7 +147,7 @@ export const GraphQLOpenIdAuthority = new GraphQLObjectType<
       async resolve(
         authority,
         args,
-        { realm, authorization: a, executor }: Context
+        { realm, authorization: a, executor }: Context,
       ): Promise<null | boolean> {
         return a &&
           (await authority.isAccessibleBy(realm, a, executor, {
@@ -165,7 +165,7 @@ export const GraphQLOpenIdAuthority = new GraphQLObjectType<
       async resolve(
         authority,
         args,
-        { realm, authorization: a, executor }: Context
+        { realm, authorization: a, executor }: Context,
       ): Promise<null | boolean> {
         return a &&
           (await authority.isAccessibleBy(realm, a, executor, {
@@ -178,13 +178,13 @@ export const GraphQLOpenIdAuthority = new GraphQLObjectType<
     },
     assignsCreatedUsersToRoles: {
       type: new GraphQLNonNull(
-        new GraphQLList(new GraphQLNonNull(GraphQLRole))
+        new GraphQLList(new GraphQLNonNull(GraphQLRole)),
       ) as any,
       description: "When a user is created, assign to these roles.",
       async resolve(
         authority,
         args,
-        { realm, authorization: a, executor }: Context
+        { realm, authorization: a, executor }: Context,
       ): Promise<null | Role[]> {
         if (
           !a ||
@@ -198,7 +198,7 @@ export const GraphQLOpenIdAuthority = new GraphQLObjectType<
 
         return filter(
           await authority.assignsCreatedUsersToRoles(executor),
-          (role) => role.isAccessibleBy(realm, a, executor)
+          (role) => role.isAccessibleBy(realm, a, executor),
         );
       },
     },

@@ -113,19 +113,19 @@ t(
   "getIntersection(a, b) - should not find intersection of unequal literals",
   (t) => {
     t.deepEqual(getIntersection(["a"], ["b"]), []);
-  }
+  },
 );
 t(
   "getIntersection(a, b) - should not find intersection of domains of different cardinality (a < b)",
   (t) => {
     t.deepEqual(getIntersection(["a"], ["a", "b"]), []);
-  }
+  },
 );
 t(
   "getIntersection(a, b) - should not find intersection of domains of different cardinality (a > b)",
   (t) => {
     t.deepEqual(getIntersection(["a", "b"], ["b"]), []);
-  }
+  },
 );
 t(
   "getIntersection(a, b) - should find intersection of multi-segment domains",
@@ -133,43 +133,43 @@ t(
     t.deepEqual(getIntersection(["a", "b", "c"], ["a", "b", "c"]), [
       ["a", "b", "c"],
     ]);
-  }
+  },
 );
 t(
   "getIntersection(a, b) - should find intersection of AnySingle with a literal (* ∩ a)",
   (t) => {
     t.deepEqual(getIntersection([AnySingle], ["a"]), [["a"]]);
-  }
+  },
 );
 t(
   "getIntersection(a, b) - should find intersection of AnySingle with a literal (a ∩ *)",
   (t) => {
     t.deepEqual(getIntersection(["a"], [AnySingle]), [["a"]]);
-  }
+  },
 );
 t(
   "getIntersection(a, b) - should find intersection of AnySingle and AnySingle",
   (t) => {
     t.deepEqual(getIntersection([AnySingle], [AnySingle]), [[AnySingle]]);
-  }
+  },
 );
 t(
   "getIntersection(a, b) - should not find intersection of domains of different cardinality (* ∩ a.b)",
   (t) => {
     t.deepEqual(getIntersection([AnySingle], ["a", "b"]), []);
-  }
+  },
 );
 t(
   "getIntersection(a, b) - should not find intersection of domains of different cardinality (a ∩ *.b)",
   (t) => {
     t.deepEqual(getIntersection(["a"], [AnySingle, "b"]), []);
-  }
+  },
 );
 t(
   "getIntersection(a, b) - should not find intersection of domains of different cardinality (a ∩ a.*)",
   (t) => {
     t.deepEqual(getIntersection(["a"], ["a", AnySingle]), []);
-  }
+  },
 );
 t(
   "getIntersection(a, b) - should find intersection of multi-segment domains (*.b.c ∩ a.b.c)",
@@ -177,7 +177,7 @@ t(
     t.deepEqual(getIntersection([AnySingle, "b", "c"], ["a", "b", "c"]), [
       ["a", "b", "c"],
     ]);
-  }
+  },
 );
 t(
   "getIntersection(a, b) - should find intersection of multi-segment domains (a.*.c ∩ a.b.c)",
@@ -185,7 +185,7 @@ t(
     t.deepEqual(getIntersection(["a", AnySingle, "c"], ["a", "b", "c"]), [
       ["a", "b", "c"],
     ]);
-  }
+  },
 );
 t(
   "getIntersection(a, b) - should find intersection of multi-segment domains (a.b.* ∩ a.b.c)",
@@ -193,7 +193,7 @@ t(
     t.deepEqual(getIntersection(["a", "b", AnySingle], ["a", "b", "c"]), [
       ["a", "b", "c"],
     ]);
-  }
+  },
 );
 t(
   "getIntersection(a, b) - should find intersection of multi-segment domains (*.b.c ∩ *.b.c)",
@@ -201,37 +201,37 @@ t(
     t.deepEqual(getIntersection([AnySingle, "b", "c"], [AnySingle, "b", "c"]), [
       [AnySingle, "b", "c"],
     ]);
-  }
+  },
 );
 t(
   "getIntersection(a, b) - should find intersection of AnyMultiple with a literal (** ∩ a)",
   (t) => {
     t.deepEqual(getIntersection([AnyMultiple], ["a"]), [["a"]]);
-  }
+  },
 );
 t(
   "getIntersection(a, b) - should find intersection of AnyMultiple with a literal (a ∩ **)",
   (t) => {
     t.deepEqual(getIntersection(["a"], [AnyMultiple]), [["a"]]);
-  }
+  },
 );
 t(
   "getIntersection(a, b) - should find intersection of AnyMultiple with a AnySingle (** ∩ *)",
   (t) => {
     t.deepEqual(getIntersection([AnyMultiple], [AnySingle]), [[AnySingle]]);
-  }
+  },
 );
 t(
   "getIntersection(a, b) - should find intersection of AnyMultiple with a AnySingle (* ∩ **)",
   (t) => {
     t.deepEqual(getIntersection([AnySingle], [AnyMultiple]), [[AnySingle]]);
-  }
+  },
 );
 t(
   "getIntersection(a, b) - should find intersection of AnyMultiple with a AnyMultiple",
   (t) => {
     t.deepEqual(getIntersection([AnyMultiple], [AnyMultiple]), [[AnyMultiple]]);
-  }
+  },
 );
 t(
   "getIntersection(a, b) - should find intersection of AnyMultiple with more than one AnyMultiple (* ∩ **)",
@@ -239,7 +239,7 @@ t(
     t.deepEqual(getIntersection([AnyMultiple], [AnyMultiple, AnyMultiple]), [
       [AnySingle, AnyMultiple],
     ]);
-  }
+  },
 );
 t(
   "getIntersection(a, b) - should find intersection of AnyMultiple with more than one AnyMultiple (** ∩ *)",
@@ -247,7 +247,7 @@ t(
     t.deepEqual(getIntersection([AnyMultiple], [AnyMultiple, AnyMultiple]), [
       [AnySingle, AnyMultiple],
     ]);
-  }
+  },
 );
 t(
   "getIntersection(a, b) - should find intersection of AnyMultiple with a left constraint",
@@ -255,7 +255,7 @@ t(
     t.deepEqual(getIntersection([AnyMultiple], ["a", AnyMultiple]), [
       ["a", AnyMultiple],
     ]);
-  }
+  },
 );
 t(
   "getIntersection(a, b) - should find intersection of AnyMultiple with a right constraint",
@@ -263,7 +263,7 @@ t(
     t.deepEqual(getIntersection([AnyMultiple], [AnyMultiple, "b"]), [
       [AnyMultiple, "b"],
     ]);
-  }
+  },
 );
 t(
   "getIntersection(a, b) - should find intersection of AnyMultiple with left and right constraints",
@@ -271,16 +271,16 @@ t(
     t.deepEqual(getIntersection([AnyMultiple], ["a", AnyMultiple, "b"]), [
       ["a", AnyMultiple, "b"],
     ]);
-  }
+  },
 );
 t(
   "getIntersection(a, b) - should find intersection of AnyMultiple with a center constraint",
   (t) => {
     t.deepEqual(
       getIntersection([AnyMultiple], [AnyMultiple, "b", AnyMultiple]),
-      [[AnyMultiple, "b", AnyMultiple]]
+      [[AnyMultiple, "b", AnyMultiple]],
     );
-  }
+  },
 );
 t(
   "getIntersection(a, b) - should find intersection of AnyMultiple with opposing constraints",
@@ -290,9 +290,9 @@ t(
       [
         ["a", AnyMultiple, "b"],
         ["a", "b"],
-      ]
+      ],
     );
-  }
+  },
 );
 t(
   "getIntersection(a, b) - should find intersection of AnyMultiple with staggered constraints",
@@ -300,14 +300,14 @@ t(
     t.deepEqual(
       getIntersection(
         [AnyMultiple, "b", AnyMultiple],
-        [AnyMultiple, "a", AnyMultiple]
+        [AnyMultiple, "a", AnyMultiple],
       ).sort(compare),
       [
         [AnyMultiple, "a", AnyMultiple, "b", AnyMultiple],
         [AnyMultiple, "a", "b", AnyMultiple],
         [AnyMultiple, "b", AnyMultiple, "a", AnyMultiple],
         [AnyMultiple, "b", "a", AnyMultiple],
-      ]
+      ],
     );
-  }
+  },
 );

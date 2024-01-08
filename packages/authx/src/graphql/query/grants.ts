@@ -48,7 +48,7 @@ export const grants: GraphQLFieldConfig<
         new NoReplacementRecord(),
         new IsAccessibleByRule(realm, await a.access(executor, realm), "grant"),
       ],
-      args
+      args,
     );
 
     if (!args.includeDisabled) rules.push(new FieldRule("enabled", true));
@@ -59,7 +59,7 @@ export const grants: GraphQLFieldConfig<
         SELECT entity_id AS id
         FROM authx.grant_record
         `,
-      rules
+      rules,
     );
 
     if (!ids.rows.length) {
@@ -76,7 +76,7 @@ export const grants: GraphQLFieldConfig<
 
     const grants = await Grant.read(
       executor,
-      ids.rows.map(({ id }) => id)
+      ids.rows.map(({ id }) => id),
     );
 
     return CursorConnection.connectionFromRules(args, grants, rules);

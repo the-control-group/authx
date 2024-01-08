@@ -198,7 +198,7 @@ test("generateExplanationTemplates", (t) => {
         },
       ],
     ]),
-    userExplanationTemplates
+    userExplanationTemplates,
   );
 });
 
@@ -215,7 +215,7 @@ test("basic equal", (t) => {
         scope: "authx:v2.user.......:r....",
         description: "AuthX: Read the basic fields of a new user.",
       },
-    ]
+    ],
   );
 });
 
@@ -233,7 +233,7 @@ test("basic superset", (t) => {
         description:
           "AuthX: Read the basic fields of any new or existing user.",
       },
-    ]
+    ],
   );
 });
 
@@ -251,7 +251,7 @@ test("excessive superset", (t) => {
         description:
           "AuthX: Read the basic fields of any new or existing user.",
       },
-    ]
+    ],
   );
 });
 
@@ -265,7 +265,7 @@ test("anymultiple superset", (t) => {
         currentClientId: "b",
         currentGrantId: "c",
         currentUserId: "d",
-      }
+      },
     ),
     [
       {
@@ -278,7 +278,7 @@ test("anymultiple superset", (t) => {
         description:
           "AuthX: Create, read and write all fields of any new or existing role.",
       },
-    ]
+    ],
   );
 });
 
@@ -292,7 +292,7 @@ test("null substitutions", (t) => {
         currentClientId: null,
         currentGrantId: null,
         currentUserId: null,
-      }
+      },
     ),
     [
       {
@@ -305,7 +305,7 @@ test("null substitutions", (t) => {
         description:
           "AuthX: Create, read and write all fields of any new or existing role.",
       },
-    ]
+    ],
   );
 });
 
@@ -322,7 +322,7 @@ test("basic static substitution", (t) => {
         scope: "authx:v2.user.......d:r....",
         description: "AuthX: Read the basic fields of the current user.",
       },
-    ]
+    ],
   );
 });
 
@@ -339,6 +339,6 @@ test("basic dynamic substitution", (t) => {
         scope: "authx:v2.user.......x:r....",
         description: 'AuthX: Read the basic fields of the user with id "x".',
       },
-    ]
+    ],
   );
 });

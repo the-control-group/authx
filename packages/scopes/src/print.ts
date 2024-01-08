@@ -15,7 +15,7 @@ export function print(scope: Scope): string {
               return segment;
           }
         })
-        .join(".")
+        .join("."),
     )
     .join(":");
 }

@@ -13,7 +13,7 @@ function escapeRegExp(unsafe: string): string {
 
 export function substitute(
   map: { [key: string]: string },
-  template: string
+  template: string,
 ): string {
   let result = template;
   Object.keys(map).forEach((key) => {
@@ -21,7 +21,7 @@ export function substitute(
       .replace(new RegExp(escapeRegExp(`{{{${key}}}}`), "g"), map[key])
       .replace(
         new RegExp(escapeRegExp(`{{${key}}}`), "g"),
-        escapeHtml(map[key])
+        escapeHtml(map[key]),
       );
   });
 

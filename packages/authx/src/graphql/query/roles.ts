@@ -48,7 +48,7 @@ export const roles: GraphQLFieldConfig<
         new NoReplacementRecord(),
         new IsAccessibleByRule(realm, await a.access(executor, realm), "role"),
       ],
-      args
+      args,
     );
 
     if (!args.includeDisabled) rules.push(new FieldRule("enabled", true));
@@ -59,7 +59,7 @@ export const roles: GraphQLFieldConfig<
         SELECT entity_id AS id
         FROM authx.role_record
         `,
-      rules
+      rules,
     );
 
     if (!ids.rows.length) {
@@ -76,7 +76,7 @@ export const roles: GraphQLFieldConfig<
 
     const roles = await Role.read(
       executor,
-      ids.rows.map(({ id }) => id)
+      ids.rows.map(({ id }) => id),
     );
 
     return CursorConnection.connectionFromRules(args, roles, rules);

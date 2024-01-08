@@ -106,7 +106,7 @@ export class Rule {
   static async runQuery(
     tx: ReadonlyDataLoaderExecutor,
     root: string,
-    rules: Rule[]
+    rules: Rule[],
   ): Promise<QueryResult> {
     const built = this.buildQuery(root, rules);
 

@@ -49,10 +49,10 @@ export const clients: GraphQLFieldConfig<
         new IsAccessibleByRule(
           realm,
           await a.access(executor, realm),
-          "client"
+          "client",
         ),
       ],
-      args
+      args,
     );
 
     if (!args.includeDisabled) rules.push(new FieldRule("enabled", true));
@@ -63,7 +63,7 @@ export const clients: GraphQLFieldConfig<
         SELECT entity_id AS id
         FROM authx.client_record
         `,
-      rules
+      rules,
     );
 
     if (!ids.rows.length) {
@@ -80,7 +80,7 @@ export const clients: GraphQLFieldConfig<
 
     const clients = await Client.read(
       executor,
-      ids.rows.map(({ id }) => id)
+      ids.rows.map(({ id }) => id),
     );
 
     return CursorConnection.connectionFromRules(args, clients, rules);

@@ -41,7 +41,7 @@ export interface AuthorityData<A> {
 export type AuthorityInstanceMap = {
   [key: string]: {
     new (
-      data: AuthorityData<any> & { readonly recordId: string }
+      data: AuthorityData<any> & { readonly recordId: string },
     ): Authority<any>;
   };
 };
@@ -72,7 +72,7 @@ export abstract class Authority<A> implements AuthorityData<A> {
     action: AuthorityAction = {
       basic: "r",
       details: "",
-    }
+    },
   ): Promise<boolean> {
     if (
       await a.can(
@@ -84,8 +84,8 @@ export abstract class Authority<A> implements AuthorityData<A> {
             type: "authority",
             authorityId: this.id,
           },
-          action
-        )
+          action,
+        ),
       )
     ) {
       return true;
@@ -95,12 +95,12 @@ export abstract class Authority<A> implements AuthorityData<A> {
   }
 
   public abstract credentials(
-    tx: Pool | ClientBase | DataLoaderExecutor
+    tx: Pool | ClientBase | DataLoaderExecutor,
   ): Promise<Credential<any>[]>;
 
   public abstract credential(
     tx: Pool | ClientBase | DataLoaderExecutor,
-    authorityUserId: string
+    authorityUserId: string,
   ): Promise<Credential<any> | null>;
 
   public async records(tx: ClientBase): Promise<AuthorityRecord[]> {
@@ -120,7 +120,7 @@ export abstract class Authority<A> implements AuthorityData<A> {
       WHERE entity_id = $1
       ORDER BY created_at DESC
       `,
-      [this.id]
+      [this.id],
     );
 
     return result.rows.map(
@@ -131,7 +131,7 @@ export abstract class Authority<A> implements AuthorityData<A> {
           createdByAuthorizationId: row.created_by_authorization_id,
           createdAt: row.created_at,
           entityId: row.entity_id,
-        })
+        }),
     );
   }
 
@@ -141,7 +141,7 @@ export abstract class Authority<A> implements AuthorityData<A> {
     tx: DataLoaderExecutor,
     id: string,
     strategies?: undefined,
-    options?: { forUpdate?: false }
+    options?: { forUpdate?: false },
   ): Promise<T>;
 
   public static read<C, T extends Authority<C>>(
@@ -149,7 +149,7 @@ export abstract class Authority<A> implements AuthorityData<A> {
     tx: DataLoaderExecutor,
     id: readonly string[],
     strategies?: undefined,
-    options?: { forUpdate?: false }
+    options?: { forUpdate?: false },
   ): Promise<T[]>;
 
   // Read from a concrete Authority sub-class.
@@ -158,7 +158,7 @@ export abstract class Authority<A> implements AuthorityData<A> {
     tx: Pool | ClientBase,
     id: string,
     strategies?: undefined,
-    options?: { forUpdate?: boolean }
+    options?: { forUpdate?: boolean },
   ): Promise<T>;
 
   public static read<C, T extends Authority<C>>(
@@ -166,7 +166,7 @@ export abstract class Authority<A> implements AuthorityData<A> {
     tx: Pool | ClientBase,
     id: readonly string[],
     strategies?: undefined,
-    options?: { forUpdate?: boolean }
+    options?: { forUpdate?: boolean },
   ): Promise<T[]>;
 
   // Read from the Authority abstract class using an executor.
@@ -174,14 +174,14 @@ export abstract class Authority<A> implements AuthorityData<A> {
     tx: DataLoaderExecutor,
     id: string,
     strategies?: undefined,
-    options?: { forUpdate?: false }
+    options?: { forUpdate?: false },
   ): Promise<InstanceType<M[K]>>;
 
   public static read<M extends AuthorityInstanceMap, K extends keyof M>(
     tx: DataLoaderExecutor,
     id: readonly string[],
     strategies?: undefined,
-    options?: { forUpdate?: false }
+    options?: { forUpdate?: false },
   ): Promise<InstanceType<M[K]>[]>;
 
   // Read from the Authority abstract class using a connection and strategy map.
@@ -189,21 +189,21 @@ export abstract class Authority<A> implements AuthorityData<A> {
     tx: Pool | ClientBase,
     id: string,
     strategies: { authorityMap: M },
-    options?: { forUpdate?: boolean }
+    options?: { forUpdate?: boolean },
   ): Promise<InstanceType<M[K]>>;
 
   public static read<M extends AuthorityInstanceMap, K extends keyof M>(
     tx: Pool | ClientBase,
     id: readonly string[],
     strategies: { authorityMap: M },
-    options?: { forUpdate?: boolean }
+    options?: { forUpdate?: boolean },
   ): Promise<InstanceType<M[K]>[]>;
 
   public static async read<
     A,
     T extends Authority<A>,
     M extends AuthorityInstanceMap,
-    K extends keyof M
+    K extends keyof M,
   >(
     this: {
       new (data: AuthorityData<A> & { readonly recordId: string }): T;
@@ -211,7 +211,7 @@ export abstract class Authority<A> implements AuthorityData<A> {
     tx: Pool | ClientBase | DataLoaderExecutor,
     id: readonly string[] | string,
     strategies?: { authorityMap: M },
-    options?: { forUpdate?: boolean }
+    options?: { forUpdate?: boolean },
   ): Promise<InstanceType<M[K]>[] | InstanceType<M[K]> | T | T[]> {
     if (tx instanceof DataLoaderExecutor) {
       const loader = cache.get(tx);
@@ -228,7 +228,7 @@ export abstract class Authority<A> implements AuthorityData<A> {
       }
 
       const authorities = await Promise.all(
-        id.map((id) => loader.load(id) as Promise<InstanceType<M[K]>>)
+        id.map((id) => loader.load(id) as Promise<InstanceType<M[K]>>),
       );
 
       // Address a scenario in which the loader could return a authority from a
@@ -251,7 +251,7 @@ export abstract class Authority<A> implements AuthorityData<A> {
     if (options?.forUpdate) {
       await tx.query(
         `SELECT id FROM authx.authority WHERE id = ANY($1) FOR UPDATE`,
-        [typeof id === "string" ? [id] : id]
+        [typeof id === "string" ? [id] : id],
       );
     }
 
@@ -271,12 +271,12 @@ export abstract class Authority<A> implements AuthorityData<A> {
         AND replacement_record_id IS NULL
       ${options?.forUpdate ? "FOR UPDATE" : ""}
       `,
-      [typeof id === "string" ? [id] : id]
+      [typeof id === "string" ? [id] : id],
     );
 
     if (result.rows.length > (typeof id === "string" ? 1 : id.length)) {
       throw new Error(
-        "INVARIANT: Read must never return more records than requested."
+        "INVARIANT: Read must never return more records than requested.",
       );
     }
 
@@ -323,7 +323,7 @@ export abstract class Authority<A> implements AuthorityData<A> {
       recordId: string;
       createdByAuthorizationId: string;
       createdAt: Date;
-    }
+    },
   ): Promise<T> {
     // ensure that the entity ID exists
     await tx.query(
@@ -334,7 +334,7 @@ export abstract class Authority<A> implements AuthorityData<A> {
         ($1)
       ON CONFLICT DO NOTHING
       `,
-      [data.id]
+      [data.id],
     );
 
     // replace the previous record
@@ -349,12 +349,12 @@ export abstract class Authority<A> implements AuthorityData<A> {
         entity_id AS id,
         strategy
       `,
-      [data.id, metadata.recordId]
+      [data.id, metadata.recordId],
     );
 
     if (previous.rows.length > 1) {
       throw new Error(
-        "INVARIANT: It must be impossible to replace more than one record."
+        "INVARIANT: It must be impossible to replace more than one record.",
       );
     }
 
@@ -394,7 +394,7 @@ export abstract class Authority<A> implements AuthorityData<A> {
         data.description,
         data.strategy,
         data.details,
-      ]
+      ],
     );
 
     if (next.rows.length !== 1) {
@@ -415,7 +415,7 @@ export abstract class Authority<A> implements AuthorityData<A> {
   public static prime(
     executor: DataLoaderExecutor,
     id: string,
-    value: Authority<any>
+    value: Authority<any>,
   ): void {
     cache.get(executor).prime(id, value);
   }
@@ -424,8 +424,8 @@ export abstract class Authority<A> implements AuthorityData<A> {
 const cache = new DataLoaderCache(
   async (
     executor: DataLoaderExecutor,
-    ids: readonly string[]
+    ids: readonly string[],
   ): Promise<Authority<any>[]> => {
     return Authority.read(executor.connection, ids, executor.strategies);
-  }
+  },
 );

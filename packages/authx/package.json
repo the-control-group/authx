@@ -63,8 +63,7 @@
   "license": "MIT",
   "main": "dist/index.js",
   "name": "@authx/authx",
-  "optionalDependencies": {
-  },
+  "optionalDependencies": {},
   "peerDependencies": {
     "koa": "^2.0.0"
   },

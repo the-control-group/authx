@@ -3,11 +3,11 @@ import { URL } from "url";
 import { EventEmitter } from "events";
 import { createServer, Server, IncomingMessage, ServerResponse } from "http";
 import Cookies from "cookies";
-import httpProxy, {ServerOptions} from "http-proxy";
+import httpProxy, { ServerOptions } from "http-proxy";
 import { decode } from "jsonwebtoken";
 import { simplify } from "@authx/scopes";
 
-const { createProxyServer } = httpProxy
+const { createProxyServer } = httpProxy;
 export interface Behavior {
   /**
    * The options to pass to node-proxy.

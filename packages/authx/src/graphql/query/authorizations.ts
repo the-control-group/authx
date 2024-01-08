@@ -49,10 +49,10 @@ export const authorizations: GraphQLFieldConfig<
         new IsAccessibleByRule(
           realm,
           await a.access(executor, realm),
-          "authorization"
+          "authorization",
         ),
       ],
-      args
+      args,
     );
 
     if (!args.includeDisabled) rules.push(new FieldRule("enabled", true));
@@ -63,7 +63,7 @@ export const authorizations: GraphQLFieldConfig<
         SELECT entity_id AS id
         FROM authx.authorization_record
         `,
-      rules
+      rules,
     );
 
     if (!ids.rows.length) {
@@ -80,7 +80,7 @@ export const authorizations: GraphQLFieldConfig<
 
     const authorizations = await Authorization.read(
       executor,
-      ids.rows.map(({ id }) => id)
+      ids.rows.map(({ id }) => id),
     );
 
     return CursorConnection.connectionFromRules(args, authorizations, rules);
