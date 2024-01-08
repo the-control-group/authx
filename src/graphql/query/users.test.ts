@@ -1,14 +1,15 @@
 import test from "ava";
-import { registerHooks, SUPER_ADMIN_AUTH_STRING } from "../../util";
+import { registerHooks, SUPER_ADMIN_AUTH_STRING } from "../../util.js";
+import { fileURLToPath } from "url";
 import {
   ClientAction,
   ClientContext,
   createV2AuthXScope,
   UserAction,
   UserContext,
-} from "@authx/authx/dist/util/scopes";
+} from "@authx/authx/dist/util/scopes.js";
 
-const ctx = registerHooks(__filename);
+const ctx = registerHooks(fileURLToPath(import.meta.url));
 
 test("Fetch users with limited read scope and page", async (t) => {
   function createUserReadScope(userId: string): string {
@@ -23,7 +24,7 @@ test("Fetch users with limited read scope and page", async (t) => {
         type: "user",
         userId: userId,
       },
-      action
+      action,
     );
   }
 
@@ -52,7 +53,7 @@ test("Fetch users with limited read scope and page", async (t) => {
         }
       }
       `,
-    token
+    token,
   )) as {
     errors?: null | { message: string }[];
     data: null | {
@@ -139,7 +140,7 @@ test("Fetch users with limited read scope and page", async (t) => {
       }
     }
     `,
-    token
+    token,
   )) as {
     errors?: null | { message: string }[];
     data: null | {
@@ -205,7 +206,7 @@ test("Fetch users with limited read scope and page", async (t) => {
         }
       }
       `,
-    token
+    token,
   )) as {
     errors?: null | { message: string }[];
     data: null | {
@@ -265,7 +266,7 @@ test("Fetch users with limited read scope and reverse page", async (t) => {
         type: "user",
         userId: userId,
       },
-      action
+      action,
     );
   }
 
@@ -294,7 +295,7 @@ test("Fetch users with limited read scope and reverse page", async (t) => {
         }
       }
       `,
-    token
+    token,
   )) as {
     errors?: null | { message: string }[];
     data: null | {
@@ -358,7 +359,7 @@ test("Fetch users with limited read scope and reverse page", async (t) => {
     }
   }
   `,
-    token
+    token,
   )) as {
     errors?: null | { message: string }[];
     data: null | {
@@ -430,7 +431,7 @@ test("Fetch users super admin scope", async (t) => {
       }
     }
     `,
-    SUPER_ADMIN_AUTH_STRING
+    SUPER_ADMIN_AUTH_STRING,
   )) as {
     errors?: null | { message: string }[];
     data: null | {
@@ -516,7 +517,7 @@ test("Fetch users all users scope", async (t) => {
         }
       }
       `,
-    token
+    token,
   )) as {
     errors?: null | { message: string }[];
     data: null | {
@@ -606,7 +607,7 @@ test("Fetch users incorrect scope", async (t) => {
         }
       }
       `,
-    token
+    token,
   )) as {
     errors?: null | { message: string }[];
     data: null | {
@@ -641,7 +642,7 @@ test("Fetch users incorrect scope", async (t) => {
         },
       },
     },
-    "Only has access to the user associated with the authorization."
+    "Only has access to the user associated with the authorization.",
   );
 });
 

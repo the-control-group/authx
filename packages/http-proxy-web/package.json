@@ -13,13 +13,12 @@
     "abort-controller": "^3.0.0",
     "cookies": "^0.9.1",
     "http-proxy": "^1.18.1",
-    "jsonwebtoken": "^9.0.2",
-    "node-fetch": "^3.3.2"
+    "jsonwebtoken": "^9.0.2"
   },
   "description": "",
   "devDependencies": {
-    "@typescript-eslint/eslint-plugin": "^6.17.0",
-    "@typescript-eslint/parser": "^6.17.0",
+    "@typescript-eslint/eslint-plugin": "^6.18.0",
+    "@typescript-eslint/parser": "^6.18.0",
     "ava": "^6.0.1",
     "eslint": "^8.56.0",
     "eslint-config-prettier": "^9.1.0",

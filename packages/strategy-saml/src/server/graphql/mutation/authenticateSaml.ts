@@ -22,7 +22,7 @@ import { SamlCredential } from "../../model/SamlCredential.js";
 import { isSuperset } from "@authx/scopes";
 import { createV2AuthXScope } from "@authx/authx/dist/util/scopes.js";
 import { randomBytes } from "crypto";
-import { Pool, PoolClient } from "pg";
+import pg, { Pool, PoolClient } from "pg";
 import { Role } from "@authx/authx";
 
 const ATTRIBUTE_COMMON_NAME = "urn:oid:2.5.4.3";
@@ -193,7 +193,7 @@ export const authenticateSaml: GraphQLFieldConfig<
 
     const strategies = executor.strategies;
     const pool = executor.connection;
-    if (!(pool instanceof Pool)) {
+    if (!(pool instanceof pg.Pool)) {
       throw new Error(
         "INVARIANT: The executor connection is expected to be an instance of Pool."
       );

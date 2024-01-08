@@ -1,7 +1,6 @@
 import test from "ava";
-import fetch from "node-fetch";
-import { URL } from "url";
-import { setup } from "./setup";
+import { URL, fileURLToPath } from "url";
+import { setup } from "./setup.js";
 import { basename } from "path";
 
 let url: URL;
@@ -9,7 +8,7 @@ let teardown: () => Promise<void>;
 
 // Setup.
 test.before(async () => {
-  const s = await setup(basename(__filename, ".js"));
+  const s = await setup(basename(fileURLToPath(import.meta.url), ".js"));
   url = s.url;
   teardown = s.teardown;
 });
@@ -48,7 +47,7 @@ test("Authorization of disabled user cannot be used.", async (t) => {
         },
       ],
     },
-    json
+    json,
   );
 });
 
@@ -86,7 +85,7 @@ test("Authorization of disabled grant cannot be used.", async (t) => {
         },
       ],
     },
-    json
+    json,
   );
 });
 
@@ -124,7 +123,7 @@ test("Disabled authorization cannot be used.", async (t) => {
         },
       ],
     },
-    json
+    json,
   );
 });
 
@@ -186,7 +185,7 @@ test("Access is revoked from disble authorizations.", async (t) => {
         },
       },
     },
-    json
+    json,
   );
 });
 

@@ -1,6 +1,6 @@
 {
   "private": true,
-  "main": "dist/server",
+  "main": "dist/server/index.js",
   "type": "module",
   "workspaces": [
     "packages/authx",
@@ -32,15 +32,15 @@
     "root:format": "prettier --list-different --write '**/*.{json,yml,md,ts}'",
     "root:lint": "prettier -c '**/*.{json,yml,md,ts}' && eslint src --ext ts",
     "root:test:development": "ava --verbose --watch dist/*.test.js",
-    "root:test": "ava --verbose",
+    "root:test": "ava --verbose dist/*.test.js",
     "start:development": "nodemon --delay 2 --inspect dist/server",
     "start": "node dist/server",
     "test": "npm run packages:test && echo '\n\n  ---------- ' && npm run root:test",
     "update": "npx npm-check-updates -u && lerna exec --parallel -- npx ncu -u && npm i && npm update"
   },
   "devDependencies": {
-    "@typescript-eslint/eslint-plugin": "^6.17.0",
-    "@typescript-eslint/parser": "^6.17.0",
+    "@typescript-eslint/eslint-plugin": "^6.18.0",
+    "@typescript-eslint/parser": "^6.18.0",
     "ava": "^6.0.1",
     "eslint": "^8.56.0",
     "eslint-config-prettier": "^9.1.0",

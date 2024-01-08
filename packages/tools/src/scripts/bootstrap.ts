@@ -1,8 +1,8 @@
 import { randomBytes } from "crypto";
 import { hash } from "bcrypt";
 import { v4 } from "uuid";
-import { Pool } from "pg";
-import { bootstrap } from "../lib/bootstrap";
+import pg, { Pool } from "pg";
+import { bootstrap } from "../lib/bootstrap.js";
 import { User, Role, Authorization } from "@authx/authx";
 import {
   PasswordAuthority,
@@ -10,7 +10,7 @@ import {
 } from "@authx/strategy-password";
 
 export default async (): Promise<void> => {
-  const pool = new Pool();
+  const pool = new pg.Pool();
   const tx = await pool.connect();
 
   const user = new User({

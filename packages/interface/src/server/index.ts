@@ -1,11 +1,16 @@
 import { join, basename, extname } from "path";
+import { fileURLToPath } from "url";
 import MemoryFileSystem from "memory-fs";
 import HtmlWebpackPlugin from "html-webpack-plugin";
-import webpack, { DefinePlugin } from "webpack";
+import webpack from "webpack";
+
+const { DefinePlugin } = webpack;
 
 class BuildError extends Error {
   public errors: ReadonlyArray<string | Error> = [];
 }
+
+const __dirname = fileURLToPath(new URL('.', import.meta.url));
 
 export default async function createInterface(
   realm: string,

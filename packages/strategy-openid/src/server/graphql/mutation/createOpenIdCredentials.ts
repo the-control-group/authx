@@ -1,5 +1,5 @@
 import { v4 } from "uuid";
-import { Pool, PoolClient } from "pg";
+import pg, { Pool, PoolClient } from "pg";
 import jwt from "jsonwebtoken";
 import { GraphQLFieldConfig, GraphQLNonNull, GraphQLList } from "graphql";
 
@@ -68,7 +68,7 @@ export const createOpenIdCredentials: GraphQLFieldConfig<
       );
     }
 
-    if (!(pool instanceof Pool)) {
+    if (!(pool instanceof pg.Pool)) {
       throw new Error(
         "INVARIANT: The executor connection is expected to be an instance of Pool."
       );

@@ -1,7 +1,6 @@
 import test from "ava";
 import { createServer, Server } from "http";
 import AuthXResourceProxy from "./index.js";
-import fetch from "node-fetch";
 
 let mockAuthX: {
   server: Server;

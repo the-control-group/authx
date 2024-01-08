@@ -1,6 +1,6 @@
 import { ClientBase } from "pg";
 import { Role } from "@authx/authx";
-import { createV2AuthXScope } from "@authx/authx/scopes";
+import { createV2AuthXScope } from "@authx/authx/scopes.js";
 
 export const role = [
   {

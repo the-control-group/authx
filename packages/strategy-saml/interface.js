@@ -1,1 +1,1 @@
-module.exports = require("./dist/interface");
+export * from "./dist/interface";

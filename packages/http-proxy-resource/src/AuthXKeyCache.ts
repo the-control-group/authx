@@ -1,5 +1,4 @@
 import { EventEmitter } from "events";
-import fetch, { AbortError } from "node-fetch";
 
 interface Config {
   /**
@@ -118,7 +117,7 @@ export class AuthXKeyCache extends EventEmitter {
       this.emit("error", error);
       
       // Fetch again in 10 seconds.
-      if (!(error instanceof AbortError) && this.active && !this._fetchTimeout) {
+      if (this.active && !this._fetchTimeout) {
         this._fetchTimeout = setTimeout(
           this._fetch,
           (this._config.authxPublicKeyRetryInterval || 10) * 1000

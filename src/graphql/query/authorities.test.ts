@@ -1,7 +1,8 @@
-import { registerHooks } from "../../util";
-import { pagingTests } from "./generic";
+import { registerHooks } from "../../util.js";
+import { pagingTests } from "./generic.js";
+import { fileURLToPath } from "url";
 
-const ctx = registerHooks(__filename);
+const ctx = registerHooks(fileURLToPath(import.meta.url));
 
 pagingTests({
   testName: "by authority ID",

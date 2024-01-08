@@ -1,7 +1,6 @@
 import { createHash, randomBytes } from "crypto";
 import { URL } from "url";
 import { EventEmitter } from "events";
-import fetch from "node-fetch";
 import { createServer, Server, IncomingMessage, ServerResponse } from "http";
 import Cookies from "cookies";
 import httpProxy, {ServerOptions} from "http-proxy";

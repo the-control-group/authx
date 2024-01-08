@@ -2,7 +2,6 @@ import test from "ava";
 import { URL } from "url";
 import { createServer, Server, IncomingMessage } from "http";
 import AuthXWebProxy, { Config } from "./index.js";
-import fetch, { Headers } from "node-fetch";
 
 // These static values are derived as such:
 //

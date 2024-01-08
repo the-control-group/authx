@@ -1,8 +1,8 @@
 #!/usr/bin/env node
 
-import bootstrap from "./scripts/bootstrap";
-import fixture from "./scripts/fixture";
-import schema from "./scripts/schema";
+import bootstrap from "./scripts/bootstrap.js";
+import fixture from "./scripts/fixture.js";
+import schema from "./scripts/schema.js";
 
 (async () => {
   switch (process.argv[2]) {

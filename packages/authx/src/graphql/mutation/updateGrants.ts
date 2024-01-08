@@ -1,5 +1,5 @@
 import { v4 } from "uuid";
-import { Pool, PoolClient } from "pg";
+import pg, { Pool, PoolClient } from "pg";
 import { randomBytes } from "crypto";
 import { GraphQLFieldConfig, GraphQLList, GraphQLNonNull } from "graphql";
 import { Context } from "../../Context.js";
@@ -46,7 +46,7 @@ export const updateGrants: GraphQLFieldConfig<
       throw new ForbiddenError("You must be authenticated to update a grant.");
     }
 
-    if (!(pool instanceof Pool)) {
+    if (!(pool instanceof pg.Pool)) {
       throw new Error(
         "INVARIANT: The executor connection is expected to be an instance of Pool."
       );

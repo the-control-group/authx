@@ -5,7 +5,7 @@ import {
   GraphQLString,
 } from "graphql";
 
-import { Pool, PoolClient } from "pg";
+import pg, { Pool, PoolClient } from "pg";
 import { randomBytes } from "crypto";
 import { compare } from "bcrypt";
 import { v4 } from "uuid";
@@ -63,7 +63,7 @@ export const authenticatePassword: GraphQLFieldConfig<
 
     const strategies = executor.strategies;
     const pool = executor.connection;
-    if (!(pool instanceof Pool)) {
+    if (!(pool instanceof pg.Pool)) {
       throw new Error(
         "INVARIANT: The executor connection is expected to be an instance of Pool."
       );

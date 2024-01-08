@@ -3,7 +3,12 @@
   "compilerOptions": {
     "lib": ["ES2022"],
     "outDir": "./dist",
-    "declarationDir": "./dist"
+    "declarationDir": "./dist",
+
+    // These are only required for graphql-api-koa. See:
+    // https://www.npmjs.com/package/graphql-api-koa
+		"allowJs": true,
+		"maxNodeModuleJsDepth": 10
   },
   "include": ["./src/**/*"]
 }

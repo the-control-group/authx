@@ -7,7 +7,7 @@ import password from "@authx/strategy-password";
 import openid from "@authx/strategy-openid";
 
 import * as tools from "@authx/tools";
-import { Client } from "pg";
+import pg from "pg";
 import { createServer, Server } from "http";
 import { URL } from "url";
 
@@ -24,18 +24,18 @@ async function setupDatabase(namespace: string): Promise<{
   // them accordingly (which is not exactly ideal)...
   if (database.length > 63) {
     throw new Error(
-      "The max size of a db name in postgres is 63 bytes. Please use a shorter namespace."
+      "The max size of a db name in postgres is 63 bytes. Please use a shorter namespace.",
     );
   }
 
   // Create the test database.
-  const client1 = new Client();
+  const client1 = new pg.Client();
   await client1.connect();
   await client1.query(`CREATE DATABASE "${database}";`);
   await client1.end();
 
   // Add fixtures to the database.
-  const client2 = new Client({ database });
+  const client2 = new pg.Client({ database });
   await client2.connect();
   try {
     await tools.schema(client2);
@@ -51,7 +51,7 @@ async function setupDatabase(namespace: string): Promise<{
     database,
     async teardownDatabase(): Promise<void> {
       // Drop the test database.
-      const client = new Client();
+      const client = new pg.Client();
       await client.connect();
       await client.query(`DROP DATABASE "${database}";`);
       await client.end();
@@ -61,7 +61,7 @@ async function setupDatabase(namespace: string): Promise<{
 
 async function setupApp(
   database: string,
-  configOverrides: Partial<Config> = {}
+  configOverrides: Partial<Config> = {},
 ): Promise<{ port: number; teardownApp: () => Promise<void> }> {
   // Create a Koa app.
   const app = new Koa();
@@ -149,9 +149,9 @@ Bac/x5qiUn5fh2xM+wIDAQAB
           }
 
           resolve({ server, port: address.port });
-        }
+        },
       );
-    }
+    },
   );
 
   return {
@@ -173,7 +173,7 @@ Bac/x5qiUn5fh2xM+wIDAQAB
 
 export async function setup(
   namespace: string,
-  configOverrides: Partial<Config> = {}
+  configOverrides: Partial<Config> = {},
 ): Promise<{ url: URL; teardown: () => Promise<void> }> {
   const { database, teardownDatabase } = await setupDatabase(namespace);
   try {

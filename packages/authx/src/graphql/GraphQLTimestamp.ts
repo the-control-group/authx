@@ -1,4 +1,4 @@
-import { Kind } from "graphql/language";
+import { Kind } from "graphql";
 import { GraphQLScalarType } from "graphql";
 
 function serialize(value: unknown): null | number {

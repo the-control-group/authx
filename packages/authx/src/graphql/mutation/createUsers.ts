@@ -1,5 +1,5 @@
 import { v4 } from "uuid";
-import { Pool, PoolClient } from "pg";
+import pg, { Pool, PoolClient } from "pg";
 import { GraphQLFieldConfig, GraphQLNonNull, GraphQLList } from "graphql";
 import { isSuperset, simplify } from "@authx/scopes";
 import { Context } from "../../Context.js";
@@ -52,7 +52,7 @@ export const createUsers: GraphQLFieldConfig<
       throw new ForbiddenError("You must be authenticated to create a user.");
     }
 
-    if (!(pool instanceof Pool)) {
+    if (!(pool instanceof pg.Pool)) {
       throw new Error(
         "INVARIANT: The executor connection is expected to be an instance of Pool."
       );

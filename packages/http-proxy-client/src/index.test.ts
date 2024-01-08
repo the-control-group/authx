@@ -1,7 +1,6 @@
 import test from "ava";
 import { createServer, Server } from "http";
 import AuthXClientProxy from "./index.js";
-import fetch from "node-fetch";
 
 const nowInSeconds = Math.floor(Date.now() / 1000);
 

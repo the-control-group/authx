@@ -1,5 +1,6 @@
 import { v4 } from "uuid";
-import { Pool } from "pg";
+import pg, { Pool } from "pg";
+
 import jwt from "jsonwebtoken";
 import { randomBytes } from "crypto";
 import { Context } from "./Context.js";
@@ -295,7 +296,7 @@ async function oAuth2Middleware(
 
   const strategies = executor.strategies;
   const pool = executor.connection;
-  if (!(pool instanceof Pool)) {
+  if (!(pool instanceof pg.Pool)) {
     throw new Error(
       "INVARIANT: The executor connection is expected to be an instance of Pool."
     );

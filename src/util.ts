@@ -1,16 +1,15 @@
 import { URL } from "url";
 import test from "ava";
 import { v4 } from "uuid";
-import { setup } from "./setup";
+import { setup } from "./setup.js";
 import { basename } from "path";
-import fetch from "node-fetch";
 
 export class FunctionalTestContext {
   url: URL | null = null;
 
   async graphQL(
     query: string,
-    basicAuthString: string | null = null
+    basicAuthString: string | null = null,
   ): Promise<{ errors?: null | { message: string }[]; data: unknown }> {
     if (this.url == null)
       throw '"graphQL" should only be called from in a test';
@@ -32,11 +31,11 @@ export class FunctionalTestContext {
       }),
     });
 
-    return result.json();
+    return result.json() as any;
   }
 
   async createLimitedAuthorization(
-    scopes: string[]
+    scopes: string[],
   ): Promise<[string, string]> {
     // Make sure the UUID here begins with 4 "f" characters, so that it will
     // always sort below the other fixture IDs.
@@ -57,7 +56,7 @@ export class FunctionalTestContext {
         }
       }
       `,
-      SUPER_ADMIN_AUTH_STRING
+      SUPER_ADMIN_AUTH_STRING,
     )) as {
       data: {
         createAuthorizations: { id: string; secret: string }[];
@@ -73,7 +72,7 @@ export class FunctionalTestContext {
       id,
       Buffer.from(
         `${authorization.id}:${authorization.secret}`,
-        "ascii"
+        "ascii",
       ).toString("base64"),
     ];
   }

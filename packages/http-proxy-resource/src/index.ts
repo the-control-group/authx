@@ -10,7 +10,6 @@ import {
   NotAuthorizedError,
 } from "./validateAuthorizationHeader.js";
 import { TokenDataCache } from "./TokenDataCache.js";
-import fetch from "node-fetch";
 export {
   validateAuthorizationHeader,
   NotAuthorizedError,

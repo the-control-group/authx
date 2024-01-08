@@ -1,3 +1,3 @@
-export * from "./lib/bootstrap";
-export * from "./lib/fixture";
-export * from "./lib/schema";
+export * from "./lib/bootstrap.js";
+export * from "./lib/fixture.js";
+export * from "./lib/schema.js";

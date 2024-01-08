@@ -2,10 +2,11 @@ import body from "koa-body";
 import { v4 } from "uuid";
 import createPlaygroundMiddleware from "graphql-playground-middleware-koa";
 import Router, { IRouterOptions } from "koa-router";
-import { errorHandler, execute } from "graphql-api-koa";
+import errorHandler from "graphql-api-koa/errorHandler.mjs";
+import execute from "graphql-api-koa/execute.mjs";
 import { Context as KoaContext, Next as KoaNext, Middleware } from "koa";
 import { parse } from "auth-header";
-import { Pool } from "pg";
+import pg, { Pool } from "pg";
 
 import x from "./x.js";
 import oauth2 from "./oauth2.js";
@@ -59,7 +60,7 @@ export class AuthX extends Router<any, { [x]: Context }> {
         : new StrategyCollection(config.strategies);
 
     // create a database pool
-    this.pool = new Pool(config.pg);
+    this.pool = new pg.Pool(config.pg) as Pool;
     this.rateLimiter =
       typeof config.maxRequestsPerMinute === "number"
         ? new LocalMemoryRateLimiter(config.maxRequestsPerMinute)

@@ -1,5 +1,5 @@
 import { ClientBase } from "pg";
-import { verify, TokenExpiredError } from "jsonwebtoken";
+import jasonwebtoken from "jsonwebtoken"; const { verify, TokenExpiredError } = jasonwebtoken;
 import { Authorization } from "../model/index.js";
 import { NotFoundError, AuthenticationError } from "../errors.js";
 

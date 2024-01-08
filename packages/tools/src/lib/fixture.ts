@@ -8,7 +8,7 @@ import {
   role,
   authorization,
   user,
-} from "./fixture/index";
+} from "./fixture/index.js";
 
 export async function fixture(tx: ClientBase | Client): Promise<void> {
   // add entities to satisfy foreign key constraints

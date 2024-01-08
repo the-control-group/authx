@@ -1,6 +1,5 @@
 import { createHash } from "crypto";
 import { EventEmitter } from "events";
-import fetch from "node-fetch";
 import { createServer, Server, IncomingMessage, ServerResponse } from "http";
 import httpProxy, {ServerOptions} from "http-proxy";
 const { createProxyServer  } = httpProxy

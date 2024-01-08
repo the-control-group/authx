@@ -1,5 +1,5 @@
 import { v4 } from "uuid";
-import { Pool, PoolClient } from "pg";
+import pg, { Pool, PoolClient } from "pg";
 import { GraphQLFieldConfig, GraphQLNonNull, GraphQLList } from "graphql";
 import { Context } from "../../Context.js";
 import { GraphQLUser } from "../GraphQLUser.js";
@@ -42,7 +42,7 @@ export const updateUsers: GraphQLFieldConfig<
       );
     }
 
-    if (!(pool instanceof Pool)) {
+    if (!(pool instanceof pg.Pool)) {
       throw new Error(
         "INVARIANT: The executor connection is expected to be an instance of Pool."
       );

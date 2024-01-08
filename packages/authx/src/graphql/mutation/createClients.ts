@@ -1,5 +1,5 @@
 import { v4 } from "uuid";
-import { Pool, PoolClient } from "pg";
+import pg, { Pool, PoolClient } from "pg";
 import { URL } from "url";
 import { randomBytes } from "crypto";
 import { GraphQLFieldConfig, GraphQLList, GraphQLNonNull } from "graphql";
@@ -55,7 +55,7 @@ export const createClients: GraphQLFieldConfig<
       throw new ForbiddenError("You must be authenticated to create a client.");
     }
 
-    if (!(pool instanceof Pool)) {
+    if (!(pool instanceof pg.Pool)) {
       throw new Error(
         "INVARIANT: The executor connection is expected to be an instance of Pool."
       );
