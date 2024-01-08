@@ -119,13 +119,13 @@ test.before(async () => {
   mockTarget = mocks[1];
 
   const config: Config = {
-    authxUrl: `http://127.0.0.1:${mockAuthX.port}`,
+    authxUrl: `http://localhost:${mockAuthX.port}`,
     readinessEndpoint: "/_ready",
 
     // These need to match the values for your client in AuthX.
     clientId: "3ac01e62-faba-4644-b4c0-7979775717ac",
     clientSecret: "279b6f23893778b5edf981867a78a86d60c9bd3d",
-    clientUrl: "http://127.0.0.1:5734",
+    clientUrl: "http://localhost:5734",
 
     // These are the scopes your client will request from users.
     requestGrantedScopes: ["AuthX:user.equal.self:read.basic"],
@@ -146,7 +146,7 @@ test.before(async () => {
           // so we will return a 401 and include a `Location` header which the
           // front-end can use to redirect the user.
           return {
-            proxyOptions: { target: `http://127.0.0.1:${mockTarget.port}` },
+            proxyOptions: { target: `http://localhost:${mockTarget.port}` },
             sendAuthorizationResponseAs: 401,
             sendTokenToTargetWithScopes: ["authx.prod:**:**"],
           };
@@ -159,7 +159,7 @@ test.before(async () => {
           return method === "GET" && /^\/static(\/.*)?$/.test(url || "");
         },
         behavior: {
-          proxyOptions: { target: `http://127.0.0.1:${mockTarget.port}` },
+          proxyOptions: { target: `http://localhost:${mockTarget.port}` },
         },
       },
       // The rest of our routes render a single-page-app. We simply want to make
@@ -176,7 +176,7 @@ test.before(async () => {
         // the user is authenticated and has granted us scopes that are necessary
         // for the app to work, so we will set `requireGrantedScopes`.
         behavior: {
-          proxyOptions: { target: `http://127.0.0.1:${mockTarget.port}` },
+          proxyOptions: { target: `http://localhost:${mockTarget.port}` },
           sendAuthorizationResponseAs: 303,
           sendTokenToTargetWithScopes: [],
         },
@@ -217,14 +217,14 @@ test.after(async () => {
 });
 
 test("readiness endpoint", async (t) => {
-  const response = await fetch(`http://127.0.0.1:${bearerProxyPort}/_ready`);
+  const response = await fetch(`http://localhost:${bearerProxyPort}/_ready`);
   t.is(response.status, 200);
   t.is(await response.text(), "READY");
 });
 
 test("anonymous - 401", async (t) => {
   const response = await fetch(
-    `http://127.0.0.1:${bearerProxyPort}/api/authx`,
+    `http://localhost:${bearerProxyPort}/api/authx`,
     {
       method: "POST",
       redirect: "manual",
@@ -237,14 +237,14 @@ test("anonymous - 401", async (t) => {
   const location = response.headers.get("Location");
   t.assert(location, "Location header must be in response.");
   const url = new URL(location || "");
-  t.is(url.origin, `http://127.0.0.1:${mockAuthX.port}`);
+  t.is(url.origin, `http://localhost:${mockAuthX.port}`);
   t.is([...url.searchParams].length, 5);
   t.is(url.searchParams.get("response_type"), "code");
   t.is(
     url.searchParams.get("client_id"),
     "3ac01e62-faba-4644-b4c0-7979775717ac",
   );
-  t.is(url.searchParams.get("redirect_uri"), "http://127.0.0.1:5734");
+  t.is(url.searchParams.get("redirect_uri"), "http://localhost:5734");
   t.is(url.searchParams.get("scope"), "AuthX:user.equal.self:read.basic");
   t.assert(url.searchParams.get("state"), "State must be set.");
 
@@ -261,7 +261,7 @@ test("anonymous - 401", async (t) => {
 
 test("anonymous - 200", async (t) => {
   const response = await fetch(
-    `http://127.0.0.1:${bearerProxyPort}/static/logo`,
+    `http://localhost:${bearerProxyPort}/static/logo`,
     {
       redirect: "manual",
     },
@@ -270,21 +270,21 @@ test("anonymous - 200", async (t) => {
 });
 
 test("anonymous - 303", async (t) => {
-  const response = await fetch(`http://127.0.0.1:${bearerProxyPort}/admin`, {
+  const response = await fetch(`http://localhost:${bearerProxyPort}/admin`, {
     redirect: "manual",
   });
   t.is(response.status, 303);
   const location = response.headers.get("Location");
   t.assert(location, "Location header must be in response.");
   const url = new URL(location || "");
-  t.is(url.origin, `http://127.0.0.1:${mockAuthX.port}`);
+  t.is(url.origin, `http://localhost:${mockAuthX.port}`);
   t.is([...url.searchParams].length, 5);
   t.is(url.searchParams.get("response_type"), "code");
   t.is(
     url.searchParams.get("client_id"),
     "3ac01e62-faba-4644-b4c0-7979775717ac",
   );
-  t.is(url.searchParams.get("redirect_uri"), "http://127.0.0.1:5734");
+  t.is(url.searchParams.get("redirect_uri"), "http://localhost:5734");
   t.is(url.searchParams.get("scope"), "AuthX:user.equal.self:read.basic");
   t.assert(url.searchParams.get("state"), "State must be set.");
 
@@ -306,7 +306,7 @@ test("use token from cookie (bearer)", async (t) => {
     "cookie",
     `authx.t.2jmj7l5rSw0yVb_vlWAYkK_YBwk=eyJhbGciOiJSUzUxMiIsInR5cCI6IkpXVCJ9.eyJzY29wZXMiOltdLCJpYXQiOjE1NTY2MDMxMTAsImV4cCI6NDcxMDIwMzExMCwiYXVkIjoiZmUyNDc4YjUtN2I2MC00Y2VkLWFhZjgtNmM5YjRhMmU3M2Y2IiwiaXNzIjoiYXV0aHgiLCJzdWIiOiIxNmE2MDcyMi1mNzJmLTQyYTEtODRmOC01YWY4MGJhYWMyODkifQ.GEd75BHZP3c4NGv3te9bDLQ9hPV0B6lFxydfuBw-4k9KNP5330xQjrAY4Wu-S9thAGS2cXfHyFWR2cKfBDDno6_NivSJHszBs_ErDSAHCJsZ4Ej1VJmPXpePfXbdAmMd6Ug6dEsmmV1lO_gpICHqnVwj2KWGUPvwbN7VVdufy7g`,
   );
-  const response = await fetch(`http://127.0.0.1:${bearerProxyPort}/admin`, {
+  const response = await fetch(`http://localhost:${bearerProxyPort}/admin`, {
     redirect: "manual",
     headers,
   });
@@ -328,7 +328,7 @@ test("use token from cookie (basic, valid)", async (t) => {
     "cookie",
     `authx.t.2jmj7l5rSw0yVb_vlWAYkK_YBwk=ODNkY2VmYzUtZWIyYi00YTJhLTk1NjMtYjJmZjJmMjEyYzYwOjRmOTk1YTdiMjQzNWNhNWM5YjZjNTQ3MGVjNTZhMjZiYjY4MzMyM2E=`,
   );
-  const response = await fetch(`http://127.0.0.1:${basicProxyPort}/admin`, {
+  const response = await fetch(`http://localhost:${basicProxyPort}/admin`, {
     redirect: "manual",
     headers,
   });
@@ -350,7 +350,7 @@ test("use token from cookie (basic, invalid)", async (t) => {
     "cookie",
     `authx.t.2jmj7l5rSw0yVb_vlWAYkK_YBwk=YWRhMTJhZDQtYWRmZi00YzU1LTkzOTQtYTAxNWFkZjdlNzE1OmExNjJlZDY2NmRkZmY3NjI1MDQxOTg0ZDI1MGZlYjFkY2YwNWQyNzA=`,
   );
-  const response = await fetch(`http://127.0.0.1:${basicProxyPort}/admin`, {
+  const response = await fetch(`http://localhost:${basicProxyPort}/admin`, {
     redirect: "manual",
     headers,
   });
@@ -376,7 +376,7 @@ test("fetch token from authx (bearer)", async (t) => {
     `authx.t.2jmj7l5rSw0yVb_vlWAYkK_YBwk=eyJhbGciOiJSUzUxMiIsInR5cCI6IkpXVCJ9.eyJzY29wZXMiOltdLCJpYXQiOjE1NTY2MDMxMTAsImV4cCI6NDcxMDIwMzExMCwiYXVkIjoiZmUyNDc4YjUtN2I2MC00Y2VkLWFhZjgtNmM5YjRhMmU3M2Y2IiwiaXNzIjoiYXV0aHgiLCJzdWIiOiIxNmE2MDcyMi1mNzJmLTQyYTEtODRmOC01YWY4MGJhYWMyODkifQ.GEd75BHZP3c4NGv3te9bDLQ9hPV0B6lFxydfuBw-4k9KNP5330xQjrAY4Wu-S9thAGS2cXfHyFWR2cKfBDDno6_NivSJHszBs_ErDSAHCJsZ4Ej1VJmPXpePfXbdAmMd6Ug6dEsmmV1lO_gpICHqnVwj2KWGUPvwbN7VVdufy7g`,
   );
   const response = await fetch(
-    `http://127.0.0.1:${bearerProxyPort}/api/authx`,
+    `http://localhost:${bearerProxyPort}/api/authx`,
     {
       method: "POST",
       redirect: "manual",
@@ -403,7 +403,7 @@ test("fetch token from authx (basic)", async (t) => {
     "cookie",
     `authx.t.2jmj7l5rSw0yVb_vlWAYkK_YBwk=ODNkY2VmYzUtZWIyYi00YTJhLTk1NjMtYjJmZjJmMjEyYzYwOjRmOTk1YTdiMjQzNWNhNWM5YjZjNTQ3MGVjNTZhMjZiYjY4MzMyM2E=`,
   );
-  const response = await fetch(`http://127.0.0.1:${basicProxyPort}/api/authx`, {
+  const response = await fetch(`http://localhost:${basicProxyPort}/api/authx`, {
     method: "POST",
     redirect: "manual",
     headers,

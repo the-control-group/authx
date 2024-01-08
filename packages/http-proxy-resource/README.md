@@ -20,7 +20,7 @@ new AuthXProxy({
         return method === "GET" && /^\/something\/.+$/.test(url);
       },
       behavior: {
-        proxyOptions: { target: "http://127.0.0.1:3000" },
+        proxyOptions: { target: "http://localhost:3000" },
         sendTokenToTarget: false,
         requireScopes: ["example.resource:something:read"],
       },
@@ -36,7 +36,7 @@ new AuthXProxy({
         );
       },
       behavior: {
-        proxyOptions: { target: "http://127.0.0.1:3000" },
+        proxyOptions: { target: "http://localhost:3000" },
         sendTokenToTarget: false,
         requireScopes: ["example.resource:something:write"],
       },
@@ -49,7 +49,7 @@ new AuthXProxy({
         return true;
       },
       behavior: {
-        proxyOptions: { target: "http://127.0.0.1:3000" },
+        proxyOptions: { target: "http://localhost:3000" },
         sendTokenToTarget: false,
       },
     },

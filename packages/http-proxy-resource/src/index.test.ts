@@ -194,7 +194,7 @@ test.before(async () => {
   mockTarget = mocks[1];
 
   proxy = new AuthXResourceProxy({
-    authxUrl: `http://127.0.0.1:${mockAuthX.port}`,
+    authxUrl: `http://localhost:${mockAuthX.port}`,
     readinessEndpoint: "/_ready",
     rules: [
       {
@@ -202,7 +202,7 @@ test.before(async () => {
           return url === "/passthrough";
         },
         behavior: {
-          proxyOptions: { target: `http://127.0.0.1:${mockTarget.port}` },
+          proxyOptions: { target: `http://localhost:${mockTarget.port}` },
         },
       },
       {
@@ -210,7 +210,7 @@ test.before(async () => {
           return url === "/passthrough-with-token";
         },
         behavior: {
-          proxyOptions: { target: `http://127.0.0.1:${mockTarget.port}` },
+          proxyOptions: { target: `http://localhost:${mockTarget.port}` },
           sendTokenToTarget: true,
         },
       },
@@ -219,7 +219,7 @@ test.before(async () => {
           return url === "/restrict-empty";
         },
         behavior: {
-          proxyOptions: { target: `http://127.0.0.1:${mockTarget.port}` },
+          proxyOptions: { target: `http://localhost:${mockTarget.port}` },
           requireScopes: [],
         },
       },
@@ -228,7 +228,7 @@ test.before(async () => {
           return url === "/restrict-scopes";
         },
         behavior: {
-          proxyOptions: { target: `http://127.0.0.1:${mockTarget.port}` },
+          proxyOptions: { target: `http://localhost:${mockTarget.port}` },
           requireScopes: ["realm2:foo:bar"],
         },
       },
@@ -239,7 +239,7 @@ test.before(async () => {
         behavior(request) {
           request.url = "/rewritten";
           return {
-            proxyOptions: { target: `http://127.0.0.1:${mockTarget.port}` },
+            proxyOptions: { target: `http://localhost:${mockTarget.port}` },
           };
         },
       },
@@ -269,7 +269,7 @@ test.after(async () => {
 });
 
 test.serial("readiness depends on keys", async (t) => {
-  const result1 = await fetch(`http://127.0.0.1:${port}/_ready`);
+  const result1 = await fetch(`http://localhost:${port}/_ready`);
   t.assert(result1.status === 503);
   t.assert(
     (await result1.text()) === "NOT READY",
@@ -280,7 +280,7 @@ test.serial("readiness depends on keys", async (t) => {
   mockAuthX.enable();
   await ready;
 
-  const result2 = await fetch(`http://127.0.0.1:${port}/_ready`);
+  const result2 = await fetch(`http://localhost:${port}/_ready`);
   t.assert(result2.status === 200);
   t.assert(
     (await result2.text()) === "READY",
@@ -289,7 +289,7 @@ test.serial("readiness depends on keys", async (t) => {
 });
 
 test("passthrough: no authorization header", async (t) => {
-  const result = await fetch(`http://127.0.0.1:${port}/passthrough`);
+  const result = await fetch(`http://localhost:${port}/passthrough`);
   t.assert(result.status === 200);
   t.deepEqual(await result.json(), {
     url: "/passthrough",
@@ -297,7 +297,7 @@ test("passthrough: no authorization header", async (t) => {
 });
 
 test("passthrough: invalid bearer token", async (t) => {
-  const result = await fetch(`http://127.0.0.1:${port}/passthrough`, {
+  const result = await fetch(`http://localhost:${port}/passthrough`, {
     headers: {
       Authorization:
         "Bearer eyJhbGciOiJSUzUxMiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIwMTU2N2EyMS01YWQyLTRkMjQtOTU3Ny1lNWVmYjI1ZmM2YjUiLCJpYXQiOjE1NTY0MDcxNzksImV4cCI6MTU1NjQwNzQ3OSwic2NvcGVzIjpbXX0.C-cbh7Je6n-wafJWBSwadfOcq4vwABvI-CvvB82AJuInwd4zCCIww4hq5zH9GXJxSZfquGfus4QjJ8L0E2qgGJsN9ix5UzZTCZzimSX-jr_PDDm88CiYzVvyh2QgI5QcnOzFEMPNyNjlttr0wG8WSn1MAX2uW8PbFxOQKGrXjEg",
@@ -310,7 +310,7 @@ test("passthrough: invalid bearer token", async (t) => {
 });
 
 test("passthrough: valid bearer token w/ empty scopes", async (t) => {
-  const result = await fetch(`http://127.0.0.1:${port}/passthrough`, {
+  const result = await fetch(`http://localhost:${port}/passthrough`, {
     headers: {
       Authorization:
         "Bearer eyJhbGciOiJSUzUxMiIsInR5cCI6IkpXVCJ9.eyJhaWQiOiJlODYyMjM4OS05MWE3LTRmODYtOTk1Ny0xNmFmYThjY2Y1NzMiLCJzdWIiOiIwMTU2N2EyMS01YWQyLTRkMjQtOTU3Ny1lNWVmYjI1ZmM2YjUiLCJpYXQiOjE1NTY0MDcxNzksImV4cCI6NDcxMDAwNzI0Nywic2NvcGVzIjpbXX0.Ac_2gr5xHw2rnDp68k2B-xeAwJjO3If-I6jFQIdAlz6cx9e--aUQlK2e9LPC2votS4e496E38p7X9VoBhxtQ5QXpSIq2-dZws4BJ2oekcU_5qzrNSqiTBh4vgPvwHcTCuWV0p_boeTNSFLWbW1AwdIt4OZbayYyoi8wvtbTOifc",
@@ -324,7 +324,7 @@ test("passthrough: valid bearer token w/ empty scopes", async (t) => {
 });
 
 test("passthrough: invalid basic credentials", async (t) => {
-  const result = await fetch(`http://127.0.0.1:${port}/passthrough`, {
+  const result = await fetch(`http://localhost:${port}/passthrough`, {
     headers: {
       Authorization:
         "Basic NzhkYTM4ZDAtNDZhMC00NWM2LTgyODktYTU2ZWE3NzNjZGYxOnlmVFRuQ2hNbXpZcFZBZnU=",
@@ -337,7 +337,7 @@ test("passthrough: invalid basic credentials", async (t) => {
 });
 
 test("passthrough: valid bearer token w/ some scopes", async (t) => {
-  const result = await fetch(`http://127.0.0.1:${port}/passthrough`, {
+  const result = await fetch(`http://localhost:${port}/passthrough`, {
     headers: {
       Authorization:
         "Bearer eyJhbGciOiJSUzUxMiIsInR5cCI6IkpXVCJ9.eyJhaWQiOiI5N2FiZGVmNy0wMGMyLTQ4MjItOGQ4NS03NWRlMDM4MGI2YTAiLCJzdWIiOiIwMTU2N2EyMS01YWQyLTRkMjQtOTU3Ny1lNWVmYjI1ZmM2YjUiLCJpYXQiOjE1NTY0MDcxNzksImV4cCI6NDcxMDAwNzI0Nywic2NvcGVzIjpbInJlYWxtOnJlc291cmNlLmlkZW50aWZpZXI6YWN0aW9uIiwicmVhbG0yOioqOioiXX0.jaRosfZj_AZMGPjrO9Iu8Gmljzuq33U8FHjkF6Xm0u7p4FD6u2d1950v6EHy9RJmRdJgLSuecOLlveaSvhdQNmrjd9rXGKMlxxaXgwEOtNnhZ5QN8G5n7EATeglkJ63zzLbh_pIil_tZ-Ua2T7C_PiUfH-J71R5V-OMHxbrNmRk",
@@ -351,7 +351,7 @@ test("passthrough: valid bearer token w/ some scopes", async (t) => {
 });
 
 test("passthrough: valid basic credentials w/ some scopes", async (t) => {
-  const result = await fetch(`http://127.0.0.1:${port}/passthrough`, {
+  const result = await fetch(`http://localhost:${port}/passthrough`, {
     headers: {
       Authorization:
         "Basic ZDQ5MDIxZGUtNDllNS00MjEwLWEyYzctYzM0NzM3MDQyMTQwOkdGRk53dHZQS09QemNJZHl4",
@@ -366,7 +366,7 @@ test("passthrough: valid basic credentials w/ some scopes", async (t) => {
 
 test("passthrough-with-token: invalid bearer token", async (t) => {
   const result = await fetch(
-    `http://127.0.0.1:${port}/passthrough-with-token`,
+    `http://localhost:${port}/passthrough-with-token`,
     {
       headers: {
         Authorization:
@@ -382,7 +382,7 @@ test("passthrough-with-token: invalid bearer token", async (t) => {
 
 test("passthrough-with-token: invalid basic credentials", async (t) => {
   const result = await fetch(
-    `http://127.0.0.1:${port}/passthrough-with-token`,
+    `http://localhost:${port}/passthrough-with-token`,
     {
       headers: {
         Authorization:
@@ -398,7 +398,7 @@ test("passthrough-with-token: invalid basic credentials", async (t) => {
 
 test("passthrough-with-token: valid bearer token w/ empty scopes", async (t) => {
   const result = await fetch(
-    `http://127.0.0.1:${port}/passthrough-with-token`,
+    `http://localhost:${port}/passthrough-with-token`,
     {
       headers: {
         Authorization:
@@ -417,7 +417,7 @@ test("passthrough-with-token: valid bearer token w/ empty scopes", async (t) => 
 
 test("passthrough-with-token: valid basic credentials w/ empty scopes", async (t) => {
   const result = await fetch(
-    `http://127.0.0.1:${port}/passthrough-with-token`,
+    `http://localhost:${port}/passthrough-with-token`,
     {
       headers: {
         Authorization:
@@ -435,7 +435,7 @@ test("passthrough-with-token: valid basic credentials w/ empty scopes", async (t
 });
 
 test("restrict-empty: invalid bearer token", async (t) => {
-  const result = await fetch(`http://127.0.0.1:${port}/restrict-empty`, {
+  const result = await fetch(`http://localhost:${port}/restrict-empty`, {
     headers: {
       Authorization:
         "Bearer eyJhbGciOiJSUzUxMiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIwMTU2N2EyMS01YWQyLTRkMjQtOTU3Ny1lNWVmYjI1ZmM2YjUiLCJpYXQiOjE1NTY0MDcxNzksImV4cCI6MTU1NjQwNzQ3OSwic2NvcGVzIjpbXX0.C-cbh7Je6n-wafJWBSwadfOcq4vwABvI-CvvB82AJuInwd4zCCIww4hq5zH9GXJxSZfquGfus4QjJ8L0E2qgGJsN9ix5UzZTCZzimSX-jr_PDDm88CiYzVvyh2QgI5QcnOzFEMPNyNjlttr0wG8WSn1MAX2uW8PbFxOQKGrXjEg",
@@ -445,7 +445,7 @@ test("restrict-empty: invalid bearer token", async (t) => {
 });
 
 test("restrict-empty: invalid basic credentials", async (t) => {
-  const result = await fetch(`http://127.0.0.1:${port}/restrict-empty`, {
+  const result = await fetch(`http://localhost:${port}/restrict-empty`, {
     headers: {
       Authorization:
         "Basic NzhkYTM4ZDAtNDZhMC00NWM2LTgyODktYTU2ZWE3NzNjZGYxOnlmVFRuQ2hNbXpZcFZBZnU=",
@@ -455,7 +455,7 @@ test("restrict-empty: invalid basic credentials", async (t) => {
 });
 
 test("restrict-empty: valid bearer token w/ some scopes", async (t) => {
-  const result = await fetch(`http://127.0.0.1:${port}/restrict-empty`, {
+  const result = await fetch(`http://localhost:${port}/restrict-empty`, {
     headers: {
       Authorization:
         "Bearer eyJhbGciOiJSUzUxMiIsInR5cCI6IkpXVCJ9.eyJhaWQiOiI5N2FiZGVmNy0wMGMyLTQ4MjItOGQ4NS03NWRlMDM4MGI2YTAiLCJzdWIiOiIwMTU2N2EyMS01YWQyLTRkMjQtOTU3Ny1lNWVmYjI1ZmM2YjUiLCJpYXQiOjE1NTY0MDcxNzksImV4cCI6NDcxMDAwNzI0Nywic2NvcGVzIjpbInJlYWxtOnJlc291cmNlLmlkZW50aWZpZXI6YWN0aW9uIiwicmVhbG0yOioqOioiXX0.jaRosfZj_AZMGPjrO9Iu8Gmljzuq33U8FHjkF6Xm0u7p4FD6u2d1950v6EHy9RJmRdJgLSuecOLlveaSvhdQNmrjd9rXGKMlxxaXgwEOtNnhZ5QN8G5n7EATeglkJ63zzLbh_pIil_tZ-Ua2T7C_PiUfH-J71R5V-OMHxbrNmRk",
@@ -470,7 +470,7 @@ test("restrict-empty: valid bearer token w/ some scopes", async (t) => {
 });
 
 test("restrict-empty: valid basic credentials w/ some scopes", async (t) => {
-  const result = await fetch(`http://127.0.0.1:${port}/restrict-empty`, {
+  const result = await fetch(`http://localhost:${port}/restrict-empty`, {
     headers: {
       Authorization:
         "Basic ZDQ5MDIxZGUtNDllNS00MjEwLWEyYzctYzM0NzM3MDQyMTQwOkdGRk53dHZQS09QemNJZHl4",
@@ -485,7 +485,7 @@ test("restrict-empty: valid basic credentials w/ some scopes", async (t) => {
 });
 
 test("restrict-scopes: valid bearer token w/ empty scopes", async (t) => {
-  const result = await fetch(`http://127.0.0.1:${port}/restrict-scopes`, {
+  const result = await fetch(`http://localhost:${port}/restrict-scopes`, {
     headers: {
       Authorization:
         "Bearer eyJhbGciOiJSUzUxMiIsInR5cCI6IkpXVCJ9.eyJhaWQiOiJlODYyMjM4OS05MWE3LTRmODYtOTk1Ny0xNmFmYThjY2Y1NzMiLCJzdWIiOiIwMTU2N2EyMS01YWQyLTRkMjQtOTU3Ny1lNWVmYjI1ZmM2YjUiLCJpYXQiOjE1NTY0MDcxNzksImV4cCI6NDcxMDAwNzI0Nywic2NvcGVzIjpbXX0.Ac_2gr5xHw2rnDp68k2B-xeAwJjO3If-I6jFQIdAlz6cx9e--aUQlK2e9LPC2votS4e496E38p7X9VoBhxtQ5QXpSIq2-dZws4BJ2oekcU_5qzrNSqiTBh4vgPvwHcTCuWV0p_boeTNSFLWbW1AwdIt4OZbayYyoi8wvtbTOifc",
@@ -495,7 +495,7 @@ test("restrict-scopes: valid bearer token w/ empty scopes", async (t) => {
 });
 
 test("restrict-scopes: valid basic credentials w/ empty scopes", async (t) => {
-  const result = await fetch(`http://127.0.0.1:${port}/restrict-scopes`, {
+  const result = await fetch(`http://localhost:${port}/restrict-scopes`, {
     headers: {
       Authorization:
         "Basic OWY1YmU1OTktNGU2My00NzgzLTkxNWUtNTA3OTM4ZTc0ZjFhOkdGRk53dHZQS09QemNJZHl4",
@@ -505,7 +505,7 @@ test("restrict-scopes: valid basic credentials w/ empty scopes", async (t) => {
 });
 
 test("restrict-scopes: valid bearer token w/ some scopes", async (t) => {
-  const result = await fetch(`http://127.0.0.1:${port}/restrict-scopes`, {
+  const result = await fetch(`http://localhost:${port}/restrict-scopes`, {
     headers: {
       Authorization:
         "Bearer eyJhbGciOiJSUzUxMiIsInR5cCI6IkpXVCJ9.eyJhaWQiOiI5N2FiZGVmNy0wMGMyLTQ4MjItOGQ4NS03NWRlMDM4MGI2YTAiLCJzdWIiOiIwMTU2N2EyMS01YWQyLTRkMjQtOTU3Ny1lNWVmYjI1ZmM2YjUiLCJpYXQiOjE1NTY0MDcxNzksImV4cCI6NDcxMDAwNzI0Nywic2NvcGVzIjpbInJlYWxtOnJlc291cmNlLmlkZW50aWZpZXI6YWN0aW9uIiwicmVhbG0yOioqOioiXX0.jaRosfZj_AZMGPjrO9Iu8Gmljzuq33U8FHjkF6Xm0u7p4FD6u2d1950v6EHy9RJmRdJgLSuecOLlveaSvhdQNmrjd9rXGKMlxxaXgwEOtNnhZ5QN8G5n7EATeglkJ63zzLbh_pIil_tZ-Ua2T7C_PiUfH-J71R5V-OMHxbrNmRk",
@@ -520,7 +520,7 @@ test("restrict-scopes: valid bearer token w/ some scopes", async (t) => {
 });
 
 test("restrict-scopes: valid basic credentials w/ some scopes", async (t) => {
-  const result = await fetch(`http://127.0.0.1:${port}/restrict-scopes`, {
+  const result = await fetch(`http://localhost:${port}/restrict-scopes`, {
     headers: {
       Authorization:
         "Basic ZDQ5MDIxZGUtNDllNS00MjEwLWEyYzctYzM0NzM3MDQyMTQwOkdGRk53dHZQS09QemNJZHl4",
@@ -535,7 +535,7 @@ test("restrict-scopes: valid basic credentials w/ some scopes", async (t) => {
 });
 
 test("rewrite-url: no authorization header", async (t) => {
-  const result = await fetch(`http://127.0.0.1:${port}/rewrite-url`);
+  const result = await fetch(`http://localhost:${port}/rewrite-url`);
   t.assert(result.status === 200);
   t.deepEqual(await result.json(), {
     url: "/rewritten",
@@ -544,7 +544,7 @@ test("rewrite-url: no authorization header", async (t) => {
 
 test("passthrough: valid basic credentials w/ some scopes, expect revocableTokenCacheDuration to result in call being cached", async (t) => {
   for (let i = 0; i < 3; ++i) {
-    const result = await fetch(`http://127.0.0.1:${port}/passthrough`, {
+    const result = await fetch(`http://localhost:${port}/passthrough`, {
       headers: {
         Authorization:
           "Basic ZDQ5MDIxZGUtNDllNS00MjEwLWEyYzctYzM0NzM3MDQyMTQwOkdGRk53dHZQS09QemNJZHl4=",

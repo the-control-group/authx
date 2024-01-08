@@ -11,7 +11,7 @@ We have a resource – often an API – which is accessed by a client. The route
 ```js
 import AuthXAuthorizationProxy from "@authx/http-proxy-client";
 proxy = new AuthXAuthorizationProxy({
-  authxUrl: `http://127.0.0.1:${mockAuthX.port}`,
+  authxUrl: `http://localhost:${mockAuthX.port}`,
   clientId: "b22282bf-1b78-4ffc-a0d6-2da5465895d0",
   clientSecret: "de2c693f-b654-4cf2-b3db-eb37a36bc7a9",
   readinessEndpoint: "/_ready",
@@ -23,7 +23,7 @@ proxy = new AuthXAuthorizationProxy({
         return url === "/no-token";
       },
       behavior: {
-        proxyOptions: { target: `http://127.0.0.1:${mockTarget.port}` },
+        proxyOptions: { target: `http://localhost:${mockTarget.port}` },
       },
     },
 
@@ -34,7 +34,7 @@ proxy = new AuthXAuthorizationProxy({
         return url === "/with-static-token-and-scopes";
       },
       behavior: {
-        proxyOptions: { target: `http://127.0.0.1:${mockTarget.port}` },
+        proxyOptions: { target: `http://localhost:${mockTarget.port}` },
         refreshToken: process.env.REFRESH_TOKEN,
         sendTokenToTargetWithScopes: ["foo:**:**"],
       },
@@ -51,7 +51,7 @@ proxy = new AuthXAuthorizationProxy({
         const refreshToken = request.headers["x-oauth-refresh-token"];
         delete request.headers["x-oauth-refresh-token"];
         return {
-          proxyOptions: { target: `http://127.0.0.1:${mockTarget.port}` },
+          proxyOptions: { target: `http://localhost:${mockTarget.port}` },
           refreshToken,
           sendTokenToTargetWithScopes: ["**:**:**"],
         };
