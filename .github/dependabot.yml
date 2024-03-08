@@ -20,8 +20,8 @@ updates:
     groups:
       minor-updates:
         update-types:
-        - "minor"
-        - "patch"
+          - "minor"
+          - "patch"
       dev-dependencies:
         dependency-type: development
     versioning-strategy: increase-if-necessary
