@@ -15,7 +15,7 @@ updates:
   - package-ecosystem: "npm"
     directory: "/"
     schedule:
-      interval: "daily"
+      interval: "weekly"
     # Use groups to consolidate updates into a larger PR
     groups:
       minor-updates:
