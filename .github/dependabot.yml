@@ -4,12 +4,24 @@ updates:
   - package-ecosystem: "github-actions"
     directory: "/"
     schedule:
-      interval: "daily"
+      interval: "weekly"
+    groups:
+      github-actions:
+        update-types:
+          - "minor"
+          - "patch"
 
   # Maintain dependencies for npm
   - package-ecosystem: "npm"
     directory: "/"
     schedule:
-      interval: "daily"
-    open-pull-requests-limit: 0
+      interval: "weekly"
+    # Use groups to consolidate updates into a larger PR
+    groups:
+      minor-updates:
+        update-types:
+          - "minor"
+          - "patch"
+      dev-dependencies:
+        dependency-type: development
     versioning-strategy: increase-if-necessary
