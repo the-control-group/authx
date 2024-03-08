@@ -7,7 +7,7 @@
   "dependencies": {
     "@authx/scopes": "^3.1.0-alpha.52",
     "@types/http-proxy": "^1.17.5",
-    "@types/jsonwebtoken": "^8.5.1",
+    "@types/jsonwebtoken": "^9.0.6",
     "@types/node-fetch": "^2.5.10",
     "abort-controller": "^3.0.0",
     "http-proxy": "^1.18.1",
