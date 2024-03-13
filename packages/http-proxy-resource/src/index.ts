@@ -1,19 +1,19 @@
 import { EventEmitter } from "events";
 import { createServer, Server, IncomingMessage, ServerResponse } from "http";
-import { createProxyServer, ServerOptions } from "http-proxy";
+import httpProxy, { ServerOptions } from "http-proxy";
+const { createProxyServer } = httpProxy;
 import { isEqual, isSuperset } from "@authx/scopes";
-import { AuthXKeyCache } from "./AuthXKeyCache";
-export { AuthXKeyCache } from "./AuthXKeyCache";
+import { AuthXKeyCache } from "./AuthXKeyCache.js";
+export { AuthXKeyCache } from "./AuthXKeyCache.js";
 import {
   validateAuthorizationHeader,
   NotAuthorizedError,
-} from "./validateAuthorizationHeader";
-import { TokenDataCache } from "./TokenDataCache";
-import fetch from "node-fetch";
+} from "./validateAuthorizationHeader.js";
+import { TokenDataCache } from "./TokenDataCache.js";
 export {
   validateAuthorizationHeader,
   NotAuthorizedError,
-} from "./validateAuthorizationHeader";
+} from "./validateAuthorizationHeader.js";
 
 export interface Behavior {
   /**
@@ -80,7 +80,7 @@ export interface Rule {
     | Behavior
     | ((
         request: IncomingMessage,
-        response: ServerResponse
+        response: ServerResponse,
       ) => Behavior | undefined);
 }
 
@@ -169,13 +169,13 @@ export default class AuthXResourceProxy extends EventEmitter {
 
     this._cache = new AuthXKeyCache(config);
     this._cache.on("error", (error: Error, ...args: any[]) =>
-      this.emit("error", error, ...args)
+      this.emit("error", error, ...args),
     );
     this._cache.on("ready", (...args: any[]) => this.emit("ready", ...args));
 
     this._proxy = createProxyServer({});
     this._proxy.on("error", (error: Error, ...args) =>
-      this.emit("error", error, ...args)
+      this.emit("error", error, ...args),
     );
 
     this.server = createServer(this._callback);
@@ -201,13 +201,13 @@ export default class AuthXResourceProxy extends EventEmitter {
     });
 
     this._tokenDataCache.on("error", (error: Error) =>
-      this.emit("error", error)
+      this.emit("error", error),
     );
   }
 
   private _callback = async (
     request: IncomingMessage,
-    response: ServerResponse
+    response: ServerResponse,
   ): Promise<void> => {
     const meta: Metadata = {
       request: request,
@@ -234,7 +234,7 @@ export default class AuthXResourceProxy extends EventEmitter {
       if (warning) {
         response.setHeader(
           "Warning",
-          `299 @authx/http-proxy-resource ${warning}`
+          `299 @authx/http-proxy-resource ${warning}`,
         );
       }
 
@@ -289,7 +289,7 @@ export default class AuthXResourceProxy extends EventEmitter {
               this._config.authxUrl,
               keys,
               authorizationHeader,
-              this._tokenDataCache
+              this._tokenDataCache,
             );
 
           scopes = authorizationScopes;
@@ -342,7 +342,7 @@ export default class AuthXResourceProxy extends EventEmitter {
           behavior.requireScopes.join(" ");
         response.setHeader(
           "X-OAuth-Required-Scopes",
-          behavior.requireScopes.join(" ")
+          behavior.requireScopes.join(" "),
         );
 
         // There is no valid token.
@@ -390,10 +390,10 @@ export default class AuthXResourceProxy extends EventEmitter {
             typeof code === "string" && /INVALID/.test(code)
               ? 502
               : code === "ECONNRESET" ||
-                code === "ENOTFOUND" ||
-                code === "ECONNREFUSED"
-              ? 504
-              : 500;
+                  code === "ENOTFOUND" ||
+                  code === "ECONNREFUSED"
+                ? 504
+                : 500;
 
           response.setHeader("Cache-Control", "no-cache");
           response.writeHead(statusCode);
@@ -414,7 +414,7 @@ export default class AuthXResourceProxy extends EventEmitter {
     this.emit(
       "request.error",
       new Error(`No rules matched requested URL "${request.url}".`),
-      meta
+      meta,
     );
   };
 
@@ -430,7 +430,7 @@ export default class AuthXResourceProxy extends EventEmitter {
           readableAll?: boolean;
           writableAll?: boolean;
           ipv6Only?: boolean;
-        }
+        },
   ): Promise<void> {
     if (!this._closed) {
       throw new Error("Proxy cannot listen because it not closed.");

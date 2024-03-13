@@ -1,5 +1,5 @@
 import test from "ava";
-import { LocalMemoryRateLimiter } from "./ratelimiter";
+import { LocalMemoryRateLimiter } from "./ratelimiter.js";
 
 test("Rate limiter over rate", async (t) => {
   let curTime = 0;

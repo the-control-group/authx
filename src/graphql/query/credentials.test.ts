@@ -1,17 +1,18 @@
-import { registerHooks } from "../../util";
-import { pagingTests } from "./generic";
+import { registerHooks } from "../../util.js";
+import { pagingTests } from "./generic.js";
+import { fileURLToPath } from "url";
 import {
   createV2AuthXScope,
   CredentialAction,
   CredentialContext,
-} from "@authx/authx/dist/util/scopes";
+} from "@authx/authx/dist/util/scopes.js";
 
-const ctx = registerHooks(__filename);
+const ctx = registerHooks(fileURLToPath(import.meta.url));
 
 function createReadScope(
   credentialId: string,
   authorityId: string,
-  userId: string
+  userId: string,
 ): string {
   const action: CredentialAction = {
     basic: "r",

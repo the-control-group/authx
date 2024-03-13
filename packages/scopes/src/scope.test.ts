@@ -8,10 +8,10 @@ import {
   isEqual,
   normalize,
   simplify,
-} from "./scope";
+} from "./scope.js";
 
-import { print } from "./print";
-import { parseScopeLiteral } from "./parse";
+import { print } from "./print.js";
+import { parseScopeLiteral } from "./parse.js";
 
 [
   { a: ["a:b:c"], b: ["a:b:c"], result: true },
@@ -24,8 +24,8 @@ import { parseScopeLiteral } from "./parse";
   t(`isEqual ${a} ${b} => ${result}`, (t) =>
     t.deepEqual(
       isEqual(a.map(parseScopeLiteral), b.map(parseScopeLiteral)),
-      result
-    )
+      result,
+    ),
   );
 });
 
@@ -52,7 +52,7 @@ import { parseScopeLiteral } from "./parse";
   { scope: "**.**.**:resource:action", result: "*.*.**:resource:action" },
 ].forEach(({ scope, result }) => {
   t(`normalize template ${scope} => ${result}`, (t) =>
-    t.is(print(normalize(parseScopeLiteral(scope))), result)
+    t.is(print(normalize(parseScopeLiteral(scope))), result),
   );
 });
 
@@ -208,10 +208,10 @@ import { parseScopeLiteral } from "./parse";
   t(`getDifference ${a} ${b} => ${result}`, (t) =>
     t.deepEqual(
       getDifference(a.map(parseScopeLiteral), b.map(parseScopeLiteral)).map(
-        print
+        print,
       ),
-      result
-    )
+      result,
+    ),
   );
 });
 
@@ -359,7 +359,10 @@ import { parseScopeLiteral } from "./parse";
   { a: ["a:b:c", "x:y:z"], b: ["a:b:c", "x:y:z"], result: true },
 ].forEach(({ a, b, result }) => {
   t(`isSuperset ${a} ${b} => ${result}`, (t) =>
-    t.is(isSuperset(a.map(parseScopeLiteral), b.map(parseScopeLiteral)), result)
+    t.is(
+      isSuperset(a.map(parseScopeLiteral), b.map(parseScopeLiteral)),
+      result,
+    ),
   );
 });
 
@@ -508,8 +511,8 @@ import { parseScopeLiteral } from "./parse";
   t(`hasIntersection ${a} ${b} => ${result}`, (t) =>
     t.is(
       hasIntersection(a.map(parseScopeLiteral), b.map(parseScopeLiteral)),
-      result
-    )
+      result,
+    ),
   );
 });
 
@@ -545,7 +548,7 @@ import { parseScopeLiteral } from "./parse";
       getIntersection(a.map(parseScopeLiteral), b.map(parseScopeLiteral))
         .map(print)
         .sort(),
-      result
+      result,
     );
   });
 });
@@ -584,7 +587,7 @@ import { parseScopeLiteral } from "./parse";
   t(`simplify - (${scopes.join(") • (")}) => ${result}`, (t) => {
     t.deepEqual(
       simplify(scopes.map(parseScopeLiteral)).map(print).sort(),
-      result.sort()
+      result.sort(),
     );
   });
 });

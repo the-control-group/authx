@@ -1,15 +1,16 @@
 import { v4 } from "uuid";
-import { Pool } from "pg";
+import pg from "pg";
+
 import jwt from "jsonwebtoken";
 import { randomBytes } from "crypto";
-import { Context } from "./Context";
-import { Client, Grant, Authorization, User } from "./model";
-import { NotFoundError } from "./errors";
-import { createV2AuthXScope } from "./util/scopes";
-import { DataLoaderExecutor } from "./loader";
+import { Context } from "./Context.js";
+import { Client, Grant, Authorization, User } from "./model/index.js";
+import { NotFoundError } from "./errors.js";
+import { createV2AuthXScope } from "./util/scopes.js";
+import { DataLoaderExecutor } from "./loader.js";
 import { inject, isEqual, isValidScopeTemplate } from "@authx/scopes";
 import { Context as KoaContext } from "koa";
-import x from "./x";
+import x from "./x.js";
 
 async function assertPermissions(
   realm: string,
@@ -20,7 +21,7 @@ async function assertPermissions(
     currentGrantId: string | null;
     currentClientId: string | null;
     currentAuthorizationId: string | null;
-  }
+  },
 ): Promise<void> {
   if (
     // Check that we have every relevant user scope:
@@ -36,8 +37,8 @@ async function assertPermissions(
         {
           basic: "r",
           scopes: "",
-        }
-      )
+        },
+      ),
     )) ||
     // Check that we have every relevant grant scope:
     !(await grant.can(
@@ -55,8 +56,8 @@ async function assertPermissions(
           basic: "r",
           scopes: "",
           secrets: "",
-        }
-      )
+        },
+      ),
     )) ||
     !(await grant.can(
       executor,
@@ -73,8 +74,8 @@ async function assertPermissions(
           basic: "r",
           scopes: "",
           secrets: "r",
-        }
-      )
+        },
+      ),
     )) ||
     !(await grant.can(
       executor,
@@ -91,8 +92,8 @@ async function assertPermissions(
           basic: "r",
           scopes: "r",
           secrets: "",
-        }
-      )
+        },
+      ),
     )) ||
     !(await grant.can(
       executor,
@@ -109,8 +110,8 @@ async function assertPermissions(
           basic: "w",
           scopes: "",
           secrets: "w",
-        }
-      )
+        },
+      ),
     )) ||
     // Check that we have every relevant authorization scope:
     !(await grant.can(
@@ -129,8 +130,8 @@ async function assertPermissions(
           basic: "r",
           scopes: "",
           secrets: "",
-        }
-      )
+        },
+      ),
     )) ||
     !(await grant.can(
       executor,
@@ -148,8 +149,8 @@ async function assertPermissions(
           basic: "r",
           scopes: "r",
           secrets: "",
-        }
-      )
+        },
+      ),
     )) ||
     !(await grant.can(
       executor,
@@ -167,8 +168,8 @@ async function assertPermissions(
           basic: "r",
           scopes: "",
           secrets: "r",
-        }
-      )
+        },
+      ),
     )) ||
     !(await grant.can(
       executor,
@@ -186,8 +187,8 @@ async function assertPermissions(
           basic: "w",
           scopes: "",
           secrets: "",
-        }
-      )
+        },
+      ),
     )) ||
     !(await grant.can(
       executor,
@@ -205,8 +206,8 @@ async function assertPermissions(
           basic: "w",
           scopes: "w",
           secrets: "",
-        }
-      )
+        },
+      ),
     )) ||
     !(await grant.can(
       executor,
@@ -224,8 +225,8 @@ async function assertPermissions(
           basic: "w",
           scopes: "",
           secrets: "w",
-        }
-      )
+        },
+      ),
     ))
   ) {
     throw new OAuthError(
@@ -233,7 +234,7 @@ async function assertPermissions(
       "The grant contains insufficient permission for OAuth.",
       undefined,
       grant.clientId,
-      403
+      403,
     );
   }
 }
@@ -249,7 +250,7 @@ class OAuthError extends Error {
     message?: string,
     uri?: string,
     clientId?: string,
-    statusCode: number = 400
+    statusCode: number = 400,
   ) {
     super(typeof message === "undefined" ? code : message);
     this.code = code;
@@ -280,7 +281,7 @@ function getRefreshToken(secrets: Iterable<string>): null | string {
 }
 
 async function oAuth2Middleware(
-  ctx: KoaContext & { [x]: Context }
+  ctx: KoaContext & { [x]: Context },
 ): Promise<void> {
   ctx.response.set("Cache-Control", "no-store");
   ctx.response.set("Pragma", "no-cache");
@@ -295,9 +296,9 @@ async function oAuth2Middleware(
 
   const strategies = executor.strategies;
   const pool = executor.connection;
-  if (!(pool instanceof Pool)) {
+  if (!(pool instanceof pg.Pool)) {
     throw new Error(
-      "INVARIANT: The executor connection is expected to be an instance of Pool."
+      "INVARIANT: The executor connection is expected to be an instance of Pool.",
     );
   }
 
@@ -321,7 +322,7 @@ async function oAuth2Middleware(
       if (!request || typeof request !== "object") {
         throw new OAuthError(
           "invalid_request",
-          "The request body must be a JSON object."
+          "The request body must be a JSON object.",
         );
       }
 
@@ -358,7 +359,7 @@ async function oAuth2Middleware(
               "invalid_request",
               "The request body must include fields `client_id`, `client_secret`, and `code`.",
               undefined,
-              paramsClientId
+              paramsClientId,
             );
           }
 
@@ -374,7 +375,7 @@ async function oAuth2Middleware(
               "invalid_client",
               undefined,
               undefined,
-              paramsClientId
+              paramsClientId,
             );
           }
 
@@ -383,7 +384,7 @@ async function oAuth2Middleware(
               "invalid_client",
               undefined,
               undefined,
-              paramsClientId
+              paramsClientId,
             );
           }
 
@@ -392,7 +393,7 @@ async function oAuth2Middleware(
               "unauthorized_client",
               undefined,
               undefined,
-              paramsClientId
+              paramsClientId,
             );
           }
 
@@ -412,7 +413,7 @@ async function oAuth2Middleware(
               "invalid_grant",
               "The authorization code is malformed.",
               undefined,
-              paramsClientId
+              paramsClientId,
             );
           }
 
@@ -421,7 +422,7 @@ async function oAuth2Middleware(
               "invalid_grant",
               "The authorization code is expired.",
               undefined,
-              paramsClientId
+              paramsClientId,
             );
           }
 
@@ -435,7 +436,7 @@ async function oAuth2Middleware(
               "invalid_grant",
               "The authorization code is invalid.",
               undefined,
-              paramsClientId
+              paramsClientId,
             );
           }
 
@@ -444,7 +445,7 @@ async function oAuth2Middleware(
               "invalid_grant",
               "The authorization code is invalid.",
               undefined,
-              paramsClientId
+              paramsClientId,
             );
           }
 
@@ -453,7 +454,7 @@ async function oAuth2Middleware(
               "invalid_grant",
               "The authorization code is invalid.",
               undefined,
-              paramsClientId
+              paramsClientId,
             );
           }
 
@@ -470,7 +471,7 @@ async function oAuth2Middleware(
               "invalid_grant",
               "The authorization code is invalid.",
               undefined,
-              paramsClientId
+              paramsClientId,
             );
           }
 
@@ -490,13 +491,13 @@ async function oAuth2Middleware(
 
           // Get all enabled authorizations of this grant.
           const authorizations = (await grant.authorizations(executor)).filter(
-            (t) => t.enabled
+            (t) => t.enabled,
           );
 
           // Look for an existing active authorization for this grant with all
           // grant scopes.
           const possibleRootAuthorizations = authorizations.filter((t) =>
-            isEqual("**:**:**", t.scopes)
+            isEqual("**:**:**", t.scopes),
           );
 
           let rootAuthorization: Authorization;
@@ -523,7 +524,7 @@ async function oAuth2Middleware(
                   createdByAuthorizationId: authorizationId,
                   createdByCredentialId: null,
                   createdAt: new Date(),
-                }
+                },
               );
           }
 
@@ -539,8 +540,8 @@ async function oAuth2Middleware(
                 current_authorization_id: t.id ?? null,
                 /* eslint-enable camelcase */
               }),
-              t.scopes
-            )
+              t.scopes,
+            ),
           );
 
           let requestedAuthorization: Authorization;
@@ -572,7 +573,7 @@ async function oAuth2Middleware(
                 createdByAuthorizationId: rootAuthorization.id,
                 createdByCredentialId: null,
                 createdAt: new Date(),
-              }
+              },
             );
           }
 
@@ -599,7 +600,7 @@ async function oAuth2Middleware(
               recordId: v4(),
               createdByAuthorizationId: rootAuthorization.id,
               createdAt: new Date(),
-            }
+            },
           );
 
           const body = await prepareOAuthResponse(
@@ -612,7 +613,7 @@ async function oAuth2Middleware(
             paramsNonce,
             privateKey,
             jwtValidityDuration,
-            realm
+            realm,
           );
 
           await tx.query("COMMIT");
@@ -656,7 +657,7 @@ async function oAuth2Middleware(
               "invalid_request",
               "The request body must include fields `client_id`, `client_secret`, and `refresh_token`.",
               undefined,
-              paramsClientId
+              paramsClientId,
             );
           }
 
@@ -673,7 +674,7 @@ async function oAuth2Middleware(
               "invalid_scope",
               undefined,
               undefined,
-              paramsClientId
+              paramsClientId,
             );
           }
 
@@ -687,7 +688,7 @@ async function oAuth2Middleware(
               "invalid_client",
               undefined,
               undefined,
-              paramsClientId
+              paramsClientId,
             );
           }
 
@@ -696,7 +697,7 @@ async function oAuth2Middleware(
               "invalid_client",
               undefined,
               undefined,
-              paramsClientId
+              paramsClientId,
             );
           }
 
@@ -705,7 +706,7 @@ async function oAuth2Middleware(
               "unauthorized_client",
               undefined,
               undefined,
-              paramsClientId
+              paramsClientId,
             );
           }
 
@@ -718,7 +719,7 @@ async function oAuth2Middleware(
           // Decode and validate the authorization code.
           const [grantId, issuedAt, nonce] = Buffer.from(
             paramsRefreshToken,
-            "base64"
+            "base64",
           )
             .toString("utf8")
             .split(":");
@@ -728,7 +729,7 @@ async function oAuth2Middleware(
               "invalid_grant",
               "Invalid authorization code.",
               undefined,
-              paramsClientId
+              paramsClientId,
             );
           }
 
@@ -742,7 +743,7 @@ async function oAuth2Middleware(
               "invalid_grant",
               "Invalid authorization code.",
               undefined,
-              paramsClientId
+              paramsClientId,
             );
           }
 
@@ -751,7 +752,7 @@ async function oAuth2Middleware(
               "invalid_grant",
               "Invalid authorization code.",
               undefined,
-              paramsClientId
+              paramsClientId,
             );
           }
 
@@ -760,7 +761,7 @@ async function oAuth2Middleware(
               "invalid_grant",
               "Invalid authorization code.",
               undefined,
-              paramsClientId
+              paramsClientId,
             );
           }
 
@@ -769,7 +770,7 @@ async function oAuth2Middleware(
               "invalid_grant",
               "Invalid authorization code.",
               undefined,
-              paramsClientId
+              paramsClientId,
             );
           }
 
@@ -786,7 +787,7 @@ async function oAuth2Middleware(
               "invalid_grant",
               "Invalid authorization code.",
               undefined,
-              paramsClientId
+              paramsClientId,
             );
           }
 
@@ -800,13 +801,13 @@ async function oAuth2Middleware(
 
           // Get all enabled authorizations of this grant.
           const authorizations = (await grant.authorizations(executor)).filter(
-            (t) => t.enabled
+            (t) => t.enabled,
           );
 
           // Look for an existing active authorization for this grant with all
           // grant scopes.
           const possibleRootAuthorizations = authorizations.filter((t) =>
-            isEqual("**:**:**", t.scopes)
+            isEqual("**:**:**", t.scopes),
           );
 
           let rootAuthorization: Authorization;
@@ -833,7 +834,7 @@ async function oAuth2Middleware(
                   createdByAuthorizationId: authorizationId,
                   createdByCredentialId: null,
                   createdAt: new Date(),
-                }
+                },
               );
           }
 
@@ -849,8 +850,8 @@ async function oAuth2Middleware(
                 current_authorization_id: t.id ?? null,
                 /* eslint-enable camelcase */
               }),
-              t.scopes
-            )
+              t.scopes,
+            ),
           );
 
           let requestedAuthorization: Authorization;
@@ -883,7 +884,7 @@ async function oAuth2Middleware(
                 createdByAuthorizationId: rootAuthorization.id,
                 createdByCredentialId: null,
                 createdAt: new Date(),
-              }
+              },
             );
           }
 
@@ -897,7 +898,7 @@ async function oAuth2Middleware(
             paramsNonce,
             privateKey,
             jwtValidityDuration,
-            realm
+            realm,
           );
 
           await tx.query("COMMIT");
@@ -948,7 +949,7 @@ async function prepareOAuthResponse(
   paramsNonce: string | undefined,
   privateKey: string,
   jwtValidityDuration: number,
-  realm: string
+  realm: string,
 ): Promise<any> {
   if (typeof tokenFormat === "undefined") tokenFormat = "BEARER";
 
@@ -978,7 +979,7 @@ async function prepareOAuthResponse(
           audience: client.id,
           subject: user.id,
           issuer: realm,
-        }
+        },
       ),
       refresh_token: getRefreshToken(grant.secrets),
       expires_in: jwtValidityDuration,

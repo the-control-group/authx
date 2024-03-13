@@ -1,7 +1,7 @@
 import { Pool, ClientBase } from "pg";
 import { Authority, Role, DataLoaderExecutor, QueryCache } from "@authx/authx";
 import { EmailAuthority } from "@authx/strategy-email";
-import { OpenIdCredential } from "./OpenIdCredential";
+import { OpenIdCredential } from "./OpenIdCredential.js";
 
 // Authority
 // ---------
@@ -23,7 +23,7 @@ export interface OpenIdAuthorityDetails {
 
 export class OpenIdAuthority extends Authority<OpenIdAuthorityDetails> {
   public async credentials(
-    tx: Pool | ClientBase | DataLoaderExecutor
+    tx: Pool | ClientBase | DataLoaderExecutor,
   ): Promise<OpenIdCredential[]> {
     const ids = (
       await queryCache.query(
@@ -36,7 +36,7 @@ export class OpenIdAuthority extends Authority<OpenIdAuthorityDetails> {
             AND replacement_record_id IS NULL
           ORDER BY id ASC
           `,
-        [this.id]
+        [this.id],
       )
     ).rows.map(({ id }) => id);
 
@@ -47,7 +47,7 @@ export class OpenIdAuthority extends Authority<OpenIdAuthorityDetails> {
 
   public async credential(
     tx: Pool | ClientBase | DataLoaderExecutor,
-    authorityUserId: string
+    authorityUserId: string,
   ): Promise<null | OpenIdCredential> {
     const results = await queryCache.query(
       tx,
@@ -60,12 +60,12 @@ export class OpenIdAuthority extends Authority<OpenIdAuthorityDetails> {
         AND enabled = true
         AND replacement_record_id IS NULL
       `,
-      [this.id, authorityUserId]
+      [this.id, authorityUserId],
     );
 
     if (results.rows.length > 1) {
       throw new Error(
-        "INVARIANT: There cannot be more than one active credential for the same user and authority."
+        "INVARIANT: There cannot be more than one active credential for the same user and authority.",
       );
     }
 
@@ -74,16 +74,16 @@ export class OpenIdAuthority extends Authority<OpenIdAuthorityDetails> {
     return tx instanceof DataLoaderExecutor
       ? (OpenIdCredential.read(
           tx,
-          results.rows[0].id
+          results.rows[0].id,
         ) as Promise<OpenIdCredential>)
       : (OpenIdCredential.read(
           tx,
-          results.rows[0].id
+          results.rows[0].id,
         ) as Promise<OpenIdCredential>);
   }
 
   public async emailAuthority(
-    tx: DataLoaderExecutor
+    tx: DataLoaderExecutor,
   ): Promise<null | EmailAuthority> {
     if (!this.details.emailAuthorityId) {
       return null;
@@ -93,7 +93,7 @@ export class OpenIdAuthority extends Authority<OpenIdAuthorityDetails> {
   }
 
   public async assignsCreatedUsersToRoles(
-    tx: DataLoaderExecutor
+    tx: DataLoaderExecutor,
   ): Promise<Role[]> {
     if (!this.details.assignsCreatedUsersToRoleIds) {
       return [];

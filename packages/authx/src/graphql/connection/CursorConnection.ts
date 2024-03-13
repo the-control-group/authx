@@ -1,11 +1,11 @@
-import { Node } from "./Node";
+import { Node } from "./Node.js";
 import { Connection, ConnectionArguments } from "graphql-relay";
-import { ForwardCursorConnection } from "./ForwardCursorConnection";
-import { ReverseCursorConnection } from "./ReverseCursorConnection";
-import { UnboundedConnection } from "./UnboundedConnection";
-import { Rule } from "../../model/rules/Rule";
-import { ForwardCursorRule } from "../../model/rules/ForwardCursorRule";
-import { ReverseCursorRule } from "../../model/rules/ReverseCursorRule";
+import { ForwardCursorConnection } from "./ForwardCursorConnection.js";
+import { ReverseCursorConnection } from "./ReverseCursorConnection.js";
+import { UnboundedConnection } from "./UnboundedConnection.js";
+import { Rule } from "../../model/rules/Rule.js";
+import { ForwardCursorRule } from "../../model/rules/ForwardCursorRule.js";
+import { ReverseCursorRule } from "../../model/rules/ReverseCursorRule.js";
 
 export class CursorConnection {
   static toCursor(id: string): string {
@@ -29,14 +29,14 @@ export class CursorConnection {
   static connectionFromRules<T extends Node>(
     args: ConnectionArguments,
     elements: T[],
-    rules: Rule[]
+    rules: Rule[],
   ): Connection<T> {
     const forwardCursorRule = rules.find(
-      (it) => it instanceof ForwardCursorRule
+      (it) => it instanceof ForwardCursorRule,
     ) as ForwardCursorRule | undefined;
 
     const reverseCursorRule = rules.find(
-      (it) => it instanceof ReverseCursorRule
+      (it) => it instanceof ReverseCursorRule,
     ) as ReverseCursorRule | undefined;
 
     if (forwardCursorRule) {

@@ -1,27 +1,27 @@
-import { createClients } from "./createClients";
-import { updateClients } from "./updateClients";
-import { GraphQLCreateClientInput } from "./GraphQLCreateClientInput";
-import { GraphQLUpdateClientInput } from "./GraphQLUpdateClientInput";
+import { createClients } from "./createClients.js";
+import { updateClients } from "./updateClients.js";
+import { GraphQLCreateClientInput } from "./GraphQLCreateClientInput.js";
+import { GraphQLUpdateClientInput } from "./GraphQLUpdateClientInput.js";
 
-import { createGrants } from "./createGrants";
-import { updateGrants } from "./updateGrants";
-import { GraphQLCreateGrantInput } from "./GraphQLCreateGrantInput";
-import { GraphQLUpdateGrantInput } from "./GraphQLUpdateGrantInput";
+import { createGrants } from "./createGrants.js";
+import { updateGrants } from "./updateGrants.js";
+import { GraphQLCreateGrantInput } from "./GraphQLCreateGrantInput.js";
+import { GraphQLUpdateGrantInput } from "./GraphQLUpdateGrantInput.js";
 
-import { createRoles } from "./createRoles";
-import { updateRoles } from "./updateRoles";
-import { GraphQLCreateRoleInput } from "./GraphQLCreateRoleInput";
-import { GraphQLUpdateRoleInput } from "./GraphQLUpdateRoleInput";
+import { createRoles } from "./createRoles.js";
+import { updateRoles } from "./updateRoles.js";
+import { GraphQLCreateRoleInput } from "./GraphQLCreateRoleInput.js";
+import { GraphQLUpdateRoleInput } from "./GraphQLUpdateRoleInput.js";
 
-import { createAuthorizations } from "./createAuthorizations";
-import { updateAuthorizations } from "./updateAuthorizations";
-import { GraphQLCreateAuthorizationInput } from "./GraphQLCreateAuthorizationInput";
-import { GraphQLUpdateAuthorizationInput } from "./GraphQLUpdateAuthorizationInput";
+import { createAuthorizations } from "./createAuthorizations.js";
+import { updateAuthorizations } from "./updateAuthorizations.js";
+import { GraphQLCreateAuthorizationInput } from "./GraphQLCreateAuthorizationInput.js";
+import { GraphQLUpdateAuthorizationInput } from "./GraphQLUpdateAuthorizationInput.js";
 
-import { createUsers } from "./createUsers";
-import { updateUsers } from "./updateUsers";
-import { GraphQLCreateUserInput } from "./GraphQLCreateUserInput";
-import { GraphQLUpdateUserInput } from "./GraphQLUpdateUserInput";
+import { createUsers } from "./createUsers.js";
+import { updateUsers } from "./updateUsers.js";
+import { GraphQLCreateUserInput } from "./GraphQLCreateUserInput.js";
+import { GraphQLUpdateUserInput } from "./GraphQLUpdateUserInput.js";
 
 export const mutationFields = {
   createClients,

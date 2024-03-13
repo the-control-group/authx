@@ -24,8 +24,8 @@ function superset(left: Domain, rightA: Domain, rightB: Domain): boolean {
         ? null
         : [...left, b]
       : a == b
-      ? [...left, a]
-      : null;
+        ? [...left, a]
+        : null;
 
   // DONE: The segments do not match
   if (!match) {
@@ -62,8 +62,8 @@ function intersect(left: Domain, rightA: Domain, rightB: Domain): Domain[] {
               ...(restA.length ? intersect([...left, b], restA, restB) : []),
             ] as Domain[])
           : !restA.length || b === AnyMultiple // DONE
-          ? [[...left, b, ...restA]]
-          : []
+            ? [[...left, b, ...restA]]
+            : []
         : []),
 
       ...(b === AnyMultiple
@@ -73,8 +73,8 @@ function intersect(left: Domain, rightA: Domain, rightB: Domain): Domain[] {
               ...(restB.length ? intersect([...left, a], restA, restB) : []),
             ] as Domain[])
           : !restB.length || a === AnyMultiple // DONE
-          ? [[...left, a, ...restB]]
-          : []
+            ? [[...left, a, ...restB]]
+            : []
         : []),
     ] as Domain[];
   }
@@ -83,8 +83,8 @@ function intersect(left: Domain, rightA: Domain, rightB: Domain): Domain[] {
     a === AnySingle || b === AnySingle
       ? [...left, a == AnySingle ? b : a]
       : a == b
-      ? [...left, a]
-      : null;
+        ? [...left, a]
+        : null;
 
   // DONE: The segments do not match
   if (!match) {

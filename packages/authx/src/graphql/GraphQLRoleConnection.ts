@@ -1,7 +1,7 @@
 import { GraphQLList, GraphQLNonNull, GraphQLObjectType } from "graphql";
-import { GraphQLPageInfo } from "./GraphQLPageInfo";
-import { GraphQLRoleEdge } from "./GraphQLRoleEdge";
-import { GraphQLConnection } from "./GraphQLConnection";
+import { GraphQLPageInfo } from "./GraphQLPageInfo.js";
+import { GraphQLRoleEdge } from "./GraphQLRoleEdge.js";
+import { GraphQLConnection } from "./GraphQLConnection.js";
 
 export const GraphQLRoleConnection = new GraphQLObjectType({
   name: "RoleConnection",

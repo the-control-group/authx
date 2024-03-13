@@ -5,9 +5,9 @@ import {
   GraphQLInterfaceType,
 } from "graphql";
 
-import { GraphQLAuthority } from "./GraphQLAuthority";
-import { GraphQLUser } from "./GraphQLUser";
-import { GraphQLNode } from "./GraphQLNode";
+import { GraphQLAuthority } from "./GraphQLAuthority.js";
+import { GraphQLUser } from "./GraphQLUser.js";
+import { GraphQLNode } from "./GraphQLNode.js";
 
 export const GraphQLCredential = new GraphQLInterfaceType({
   name: "Credential",

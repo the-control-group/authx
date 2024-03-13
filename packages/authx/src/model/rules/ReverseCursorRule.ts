@@ -1,6 +1,6 @@
 import { ConnectionArguments } from "graphql-relay";
-import { Rule } from "./Rule";
-import { CursorConnection } from "../../graphql/connection/CursorConnection";
+import { Rule } from "./Rule.js";
+import { CursorConnection } from "../../graphql/connection/CursorConnection.js";
 
 export class ReverseCursorRule extends Rule {
   public readonly before: string | null = null;

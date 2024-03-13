@@ -1,5 +1,5 @@
 import { v4 } from "uuid";
-import { Pool, PoolClient } from "pg";
+import pg, { Pool, PoolClient } from "pg";
 import jwt from "jsonwebtoken";
 import { GraphQLFieldConfig, GraphQLNonNull, GraphQLList } from "graphql";
 
@@ -19,13 +19,13 @@ import {
 import {
   createV2AuthXScope,
   createV2CredentialAdministrationScopes,
-} from "@authx/authx/scopes";
+} from "@authx/authx/scopes.js";
 
 import { isSuperset, simplify } from "@authx/scopes";
-import { EmailCredential, EmailAuthority } from "../../model";
-import { GraphQLEmailCredential } from "../GraphQLEmailCredential";
-import { substitute } from "../../substitute";
-import { GraphQLCreateEmailCredentialInput } from "./GraphQLCreateEmailCredentialInput";
+import { EmailCredential, EmailAuthority } from "../../model/index.js";
+import { GraphQLEmailCredential } from "../GraphQLEmailCredential.js";
+import { substitute } from "../../substitute.js";
+import { GraphQLCreateEmailCredentialInput } from "./GraphQLCreateEmailCredentialInput.js";
 
 export const createEmailCredentials: GraphQLFieldConfig<
   any,
@@ -50,7 +50,7 @@ export const createEmailCredentials: GraphQLFieldConfig<
   args: {
     credentials: {
       type: new GraphQLNonNull(
-        new GraphQLList(new GraphQLNonNull(GraphQLCreateEmailCredentialInput))
+        new GraphQLList(new GraphQLNonNull(GraphQLCreateEmailCredentialInput)),
       ),
     },
   },
@@ -65,13 +65,13 @@ export const createEmailCredentials: GraphQLFieldConfig<
 
     if (!a) {
       throw new ForbiddenError(
-        "You must be authenticated to create a credential."
+        "You must be authenticated to create a credential.",
       );
     }
 
-    if (!(pool instanceof Pool)) {
+    if (!(pool instanceof pg.Pool)) {
       throw new Error(
-        "INVARIANT: The executor connection is expected to be an instance of Pool."
+        "INVARIANT: The executor connection is expected to be an instance of Pool.",
       );
     }
 
@@ -84,7 +84,7 @@ export const createEmailCredentials: GraphQLFieldConfig<
       // Validate `authorityId`.
       if (!validateIdFormat(input.authorityId)) {
         throw new ValidationError(
-          "The provided `authorityId` is an invalid ID."
+          "The provided `authorityId` is an invalid ID.",
         );
       }
 
@@ -97,7 +97,7 @@ export const createEmailCredentials: GraphQLFieldConfig<
       for (const { roleId } of input.administration) {
         if (!validateIdFormat(roleId)) {
           throw new ValidationError(
-            "The provided `administration` list contains a `roleId` that is an invalid ID."
+            "The provided `administration` list contains a `roleId` that is an invalid ID.",
           );
         }
       }
@@ -107,7 +107,7 @@ export const createEmailCredentials: GraphQLFieldConfig<
         // Make sure this transaction is used for queries made by the executor.
         const executor = new DataLoaderExecutor<Pool | PoolClient>(
           tx,
-          strategies
+          strategies,
         );
 
         await tx.query("BEGIN DEFERRABLE");
@@ -131,7 +131,7 @@ export const createEmailCredentials: GraphQLFieldConfig<
           tx,
           input.authorityId,
           strategies,
-          { forUpdate: true }
+          { forUpdate: true },
         );
         if (!(authority instanceof EmailAuthority)) {
           throw new NotFoundError("No email authority exists with this ID.");
@@ -152,14 +152,14 @@ export const createEmailCredentials: GraphQLFieldConfig<
             AND authority_user_id = $2
           FOR UPDATE
           `,
-              [authority.id, input.email]
+              [authority.id, input.email],
             )
-          ).rows.map(({ id }) => id)
+          ).rows.map(({ id }) => id),
         );
 
         if (existingCredentials.length > 1) {
           throw new Error(
-            "INVARIANT: There cannot be more than one active credential with the same authorityId and authorityUserId."
+            "INVARIANT: There cannot be more than one active credential with the same authorityId and authorityUserId.",
           );
         }
 
@@ -179,12 +179,12 @@ export const createEmailCredentials: GraphQLFieldConfig<
               {
                 basic: "*",
                 details: "*",
-              }
-            )
+              },
+            ),
           ))
         ) {
           throw new ForbiddenError(
-            "You do not have permission to create this credential."
+            "You do not have permission to create this credential.",
           );
         }
 
@@ -204,8 +204,8 @@ export const createEmailCredentials: GraphQLFieldConfig<
               {
                 basic: "*",
                 details: "*",
-              }
-            )
+              },
+            ),
           ))
         ) {
           // The user doesn't have permission to change the credentials of all
@@ -223,14 +223,14 @@ export const createEmailCredentials: GraphQLFieldConfig<
                   // Make sure we're using the same email
                   if ((payload as any).email !== input.email) {
                     throw new ForbiddenError(
-                      "This proof was generated for a different email address."
+                      "This proof was generated for a different email address.",
                     );
                   }
 
                   // Make sure this is for the same user
                   if ((payload as any).sub !== a.userId) {
                     throw new ForbiddenError(
-                      "This proof was generated for a different user."
+                      "This proof was generated for a different user.",
                     );
                   }
 
@@ -264,7 +264,7 @@ export const createEmailCredentials: GraphQLFieldConfig<
                 expiresIn: authority.details.proofValidityDuration,
                 subject: a.userId,
                 jwtid: proofId,
-              }
+              },
             );
 
             const url =
@@ -279,16 +279,16 @@ export const createEmailCredentials: GraphQLFieldConfig<
               subject: authority.details.verificationEmailSubject,
               text: substitute(
                 { proof, url },
-                authority.details.verificationEmailText
+                authority.details.verificationEmailText,
               ),
               html: substitute(
                 { proof, url },
-                authority.details.verificationEmailHtml
+                authority.details.verificationEmailHtml,
               ),
             });
 
             throw new ForbiddenError(
-              "An email has been sent to this address with a code that can be used to prove control."
+              "An email has been sent to this address with a code that can be used to prove control.",
             );
           }
         }
@@ -305,7 +305,7 @@ export const createEmailCredentials: GraphQLFieldConfig<
               recordId: v4(),
               createdByAuthorizationId: a.id,
               createdAt: new Date(),
-            }
+            },
           );
         }
 
@@ -323,7 +323,7 @@ export const createEmailCredentials: GraphQLFieldConfig<
             recordId: v4(),
             createdByAuthorizationId: a.id,
             createdAt: new Date(),
-          }
+          },
         );
 
         const possibleAdministrationScopes =
@@ -349,7 +349,7 @@ export const createEmailCredentials: GraphQLFieldConfig<
               })
             ) {
               throw new ForbiddenError(
-                `You do not have permission to modify the scopes of role ${roleId}.`
+                `You do not have permission to modify the scopes of role ${roleId}.`,
               );
             }
 
@@ -360,7 +360,7 @@ export const createEmailCredentials: GraphQLFieldConfig<
                 scopes: simplify([
                   ...administrationRoleBefore.scopes,
                   ...possibleAdministrationScopes.filter((possible) =>
-                    isSuperset(scopes, possible)
+                    isSuperset(scopes, possible),
                   ),
                 ]),
               },
@@ -368,13 +368,13 @@ export const createEmailCredentials: GraphQLFieldConfig<
                 recordId: v4(),
                 createdByAuthorizationId: a.id,
                 createdAt: new Date(),
-              }
+              },
             );
 
             // Clear and prime the loader.
             Role.clear(executor, administrationRole.id);
             Role.prime(executor, administrationRole.id, administrationRole);
-          })
+          }),
         );
 
         for (const result of administrationResults) {

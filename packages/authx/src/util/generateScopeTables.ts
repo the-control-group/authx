@@ -6,8 +6,8 @@ export function generateScopeTables(
   configs: [
     PatternDescriptionMap,
     PatternDescriptionMap,
-    PatternDescriptionMap
-  ][]
+    PatternDescriptionMap,
+  ][],
 ): { title: string; table: string[][] }[] {
   const data: {
     [realm: string]: {
@@ -33,7 +33,7 @@ export function generateScopeTables(
           const description = `${av} ${cv}`;
           if (row[ak] && row[ak] !== description) {
             throw new Error(
-              `Duplicate value for context "${ck}" and action "${ak}".`
+              `Duplicate value for context "${ck}" and action "${ak}".`,
             );
           }
           row[ak] = description;

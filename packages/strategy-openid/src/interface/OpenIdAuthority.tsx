@@ -139,13 +139,13 @@ export function OpenIdAuthority({
     // Store the current URL for later redirection.
     window.localStorage.setItem(
       `authx.a.${authority.id}.r`,
-      window.location.href
+      window.location.href,
     );
 
     // Strip all search params except authorityId from the redirect URL.
     const redirect = new URL(window.location.href);
     new URL(window.location.href).searchParams.forEach(
-      (v, k) => k !== "authorityId" && redirect.searchParams.delete(k)
+      (v, k) => k !== "authorityId" && redirect.searchParams.delete(k),
     );
 
     const url = new URL(authority.authUrl);

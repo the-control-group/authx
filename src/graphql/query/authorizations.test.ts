@@ -1,18 +1,19 @@
-import { registerHooks } from "../../util";
-import { pagingTests } from "./generic";
+import { registerHooks } from "../../util.js";
+import { pagingTests } from "./generic.js";
+import { fileURLToPath } from "url";
 import {
   AuthorizationAction,
   AuthorizationContext,
   createV2AuthXScope,
-} from "@authx/authx/dist/util/scopes";
+} from "@authx/authx/dist/util/scopes.js";
 
-const ctx = registerHooks(__filename);
+const ctx = registerHooks(fileURLToPath(import.meta.url));
 
 function createReadScope(
   authorizationId: string,
   clientId: string,
   grantId: string,
-  userId: string
+  userId: string,
 ): string {
   const action: AuthorizationAction = {
     basic: "r",
@@ -107,13 +108,13 @@ pagingTests({
       "*",
       "1fcb730e-f134-463a-b224-cab7e61c5ce0",
       "d8dcaf12-b744-4d2d-b223-09e7e5eaa922",
-      "*"
+      "*",
     ),
     createReadScope(
       "*",
       "1fcb730e-f134-463a-b224-cab7e61c5ce0",
       "4e76cb13-ab24-4dc1-ad96-abcbb89f5529",
-      "*"
+      "*",
     ),
   ],
   ctx: ctx,

@@ -36,7 +36,7 @@ export const GraphQLCreateEmailAuthorityInput = new GraphQLInputObjectType({
     },
     publicKeys: {
       type: new GraphQLNonNull(
-        new GraphQLList(new GraphQLNonNull(GraphQLString))
+        new GraphQLList(new GraphQLNonNull(GraphQLString)),
       ),
       description:
         "A list of RS512 public keys that will be used to verify the proofs sent to verify ownership of email addresses.",

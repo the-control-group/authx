@@ -1,5 +1,5 @@
 import { Strategy } from "@authx/authx";
-import { EmailAuthority, EmailCredential } from "./model";
+import { EmailAuthority, EmailCredential } from "./model/index.js";
 import {
   authenticateEmail,
   createEmailAuthorities,
@@ -12,10 +12,10 @@ import {
   GraphQLCreateEmailCredentialInput,
   GraphQLUpdateEmailAuthorityInput,
   GraphQLUpdateEmailCredentialInput,
-} from "./graphql";
+} from "./graphql/index.js";
 
-export * from "./model";
-export * from "./graphql";
+export * from "./model/index.js";
+export * from "./graphql/index.js";
 
 const strategy: Strategy = {
   name: "email",

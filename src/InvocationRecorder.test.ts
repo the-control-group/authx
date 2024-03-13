@@ -1,9 +1,8 @@
 import test from "ava";
-import fetch from "node-fetch";
-import { URL } from "url";
-import { setup } from "./setup";
+import { URL, fileURLToPath } from "url";
+import { setup } from "./setup.js";
 import { basename } from "path";
-import { InvocationRecorder } from "@authx/authx/dist/InvocationRecorder";
+import { InvocationRecorder } from "@authx/authx/dist/InvocationRecorder.js";
 import { Authorization, AuthorizationInvocation } from "@authx/authx";
 
 class StubInvocationRecorder implements InvocationRecorder {
@@ -16,7 +15,7 @@ class StubInvocationRecorder implements InvocationRecorder {
       id: string;
       format: string;
       createdAt: Date;
-    }
+    },
   ): Promise<AuthorizationInvocation> {
     this.numCalls++;
     return {
@@ -35,7 +34,7 @@ let invocationRecorder: StubInvocationRecorder | null = null;
 // Setup.
 test.before(async () => {
   invocationRecorder = new StubInvocationRecorder();
-  const s = await setup(basename(__filename, ".js"), {
+  const s = await setup(basename(fileURLToPath(import.meta.url), ".js"), {
     invocationRecorder,
   });
   url = s.url;
@@ -48,7 +47,7 @@ test("InvocationRecorder is called when expected", async (t) => {
   const graphqlUrl = new URL(url.href);
   graphqlUrl.pathname = "/graphql";
 
-  const result = await fetch(graphqlUrl.href, {
+  await fetch(graphqlUrl.href, {
     method: "POST",
     headers: {
       "content-type": "application/json",

@@ -1,6 +1,6 @@
 import { GraphQLList, GraphQLNonNull, GraphQLInterfaceType } from "graphql";
-import { GraphQLPageInfo } from "./GraphQLPageInfo";
-import { GraphQLEdge } from "./GraphQLEdge";
+import { GraphQLPageInfo } from "./GraphQLPageInfo.js";
+import { GraphQLEdge } from "./GraphQLEdge.js";
 
 export const GraphQLConnection = new GraphQLInterfaceType({
   name: "Connection",

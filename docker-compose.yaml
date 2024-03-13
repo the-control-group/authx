@@ -7,7 +7,9 @@ services:
 
   # This container runs the database.
   postgres:
-    image: postgres:9.6.17
+    build:
+      context: .
+      target: postgres
     restart: always
     environment:
       POSTGRES_PASSWORD: postgres
@@ -31,7 +33,9 @@ services:
 
   # This container installs node modules from the package-lock.json file.
   installer:
-    image: node:16.16.0
+    build:
+      context: .
+      target: node
     working_dir: /workspace
 
     # We would rather ignore scripts, but this repo depends on bcrypt, which
@@ -59,7 +63,9 @@ services:
       installer:
         condition: service_healthy
         restart: false
-    image: node:16.16.0
+    build:
+      context: .
+      target: node
     working_dir: /workspace
     command: npm run build:development:chained
     environment:
@@ -85,7 +91,9 @@ services:
       postgres:
         condition: service_healthy
         restart: false
-    image: node:16.16.0
+    build:
+      context: .
+      target: node
     working_dir: /workspace
     command: npm run start:development
     environment:

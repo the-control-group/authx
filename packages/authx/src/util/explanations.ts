@@ -10,7 +10,7 @@ export interface Explanation {
 }
 
 export function generate(
-  config: [DomainDescriptionMap, DomainDescriptionMap, DomainDescriptionMap][]
+  config: [DomainDescriptionMap, DomainDescriptionMap, DomainDescriptionMap][],
 ): Explanation[] {
   const results = [];
 
@@ -21,7 +21,7 @@ export function generate(
           results.push({
             scope: `${rk}:${ck}:${ak}`,
             description: `${rv}: ${av.slice(0, 1).toUpperCase()}${av.slice(
-              1
+              1,
             )} ${cv}.`,
           });
         }
@@ -38,7 +38,7 @@ function escapeRegExp(key: string): string {
 
 function sortByFreedom(
   { degreesOfFreedom: a }: { degreesOfFreedom: number[] },
-  { degreesOfFreedom: b }: { degreesOfFreedom: number[] }
+  { degreesOfFreedom: b }: { degreesOfFreedom: number[] },
 ): number {
   if (a === b) return 0;
   const length = Math.max(a.length, b.length);
@@ -60,7 +60,7 @@ export function match(
     currentUserId: null | string;
     currentGrantId: null | string;
     currentClientId: null | string;
-  }
+  },
 ): Explanation[] {
   const explanationsByScope: {
     [scope: string]: (Explanation & { degreesOfFreedom: number[] })[];
@@ -93,7 +93,7 @@ export function match(
 
     for (const { query, result, parameters } of extract(
       templateScope,
-      scopes
+      scopes,
     )) {
       // Apply dynamic substitutions to the description.
       let description = template.description;

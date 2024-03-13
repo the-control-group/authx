@@ -1,22 +1,22 @@
 import { v4 } from "uuid";
-import { Pool, PoolClient } from "pg";
+import pg, { Pool, PoolClient } from "pg";
 import { URL } from "url";
 import { randomBytes } from "crypto";
 import { GraphQLFieldConfig, GraphQLList, GraphQLNonNull } from "graphql";
 import { isSuperset, simplify } from "@authx/scopes";
-import { Context } from "../../Context";
-import { GraphQLClient } from "../GraphQLClient";
-import { Client, Role } from "../../model";
-import { DataLoaderExecutor } from "../../loader";
-import { validateIdFormat } from "../../util/validateIdFormat";
-import { createV2AuthXScope } from "../../util/scopes";
+import { Context } from "../../Context.js";
+import { GraphQLClient } from "../GraphQLClient.js";
+import { Client, Role } from "../../model/index.js";
+import { DataLoaderExecutor } from "../../loader.js";
+import { validateIdFormat } from "../../util/validateIdFormat.js";
+import { createV2AuthXScope } from "../../util/scopes.js";
 import {
   ForbiddenError,
   ConflictError,
   NotFoundError,
   ValidationError,
-} from "../../errors";
-import { GraphQLCreateClientInput } from "./GraphQLCreateClientInput";
+} from "../../errors.js";
+import { GraphQLCreateClientInput } from "./GraphQLCreateClientInput.js";
 
 export const createClients: GraphQLFieldConfig<
   any,
@@ -40,7 +40,7 @@ export const createClients: GraphQLFieldConfig<
   args: {
     clients: {
       type: new GraphQLNonNull(
-        new GraphQLList(new GraphQLNonNull(GraphQLCreateClientInput))
+        new GraphQLList(new GraphQLNonNull(GraphQLCreateClientInput)),
       ),
     },
   },
@@ -55,9 +55,9 @@ export const createClients: GraphQLFieldConfig<
       throw new ForbiddenError("You must be authenticated to create a client.");
     }
 
-    if (!(pool instanceof Pool)) {
+    if (!(pool instanceof pg.Pool)) {
       throw new Error(
-        "INVARIANT: The executor connection is expected to be an instance of Pool."
+        "INVARIANT: The executor connection is expected to be an instance of Pool.",
       );
     }
 
@@ -73,7 +73,7 @@ export const createClients: GraphQLFieldConfig<
           new URL(url);
         } catch (error) {
           throw new ValidationError(
-            "The provided `urls` list contains an invalid URL."
+            "The provided `urls` list contains an invalid URL.",
           );
         }
       }
@@ -82,7 +82,7 @@ export const createClients: GraphQLFieldConfig<
       for (const { roleId } of input.administration) {
         if (!validateIdFormat(roleId)) {
           throw new ValidationError(
-            "The provided `administration` list contains a `roleId` that is an invalid ID."
+            "The provided `administration` list contains a `roleId` that is an invalid ID.",
           );
         }
       }
@@ -92,7 +92,7 @@ export const createClients: GraphQLFieldConfig<
         // Make sure this transaction is used for queries made by the executor.
         const executor = new DataLoaderExecutor<Pool | PoolClient>(
           tx,
-          strategies
+          strategies,
         );
 
         if (
@@ -108,12 +108,12 @@ export const createClients: GraphQLFieldConfig<
               {
                 basic: "*",
                 secrets: "*",
-              }
-            )
+              },
+            ),
           ))
         ) {
           throw new ForbiddenError(
-            "You do not have permission to create a client."
+            "You do not have permission to create a client.",
           );
         }
 
@@ -147,7 +147,7 @@ export const createClients: GraphQLFieldConfig<
               recordId: v4(),
               createdByAuthorizationId: a.id,
               createdAt: new Date(),
-            }
+            },
           );
 
           const clientScopeContext = {
@@ -296,7 +296,7 @@ export const createClients: GraphQLFieldConfig<
                 })
               ) {
                 throw new ForbiddenError(
-                  `You do not have permission to modify the scopes of role ${roleId}.`
+                  `You do not have permission to modify the scopes of role ${roleId}.`,
                 );
               }
 
@@ -307,7 +307,7 @@ export const createClients: GraphQLFieldConfig<
                   scopes: simplify([
                     ...administrationRoleBefore.scopes,
                     ...possibleAdministrationScopes.filter((possible) =>
-                      isSuperset(scopes, possible)
+                      isSuperset(scopes, possible),
                     ),
                   ]),
                 },
@@ -315,13 +315,13 @@ export const createClients: GraphQLFieldConfig<
                   recordId: v4(),
                   createdByAuthorizationId: a.id,
                   createdAt: new Date(),
-                }
+                },
               );
 
               // Clear and prime the loader.
               Role.clear(executor, administrationRole.id);
               Role.prime(executor, administrationRole.id, administrationRole);
-            })
+            }),
           );
 
           for (const result of administrationResults) {

@@ -3,7 +3,7 @@ import { Credential, DataLoaderExecutor } from "@authx/authx";
 import {
   PasswordAuthorityDetails,
   PasswordAuthority,
-} from "./PasswordAuthority";
+} from "./PasswordAuthority.js";
 
 // Credential
 // ----------
@@ -14,17 +14,17 @@ export interface PasswordCredentialDetails {
 
 export class PasswordCredential extends Credential<PasswordCredentialDetails> {
   public authority(
-    tx: Pool | ClientBase | DataLoaderExecutor
+    tx: Pool | ClientBase | DataLoaderExecutor,
   ): Promise<PasswordAuthority> {
     return tx instanceof DataLoaderExecutor
       ? // Some silliness to help typescript...
         PasswordAuthority.read<PasswordAuthorityDetails, PasswordAuthority>(
           tx,
-          this.authorityId
+          this.authorityId,
         )
       : PasswordAuthority.read<PasswordAuthorityDetails, PasswordAuthority>(
           tx,
-          this.authorityId
+          this.authorityId,
         );
   }
 }

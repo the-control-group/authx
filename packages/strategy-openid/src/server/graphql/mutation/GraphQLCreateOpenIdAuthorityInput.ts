@@ -47,7 +47,7 @@ export const GraphQLCreateOpenIdAuthorityInput = new GraphQLInputObjectType({
     },
     restrictsAccountsToHostedDomains: {
       type: new GraphQLNonNull(
-        new GraphQLList(new GraphQLNonNull(GraphQLString))
+        new GraphQLList(new GraphQLNonNull(GraphQLString)),
       ) as any,
       description: "Restrict to accounts controlled by these hosted domains.",
       defaultValue: [],
@@ -70,7 +70,7 @@ export const GraphQLCreateOpenIdAuthorityInput = new GraphQLInputObjectType({
     },
     assignsCreatedUsersToRoleIds: {
       type: new GraphQLNonNull(
-        new GraphQLList(new GraphQLNonNull(GraphQLID))
+        new GraphQLList(new GraphQLNonNull(GraphQLID)),
       ) as any,
       description: "When a user is created, assign to these roles.",
       defaultValue: [],

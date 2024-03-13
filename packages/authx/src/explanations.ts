@@ -2,7 +2,7 @@ import {
   DomainDescriptionMap,
   generate,
   Explanation,
-} from "./util/explanations";
+} from "./util/explanations.js";
 
 import {
   AuthorityAction,
@@ -21,12 +21,12 @@ import {
   UserContext,
   createV2AuthXScopeAction,
   createV2AuthXScopeContext,
-} from "./util/scopes";
+} from "./util/scopes.js";
 
 export function createAuthXExplanations(
   realm: DomainDescriptionMap = {
     authx: "authx",
-  }
+  },
 ): ReadonlyArray<Explanation> {
   // Authority
   const commonAuthorityActions = {
@@ -63,7 +63,7 @@ export function createAuthXExplanations(
   const authority: [
     DomainDescriptionMap,
     DomainDescriptionMap,
-    DomainDescriptionMap
+    DomainDescriptionMap,
   ][] = [
     [
       realm,
@@ -132,7 +132,7 @@ export function createAuthXExplanations(
   const client: [
     DomainDescriptionMap,
     DomainDescriptionMap,
-    DomainDescriptionMap
+    DomainDescriptionMap,
   ][] = [
     [
       realm,
@@ -222,7 +222,7 @@ export function createAuthXExplanations(
   const role: [
     DomainDescriptionMap,
     DomainDescriptionMap,
-    DomainDescriptionMap
+    DomainDescriptionMap,
   ][] = [
     [
       realm,
@@ -273,7 +273,7 @@ export function createAuthXExplanations(
   const user: [
     DomainDescriptionMap,
     DomainDescriptionMap,
-    DomainDescriptionMap
+    DomainDescriptionMap,
   ][] = [
     [
       realm,
@@ -314,7 +314,7 @@ export function createAuthXExplanations(
   const credential: [
     DomainDescriptionMap,
     DomainDescriptionMap,
-    DomainDescriptionMap
+    DomainDescriptionMap,
   ][] = [
     [
       realm,
@@ -405,7 +405,7 @@ export function createAuthXExplanations(
   const grant: [
     DomainDescriptionMap,
     DomainDescriptionMap,
-    DomainDescriptionMap
+    DomainDescriptionMap,
   ][] = [
     // Grant
     [
@@ -543,7 +543,7 @@ export function createAuthXExplanations(
   const authorization: [
     DomainDescriptionMap,
     DomainDescriptionMap,
-    DomainDescriptionMap
+    DomainDescriptionMap,
   ][] = [
     [
       realm,

@@ -7,7 +7,7 @@ import {
   GraphQLInputObjectType,
 } from "graphql";
 
-import { GraphQLScopeTemplate } from "../GraphQLScopeTemplate";
+import { GraphQLScopeTemplate } from "../GraphQLScopeTemplate.js";
 
 export const GraphQLUpdateRoleInput = new GraphQLInputObjectType({
   name: "UpdateRoleInput",

@@ -1,3 +1,3 @@
-export * from "./mutation";
-export * from "./GraphQLOpenIdAuthority";
-export * from "./GraphQLOpenIdCredential";
+export * from "./mutation/index.js";
+export * from "./GraphQLOpenIdAuthority.js";
+export * from "./GraphQLOpenIdCredential.js";

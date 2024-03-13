@@ -1,5 +1,5 @@
 import { v4 } from "uuid";
-import { Pool, PoolClient } from "pg";
+import pg, { Pool, PoolClient } from "pg";
 import { GraphQLFieldConfig, GraphQLList, GraphQLNonNull } from "graphql";
 
 import {
@@ -11,9 +11,9 @@ import {
   validateIdFormat,
   ValidationError,
 } from "@authx/authx";
-import { SamlCredential } from "../../model";
-import { GraphQLSamlCredential } from "../GraphQLSamlCredential";
-import { GraphQLUpdateSamlCredentialInput } from "./GraphQLUpdateSamlCredentialInput";
+import { SamlCredential } from "../../model/index.js";
+import { GraphQLSamlCredential } from "../GraphQLSamlCredential.js";
+import { GraphQLUpdateSamlCredentialInput } from "./GraphQLUpdateSamlCredentialInput.js";
 
 export const updateSamlCredentials: GraphQLFieldConfig<
   any,
@@ -30,7 +30,7 @@ export const updateSamlCredentials: GraphQLFieldConfig<
   args: {
     credentials: {
       type: new GraphQLNonNull(
-        new GraphQLList(new GraphQLNonNull(GraphQLUpdateSamlCredentialInput))
+        new GraphQLList(new GraphQLNonNull(GraphQLUpdateSamlCredentialInput)),
       ),
     },
   },
@@ -43,13 +43,13 @@ export const updateSamlCredentials: GraphQLFieldConfig<
 
     if (!a) {
       throw new ForbiddenError(
-        "You must be authenticated to update an credential."
+        "You must be authenticated to update an credential.",
       );
     }
 
-    if (!(pool instanceof Pool)) {
+    if (!(pool instanceof pg.Pool)) {
       throw new Error(
-        "INVARIANT: The executor connection is expected to be an instance of Pool."
+        "INVARIANT: The executor connection is expected to be an instance of Pool.",
       );
     }
 
@@ -64,7 +64,7 @@ export const updateSamlCredentials: GraphQLFieldConfig<
         // Make sure this transaction is used for queries made by the executor.
         const executor = new DataLoaderExecutor<Pool | PoolClient>(
           tx,
-          strategies
+          strategies,
         );
 
         await tx.query("BEGIN DEFERRABLE");
@@ -84,7 +84,7 @@ export const updateSamlCredentials: GraphQLFieldConfig<
           }))
         ) {
           throw new ForbiddenError(
-            "You do not have permission to update this credential."
+            "You do not have permission to update this credential.",
           );
         }
 
@@ -101,7 +101,7 @@ export const updateSamlCredentials: GraphQLFieldConfig<
             recordId: v4(),
             createdByAuthorizationId: a.id,
             createdAt: new Date(),
-          }
+          },
         );
 
         await tx.query("COMMIT");

@@ -1,21 +1,21 @@
 import { v4 } from "uuid";
-import { filter } from "../../util/filter";
-import { Pool, PoolClient } from "pg";
+import { filter } from "../../util/filter.js";
+import pg, { Pool, PoolClient } from "pg";
 import { isSuperset, simplify } from "@authx/scopes";
 import { GraphQLFieldConfig, GraphQLList, GraphQLNonNull } from "graphql";
-import { Context } from "../../Context";
-import { GraphQLRole } from "../GraphQLRole";
-import { Role } from "../../model";
-import { DataLoaderExecutor } from "../../loader";
-import { validateIdFormat } from "../../util/validateIdFormat";
-import { createV2AuthXScope } from "../../util/scopes";
+import { Context } from "../../Context.js";
+import { GraphQLRole } from "../GraphQLRole.js";
+import { Role } from "../../model/index.js";
+import { DataLoaderExecutor } from "../../loader.js";
+import { validateIdFormat } from "../../util/validateIdFormat.js";
+import { createV2AuthXScope } from "../../util/scopes.js";
 import {
   ForbiddenError,
   ConflictError,
   NotFoundError,
   ValidationError,
-} from "../../errors";
-import { GraphQLCreateRoleInput } from "./GraphQLCreateRoleInput";
+} from "../../errors.js";
+import { GraphQLCreateRoleInput } from "./GraphQLCreateRoleInput.js";
 
 export const createRoles: GraphQLFieldConfig<
   any,
@@ -40,7 +40,7 @@ export const createRoles: GraphQLFieldConfig<
   args: {
     roles: {
       type: new GraphQLNonNull(
-        new GraphQLList(new GraphQLNonNull(GraphQLCreateRoleInput))
+        new GraphQLList(new GraphQLNonNull(GraphQLCreateRoleInput)),
       ),
     },
   },
@@ -55,9 +55,9 @@ export const createRoles: GraphQLFieldConfig<
       throw new ForbiddenError("You must be authenticated to create a role.");
     }
 
-    if (!(pool instanceof Pool)) {
+    if (!(pool instanceof pg.Pool)) {
       throw new Error(
-        "INVARIANT: The executor connection is expected to be an instance of Pool."
+        "INVARIANT: The executor connection is expected to be an instance of Pool.",
       );
     }
 
@@ -71,7 +71,7 @@ export const createRoles: GraphQLFieldConfig<
       for (const userId of input.userIds) {
         if (!validateIdFormat(userId)) {
           throw new ValidationError(
-            "The provided `userIds` list contains an invalid ID."
+            "The provided `userIds` list contains an invalid ID.",
           );
         }
       }
@@ -80,7 +80,7 @@ export const createRoles: GraphQLFieldConfig<
       for (const { roleId } of input.administration) {
         if (!validateIdFormat(roleId)) {
           throw new ValidationError(
-            "The provided `administration` list contains a `roleId` that is an invalid ID."
+            "The provided `administration` list contains a `roleId` that is an invalid ID.",
           );
         }
       }
@@ -90,7 +90,7 @@ export const createRoles: GraphQLFieldConfig<
         // Make sure this transaction is used for queries made by the executor.
         const executor = new DataLoaderExecutor<Pool | PoolClient>(
           tx,
-          strategies
+          strategies,
         );
 
         if (
@@ -107,12 +107,12 @@ export const createRoles: GraphQLFieldConfig<
                 basic: "*",
                 scopes: "*",
                 users: "*",
-              }
-            )
+              },
+            ),
           ))
         ) {
           throw new ForbiddenError(
-            "You do not have permission to create roles."
+            "You do not have permission to create roles.",
           );
         }
 
@@ -151,7 +151,7 @@ export const createRoles: GraphQLFieldConfig<
                     basic: "w",
                     scopes: "",
                     users: "w",
-                  })
+                  }),
                 )
               ).reduce<string[]>((acc, { scopes }) => {
                 return [...acc, ...scopes];
@@ -160,7 +160,7 @@ export const createRoles: GraphQLFieldConfig<
 
           if (!isSuperset(assignableScopes, input.scopes)) {
             throw new ForbiddenError(
-              "You do not have permission to assign the provided scopes."
+              "You do not have permission to assign the provided scopes.",
             );
           }
 
@@ -229,7 +229,7 @@ export const createRoles: GraphQLFieldConfig<
                 selfAdministrationScopes = [
                   ...selfAdministrationScopes,
                   ...possibleAdministrationScopes.filter((possible) =>
-                    isSuperset(scopes, possible)
+                    isSuperset(scopes, possible),
                   ),
                 ];
                 return;
@@ -248,7 +248,7 @@ export const createRoles: GraphQLFieldConfig<
                 })
               ) {
                 throw new ForbiddenError(
-                  `You do not have permission to modify the scopes of role ${roleId}.`
+                  `You do not have permission to modify the scopes of role ${roleId}.`,
                 );
               }
 
@@ -260,7 +260,7 @@ export const createRoles: GraphQLFieldConfig<
                   scopes: simplify([
                     ...administrationRoleBefore.scopes,
                     ...possibleAdministrationScopes.filter((possible) =>
-                      isSuperset(scopes, possible)
+                      isSuperset(scopes, possible),
                     ),
                   ]),
                 },
@@ -268,13 +268,13 @@ export const createRoles: GraphQLFieldConfig<
                   recordId: v4(),
                   createdByAuthorizationId: a.id,
                   createdAt: new Date(),
-                }
+                },
               );
 
               // Clear and prime the loader.
               Role.clear(executor, administrationRole.id);
               Role.prime(executor, administrationRole.id, administrationRole);
-            })
+            }),
           );
 
           for (const result of administrationResults) {
@@ -297,7 +297,7 @@ export const createRoles: GraphQLFieldConfig<
               recordId: v4(),
               createdByAuthorizationId: a.id,
               createdAt: new Date(),
-            }
+            },
           );
 
           await tx.query("COMMIT");

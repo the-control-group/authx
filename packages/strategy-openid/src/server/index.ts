@@ -1,5 +1,5 @@
 import { Strategy } from "@authx/authx";
-import { OpenIdAuthority, OpenIdCredential } from "./model";
+import { OpenIdAuthority, OpenIdCredential } from "./model/index.js";
 import {
   authenticateOpenId,
   createOpenIdAuthorities,
@@ -12,10 +12,10 @@ import {
   GraphQLCreateOpenIdCredentialInput,
   GraphQLUpdateOpenIdAuthorityInput,
   GraphQLUpdateOpenIdCredentialInput,
-} from "./graphql";
+} from "./graphql/index.js";
 
-export * from "./model";
-export * from "./graphql";
+export * from "./model/index.js";
+export * from "./graphql/index.js";
 
 const strategy: Strategy = {
   name: "openid",

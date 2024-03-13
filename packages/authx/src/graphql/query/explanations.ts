@@ -1,6 +1,6 @@
 import { GraphQLFieldConfig, GraphQLList, GraphQLNonNull } from "graphql";
-import { Context } from "../../Context";
-import { GraphQLExplanation } from "../GraphQLExplanation";
+import { Context } from "../../Context.js";
+import { GraphQLExplanation } from "../GraphQLExplanation.js";
 
 export const explanations: GraphQLFieldConfig<
   any,
@@ -14,7 +14,7 @@ export const explanations: GraphQLFieldConfig<
   resolve(
     source,
     args,
-    { explanations }
+    { explanations },
   ): ReadonlyArray<{ scope: string; description: string }> {
     return explanations;
   },

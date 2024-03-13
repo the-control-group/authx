@@ -1,7 +1,12 @@
-import { Context } from "./Context";
-import { Strategy } from "./Strategy";
+import { Context } from "./Context.js";
+import { Strategy } from "./Strategy.js";
 import { GraphQLFieldConfig, GraphQLNamedType } from "graphql";
-import { Authority, AuthorityData, Credential, CredentialData } from "./model";
+import {
+  Authority,
+  AuthorityData,
+  Credential,
+  CredentialData,
+} from "./model/index.js";
 
 export class StrategyCollection {
   public map: { [name: string]: Strategy } = {};
@@ -9,7 +14,7 @@ export class StrategyCollection {
   public authorityMap: {
     readonly [name: string]: {
       new (
-        data: AuthorityData<any> & { readonly recordId: string }
+        data: AuthorityData<any> & { readonly recordId: string },
       ): Authority<any>;
     };
   } = {};
@@ -17,7 +22,7 @@ export class StrategyCollection {
   public credentialMap: {
     readonly [name: string]: {
       new (
-        data: CredentialData<any> & { readonly recordId: string }
+        data: CredentialData<any> & { readonly recordId: string },
       ): Credential<any>;
     };
   } = {};
@@ -43,14 +48,14 @@ export class StrategyCollection {
   public add(s: Strategy): StrategyCollection {
     if (this.map[s.name])
       throw new Error(
-        `INVARIANT: Multiple strategies cannot use the same identifier; "${s.name}" is used twice.`
+        `INVARIANT: Multiple strategies cannot use the same identifier; "${s.name}" is used twice.`,
       );
 
     const queryFields = { ...this.queryFields };
     for (const f of Object.keys(s.queryFields)) {
       if (queryFields[f]) {
         throw new Error(
-          `INVARIANT: Multiple strategies cannot use the query field; "${f}" is used twice.`
+          `INVARIANT: Multiple strategies cannot use the query field; "${f}" is used twice.`,
         );
       }
 
@@ -61,7 +66,7 @@ export class StrategyCollection {
     for (const f of Object.keys(s.mutationFields)) {
       if (mutationFields[f]) {
         throw new Error(
-          `INVARIANT: Multiple strategies cannot use the mutation field; "${f}" is used twice.`
+          `INVARIANT: Multiple strategies cannot use the mutation field; "${f}" is used twice.`,
         );
       }
 

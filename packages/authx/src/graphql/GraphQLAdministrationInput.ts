@@ -4,7 +4,7 @@ import {
   GraphQLInputObjectType,
   GraphQLList,
 } from "graphql";
-import { GraphQLScope } from "./GraphQLScope";
+import { GraphQLScope } from "./GraphQLScope.js";
 
 export const GraphQLAdministrationInput = new GraphQLInputObjectType({
   name: "AdministrationInput",

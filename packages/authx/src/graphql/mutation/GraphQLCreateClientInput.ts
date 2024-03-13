@@ -7,7 +7,7 @@ import {
   GraphQLInputObjectType,
 } from "graphql";
 
-import { GraphQLAdministrationInput } from "../GraphQLAdministrationInput";
+import { GraphQLAdministrationInput } from "../GraphQLAdministrationInput.js";
 
 export const GraphQLCreateClientInput = new GraphQLInputObjectType({
   name: "CreateClientInput",
@@ -28,7 +28,7 @@ export const GraphQLCreateClientInput = new GraphQLInputObjectType({
     },
     urls: {
       type: new GraphQLNonNull(
-        new GraphQLList(new GraphQLNonNull(GraphQLString))
+        new GraphQLList(new GraphQLNonNull(GraphQLString)),
       ),
     },
     administration: {

@@ -1,7 +1,7 @@
 import { GraphQLFieldConfig, GraphQLID, GraphQLNonNull } from "graphql";
-import { Context } from "../../Context";
-import { GraphQLRole } from "../GraphQLRole";
-import { Role } from "../../model";
+import { Context } from "../../Context.js";
+import { GraphQLRole } from "../GraphQLRole.js";
+import { Role } from "../../model/index.js";
 
 export const role: GraphQLFieldConfig<
   any,

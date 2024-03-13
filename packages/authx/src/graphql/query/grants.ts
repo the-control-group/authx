@@ -2,15 +2,15 @@ import { GraphQLBoolean, GraphQLFieldConfig } from "graphql";
 
 import { connectionArgs, ConnectionArguments, Connection } from "graphql-relay";
 
-import { GraphQLGrantConnection } from "../GraphQLGrantConnection";
-import { Context } from "../../Context";
-import { Grant } from "../../model";
-import { CursorRule } from "../../model/rules/CursorRule";
-import { NoReplacementRecord } from "../../model/rules/NoReplacementRecord";
-import { IsAccessibleByRule } from "../../model/rules/IsAccessibleByRule";
-import { FieldRule } from "../../model/rules/FieldRule";
-import { Rule } from "../../model/rules/Rule";
-import { CursorConnection } from "../connection/CursorConnection";
+import { GraphQLGrantConnection } from "../GraphQLGrantConnection.js";
+import { Context } from "../../Context.js";
+import { Grant } from "../../model/index.js";
+import { CursorRule } from "../../model/rules/CursorRule.js";
+import { NoReplacementRecord } from "../../model/rules/NoReplacementRecord.js";
+import { IsAccessibleByRule } from "../../model/rules/IsAccessibleByRule.js";
+import { FieldRule } from "../../model/rules/FieldRule.js";
+import { Rule } from "../../model/rules/Rule.js";
+import { CursorConnection } from "../connection/CursorConnection.js";
 
 export const grants: GraphQLFieldConfig<
   any,
@@ -48,7 +48,7 @@ export const grants: GraphQLFieldConfig<
         new NoReplacementRecord(),
         new IsAccessibleByRule(realm, await a.access(executor, realm), "grant"),
       ],
-      args
+      args,
     );
 
     if (!args.includeDisabled) rules.push(new FieldRule("enabled", true));
@@ -59,7 +59,7 @@ export const grants: GraphQLFieldConfig<
         SELECT entity_id AS id
         FROM authx.grant_record
         `,
-      rules
+      rules,
     );
 
     if (!ids.rows.length) {
@@ -76,7 +76,7 @@ export const grants: GraphQLFieldConfig<
 
     const grants = await Grant.read(
       executor,
-      ids.rows.map(({ id }) => id)
+      ids.rows.map(({ id }) => id),
     );
 
     return CursorConnection.connectionFromRules(args, grants, rules);

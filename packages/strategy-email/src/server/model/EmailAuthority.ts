@@ -1,6 +1,6 @@
 import { Pool, ClientBase } from "pg";
 import { Authority, DataLoaderExecutor, QueryCache } from "@authx/authx";
-import { EmailCredential } from "./EmailCredential";
+import { EmailCredential } from "./EmailCredential.js";
 
 // Authority
 // ---------
@@ -19,7 +19,7 @@ export interface EmailAuthorityDetails {
 
 export class EmailAuthority extends Authority<EmailAuthorityDetails> {
   public async credentials(
-    tx: Pool | ClientBase | DataLoaderExecutor
+    tx: Pool | ClientBase | DataLoaderExecutor,
   ): Promise<EmailCredential[]> {
     const ids = (
       await queryCache.query(
@@ -32,7 +32,7 @@ export class EmailAuthority extends Authority<EmailAuthorityDetails> {
             AND replacement_record_id IS NULL
           ORDER BY id ASC
           `,
-        [this.id]
+        [this.id],
       )
     ).rows.map(({ id }) => id);
 
@@ -43,7 +43,7 @@ export class EmailAuthority extends Authority<EmailAuthorityDetails> {
 
   public async credential(
     tx: Pool | ClientBase | DataLoaderExecutor,
-    authorityUserId: string
+    authorityUserId: string,
   ): Promise<null | EmailCredential> {
     const results = await queryCache.query(
       tx,
@@ -56,12 +56,12 @@ export class EmailAuthority extends Authority<EmailAuthorityDetails> {
         AND enabled = true
         AND replacement_record_id IS NULL
       `,
-      [this.id, authorityUserId]
+      [this.id, authorityUserId],
     );
 
     if (results.rows.length > 1) {
       throw new Error(
-        "INVARIANT: There cannot be more than one active credential for the same user and authority."
+        "INVARIANT: There cannot be more than one active credential for the same user and authority.",
       );
     }
 

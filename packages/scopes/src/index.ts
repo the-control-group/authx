@@ -4,11 +4,11 @@ export {
   MissingValueError,
   InvalidParameterizedScopeError,
   inject,
-} from "./parse";
+} from "./parse.js";
 
-import * as PARAMETER from "./parameter";
+import * as PARAMETER from "./parameter.js";
 
-import * as SCOPE from "./scope";
+import * as SCOPE from "./scope.js";
 import {
   parseScopeLiteral,
   parseScopeTemplate,
@@ -16,22 +16,22 @@ import {
   parseParameterizedScopeTemplate,
   InvalidScopeError,
   InvalidParameterizedScopeError,
-} from "./parse";
-import { print } from "./print";
+} from "./parse.js";
+import { print } from "./print.js";
 
 export function getDifference(
   collectionA: string[],
-  collectionB: string[]
+  collectionB: string[],
 ): string[] {
   return SCOPE.getDifference(
     collectionA.map(parseScopeTemplate),
-    collectionB.map(parseScopeTemplate)
+    collectionB.map(parseScopeTemplate),
   ).map(print);
 }
 
 export function getIntersection(
   scopeOrCollectionA: string[] | string,
-  scopeOrCollectionB: string[] | string
+  scopeOrCollectionB: string[] | string,
 ): string[] {
   const collectionA =
     typeof scopeOrCollectionA === "string"
@@ -45,13 +45,13 @@ export function getIntersection(
 
   return SCOPE.getIntersection(
     collectionA.map(parseScopeTemplate),
-    collectionB.map(parseScopeTemplate)
+    collectionB.map(parseScopeTemplate),
   ).map(print);
 }
 
 export function hasIntersection(
   scopeOrCollectionA: string[] | string,
-  scopeOrCollectionB: string[] | string
+  scopeOrCollectionB: string[] | string,
 ): boolean {
   const collectionA =
     typeof scopeOrCollectionA === "string"
@@ -65,13 +65,13 @@ export function hasIntersection(
 
   return SCOPE.hasIntersection(
     collectionA.map(parseScopeTemplate),
-    collectionB.map(parseScopeTemplate)
+    collectionB.map(parseScopeTemplate),
   );
 }
 
 export function isEqual(
   scopeOrCollectionA: string[] | string,
-  scopeOrCollectionB: string[] | string
+  scopeOrCollectionB: string[] | string,
 ): boolean {
   const collectionA =
     typeof scopeOrCollectionA === "string"
@@ -85,13 +85,13 @@ export function isEqual(
 
   return SCOPE.isEqual(
     collectionA.map(parseScopeTemplate),
-    collectionB.map(parseScopeTemplate)
+    collectionB.map(parseScopeTemplate),
   );
 }
 
 export function isStrictSubset(
   scopeOrCollectionA: string[] | string,
-  scopeOrCollectionB: string[] | string
+  scopeOrCollectionB: string[] | string,
 ): boolean {
   const collectionA =
     typeof scopeOrCollectionA === "string"
@@ -105,13 +105,13 @@ export function isStrictSubset(
 
   return SCOPE.isStrictSubset(
     collectionA.map(parseScopeTemplate),
-    collectionB.map(parseScopeTemplate)
+    collectionB.map(parseScopeTemplate),
   );
 }
 
 export function isStrictSuperset(
   scopeOrCollectionA: string[] | string,
-  scopeOrCollectionB: string[] | string
+  scopeOrCollectionB: string[] | string,
 ): boolean {
   const collectionA =
     typeof scopeOrCollectionA === "string"
@@ -125,13 +125,13 @@ export function isStrictSuperset(
 
   return SCOPE.isStrictSuperset(
     collectionA.map(parseScopeTemplate),
-    collectionB.map(parseScopeTemplate)
+    collectionB.map(parseScopeTemplate),
   );
 }
 
 export function isSubset(
   scopeOrCollectionA: string[] | string,
-  scopeOrCollectionB: string[] | string
+  scopeOrCollectionB: string[] | string,
 ): boolean {
   const collectionA =
     typeof scopeOrCollectionA === "string"
@@ -145,13 +145,13 @@ export function isSubset(
 
   return SCOPE.isSubset(
     collectionA.map(parseScopeTemplate),
-    collectionB.map(parseScopeTemplate)
+    collectionB.map(parseScopeTemplate),
   );
 }
 
 export function isSuperset(
   scopeOrCollectionA: string[] | string,
-  scopeOrCollectionB: string[] | string
+  scopeOrCollectionB: string[] | string,
 ): boolean {
   const collectionA =
     typeof scopeOrCollectionA === "string"
@@ -165,7 +165,7 @@ export function isSuperset(
 
   return SCOPE.isSuperset(
     collectionA.map(parseScopeTemplate),
-    collectionB.map(parseScopeTemplate)
+    collectionB.map(parseScopeTemplate),
   );
 }
 
@@ -224,7 +224,7 @@ export function isValidParameterizedScopeTemplate(scope: string): boolean {
 export function normalize(scope: string): string;
 export function normalize(collection: string[]): string[];
 export function normalize(
-  scopeOrCollection: string | string[]
+  scopeOrCollection: string | string[],
 ): string | string[] {
   if (typeof scopeOrCollection !== "string") {
     return scopeOrCollection.map(normalize as (scope: string) => string);
@@ -239,7 +239,7 @@ export function simplify(collection: string[]): string[] {
 
 export function extract(
   scope: string,
-  collection: string[]
+  collection: string[],
 ): ReadonlyArray<{
   query: string;
   result: string;
@@ -247,7 +247,7 @@ export function extract(
 }> {
   return PARAMETER.extract(
     parseParameterizedScopeTemplate(scope),
-    collection.map(parseScopeTemplate)
+    collection.map(parseScopeTemplate),
   ).map(({ query, result, parameters }) => ({
     query: print(query),
     result: print(result),
@@ -256,7 +256,7 @@ export function extract(
         acc[key] = value === SCOPE.AnySingle ? "*" : value;
         return acc;
       },
-      {}
+      {},
     ),
   }));
 }

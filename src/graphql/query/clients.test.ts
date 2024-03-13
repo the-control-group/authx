@@ -1,12 +1,13 @@
-import { registerHooks } from "../../util";
+import { registerHooks } from "../../util.js";
+import { fileURLToPath } from "url";
 import {
   ClientAction,
   ClientContext,
   createV2AuthXScope,
-} from "@authx/authx/dist/util/scopes";
-import { pagingTests } from "./generic";
+} from "@authx/authx/dist/util/scopes.js";
+import { pagingTests } from "./generic.js";
 
-const ctx = registerHooks(__filename);
+const ctx = registerHooks(fileURLToPath(import.meta.url));
 
 function createReadScope(clientId: string): string {
   const action: ClientAction = {

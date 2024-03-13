@@ -1,2 +1,2 @@
-export * from "./SamlAuthority";
-export * from "./SamlCredential";
+export * from "./SamlAuthority.js";
+export * from "./SamlCredential.js";

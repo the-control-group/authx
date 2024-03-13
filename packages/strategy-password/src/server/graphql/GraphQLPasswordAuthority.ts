@@ -7,7 +7,7 @@ import {
   GraphQLObjectType,
 } from "graphql";
 
-import { PasswordAuthority } from "../model";
+import { PasswordAuthority } from "../model/index.js";
 import { GraphQLAuthority, GraphQLNode, Context } from "@authx/authx";
 
 // Authority
@@ -32,7 +32,7 @@ export const GraphQLPasswordAuthority = new GraphQLObjectType<
       async resolve(
         authority,
         args,
-        { realm, authorization: a, executor }: Context
+        { realm, authorization: a, executor }: Context,
       ): Promise<null | number> {
         return a &&
           (await authority.isAccessibleBy(realm, a, executor, {

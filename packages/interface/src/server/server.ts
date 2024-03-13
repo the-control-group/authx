@@ -1,5 +1,5 @@
 import Koa from "koa";
-import createInterfaceMiddleware from ".";
+import createInterfaceMiddleware from "./index.js";
 
 (async () => {
   const app = new Koa();
@@ -18,10 +18,10 @@ import createInterfaceMiddleware from ".";
           !address
             ? ""
             : typeof address === "string"
-            ? address
-            : `http://localhost:${address.port}.`
-        }`
+              ? address
+              : `http://localhost:${address.port}.`
+        }`,
       );
-    }
+    },
   );
 })();

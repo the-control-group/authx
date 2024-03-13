@@ -18,7 +18,7 @@ export function useAuthorization(): {
       return authorizationId && authorizationSecret
         ? { id: authorizationId, secret: authorizationSecret }
         : null;
-    }, [])
+    }, []),
   );
 
   // Listen for changes to the authorization in localStorage
@@ -59,11 +59,11 @@ export function useAuthorization(): {
       (authorization) => {
         window.localStorage.setItem(
           "authx-interface.authorization",
-          `${authorization.id}:${authorization.secret}`
+          `${authorization.id}:${authorization.secret}`,
         );
         setAuthorization(authorization);
       },
-      [setAuthorization]
+      [setAuthorization],
     ),
   };
 }

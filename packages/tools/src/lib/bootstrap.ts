@@ -29,7 +29,7 @@ export async function bootstrap(
       data: Authorization;
       metadata: Metadata & { createdByCredentialId: null | string };
     };
-  }
+  },
 ): Promise<void> {
   // add entities to satisfy foreign key constraints
   await Promise.all([

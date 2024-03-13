@@ -8,7 +8,7 @@ import {
   GraphQLInt,
 } from "graphql";
 
-import { GraphQLScope } from "../GraphQLScope";
+import { GraphQLScope } from "../GraphQLScope.js";
 
 export const GraphQLUpdateGrantInput = new GraphQLInputObjectType({
   name: "UpdateGrantInput",

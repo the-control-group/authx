@@ -1,2 +1,2 @@
-export * from "./EmailAuthority";
-export * from "./EmailCredential";
+export * from "./EmailAuthority.js";
+export * from "./EmailCredential.js";

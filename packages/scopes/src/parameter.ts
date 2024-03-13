@@ -4,7 +4,7 @@ import {
   AnyMultiple,
   getIntersection,
   isSuperset,
-} from "./scope";
+} from "./scope.js";
 
 export interface ParameterizedScope {
   scope: Scope;
@@ -13,7 +13,7 @@ export interface ParameterizedScope {
 
 export function extract(
   { scope: query, positions }: ParameterizedScope,
-  collection: Scope[]
+  collection: Scope[],
 ): ReadonlyArray<{
   query: Scope;
   result: Scope;

@@ -1,5 +1,5 @@
 import test from "ava";
-import { FunctionalTestContext } from "../../util";
+import { FunctionalTestContext } from "../../util.js";
 
 export interface PagingTestsConfig {
   testName: string;
@@ -33,8 +33,8 @@ export function pagingTests(config: PagingTestsConfig): void {
         `
         query {
           ${config.endpointName}(first:1${
-          lastCursor ? ', after:"' + lastCursor + '"' : ""
-        }) {
+            lastCursor ? ', after:"' + lastCursor + '"' : ""
+          }) {
             edges {
               node {
                 id
@@ -50,7 +50,7 @@ export function pagingTests(config: PagingTestsConfig): void {
           }
         }
         `,
-        token
+        token,
       )) as {
         errors?: null | [{ message: string }];
         data: any;
@@ -58,7 +58,7 @@ export function pagingTests(config: PagingTestsConfig): void {
 
       if (dataRaw.errors?.length) {
         throw new Error(
-          dataRaw.errors.map(({ message }) => message).join("; ")
+          dataRaw.errors.map(({ message }) => message).join("; "),
         );
       }
 
@@ -67,13 +67,13 @@ export function pagingTests(config: PagingTestsConfig): void {
       t.assert(data.edges !== null);
       t.assert(
         data.edges.length == 1,
-        `Index ${i}: Expected ${data.edges.length} to be 1`
+        `Index ${i}: Expected ${data.edges.length} to be 1`,
       );
 
       const expectedId = config.ids[i] ?? currentAuthorizationId;
       t.assert(
         data.edges[0].node.id == expectedId,
-        `Index ${i}: Expected ${data.edges[0].node.id} to be ${expectedId}`
+        `Index ${i}: Expected ${data.edges[0].node.id} to be ${expectedId}`,
       );
 
       lastCursor = data.edges[0].cursor;
@@ -84,13 +84,13 @@ export function pagingTests(config: PagingTestsConfig): void {
       t.assert(!data.pageInfo.hasPreviousPage);
       t.assert(
         data.pageInfo.startCursor == data.edges[0].cursor,
-        `Expecting ${data.pageInfo.startCursor} == ${data.edges[0].cursor}`
+        `Expecting ${data.pageInfo.startCursor} == ${data.edges[0].cursor}`,
       );
       t.assert(
         data.pageInfo.endCursor == data.edges[data.edges.length - 1].cursor,
         `Expected ${data.pageInfo.endCursor} == ${
           data.edges[data.edges.length - 1].cursor
-        }`
+        }`,
       );
     }
   });
@@ -106,8 +106,8 @@ export function pagingTests(config: PagingTestsConfig): void {
         `
         query {
           ${config.endpointName}(last:1${
-          lastCursor ? ', before:"' + lastCursor + '"' : ""
-        }) {
+            lastCursor ? ', before:"' + lastCursor + '"' : ""
+          }) {
             edges {
               node {
                 id
@@ -123,7 +123,7 @@ export function pagingTests(config: PagingTestsConfig): void {
           }
         }
         `,
-        token
+        token,
       )) as {
         errors?: null | [{ message: string }];
         data: any;
@@ -131,7 +131,7 @@ export function pagingTests(config: PagingTestsConfig): void {
 
       if (dataRaw.errors?.length) {
         throw new Error(
-          dataRaw.errors.map(({ message }) => message).join("; ")
+          dataRaw.errors.map(({ message }) => message).join("; "),
         );
       }
 
@@ -140,14 +140,14 @@ export function pagingTests(config: PagingTestsConfig): void {
       t.assert(data.edges !== null);
       t.assert(
         data.edges.length == 1,
-        `Index ${i}: Expected ${data.edges.length} to be 1`
+        `Index ${i}: Expected ${data.edges.length} to be 1`,
       );
 
       const expectedId = config.ids[i] ?? currentAuthorizationId;
 
       t.assert(
         data.edges[0].node.id == expectedId,
-        `Index ${i}: Expected ${data.edges[0].node.id} to be ${expectedId}`
+        `Index ${i}: Expected ${data.edges[0].node.id} to be ${expectedId}`,
       );
 
       lastCursor = data.edges[0].cursor;
@@ -158,13 +158,13 @@ export function pagingTests(config: PagingTestsConfig): void {
       t.assert(!data.pageInfo.hasNextPage);
       t.assert(
         data.pageInfo.startCursor == data.edges[0].cursor,
-        `Expecting ${data.pageInfo.startCursor} == ${data.edges[0].cursor}`
+        `Expecting ${data.pageInfo.startCursor} == ${data.edges[0].cursor}`,
       );
       t.assert(
         data.pageInfo.endCursor == data.edges[data.edges.length - 1].cursor,
         `Expected ${data.pageInfo.endCursor} == ${
           data.edges[data.edges.length - 1].cursor
-        }`
+        }`,
       );
     }
   });
@@ -188,7 +188,7 @@ export function pagingTests(config: PagingTestsConfig): void {
         }
       }
     }`,
-        token
+        token,
       );
 
       const expected: any = {

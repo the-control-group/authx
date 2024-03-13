@@ -1,7 +1,7 @@
 import { GraphQLList, GraphQLNonNull, GraphQLObjectType } from "graphql";
-import { GraphQLPageInfo } from "./GraphQLPageInfo";
-import { GraphQLCredentialEdge } from "./GraphQLCredentialEdge";
-import { GraphQLConnection } from "./GraphQLConnection";
+import { GraphQLPageInfo } from "./GraphQLPageInfo.js";
+import { GraphQLCredentialEdge } from "./GraphQLCredentialEdge.js";
+import { GraphQLConnection } from "./GraphQLConnection.js";
 
 export const GraphQLCredentialConnection = new GraphQLObjectType({
   name: "CredentialConnection",

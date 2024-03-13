@@ -55,7 +55,7 @@ proxy = new AuthXClientProxy({
         return method === "GET" && /^\/static(\/.*)?$/.test(url || "");
       },
       behavior: {
-        proxyOptions: { target: `http://127.0.0.1:3001` },
+        proxyOptions: { target: `http://localhost:3001` },
       },
     },
     // The rest of our routes render a single-page-app.
@@ -71,7 +71,7 @@ proxy = new AuthXClientProxy({
       // the user is authenticated and has granted us scopes that are necessary
       // for the app to work, so we will set `requireGrantedScopes`.
       behavior: {
-        proxyOptions: { target: `http://127.0.0.1:3000` },
+        proxyOptions: { target: `http://localhost:3000` },
         sendAuthorizationResponseAs: 303,
         sendTokenToTargetWithScopes: [],
       },
@@ -170,7 +170,7 @@ interface Rule {
     | Behavior
     | ((
         request: IncomingMessage,
-        response: ServerResponse
+        response: ServerResponse,
       ) => Behavior | undefined);
 }
 ```

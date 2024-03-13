@@ -1,7 +1,7 @@
-import { Kind } from "graphql/language";
+import { Kind } from "graphql";
 import { GraphQLScalarType } from "graphql";
 
-function serialize(value: Date | number | string): null | number {
+function serialize(value: unknown): null | number {
   if (value instanceof Date) {
     return value.getTime();
   }
@@ -17,7 +17,7 @@ function serialize(value: Date | number | string): null | number {
   return null;
 }
 
-function parseValue(value: string | number): null | Date {
+function parseValue(value: unknown): null | Date {
   try {
     if (typeof value === "string") {
       return new Date(value);
@@ -37,7 +37,7 @@ function parseLiteral(
   ast:
     | { kind: typeof Kind.INT; value: number }
     | { kind: typeof Kind.STRING; value: string }
-    | any
+    | any,
 ): null | Date {
   if (ast.kind === Kind.INT || ast.kind === Kind.STRING) {
     return parseValue(ast.value);

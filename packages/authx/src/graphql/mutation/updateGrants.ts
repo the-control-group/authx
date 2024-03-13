@@ -1,14 +1,14 @@
 import { v4 } from "uuid";
-import { Pool, PoolClient } from "pg";
+import pg, { Pool, PoolClient } from "pg";
 import { randomBytes } from "crypto";
 import { GraphQLFieldConfig, GraphQLList, GraphQLNonNull } from "graphql";
-import { Context } from "../../Context";
-import { GraphQLGrant } from "../GraphQLGrant";
-import { Grant } from "../../model";
-import { DataLoaderExecutor } from "../../loader";
-import { validateIdFormat } from "../../util/validateIdFormat";
-import { ForbiddenError, ValidationError } from "../../errors";
-import { GraphQLUpdateGrantInput } from "./GraphQLUpdateGrantInput";
+import { Context } from "../../Context.js";
+import { GraphQLGrant } from "../GraphQLGrant.js";
+import { Grant } from "../../model/index.js";
+import { DataLoaderExecutor } from "../../loader.js";
+import { validateIdFormat } from "../../util/validateIdFormat.js";
+import { ForbiddenError, ValidationError } from "../../errors.js";
+import { GraphQLUpdateGrantInput } from "./GraphQLUpdateGrantInput.js";
 
 export const updateGrants: GraphQLFieldConfig<
   any,
@@ -30,7 +30,7 @@ export const updateGrants: GraphQLFieldConfig<
   args: {
     grants: {
       type: new GraphQLNonNull(
-        new GraphQLList(new GraphQLNonNull(GraphQLUpdateGrantInput))
+        new GraphQLList(new GraphQLNonNull(GraphQLUpdateGrantInput)),
       ),
     },
   },
@@ -46,9 +46,9 @@ export const updateGrants: GraphQLFieldConfig<
       throw new ForbiddenError("You must be authenticated to update a grant.");
     }
 
-    if (!(pool instanceof Pool)) {
+    if (!(pool instanceof pg.Pool)) {
       throw new Error(
-        "INVARIANT: The executor connection is expected to be an instance of Pool."
+        "INVARIANT: The executor connection is expected to be an instance of Pool.",
       );
     }
 
@@ -63,7 +63,7 @@ export const updateGrants: GraphQLFieldConfig<
         // Make sure this transaction is used for queries made by the executor.
         const executor = new DataLoaderExecutor<Pool | PoolClient>(
           tx,
-          strategies
+          strategies,
         );
 
         await tx.query("BEGIN DEFERRABLE");
@@ -79,7 +79,7 @@ export const updateGrants: GraphQLFieldConfig<
           }))
         ) {
           throw new ForbiddenError(
-            "You do not have permission to update this grant."
+            "You do not have permission to update this grant.",
           );
         }
 
@@ -92,7 +92,7 @@ export const updateGrants: GraphQLFieldConfig<
           }))
         ) {
           throw new ForbiddenError(
-            "You do not have permission to update this grant's scopes."
+            "You do not have permission to update this grant's scopes.",
           );
         }
 
@@ -108,7 +108,7 @@ export const updateGrants: GraphQLFieldConfig<
           }))
         ) {
           throw new ForbiddenError(
-            "You do not have permission to update this grant's secrets."
+            "You do not have permission to update this grant's secrets.",
           );
         }
 
@@ -121,8 +121,8 @@ export const updateGrants: GraphQLFieldConfig<
           for (let i = input.generateSecrets; i > 0; i--) {
             secrets.push(
               Buffer.from(
-                [before.id, now, randomBytes(16).toString("hex")].join(":")
-              ).toString("base64")
+                [before.id, now, randomBytes(16).toString("hex")].join(":"),
+              ).toString("base64"),
             );
           }
         }
@@ -137,8 +137,8 @@ export const updateGrants: GraphQLFieldConfig<
         if (!secrets.length) {
           secrets.push(
             Buffer.from(
-              [before.id, now, randomBytes(16).toString("hex")].join(":")
-            ).toString("base64")
+              [before.id, now, randomBytes(16).toString("hex")].join(":"),
+            ).toString("base64"),
           );
         }
 
@@ -147,8 +147,8 @@ export const updateGrants: GraphQLFieldConfig<
           for (let i = input.generateCodes; i > 0; i--) {
             codes.push(
               Buffer.from(
-                [before.id, now, randomBytes(16).toString("hex")].join(":")
-              ).toString("base64")
+                [before.id, now, randomBytes(16).toString("hex")].join(":"),
+              ).toString("base64"),
             );
           }
         }
@@ -185,7 +185,7 @@ export const updateGrants: GraphQLFieldConfig<
             recordId: v4(),
             createdByAuthorizationId: a.id,
             createdAt: new Date(),
-          }
+          },
         );
 
         await tx.query("COMMIT");

@@ -1,20 +1,20 @@
 import { v4 } from "uuid";
-import { Pool, PoolClient } from "pg";
+import pg, { Pool, PoolClient } from "pg";
 import { GraphQLFieldConfig, GraphQLNonNull, GraphQLList } from "graphql";
 import { isSuperset, simplify } from "@authx/scopes";
-import { Context } from "../../Context";
-import { GraphQLUser } from "../GraphQLUser";
-import { User, UserType, Role } from "../../model";
-import { DataLoaderExecutor } from "../../loader";
-import { validateIdFormat } from "../../util/validateIdFormat";
-import { createV2AuthXScope } from "../../util/scopes";
+import { Context } from "../../Context.js";
+import { GraphQLUser } from "../GraphQLUser.js";
+import { User, UserType, Role } from "../../model/index.js";
+import { DataLoaderExecutor } from "../../loader.js";
+import { validateIdFormat } from "../../util/validateIdFormat.js";
+import { createV2AuthXScope } from "../../util/scopes.js";
 import {
   ForbiddenError,
   ConflictError,
   NotFoundError,
   ValidationError,
-} from "../../errors";
-import { GraphQLCreateUserInput } from "./GraphQLCreateUserInput";
+} from "../../errors.js";
+import { GraphQLCreateUserInput } from "./GraphQLCreateUserInput.js";
 
 export const createUsers: GraphQLFieldConfig<
   any,
@@ -37,7 +37,7 @@ export const createUsers: GraphQLFieldConfig<
   args: {
     users: {
       type: new GraphQLNonNull(
-        new GraphQLList(new GraphQLNonNull(GraphQLCreateUserInput))
+        new GraphQLList(new GraphQLNonNull(GraphQLCreateUserInput)),
       ),
     },
   },
@@ -52,9 +52,9 @@ export const createUsers: GraphQLFieldConfig<
       throw new ForbiddenError("You must be authenticated to create a user.");
     }
 
-    if (!(pool instanceof Pool)) {
+    if (!(pool instanceof pg.Pool)) {
       throw new Error(
-        "INVARIANT: The executor connection is expected to be an instance of Pool."
+        "INVARIANT: The executor connection is expected to be an instance of Pool.",
       );
     }
 
@@ -68,7 +68,7 @@ export const createUsers: GraphQLFieldConfig<
       for (const { roleId } of input.administration) {
         if (!validateIdFormat(roleId)) {
           throw new ValidationError(
-            "The provided `administration` list contains a `roleId` that is an invalid ID."
+            "The provided `administration` list contains a `roleId` that is an invalid ID.",
           );
         }
       }
@@ -78,7 +78,7 @@ export const createUsers: GraphQLFieldConfig<
         // Make sure this transaction is used for queries made by the executor.
         const executor = new DataLoaderExecutor<Pool | PoolClient>(
           tx,
-          strategies
+          strategies,
         );
 
         // can create a new user
@@ -95,12 +95,12 @@ export const createUsers: GraphQLFieldConfig<
               {
                 basic: "*",
                 scopes: "",
-              }
-            )
+              },
+            ),
           ))
         ) {
           throw new ForbiddenError(
-            "You lack sufficient authorization to create a user."
+            "You lack sufficient authorization to create a user.",
           );
         }
 
@@ -132,7 +132,7 @@ export const createUsers: GraphQLFieldConfig<
               recordId: v4(),
               createdByAuthorizationId: a.id,
               createdAt: new Date(),
-            }
+            },
           );
 
           const userScopeContext = {
@@ -276,7 +276,7 @@ export const createUsers: GraphQLFieldConfig<
                 })
               ) {
                 throw new ForbiddenError(
-                  `You do not have permission to modify the scopes of role ${roleId}.`
+                  `You do not have permission to modify the scopes of role ${roleId}.`,
                 );
               }
 
@@ -287,7 +287,7 @@ export const createUsers: GraphQLFieldConfig<
                   scopes: simplify([
                     ...administrationRoleBefore.scopes,
                     ...possibleAdministrationScopes.filter((possible) =>
-                      isSuperset(scopes, possible)
+                      isSuperset(scopes, possible),
                     ),
                   ]),
                 },
@@ -295,13 +295,13 @@ export const createUsers: GraphQLFieldConfig<
                   recordId: v4(),
                   createdByAuthorizationId: a.id,
                   createdAt: new Date(),
-                }
+                },
               );
 
               // Clear and prime the loader.
               Role.clear(executor, administrationRole.id);
               Role.prime(executor, administrationRole.id, administrationRole);
-            })
+            }),
           );
 
           await tx.query("COMMIT");

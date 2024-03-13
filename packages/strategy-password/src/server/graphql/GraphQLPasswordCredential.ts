@@ -6,8 +6,8 @@ import {
   GraphQLObjectType,
 } from "graphql";
 
-import { PasswordCredential, PasswordAuthority } from "../model";
-import { GraphQLPasswordAuthority } from "./GraphQLPasswordAuthority";
+import { PasswordCredential, PasswordAuthority } from "../model/index.js";
+import { GraphQLPasswordAuthority } from "./GraphQLPasswordAuthority.js";
 import {
   User,
   GraphQLCredential,
@@ -36,7 +36,7 @@ export const GraphQLPasswordCredential = new GraphQLObjectType<
       async resolve(
         credential,
         args,
-        { realm, authorization: a, executor }: Context
+        { realm, authorization: a, executor }: Context,
       ): Promise<null | User> {
         if (!a) return null;
         const user = await credential.user(executor);
@@ -48,7 +48,7 @@ export const GraphQLPasswordCredential = new GraphQLObjectType<
       async resolve(
         credential,
         args,
-        { executor }: Context
+        { executor }: Context,
       ): Promise<null | PasswordAuthority> {
         return credential.authority(executor);
       },
@@ -64,7 +64,7 @@ export const GraphQLPasswordCredential = new GraphQLObjectType<
       async resolve(
         credential,
         args,
-        { realm, authorization: a, executor }: Context
+        { realm, authorization: a, executor }: Context,
       ): Promise<null | string> {
         return a &&
           (await credential.isAccessibleBy(realm, a, executor, {

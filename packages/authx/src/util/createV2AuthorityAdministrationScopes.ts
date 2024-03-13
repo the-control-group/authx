@@ -1,8 +1,8 @@
-import { createV2AuthXScope, AuthorityContext } from "./scopes";
+import { createV2AuthXScope, AuthorityContext } from "./scopes.js";
 
 export function createV2AuthorityAdministrationScopes(
   realm: string,
-  authorityContext: AuthorityContext
+  authorityContext: AuthorityContext,
 ): string[] {
   return [
     createV2AuthXScope(realm, authorityContext, {

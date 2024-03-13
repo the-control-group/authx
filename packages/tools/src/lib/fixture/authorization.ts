@@ -21,7 +21,7 @@ export const authorization = [
           createdByAuthorizationId: "f0e54748-c7bb-4724-ad8b-7dabb66aafa9",
           createdByCredentialId: null,
           createdAt: new Date("2019-03-06T21:07:59.814Z"),
-        }
+        },
       ),
   },
   {
@@ -43,7 +43,7 @@ export const authorization = [
           createdByAuthorizationId: "f0e54748-c7bb-4724-ad8b-7dabb66aafa9",
           createdByCredentialId: null,
           createdAt: new Date("2019-03-06T21:07:59.814Z"),
-        }
+        },
       ),
   },
   {
@@ -65,7 +65,7 @@ export const authorization = [
           createdByAuthorizationId: "f0e54748-c7bb-4724-ad8b-7dabb66aafa9",
           createdByCredentialId: null,
           createdAt: new Date("2019-03-06T21:07:59.814Z"),
-        }
+        },
       ),
   },
   {
@@ -87,7 +87,7 @@ export const authorization = [
           createdByAuthorizationId: "f0e54748-c7bb-4724-ad8b-7dabb66aafa9",
           createdByCredentialId: null,
           createdAt: new Date("2019-03-06T21:07:59.814Z"),
-        }
+        },
       ),
   },
   {
@@ -109,7 +109,7 @@ export const authorization = [
           createdByAuthorizationId: "f0e54748-c7bb-4724-ad8b-7dabb66aafa9",
           createdByCredentialId: null,
           createdAt: new Date("2019-03-06T21:07:59.814Z"),
-        }
+        },
       ),
   },
   {
@@ -131,7 +131,7 @@ export const authorization = [
           createdByAuthorizationId: "f0e54748-c7bb-4724-ad8b-7dabb66aafa9",
           createdByCredentialId: null,
           createdAt: new Date("2019-03-06T21:07:59.814Z"),
-        }
+        },
       ),
   },
 ];

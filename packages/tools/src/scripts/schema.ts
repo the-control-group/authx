@@ -1,8 +1,8 @@
-import { Pool } from "pg";
-import { schema } from "../lib/schema";
+import pg from "pg";
+import { schema } from "../lib/schema.js";
 
 export default async (): Promise<void> => {
-  const pool = new Pool();
+  const pool = new pg.Pool();
   const tx = await pool.connect();
 
   try {

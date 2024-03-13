@@ -1,7 +1,7 @@
 import React, { useState, useEffect, ReactElement } from "react";
 import { useGraphQL, GraphQLFetchOptionsOverride } from "graphql-react";
 
-import { Strategy } from "../Strategy";
+import { Strategy } from "../Strategy.js";
 
 export function Authenticate({
   setAuthorization,

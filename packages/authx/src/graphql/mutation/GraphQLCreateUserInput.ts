@@ -7,8 +7,8 @@ import {
   GraphQLList,
 } from "graphql";
 
-import { GraphQLUserType } from "../GraphQLUserType";
-import { GraphQLAdministrationInput } from "../GraphQLAdministrationInput";
+import { GraphQLUserType } from "../GraphQLUserType.js";
+import { GraphQLAdministrationInput } from "../GraphQLAdministrationInput.js";
 
 export const GraphQLCreateUserInput = new GraphQLInputObjectType({
   name: "CreateUserInput",

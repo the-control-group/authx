@@ -1,29 +1,29 @@
-import { authority } from "./authority";
-import { authorities } from "./authorities";
+import { authority } from "./authority.js";
+import { authorities } from "./authorities.js";
 
-import { client } from "./client";
-import { clients } from "./clients";
+import { client } from "./client.js";
+import { clients } from "./clients.js";
 
-import { credential } from "./credential";
-import { credentials } from "./credentials";
+import { credential } from "./credential.js";
+import { credentials } from "./credentials.js";
 
-import { grant } from "./grant";
-import { grants } from "./grants";
+import { grant } from "./grant.js";
+import { grants } from "./grants.js";
 
-import { role } from "./role";
-import { roles } from "./roles";
+import { role } from "./role.js";
+import { roles } from "./roles.js";
 
-import { authorization } from "./authorization";
-import { authorizations } from "./authorizations";
+import { authorization } from "./authorization.js";
+import { authorizations } from "./authorizations.js";
 
-import { user } from "./user";
-import { users } from "./users";
+import { user } from "./user.js";
+import { users } from "./users.js";
 
-import { viewer } from "./viewer";
+import { viewer } from "./viewer.js";
 
-import { keys } from "./keys";
+import { keys } from "./keys.js";
 
-import { explanations } from "./explanations";
+import { explanations } from "./explanations.js";
 
 export const queryFields = {
   authority,

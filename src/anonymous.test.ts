@@ -1,7 +1,6 @@
 import test from "ava";
-import fetch from "node-fetch";
-import { URL } from "url";
-import { setup } from "./setup";
+import { URL, fileURLToPath } from "url";
+import { setup } from "./setup.js";
 import { basename } from "path";
 
 let url: URL;
@@ -9,7 +8,7 @@ let teardown: () => Promise<void>;
 
 // Setup.
 test.before(async () => {
-  const s = await setup(basename(__filename, ".js"));
+  const s = await setup(basename(fileURLToPath(import.meta.url), ".js"));
   url = s.url;
   teardown = s.teardown;
 });
@@ -316,7 +315,7 @@ test("Root query fields.", async (t) => {
         ],
       },
     },
-    json
+    json,
   );
 });
 

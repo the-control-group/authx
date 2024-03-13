@@ -6,7 +6,7 @@ import {
   GraphQLNonNull,
   GraphQLString,
 } from "graphql";
-import { GraphQLSamlAuthority } from "../GraphQLSamlAuthority";
+import { GraphQLSamlAuthority } from "../GraphQLSamlAuthority.js";
 import { GraphQLAdministrationInput } from "@authx/authx";
 
 export const GraphQLCreateSamlAuthorityInput = new GraphQLInputObjectType({
@@ -58,7 +58,7 @@ export const GraphQLCreateSamlAuthorityInput = new GraphQLInputObjectType({
     },
     assignsCreatedUsersToRoleIds: {
       type: new GraphQLNonNull(
-        new GraphQLList(new GraphQLNonNull(GraphQLID))
+        new GraphQLList(new GraphQLNonNull(GraphQLID)),
       ) as any,
       description: "When a user is created, assign to these role IDs.",
       defaultValue: [],
@@ -79,7 +79,7 @@ export const GraphQLCreateSamlAuthorityInput = new GraphQLInputObjectType({
     },
     identityProviderCertificates: {
       type: new GraphQLNonNull(
-        new GraphQLList(new GraphQLNonNull(GraphQLString))
+        new GraphQLList(new GraphQLNonNull(GraphQLString)),
       ),
       description:
         GraphQLSamlAuthority.getFields().identityProviderCertificates

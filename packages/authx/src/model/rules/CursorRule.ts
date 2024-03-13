@@ -1,7 +1,7 @@
-import { Rule } from "./Rule";
+import { Rule } from "./Rule.js";
 import { ConnectionArguments } from "graphql-relay";
-import { ForwardCursorRule } from "./ForwardCursorRule";
-import { ReverseCursorRule } from "./ReverseCursorRule";
+import { ForwardCursorRule } from "./ForwardCursorRule.js";
+import { ReverseCursorRule } from "./ReverseCursorRule.js";
 
 export class CursorRule {
   static create(args: ConnectionArguments): Rule | null {
@@ -17,7 +17,7 @@ export class CursorRule {
 
   static addToRuleListIfNeeded(
     ruleList: Rule[],
-    args: ConnectionArguments
+    args: ConnectionArguments,
   ): Rule[] {
     const cursorRule = this.create(args);
     if (cursorRule) ruleList.push(cursorRule);

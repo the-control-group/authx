@@ -1,6 +1,6 @@
 import { GraphQLObjectType, GraphQLString, GraphQLNonNull } from "graphql";
-import { GraphQLAuthority } from "./GraphQLAuthority";
-import { GraphQLEdge } from "./GraphQLEdge";
+import { GraphQLAuthority } from "./GraphQLAuthority.js";
+import { GraphQLEdge } from "./GraphQLEdge.js";
 
 export const GraphQLAuthorityEdge = new GraphQLObjectType({
   name: "AuthorityEdge",

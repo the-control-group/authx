@@ -1,10 +1,10 @@
 import React, { ReactElement } from "react";
-import { useAuthorization } from "./useAuthorization";
-import { useAuthenticatedEndpoint } from "./useAuthenticatedEndpoint";
-import { Authenticate } from "./Authenticate";
-import { Authorize } from "./Authorize";
-import { Default } from "./Default";
-import { Strategy } from "../Strategy";
+import { useAuthorization } from "./useAuthorization.js";
+import { useAuthenticatedEndpoint } from "./useAuthenticatedEndpoint.js";
+import { Authenticate } from "./Authenticate.js";
+import { Authorize } from "./Authorize.js";
+import { Default } from "./Default.js";
+import { Strategy } from "../Strategy.js";
 
 export function Root({
   strategies

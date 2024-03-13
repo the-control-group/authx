@@ -1,3 +1,3 @@
-export * from "./mutation";
-export * from "./GraphQLEmailAuthority";
-export * from "./GraphQLEmailCredential";
+export * from "./mutation/index.js";
+export * from "./GraphQLEmailAuthority.js";
+export * from "./GraphQLEmailCredential.js";

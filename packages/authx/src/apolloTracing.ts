@@ -48,10 +48,10 @@ export async function apolloTracingGraphQLMiddleware(
   parent: unknown,
   args: unknown,
   context: { [apolloTracingContext]: ApolloTracingContext },
-  info: GraphQLResolveInfo
+  info: GraphQLResolveInfo,
 ): Promise<any> {
   const startOffset = durationHrTimeToNanos(
-    process.hrtime(context[apolloTracingContext][traceHRStartTime])
+    process.hrtime(context[apolloTracingContext][traceHRStartTime]),
   );
   try {
     return await resolve(parent, args, context, info);
@@ -64,7 +64,7 @@ export async function apolloTracingGraphQLMiddleware(
       startOffset,
       duration:
         durationHrTimeToNanos(
-          process.hrtime(context[apolloTracingContext][traceHRStartTime])
+          process.hrtime(context[apolloTracingContext][traceHRStartTime]),
         ) - startOffset,
     });
   }
@@ -88,6 +88,6 @@ export function startTracingContext(): ApolloTracingContext {
 export function endTracingContext(context: ApolloTracingContext): void {
   context.endTime = new Date().toISOString();
   context.duration = durationHrTimeToNanos(
-    process.hrtime(context[traceHRStartTime])
+    process.hrtime(context[traceHRStartTime]),
   );
 }

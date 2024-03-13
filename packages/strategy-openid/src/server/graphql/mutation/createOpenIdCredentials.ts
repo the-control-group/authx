@@ -1,7 +1,5 @@
 import { v4 } from "uuid";
-import { Pool, PoolClient } from "pg";
-import fetch from "node-fetch";
-import FormData from "form-data";
+import pg, { Pool, PoolClient } from "pg";
 import jwt from "jsonwebtoken";
 import { GraphQLFieldConfig, GraphQLNonNull, GraphQLList } from "graphql";
 
@@ -22,12 +20,12 @@ import {
 import {
   createV2AuthXScope,
   createV2CredentialAdministrationScopes,
-} from "@authx/authx/scopes";
+} from "@authx/authx/scopes.js";
 
 import { isSuperset, simplify } from "@authx/scopes";
-import { OpenIdCredential, OpenIdAuthority } from "../../model";
-import { GraphQLOpenIdCredential } from "../GraphQLOpenIdCredential";
-import { GraphQLCreateOpenIdCredentialInput } from "./GraphQLCreateOpenIdCredentialInput";
+import { OpenIdCredential, OpenIdAuthority } from "../../model/index.js";
+import { GraphQLOpenIdCredential } from "../GraphQLOpenIdCredential.js";
+import { GraphQLCreateOpenIdCredentialInput } from "./GraphQLCreateOpenIdCredentialInput.js";
 
 export const createOpenIdCredentials: GraphQLFieldConfig<
   any,
@@ -52,7 +50,7 @@ export const createOpenIdCredentials: GraphQLFieldConfig<
   args: {
     credentials: {
       type: new GraphQLNonNull(
-        new GraphQLList(new GraphQLNonNull(GraphQLCreateOpenIdCredentialInput))
+        new GraphQLList(new GraphQLNonNull(GraphQLCreateOpenIdCredentialInput)),
       ),
     },
   },
@@ -66,13 +64,13 @@ export const createOpenIdCredentials: GraphQLFieldConfig<
 
     if (!a) {
       throw new ForbiddenError(
-        "You must be authenticated to create a credential."
+        "You must be authenticated to create a credential.",
       );
     }
 
-    if (!(pool instanceof Pool)) {
+    if (!(pool instanceof pg.Pool)) {
       throw new Error(
-        "INVARIANT: The executor connection is expected to be an instance of Pool."
+        "INVARIANT: The executor connection is expected to be an instance of Pool.",
       );
     }
 
@@ -85,7 +83,7 @@ export const createOpenIdCredentials: GraphQLFieldConfig<
       // Validate `authorityId`.
       if (!validateIdFormat(input.authorityId)) {
         throw new ValidationError(
-          "The provided `authorityId` is an invalid ID."
+          "The provided `authorityId` is an invalid ID.",
         );
       }
 
@@ -98,7 +96,7 @@ export const createOpenIdCredentials: GraphQLFieldConfig<
       for (const { roleId } of input.administration) {
         if (!validateIdFormat(roleId)) {
           throw new ValidationError(
-            "The provided `administration` list contains a `roleId` that is an invalid ID."
+            "The provided `administration` list contains a `roleId` that is an invalid ID.",
           );
         }
       }
@@ -108,7 +106,7 @@ export const createOpenIdCredentials: GraphQLFieldConfig<
         // Make sure this transaction is used for queries made by the executor.
         const executor = new DataLoaderExecutor<Pool | PoolClient>(
           tx,
-          strategies
+          strategies,
         );
 
         await tx.query("BEGIN DEFERRABLE");
@@ -133,18 +131,18 @@ export const createOpenIdCredentials: GraphQLFieldConfig<
         const authority = await Authority.read(
           tx,
           input.authorityId,
-          strategies
+          strategies,
         );
 
         if (!(authority instanceof OpenIdAuthority)) {
           throw new NotFoundError(
-            "The authority uses a strategy other than openid."
+            "The authority uses a strategy other than openid.",
           );
         }
 
         if (!input.code && !input.subject) {
           throw new ValidationError(
-            "Either a `code` or `subject` must be provided."
+            "Either a `code` or `subject` must be provided.",
           );
         }
 
@@ -153,7 +151,7 @@ export const createOpenIdCredentials: GraphQLFieldConfig<
           typeof input.subject === "string"
         ) {
           throw new ValidationError(
-            "Only one of `code` or `subject` may be provided."
+            "Only one of `code` or `subject` may be provided.",
           );
         }
 
@@ -168,7 +166,7 @@ export const createOpenIdCredentials: GraphQLFieldConfig<
           requestBody.append("code", input.code);
           requestBody.append(
             "redirect_uri",
-            `${base}?authorityId=${input.authorityId}`
+            `${base}?authorityId=${input.authorityId}`,
           );
 
           const response = await fetch(authority.details.tokenUrl, {
@@ -188,7 +186,7 @@ export const createOpenIdCredentials: GraphQLFieldConfig<
           if (!responseBody || !responseBody.id_token) {
             throw new Error(
               (responseBody && responseBody.error) ||
-                "Invalid response returned by authority."
+                "Invalid response returned by authority.",
             );
           }
 
@@ -240,11 +238,11 @@ export const createOpenIdCredentials: GraphQLFieldConfig<
             authority.details.restrictsAccountsToHostedDomains.length &&
             (!token.hd ||
               !authority.details.restrictsAccountsToHostedDomains.includes(
-                token.hd
+                token.hd,
               ))
           ) {
             throw new AuthenticationError(
-              `The hosted domain "${token.hd || ""}" is not allowed.`
+              `The hosted domain "${token.hd || ""}" is not allowed.`,
             );
           }
 
@@ -269,14 +267,14 @@ export const createOpenIdCredentials: GraphQLFieldConfig<
             AND authority_id = $1
             AND authority_user_id = $2
           `,
-              [authority.id, subject]
+              [authority.id, subject],
             )
-          ).rows.map(({ id }) => id)
+          ).rows.map(({ id }) => id),
         );
 
         if (existingCredentials.length > 1) {
           throw new Error(
-            "INVARIANT: There cannot be more than one active credential with the same authorityId and authorityUserId."
+            "INVARIANT: There cannot be more than one active credential with the same authorityId and authorityUserId.",
           );
         }
 
@@ -296,12 +294,12 @@ export const createOpenIdCredentials: GraphQLFieldConfig<
               {
                 basic: "*",
                 details: "*",
-              }
-            )
+              },
+            ),
           ))
         ) {
           throw new ForbiddenError(
-            "You do not have permission to create this credential."
+            "You do not have permission to create this credential.",
           );
         }
 
@@ -323,13 +321,13 @@ export const createOpenIdCredentials: GraphQLFieldConfig<
               {
                 basic: "*",
                 details: "*",
-              }
-            )
+              },
+            ),
           )) &&
           !input.code
         ) {
           throw new ForbiddenError(
-            "You do not have permission to create this credential without passing a valid `code`."
+            "You do not have permission to create this credential without passing a valid `code`.",
           );
         }
 
@@ -345,7 +343,7 @@ export const createOpenIdCredentials: GraphQLFieldConfig<
               recordId: v4(),
               createdByAuthorizationId: a.id,
               createdAt: new Date(),
-            }
+            },
           );
         }
 
@@ -363,7 +361,7 @@ export const createOpenIdCredentials: GraphQLFieldConfig<
             recordId: v4(),
             createdByAuthorizationId: a.id,
             createdAt: new Date(),
-          }
+          },
         );
 
         const possibleAdministrationScopes =
@@ -389,7 +387,7 @@ export const createOpenIdCredentials: GraphQLFieldConfig<
               })
             ) {
               throw new ForbiddenError(
-                `You do not have permission to modify the scopes of role ${roleId}.`
+                `You do not have permission to modify the scopes of role ${roleId}.`,
               );
             }
 
@@ -400,7 +398,7 @@ export const createOpenIdCredentials: GraphQLFieldConfig<
                 scopes: simplify([
                   ...administrationRoleBefore.scopes,
                   ...possibleAdministrationScopes.filter((possible) =>
-                    isSuperset(scopes, possible)
+                    isSuperset(scopes, possible),
                   ),
                 ]),
               },
@@ -408,13 +406,13 @@ export const createOpenIdCredentials: GraphQLFieldConfig<
                 recordId: v4(),
                 createdByAuthorizationId: a.id,
                 createdAt: new Date(),
-              }
+              },
             );
 
             // Clear and prime the loader.
             Role.clear(executor, administrationRole.id);
             Role.prime(executor, administrationRole.id, administrationRole);
-          })
+          }),
         );
 
         for (const result of administrationResults) {
