@@ -202,9 +202,8 @@ export class Client implements ClientData {
     },
   ): Promise<ClientInvocation> {
     // insert the new invocation
-    const result = await (tx instanceof DataLoaderExecutor
-      ? tx.connection
-      : tx
+    const result = await (
+      tx instanceof DataLoaderExecutor ? tx.connection : tx
     ).query(
       `
       INSERT INTO authx.client_invocation
@@ -222,7 +221,7 @@ export class Client implements ClientData {
         record_id,
         created_at
       `,
-      [data.id, this.id, this.recordId, data.createdAt],
+      [data.id, this.id, this.recordId, data.createdAt] as any[],
     );
 
     if (result.rows.length !== 1) {
@@ -441,7 +440,7 @@ export class Client implements ClientData {
         data.description,
         [...new Set(data.secrets)],
         [...new Set(data.urls)],
-      ],
+      ] as any[],
     );
 
     if (next.rows.length !== 1) {

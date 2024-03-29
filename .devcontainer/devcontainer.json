@@ -38,6 +38,10 @@
       "typescript.tsdk": "node_modules/typescript/lib"
     }
   },
+  "containerEnv": {
+    "PUBLISH_PORT_POSTGRES": "5555",
+    "PUBLISH_PORT_DASHBOARD": "8888",
+  },
   "portsAttributes": {
     "8888": { "label": "Dashboard" },
     "5555": { "label": "Postgres" }

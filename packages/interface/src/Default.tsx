@@ -4,20 +4,20 @@ import React, {
   useEffect,
   useContext,
   FormEvent,
-  ReactElement
+  ReactElement,
 } from "react";
 
 import {
   GraphQL,
   GraphQLContext,
   useGraphQL,
-  GraphQLFetchOptions
+  GraphQLFetchOptions,
 } from "graphql-react";
 
 export function Default({
   fetchOptionsOverride,
   authorization,
-  clearAuthorization
+  clearAuthorization,
 }: {
   fetchOptionsOverride: (options: GraphQLFetchOptions) => void;
   authorization: { id: string; secret: string };
@@ -59,8 +59,8 @@ export function Default({
             }
           }
         }
-      `
-    }
+      `,
+    },
   });
 
   const displayName = cacheValue?.data?.viewer?.user?.name;
@@ -101,9 +101,9 @@ export function Default({
             }
           `,
           variables: {
-            id: authorization.id
-          }
-        }
+            id: authorization.id,
+          },
+        },
       });
 
       const result = await operation.cacheValuePromise;
@@ -113,13 +113,13 @@ export function Default({
       }
 
       if (result.graphQLErrors?.length) {
-        setErrors(result.graphQLErrors.map(e => e.message));
+        setErrors(result.graphQLErrors.map((e) => e.message));
         return;
       }
 
       if (!result.data || !result.data.updateAuthorizations) {
         setErrors([
-          "No authorization was returned. Contact your administrator to ensure you have sufficient access to read your own authorizations."
+          "No authorization was returned. Contact your administrator to ensure you have sufficient access to read your own authorizations.",
         ]);
         return;
       }
@@ -130,7 +130,7 @@ export function Default({
 
       // Clear the authorization from our cookie store.
       clearAuthorization();
-    } catch (error:any) {
+    } catch (error: any) {
       setErrors([error.message]);
       return;
     } finally {
@@ -177,7 +177,7 @@ export function Default({
                 </p>
                 <label>
                   <input
-                    onClick={e => {
+                    onClick={(e) => {
                       e.preventDefault();
                       clearAuthorization();
                     }}

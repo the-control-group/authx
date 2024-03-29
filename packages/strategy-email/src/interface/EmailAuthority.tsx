@@ -5,9 +5,10 @@ import React, {
   useContext,
   ReactElement,
   FormEvent,
+  useCallback,
 } from "react";
 
-import { GraphQL, GraphQLContext } from "graphql-react";
+import { useMutation } from "@tanstack/react-query";
 
 interface Props {
   authority: EmailAuthorityFragmentData;
@@ -64,32 +65,30 @@ export function EmailAuthority({
   }, []);
 
   // API and errors
-  const graphql = useContext<GraphQL>(GraphQLContext as any);
-  const [operating, setOperating] = useState<boolean>(false);
-  const [errors, setErrors] = useState<string[]>([]);
-  async function onSubmit(e: FormEvent): Promise<void> {
-    e.preventDefault();
-    if (!email) {
-      setErrors(["Please enter an email."]);
-      return;
-    }
-
-    setOperating(true);
-    try {
-      const operation = graphql.operate<
-        {
-          authenticateEmail: null | {
-            id: string;
-            secret: null | string;
-          };
+  const mutationFn = useCallback(
+    async ({
+      authorityId,
+      email,
+      proof,
+    }: {
+      authorityId: string;
+      email: string;
+      proof?: string;
+    }): Promise<{
+      errors?: { message: string }[];
+      data?: {
+        authenticateEmail: {
+          id: string;
+          secret: string;
+        };
+      };
+    }> => {
+      const result = await fetch("/graphql", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
         },
-        {
-          authorityId: string;
-          email: string;
-          proof: null | string;
-        }
-      >({
-        operation: {
+        body: JSON.stringify({
           query: `
             mutation($authorityId: ID!, $email: String!, $proof: String) {
               authenticateEmail(
@@ -103,26 +102,31 @@ export function EmailAuthority({
             }
           `,
           variables: {
-            authorityId: authority.id,
+            authorityId,
             email,
             proof,
           },
-        },
+        }),
       });
 
-      const result = await operation.cacheValuePromise;
-      if (result.fetchError) {
-        setErrors([result.fetchError]);
-        return;
-      }
+      return result.json();
+    },
+    [],
+  );
 
-      // Usually, we would loop through these and display the correct errors by
-      // the correct field. This would work in development, but in production,
-      // AuthX only returns a single generic authentication failure message, to
-      // make it more difficult for an attacker to query for valid email
-      // addresses, user IDs, or other information.
-      if (result.graphQLErrors && result.graphQLErrors.length) {
-        setErrors(result.graphQLErrors.map((e) => e.message));
+  const mutation = useMutation({
+    mutationFn,
+    onError(error) {
+      setErrors([error.message]);
+    },
+    onSuccess(result) {
+      if (result.errors && result.errors.length) {
+        // Usually, we would loop through these and display the correct errors
+        // by the correct field. This would work in development, but in
+        // production, AuthX only returns a single generic authentication
+        // failure message, to make it more difficult for an attacker to query
+        // for valid email addresses, user IDs, or other information.
+        setErrors(result.errors.map((e) => e.message));
         return;
       }
 
@@ -140,12 +144,22 @@ export function EmailAuthority({
 
       // Set the authorization.
       setAuthorization({ id: authorization.id, secret: authorization.secret });
-    } catch (error: any) {
-      setErrors([error.message]);
+    },
+  });
+
+  const [errors, setErrors] = useState<string[]>([]);
+  async function onSubmit(e: FormEvent): Promise<void> {
+    e.preventDefault();
+    if (!email) {
+      setErrors(["Please enter an email."]);
       return;
-    } finally {
-      setOperating(false);
     }
+
+    mutation.mutate({
+      authorityId: authority.id,
+      email,
+      proof,
+    });
   }
 
   return (
@@ -156,7 +170,7 @@ export function EmailAuthority({
       <label>
         <span>Email</span>
         <input
-          disabled={operating}
+          disabled={mutation.isPending}
           ref={focusElement}
           name="email"
           type="email"
@@ -169,7 +183,7 @@ export function EmailAuthority({
       <label>
         <span>Proof</span>
         <input
-          disabled={operating}
+          disabled={mutation.isPending}
           name="proof"
           type="text"
           value={proof}
@@ -181,7 +195,7 @@ export function EmailAuthority({
         here.
       </p>
 
-      {!operating && errors.length
+      {!mutation.isPending && errors.length
         ? errors.map((error, i) => (
             <p key={i} className="error">
               {error}
@@ -191,9 +205,9 @@ export function EmailAuthority({
 
       <label>
         <input
-          disabled={operating}
+          disabled={mutation.isPending}
           type="submit"
-          value={operating ? "Loading..." : "Submit"}
+          value={mutation.isPending ? "Loading..." : "Submit"}
         />
       </label>
     </form>

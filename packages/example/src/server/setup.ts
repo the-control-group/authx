@@ -1,13 +1,8 @@
 import Koa from "koa";
-import AuthX, { Config, StrategyCollection } from "@authx/authx";
-import createAuthXInterface from "@authx/interface";
-
-import email from "@authx/strategy-email";
-import password from "@authx/strategy-password";
-import openid from "@authx/strategy-openid";
+import { AuthX, Config, StrategyCollection } from "@authx/authx";
 
 import * as tools from "@authx/tools";
-import pg from "pg";
+import { Client } from "pg";
 import { createServer, Server } from "http";
 import { URL } from "url";
 
@@ -29,17 +24,17 @@ async function setupDatabase(namespace: string): Promise<{
   }
 
   // Create the test database.
-  const client1 = new pg.Client();
+  const client1 = new Client();
   await client1.connect();
   await client1.query(`CREATE DATABASE "${database}";`);
   await client1.end();
 
   // Add fixtures to the database.
-  const client2 = new pg.Client({ database });
+  const client2 = new Client({ database });
   await client2.connect();
   try {
-    await tools.schema(client2);
-    await tools.fixture(client2);
+    await tools.schema(client2 as any);
+    await tools.fixture(client2 as any);
   } catch (error) {
     await client2.query(`DROP DATABASE "${database}";`);
     throw error;
@@ -51,7 +46,7 @@ async function setupDatabase(namespace: string): Promise<{
     database,
     async teardownDatabase(): Promise<void> {
       // Drop the test database.
-      const client = new pg.Client();
+      const client = new Client();
       await client.connect();
       await client.query(`DROP DATABASE "${database}";`);
       await client.end();
@@ -66,17 +61,6 @@ async function setupApp(
   // Create a Koa app.
   const app = new Koa();
   app.proxy = true;
-
-  // Build the interface middleware.
-  const interfaceMiddleware = await createAuthXInterface("authx", [
-    "@authx/strategy-email/interface",
-    "@authx/strategy-password/interface",
-    "@authx/strategy-openid/interface",
-    "@authx/strategy-saml/interface",
-  ]);
-
-  // Add the AuthX user interface.
-  app.use(interfaceMiddleware);
 
   // Create a new instanciate of AuthX.
   const authx = new AuthX({
@@ -117,7 +101,9 @@ Bac/x5qiUn5fh2xM+wIDAQAB
       console.log("--- SENDING EMAIL MESSAGE -------------------------");
       console.log(options);
     },
-    strategies: new StrategyCollection([email, password, openid]),
+    strategies: new StrategyCollection([
+      // email, password, openid
+    ]),
     pg: {
       database,
       host: process.env.PGHOST ?? undefined,

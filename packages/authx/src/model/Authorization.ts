@@ -287,9 +287,8 @@ export class Authorization implements AuthorizationData {
     },
   ): Promise<AuthorizationInvocation> {
     // insert the new invocation
-    const result = await (tx instanceof DataLoaderExecutor
-      ? tx.connection
-      : tx
+    const result = await (
+      tx instanceof DataLoaderExecutor ? tx.connection : tx
     ).query(
       `
       INSERT INTO authx.authorization_invocation
@@ -309,7 +308,7 @@ export class Authorization implements AuthorizationData {
         created_at,
         format
       `,
-      [data.id, this.id, this.recordId, data.createdAt, data.format],
+      [data.id, this.id, this.recordId, data.createdAt, data.format] as any[],
     );
 
     if (result.rows.length !== 1) {
@@ -572,7 +571,7 @@ export class Authorization implements AuthorizationData {
         data.grantId,
         data.secret,
         simplify([...data.scopes]),
-      ],
+      ] as any[],
     );
 
     if (next.rows.length !== 1) {

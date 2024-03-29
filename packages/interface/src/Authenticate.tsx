@@ -1,34 +1,31 @@
-import React, { useState, useEffect, ReactElement } from "react";
-import { useGraphQL, GraphQLFetchOptionsOverride } from "graphql-react";
-
-import { Strategy } from "../Strategy.js";
+import React, { useState, useEffect, ReactElement, useCallback } from "react";
+import { Strategy } from "./Strategy.js";
+import { useQuery } from "@tanstack/react-query";
 
 export function Authenticate({
   setAuthorization,
-  fetchOptionsOverride,
-  strategies
+  strategies,
 }: {
   setAuthorization: (authorization: { id: string; secret: string }) => void;
-  fetchOptionsOverride: GraphQLFetchOptionsOverride;
   strategies: ReadonlyArray<Strategy>;
 }): ReactElement<any> {
   const strategyFragments: string[] = [];
   const strategyFragmentNames: string[] = [];
   const strategyComponents: { [name: string]: Strategy["component"] } = {};
-  strategies.forEach(strategy => {
+  strategies.forEach((strategy) => {
     const match = strategy.fragment.match(
-      /^\s*fragment\s+([A-Z][A-Za-z0-9_]*)\s+on\s+([A-Z][A-Za-z0-9_]*)/
+      /^\s*fragment\s+([A-Z][A-Za-z0-9_]*)\s+on\s+([A-Z][A-Za-z0-9_]*)/,
     );
 
     if (!match || !match[1] || !match[2]) {
       throw new Error(
-        `INVARIANT: Failed to extract fragment name from:\n${strategy.fragment}`
+        `INVARIANT: Failed to extract fragment name from:\n${strategy.fragment}`,
       );
     }
 
     if (strategyComponents[match[2]]) {
       throw new Error(
-        `INVARIANT: A strategy is already registered for the type "${match[2]}".`
+        `INVARIANT: A strategy is already registered for the type "${match[2]}".`,
       );
     }
 
@@ -43,9 +40,10 @@ export function Authenticate({
       authorities {
         edges {
           node {
+            __typename
             id
 
-            ${strategyFragmentNames.map(name => {
+            ${strategyFragmentNames.map((name) => {
               return `...${name}\n`;
             })}
           }
@@ -53,37 +51,55 @@ export function Authenticate({
       }
     }
 
-    ${strategyFragments.map(fragment => `${fragment}\n\n`)}
+    ${strategyFragments.map((fragment) => `${fragment}\n\n`)}
   `;
 
+  const queryFn = useCallback(
+    async () =>
+      fetch("/graphql", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ query }),
+      }).then((res) => res.json()),
+    [query],
+  );
+
   // Get all active authorities from the API.
-  const { loading, cacheValue } = useGraphQL<any, {}>({
-    fetchOptionsOverride,
-    loadOnMount: true,
-    operation: {
-      variables: {},
-      query
-    }
+  const {
+    data,
+    error,
+    isError,
+    isPending,
+    isLoading,
+    isLoadingError,
+    isRefetchError,
+    isSuccess,
+    status,
+  } = useQuery({
+    queryKey: ["authenticate"],
+    queryFn,
   });
 
   // Sort authorities by name.
   const authorities: any[] =
-    cacheValue?.data?.authorities?.edges
+    data?.data?.authorities?.edges
       .map((edge: any) => edge.node)
       .filter((authority: any) => authority)
       .sort((a: any, b: any) =>
-        a.name < b.name ? -1 : a.name > b.name ? 1 : 0
+        a.name < b.name ? -1 : a.name > b.name ? 1 : 0,
       ) || [];
 
   // Set an active authority.
   const [authorityId, setAuthorityId] = useState<null | string>(
-    new URL(window.location.href).searchParams.get("authorityId")
+    new URL(window.location.href).searchParams.get("authorityId"),
   );
 
   useEffect(() => {
     function onPopState(): void {
       const next = new URL(window.location.href).searchParams.get(
-        "authorityId"
+        "authorityId",
       );
       if (next) setAuthorityId(next);
     }
@@ -104,14 +120,14 @@ export function Authenticate({
 
   if (authorities.length && authorityId === null) {
     const firstPasswordAuthority = authorities.find(
-      a => a.__typename === "PasswordAuthority"
+      (a) => a.__typename === "PasswordAuthority",
     );
     const authority = firstPasswordAuthority || authorities[0];
     setActiveAuthorityId(authority.id, authority.name || undefined);
   }
 
   const authority =
-    (authorityId && authorities.find(a => a.id === authorityId)) || null;
+    (authorityId && authorities.find((a) => a.id === authorityId)) || null;
 
   const StrategyComponent =
     authority && strategyComponents[authority.__typename];
@@ -120,7 +136,7 @@ export function Authenticate({
     <div>
       <h1>Authenticate</h1>
       <div className="tabs">
-        {authorities.map(a => (
+        {authorities.map((a) => (
           <div key={a.id} className={a.id === authorityId ? "active" : ""}>
             <button type="button" onClick={() => setActiveAuthorityId(a.id)}>
               {a.name}
@@ -137,16 +153,20 @@ export function Authenticate({
         />
       )) || (
         <div className="panel">
-          {loading ? (
+          {isPending ? (
             <p>Loading...</p>
-          ) : !authorities.length ? (
-            authorityId ? (
-              cacheValue?.graphQLErrors?.length ? (
-                cacheValue.graphQLErrors.map(({ message }, i) => (
-                  <p className="error" key={i}>
-                    {message}
-                  </p>
-                ))
+          ) : authorityId ? (
+            !authorities.length ? (
+              error ? (
+                <p className="error">{error.message}</p>
+              ) : data?.errors?.length ? (
+                data.errors.map(
+                  ({ message }: { message: string }, i: number) => (
+                    <p className="error" key={i}>
+                      {message}
+                    </p>
+                  ),
+                )
               ) : (
                 <p className="error">The authority failed to load.</p>
               )

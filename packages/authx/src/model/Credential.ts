@@ -171,9 +171,8 @@ export abstract class Credential<C> implements CredentialData<C> {
     },
   ): Promise<CredentialInvocation> {
     // insert the new invocation
-    const result = await (tx instanceof DataLoaderExecutor
-      ? tx.connection
-      : tx
+    const result = await (
+      tx instanceof DataLoaderExecutor ? tx.connection : tx
     ).query(
       `
       INSERT INTO authx.credential_invocation
@@ -191,7 +190,7 @@ export abstract class Credential<C> implements CredentialData<C> {
         record_id,
         created_at
       `,
-      [data.id, this.id, this.recordId, data.createdAt],
+      [data.id, this.id, this.recordId, data.createdAt] as any[],
     );
 
     if (result.rows.length !== 1) {
@@ -501,7 +500,7 @@ export abstract class Credential<C> implements CredentialData<C> {
         data.authorityUserId,
         data.userId,
         data.details,
-      ],
+      ] as any[],
     );
 
     if (next.rows.length !== 1) {

@@ -359,7 +359,7 @@ export class Role implements RoleData {
         data.name,
         data.description,
         simplify([...data.scopes]),
-      ],
+      ] as any[],
     );
 
     if (next.rows.length !== 1) {
@@ -377,7 +377,7 @@ export class Role implements RoleData {
       SELECT $1::uuid AS role_record_id, user_id FROM UNNEST($2::uuid[]) AS user_id
       RETURNING user_id
       `,
-      [metadata.recordId, userIds],
+      [metadata.recordId, userIds] as any[],
     );
 
     if (users.rows.length !== userIds.length) {

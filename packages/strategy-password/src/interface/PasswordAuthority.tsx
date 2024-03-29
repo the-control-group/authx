@@ -7,8 +7,6 @@ import React, {
   FormEvent,
 } from "react";
 
-import { GraphQL, GraphQLContext } from "graphql-react";
-
 interface Props {
   authority: PasswordAuthorityFragmentData;
   authorities: { __typename: string; id: string; name?: null | string }[];
@@ -62,7 +60,7 @@ export function PasswordAuthority({
   const [password, setPassword] = useState<string>("");
 
   // API and errors
-  const graphql = useContext<GraphQL>(GraphQLContext as any);
+  // const graphql = useContext<GraphQL>(GraphQLContext as any);
   const [operating, setOperating] = useState<boolean>(false);
   const [errors, setErrors] = useState<string[]>([]);
   async function onSubmit(e: FormEvent): Promise<void> {
@@ -74,6 +72,7 @@ export function PasswordAuthority({
 
     setOperating(true);
     try {
+      /*
       const operation = graphql.operate<
         {
           authenticatePassword: null | {
@@ -141,6 +140,7 @@ export function PasswordAuthority({
 
       // Set the authorization.
       setAuthorization({ id: authorization.id, secret: authorization.secret });
+      */
     } catch (error: any) {
       setErrors([error.message]);
       return;

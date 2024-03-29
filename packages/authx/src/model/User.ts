@@ -488,7 +488,7 @@ export class User implements UserData {
         data.enabled,
         data.type,
         data.name,
-      ],
+      ] as any[],
     );
 
     if (next.rows.length !== 1) {

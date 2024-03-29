@@ -394,7 +394,7 @@ export abstract class Authority<A> implements AuthorityData<A> {
         data.description,
         data.strategy,
         data.details,
-      ],
+      ] as any[],
     );
 
     if (next.rows.length !== 1) {
