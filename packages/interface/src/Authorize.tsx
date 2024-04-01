@@ -2,19 +2,11 @@ import React, {
   Fragment,
   ReactElement,
   useEffect,
-  useContext,
   useCallback,
   useState,
   ReactChild,
   useMemo,
 } from "react";
-
-import {
-  GraphQL,
-  useGraphQL,
-  GraphQLFetchOptionsOverride,
-  GraphQLContext,
-} from "graphql-react";
 
 import { createV2AuthXScope } from "@authx/authx/scopes.js";
 
@@ -22,6 +14,7 @@ import { isSuperset, getDifference, simplify, inject } from "@authx/scopes";
 import { match } from "@authx/authx/dist/util/explanations.js";
 
 import { v4 } from "uuid";
+import { useMutation, useQuery } from "@tanstack/react-query";
 
 declare const __REALM__: string;
 
@@ -34,8 +27,8 @@ const implicitScopes = [
     },
     {
       basic: "r",
-      scopes: ""
-    }
+      scopes: "",
+    },
   ),
   createV2AuthXScope(
     __REALM__,
@@ -49,7 +42,7 @@ const implicitScopes = [
       basic: "r",
       scopes: "*",
       secrets: "*",
-    }
+    },
   ),
   createV2AuthXScope(
     __REALM__,
@@ -63,7 +56,7 @@ const implicitScopes = [
       basic: "w",
       scopes: "",
       secrets: "*",
-    }
+    },
   ),
   createV2AuthXScope(
     __REALM__,
@@ -78,7 +71,7 @@ const implicitScopes = [
       basic: "*",
       scopes: "*",
       secrets: "*",
-    }
+    },
   ),
 ];
 
@@ -204,9 +197,11 @@ function Checkbox({
         </div>
       </div>
       <input
-        onChange={useCallback((e:React.ChangeEvent<HTMLInputElement>) => onChange(e.currentTarget.checked), [
-          onChange,
-        ])}
+        onChange={useCallback(
+          (e: React.ChangeEvent<HTMLInputElement>) =>
+            onChange(e.currentTarget.checked),
+          [onChange],
+        )}
         onFocus={useCallback(() => setHasFocus(true), [setHasFocus])}
         onBlur={useCallback(() => setHasFocus(false), [setHasFocus])}
         type="checkbox"
@@ -227,12 +222,186 @@ function Checkbox({
   );
 }
 
+const makeQuery = async (
+  authorizationId: string,
+  authorizationSecret: string,
+  clientId: string,
+): Promise<{
+  errors?: { message: string }[];
+  data?: {
+    viewer: null | {
+      user: null | {
+        id: string;
+        name: null | string;
+        grant: null | {
+          id: string;
+          scopes: null | string[];
+          enabled: boolean;
+        };
+      };
+    };
+    client: null | {
+      id: string;
+      name: string;
+      urls: string[];
+    };
+    explanations: null | ReadonlyArray<{
+      scope: string;
+      description: string;
+    }>;
+  };
+}> => {
+  const result = await fetch("/graphql", {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      Authorization: `Basic ${btoa(`${authorizationId}:${authorizationSecret}`)}`,
+    },
+    body: JSON.stringify({
+      query: `
+        query($clientId: ID!) {
+          viewer {
+            user {
+              id
+              name
+              grant(clientId: $clientId) {
+                id
+                scopes
+                enabled
+              }
+            }
+          }
+
+          client(id: $clientId) {
+            id
+            name
+            urls
+          }
+
+          explanations {
+            scope
+            description
+          }
+        }
+      `,
+      variables: {
+        clientId,
+      },
+    }),
+  });
+
+  return await result.json();
+};
+
+const updateGrantMutationFn = async ({
+  authorizationId,
+  authorizationSecret,
+  grantId,
+  grantScopes,
+}: {
+  authorizationId: string;
+  authorizationSecret: string;
+  grantId: string;
+  grantScopes: string[];
+}): Promise<{
+  errors?: { message: string }[];
+  data?: {
+    updateGrants: null | ReadonlyArray<null | {
+      codes: null | string[];
+      scopes: null | string[];
+    }>;
+  };
+}> => {
+  const result = await fetch("/graphql", {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      Authorization: `Basic ${btoa(`${authorizationId}:${authorizationSecret}`)}`,
+    },
+    body: JSON.stringify({
+      query: `
+        mutation($id: ID!, $scopes: [Scope!]!) {
+          updateGrants(
+            grants: [{id: $id, scopes: $scopes, generateCodes: 1}]
+          ) {
+            codes
+            scopes
+          }
+        }
+          `,
+      variables: {
+        id: grantId,
+        scopes: grantScopes,
+      },
+    }),
+  });
+
+  return result.json();
+};
+
+const createGrantMutationFn = async ({
+  authorizationId,
+  authorizationSecret,
+  speculativeGrantId,
+  clientId,
+  userId,
+  grantScopes,
+}: {
+  authorizationId: string;
+  authorizationSecret: string;
+  speculativeGrantId: string;
+  clientId: string;
+  userId: string;
+  grantScopes: string[];
+}): Promise<{
+  errors?: { message: string }[];
+  data?: {
+    createGrants: null | ReadonlyArray<null | {
+      codes: null | string[];
+      scopes: null | string[];
+    }>;
+  };
+}> => {
+  const result = await fetch("/graphql", {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      Authorization: `Basic ${btoa(`${authorizationId}:${authorizationSecret}`)}`,
+    },
+    body: JSON.stringify({
+      query: `
+        mutation($id: ID!, $clientId: ID!, $userId: ID!, $scopes: [Scope!]!) {
+          createGrants(
+            grants: [{
+              id: $id,
+              clientId: $clientId,
+              userId: $userId,
+              scopes: $scopes
+            }]
+          ) {
+            codes
+            scopes
+          }
+        }
+      `,
+      variables: {
+        id: speculativeGrantId,
+        clientId: clientId,
+        userId: userId,
+        scopes: grantScopes,
+      },
+    }),
+  });
+
+  return result.json();
+};
+
 export function Authorize({
   clearAuthorization,
-  fetchOptionsOverride,
+  authorization,
 }: {
   clearAuthorization: () => void;
-  fetchOptionsOverride: GraphQLFetchOptionsOverride;
+  authorization: { id: string; secret: string };
 }): ReactElement<any> {
   const url = new URL(window.location.href);
 
@@ -269,71 +438,17 @@ export function Authorize({
   }
 
   // Get the user, grant, and client from the API.
-  const { loading, cacheValue } = useGraphQL<
-    {
-      viewer: null | {
-        user: null | {
-          id: string;
-          name: null | string;
-          grant: null | {
-            id: string;
-            scopes: null | string[];
-            enabled: boolean;
-          };
-        };
-      };
-      client: null | {
-        id: string;
-        name: string;
-        urls: string[];
-      };
-      explanations: null | ReadonlyArray<{
-        scope: string;
-        description: string;
-      }>;
-    },
-    { clientId: string }
-  >({
-    fetchOptionsOverride,
-    loadOnMount: paramsClientId ? true : false,
-    operation: {
-      query: `
-        query($clientId: ID!) {
-          viewer {
-            user {
-              id
-              name
-              grant(clientId: $clientId) {
-                id
-                scopes
-                enabled
-              }
-            }
-          }
-
-          client(id: $clientId) {
-            id
-            name
-            urls
-          }
-
-          explanations {
-            scope
-            description
-          }
-        }
-      `,
-      variables: {
-        clientId: paramsClientId || "",
-      },
-    },
+  const { data, isLoading } = useQuery({
+    queryKey: ["authorize", authorization.id, paramsClientId],
+    queryFn: () =>
+      makeQuery(authorization.id, authorization.secret, paramsClientId ?? ""),
   });
 
-  const user = cacheValue?.data?.viewer?.user;
-  const client = cacheValue?.data?.client;
+  const user = data?.data?.viewer?.user;
+  const client = data?.data?.client;
   const grant = user?.grant?.enabled ? user.grant : undefined;
   const urls = client?.urls;
-  const explanations = cacheValue?.data?.explanations;
+  const explanations = data?.data?.explanations;
 
   // These decisions override the default behavior, which is to
   const [overrides, setOverrides] = useState<{ [scope: string]: boolean }>({});
@@ -355,10 +470,10 @@ export function Authorize({
             current_grant_id: grantId,
             current_user_id: userId,
             /* eslint-enable camelcase */
-          }
-        )
+          },
+        ),
       ),
-    [requestedScopeTemplates, clientId, grantId, userId]
+    [requestedScopeTemplates, clientId, grantId, userId],
   );
 
   const grantedScopes = grant?.scopes;
@@ -372,13 +487,13 @@ export function Authorize({
             currentClientId: clientId,
           })
         : [],
-    [explanations, grantedScopes, clientId, grantId, userId]
+    [explanations, grantedScopes, clientId, grantId, userId],
   );
 
   const newRequestedScopes = grant?.scopes
     ? getDifference(
         grant.scopes.filter((s) => overrides[s] !== false),
-        requestedScopes
+        requestedScopes,
       )
     : requestedScopes;
 
@@ -392,113 +507,25 @@ export function Authorize({
             currentClientId: clientId,
           })
         : [],
-    [explanations, newRequestedScopes, clientId, grantId, userId]
+    [explanations, newRequestedScopes, clientId, grantId, userId],
   );
 
   // API and errors
-  const graphql = useContext<GraphQL>(GraphQLContext as any);
-  const [operating, setOperating] = useState<null | boolean>(null);
   const [redirecting, setRedirecting] = useState<boolean>(false);
   const [errors, setErrors] = useState<string[]>([]);
-  async function onGrantAccess(): Promise<void> {
-    if (!paramsRedirectUri) return;
-    if (!user || !client) return;
 
-    setOperating(true);
-    try {
-      let operation;
-      if (grant) {
-        operation = graphql.operate<
-          {
-            createGrants?: undefined;
-            updateGrants: null | ReadonlyArray<null | {
-              codes: null | string[];
-              scopes: null | string[];
-            }>;
-          },
-          {
-            id: string;
-            scopes: string[];
-          }
-        >({
-          fetchOptionsOverride,
-          operation: {
-            query: `
-              mutation($id: ID!, $scopes: [Scope!]!) {
-                updateGrants(
-                  grants: [{id: $id, scopes: $scopes, generateCodes: 1}]
-                ) {
-                  codes
-                  scopes
-                }
-              }
-            `,
-            variables: {
-              id: grant.id,
-              scopes: simplify(
-                [...(grant.scopes || []), ...requestedScopes].filter(
-                  (s) => overrides[s] !== false
-                )
-              ),
-            },
-          },
-        });
-      } else {
-        operation = graphql.operate<
-          {
-            updateGrants?: undefined;
-            createGrants: null | ReadonlyArray<null | {
-              codes: null | string[];
-              scopes: null | string[];
-            }>;
-          },
-          {
-            id: string;
-            clientId: string;
-            userId: string;
-            scopes: string[];
-          }
-        >({
-          fetchOptionsOverride,
-          operation: {
-            query: `
-              mutation($id: ID!, $clientId: ID!, $userId: ID!, $scopes: [Scope!]!) {
-                createGrants(
-                  grants: [{
-                    id: $id,
-                    clientId: $clientId,
-                    userId: $userId,
-                    scopes: $scopes
-                  }]
-                ) {
-                  codes
-                  scopes
-                }
-              }
-            `,
-            variables: {
-              id: speculativeGrantId,
-              clientId: client.id,
-              userId: user.id,
-              scopes: requestedScopes,
-            },
-          },
-        });
-      }
-
-      const result = await operation.cacheValuePromise;
-      if (result.fetchError) {
-        setErrors([result.fetchError]);
+  const createGrantMutation = useMutation({
+    mutationFn: createGrantMutationFn,
+    onError(error) {
+      setErrors([error.message]);
+    },
+    onSuccess(result) {
+      if (result.errors && result.errors.length) {
+        setErrors(result.errors.map((e) => e.message));
         return;
       }
 
-      if (result.graphQLErrors?.length) {
-        setErrors(result.graphQLErrors.map((e) => e.message));
-        return;
-      }
-
-      const final =
-        result?.data?.updateGrants?.[0] ?? result?.data?.createGrants?.[0];
+      const final = result.data?.createGrants?.[0];
 
       const code =
         (final?.codes && [...final.codes].sort().reverse()[0]) || null;
@@ -510,9 +537,14 @@ export function Authorize({
         return;
       }
 
-      // We have successfully authenticated!
+      // We have successfully created the grant!
       // Zero the error.
       setErrors([]);
+
+      if (!paramsRedirectUri) {
+        setErrors(["Impossible condition: no redirect URI was provided."]);
+        return;
+      }
 
       // Redirect
       const url = new URL(paramsRedirectUri);
@@ -521,13 +553,84 @@ export function Authorize({
       setRedirecting(true);
       setSpeculativeGrantId(v4());
       window.location.replace(url.href);
-    } catch (error:any) {
+    },
+  });
+
+  const updateGrantMutation = useMutation({
+    mutationFn: updateGrantMutationFn,
+    onError(error) {
       setErrors([error.message]);
-      return;
-    } finally {
-      setOperating(false);
+    },
+    onSuccess(result) {
+      if (result.errors && result.errors.length) {
+        setErrors(result.errors.map((e) => e.message));
+        return;
+      }
+
+      const final = result.data?.updateGrants?.[0];
+
+      const code =
+        (final?.codes && [...final.codes].sort().reverse()[0]) || null;
+
+      if (!code) {
+        setErrors([
+          "No code was returned. Contact your administrator to ensure you have sufficient access to read your own authorizations and authorization secrets.",
+        ]);
+        return;
+      }
+
+      // We have successfully updated the grant!
+      // Zero the error.
+      setErrors([]);
+
+      if (!paramsRedirectUri) {
+        setErrors(["Impossible condition: No redirect URI was provided."]);
+        return;
+      }
+
+      // Redirect
+      const url = new URL(paramsRedirectUri);
+      if (paramsState) url.searchParams.set("state", paramsState);
+      url.searchParams.set("code", code);
+      setRedirecting(true);
+      setSpeculativeGrantId(v4());
+      window.location.replace(url.href);
+    },
+  });
+
+  async function onGrantAccess(): Promise<void> {
+    if (!paramsRedirectUri) return;
+    if (!user || !client) return;
+
+    if (grant) {
+      const scopes = simplify(
+        [...(grant.scopes || []), ...requestedScopes].filter(
+          (s) => overrides[s] !== false,
+        ),
+      );
+
+      updateGrantMutation.mutate({
+        authorizationId: authorization.id,
+        authorizationSecret: authorization.secret,
+        grantId: grant.id,
+        grantScopes: scopes,
+      });
+    } else {
+      const scopes = requestedScopes;
+
+      createGrantMutation.mutate({
+        authorizationId: authorization.id,
+        authorizationSecret: authorization.secret,
+        speculativeGrantId,
+        clientId: client.id,
+        userId: user.id,
+        grantScopes: scopes,
+      });
     }
   }
+
+  const operating =
+    createGrantMutation.isPending || updateGrantMutation.isPending;
 
   useEffect(() => {
     // Make sure we're ready and it's safe to redirect the user
@@ -543,7 +646,7 @@ export function Authorize({
         url.searchParams.append("error", "unsupported_response_type");
         url.searchParams.append(
           "error_description",
-          'The `response_type` must be set to "code".'
+          'The `response_type` must be set to "code".',
         );
       }
 
@@ -551,7 +654,7 @@ export function Authorize({
         url.searchParams.append("error", "invalid_scope ");
         url.searchParams.append(
           "error_description",
-          "If set, the `scope` must be contain a space-separated list of valid authx scopes."
+          "If set, the `scope` must be contain a space-separated list of valid authx scopes.",
         );
       }
 
@@ -571,7 +674,7 @@ export function Authorize({
         grantedScopes &&
         requestedScopeTemplates &&
         isSuperset(grantedScopes, requestedScopeTemplates) &&
-        operating === null
+        !operating
       ) {
         // TODO: This does NOT fully follow the OpenID Connect spec here, which
         // should be considered instead of the current behavior.
@@ -645,7 +748,7 @@ export function Authorize({
       <div>
         <h1>Authorize</h1>
         <div className="panel">
-          {loading || operating || redirecting ? (
+          {isLoading || operating || redirecting ? (
             <p>Loading...</p>
           ) : (
             <Fragment>
@@ -667,7 +770,7 @@ export function Authorize({
     <div>
       <h1>Authorize</h1>
       <div className="panel">
-        {loading || operating || redirecting ? (
+        {isLoading || operating || redirecting ? (
           <p>Loading...</p>
         ) : (
           <div>
@@ -709,7 +812,7 @@ export function Authorize({
                         }>) || [];
 
                       const explanationScopes = new Set(
-                        simplify(explanations.map(({ scope }) => scope))
+                        simplify(explanations.map(({ scope }) => scope)),
                       );
 
                       return (
@@ -740,7 +843,7 @@ export function Authorize({
                                 >
                                   {explanations
                                     .filter((e) =>
-                                      explanationScopes.has(e.scope)
+                                      explanationScopes.has(e.scope),
                                     )
                                     .map((e) => (
                                       <li
@@ -806,7 +909,7 @@ export function Authorize({
                         }>) || [];
 
                       const explanationScopes = new Set(
-                        simplify(explanations.map(({ scope }) => scope))
+                        simplify(explanations.map(({ scope }) => scope)),
                       );
 
                       return (
@@ -837,7 +940,7 @@ export function Authorize({
                                 >
                                   {explanations
                                     .filter((e) =>
-                                      explanationScopes.has(e.scope)
+                                      explanationScopes.has(e.scope),
                                     )
                                     .map((e) => (
                                       <li
@@ -890,7 +993,7 @@ export function Authorize({
             ))
           : null}
 
-        {loading || operating || redirecting ? null : (
+        {isLoading || operating || redirecting ? null : (
           <div style={{ display: "flex", margin: "14px" }}>
             <input
               onClick={(e) => {

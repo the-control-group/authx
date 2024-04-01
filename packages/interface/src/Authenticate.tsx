@@ -54,30 +54,33 @@ export function Authenticate({
     ${strategyFragments.map((fragment) => `${fragment}\n\n`)}
   `;
 
-  const queryFn = useCallback(
-    async () =>
-      fetch("/graphql", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({ query }),
-      }).then((res) => res.json()),
-    [query],
-  );
+  const queryFn = useCallback(async (): Promise<{
+    errors?: { message: string }[];
+    data?: {
+      authorities: {
+        edges: Array<{
+          node: {
+            __typename: string;
+            id: string;
+            [key: string]: unknown;
+          };
+        }>;
+      };
+    };
+  }> => {
+    const result = await fetch("/graphql", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({ query }),
+    });
+
+    return await result.json();
+  }, [query]);
 
   // Get all active authorities from the API.
-  const {
-    data,
-    error,
-    isError,
-    isPending,
-    isLoading,
-    isLoadingError,
-    isRefetchError,
-    isSuccess,
-    status,
-  } = useQuery({
+  const { data, error, isPending } = useQuery({
     queryKey: ["authenticate"],
     queryFn,
   });

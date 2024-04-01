@@ -2,13 +2,57 @@ import React, {
   useState,
   useRef,
   useEffect,
-  useContext,
   ReactElement,
   FormEvent,
-  useCallback,
 } from "react";
 
 import { useMutation } from "@tanstack/react-query";
+
+const mutationFn = async ({
+  authorityId,
+  email,
+  proof,
+}: {
+  authorityId: string;
+  email: string;
+  proof?: string;
+}): Promise<{
+  errors?: { message: string }[];
+  data?: {
+    authenticateEmail: {
+      id: string;
+      secret: string;
+    };
+  };
+}> => {
+  const result = await fetch("/graphql", {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify({
+      query: `
+            mutation($authorityId: ID!, $email: String!, $proof: String) {
+              authenticateEmail(
+                authorityId: $authorityId,
+                email: $email,
+                proof: $proof
+              ) {
+                id
+                secret
+              }
+            }
+          `,
+      variables: {
+        authorityId,
+        email,
+        proof,
+      },
+    }),
+  });
+
+  return result.json();
+};
 
 interface Props {
   authority: EmailAuthorityFragmentData;
@@ -65,55 +109,6 @@ export function EmailAuthority({
   }, []);
 
   // API and errors
-  const mutationFn = useCallback(
-    async ({
-      authorityId,
-      email,
-      proof,
-    }: {
-      authorityId: string;
-      email: string;
-      proof?: string;
-    }): Promise<{
-      errors?: { message: string }[];
-      data?: {
-        authenticateEmail: {
-          id: string;
-          secret: string;
-        };
-      };
-    }> => {
-      const result = await fetch("/graphql", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          query: `
-            mutation($authorityId: ID!, $email: String!, $proof: String) {
-              authenticateEmail(
-                authorityId: $authorityId,
-                email: $email,
-                proof: $proof
-              ) {
-                id
-                secret
-              }
-            }
-          `,
-          variables: {
-            authorityId,
-            email,
-            proof,
-          },
-        }),
-      });
-
-      return result.json();
-    },
-    [],
-  );
-
   const mutation = useMutation({
     mutationFn,
     onError(error) {

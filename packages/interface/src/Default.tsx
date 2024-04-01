@@ -1,25 +1,99 @@
+import { useMutation, useQuery } from "@tanstack/react-query";
 import React, {
   useState,
   useRef,
   useEffect,
-  useContext,
   FormEvent,
   ReactElement,
 } from "react";
 
-import {
-  GraphQL,
-  GraphQLContext,
-  useGraphQL,
-  GraphQLFetchOptions,
-} from "graphql-react";
+const makeQuery = async (
+  authorizationId: string,
+  authorizationSecret: string,
+): Promise<{
+  errors?: { message: string }[];
+  data?: {
+    viewer?: null | {
+      id: string;
+      user?: null | {
+        id: string;
+        name: string;
+      };
+    };
+  };
+}> => {
+  const result = await fetch("/graphql", {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      Authorization: `Basic ${btoa(`${authorizationId}:${authorizationSecret}`)}`,
+    },
+    body: JSON.stringify({
+      query: `
+        query {
+          viewer {
+            id
+            user {
+              id
+              name
+            }
+          }
+        }
+    `,
+    }),
+  });
+
+  return await result.json();
+};
+
+const mutationFn = async ({
+  authorizationId,
+  authorizationSecret,
+}: {
+  authorizationId: string;
+  authorizationSecret: string;
+}): Promise<{
+  errors?: { message: string }[];
+  data?: {
+    updateAuthorizations: null | ReadonlyArray<null | {
+      id: string;
+      enabled: boolean;
+    }>;
+  };
+}> => {
+  const result = await fetch("/graphql", {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      Authorization: `Basic ${btoa(`${authorizationId}:${authorizationSecret}`)}`,
+    },
+    body: JSON.stringify({
+      query: `
+        mutation($id: ID!) {
+          updateAuthorizations(
+            authorizations: [{
+              id: $id,
+              enabled: false
+            }]
+          ) {
+            id
+            enabled
+          }
+        }
+          `,
+      variables: {
+        id: authorizationId,
+      },
+    }),
+  });
+
+  return result.json();
+};
 
 export function Default({
-  fetchOptionsOverride,
   authorization,
   clearAuthorization,
 }: {
-  fetchOptionsOverride: (options: GraphQLFetchOptions) => void;
   authorization: { id: string; secret: string };
   clearAuthorization: () => void;
 }): ReactElement<{ authorization: string }> {
@@ -36,84 +110,23 @@ export function Default({
     }
   });
 
-  const { loading, cacheValue } = useGraphQL<
-    {
-      viewer: null | {
-        id: string;
-        user: null | { id: string; name: null | string };
-      };
-    },
-    {}
-  >({
-    fetchOptionsOverride,
-    loadOnMount: true,
-    operation: {
-      variables: {},
-      query: `
-        query {
-          viewer {
-            id
-            user {
-              id
-              name
-            }
-          }
-        }
-      `,
-    },
+  // Get the current user.
+  const { data, isLoading } = useQuery({
+    queryKey: ["viewer", authorization.id],
+    queryFn: () => makeQuery(authorization.id, authorization.secret),
   });
 
-  const displayName = cacheValue?.data?.viewer?.user?.name;
+  const displayName = data?.data?.viewer?.user?.name;
 
   // API and errors
-  const graphql = useContext<GraphQL>(GraphQLContext as any);
-  const [operating, setOperating] = useState<boolean>(false);
-  const [errors, setErrors] = useState<string[]>([]);
-  async function onSubmit(e: FormEvent): Promise<void> {
-    e.preventDefault();
-
-    setOperating(true);
-    try {
-      const operation = graphql.operate<
-        {
-          updateAuthorizations: null | ReadonlyArray<null | {
-            id: string;
-            enabled: boolean;
-          }>;
-        },
-        {
-          id: string;
-        }
-      >({
-        fetchOptionsOverride,
-        operation: {
-          query: `
-            mutation($id: ID!) {
-              updateAuthorizations(
-                authorizations: [{
-                  id: $id,
-                  enabled: false
-                }]
-              ) {
-                id
-                enabled
-              }
-            }
-          `,
-          variables: {
-            id: authorization.id,
-          },
-        },
-      });
-
-      const result = await operation.cacheValuePromise;
-      if (result.fetchError) {
-        setErrors([result.fetchError]);
-        return;
-      }
-
-      if (result.graphQLErrors?.length) {
-        setErrors(result.graphQLErrors.map((e) => e.message));
+  const mutation = useMutation({
+    mutationFn,
+    onError(error) {
+      setErrors([error.message]);
+    },
+    onSuccess(result) {
+      if (result.errors && result.errors.length) {
+        setErrors(result.errors.map((e) => e.message));
         return;
       }
 
@@ -130,12 +143,17 @@ export function Default({
 
       // Clear the authorization from our cookie store.
       clearAuthorization();
-    } catch (error: any) {
-      setErrors([error.message]);
-      return;
-    } finally {
-      setOperating(false);
-    }
+    },
+  });
+
+  const [errors, setErrors] = useState<string[]>([]);
+  async function onSubmit(e: FormEvent): Promise<void> {
+    e.preventDefault();
+
+    mutation.mutate({
+      authorizationId: authorization.id,
+      authorizationSecret: authorization.secret,
+    });
   }
 
   return (
@@ -145,13 +163,13 @@ export function Default({
         onSubmit={onSubmit}
         className={errors.length ? "panel validate" : "panel"}
       >
-        {loading ? (
+        {isLoading ? (
           <p>Loading...</p>
         ) : (
           <>
             <p>You are logged in{displayName ? ` as ${displayName}` : ""}.</p>
 
-            {!operating && errors.length
+            {!mutation.isPending && errors.length
               ? errors.map((error, i) => (
                   <p key={i} className="error">
                     {error}
@@ -161,18 +179,20 @@ export function Default({
 
             <label>
               <input
-                disabled={operating}
+                disabled={mutation.isPending}
                 type="submit"
-                value={operating ? "Loading..." : "Revoke Authorization"}
+                value={
+                  mutation.isPending ? "Loading..." : "Revoke Authorization"
+                }
               />
             </label>
 
-            {!operating && errors.length ? (
+            {!mutation.isPending && errors.length ? (
               <div className="info">
                 <p>
                   If you are unable to revoke the current authorization, you can
                   remove it from this browser. If you do this, make sure to
-                  revoke it from a different computer if you suspect it was
+                  revoke it from a different device if you suspect it was
                   comprimized.
                 </p>
                 <label>

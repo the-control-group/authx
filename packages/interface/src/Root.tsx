@@ -2,7 +2,7 @@ import React, { ReactElement } from "react";
 import { useAuthorization } from "./useAuthorization.js";
 import { Authenticate } from "./Authenticate.js";
 // import { Authorize } from "./Authorize.js";
-// import { Default } from "./Default.js";
+import { Default } from "./Default.js";
 import { Strategy } from "./Strategy.js";
 
 export function Root({
@@ -30,13 +30,11 @@ export function Root({
   //   return <Authorize clearAuthorization={clearAuthorization} />;
   // }
 
-  // // We need to allow the user to log out.
-  // return (
-  //   <Default
-  //     clearAuthorization={clearAuthorization}
-  //     authorization={authorization}
-  //   />
-  // );
-
-  return <div>Root</div>;
+  // We need to allow the user to log out.
+  return (
+    <Default
+      clearAuthorization={clearAuthorization}
+      authorization={authorization}
+    />
+  );
 }
