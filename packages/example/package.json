@@ -77,20 +77,13 @@
     "build:server:development": "tsc --watch",
     "build": "rm -rf dist && npm run build:server && npm run build:client",
     "build:development": "rm -rf dist && npm run build:server:development & npm run build:client:development & wait",
-    "build:development:chained": "rm -rf dist && npm run build:server:development --preserveWatchOutput & npm run build:client:development & wait",
+    "build:development:chained": "npm run build:server:development --preserveWatchOutput & npm run build:client:development & wait",
     "start": "NODE_ENV=production node dist/server/server.js",
     "start:development": "NODE_ENV=development node --watch --inspect dist/server/server.js",
     "test": "ava --verbose 'dist/**/*.test.js'",
-    "test:development": "ava --verbose --watch 'dist/**/*.test.js'",
-    "prepublishOnly": "npm run build"
+    "test:development": "ava --verbose --watch 'dist/**/*.test.js'"
   },
   "type": "module",
   "types": "dist/server/index.d.ts",
-  "version": "3.1.0-alpha.52",
-  "ava": {
-    "files": [
-      "dist/**/*.test.js"
-    ],
-    "timeout": "60s"
-  }
+  "version": "3.1.0-alpha.52"
 }

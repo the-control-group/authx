@@ -18,7 +18,8 @@
   "scripts": {
     "build": "lerna run build",
     "format": "lerna run --parallel format && npx prettier --list-different --write '*.{json,yml,md,ts}'",
-    "lint": "lerna run --parallel lint && npx prettier -c '**/*.{json,yml,md,ts}'",
+    "lint": "lerna run --parallel lint && npx prettier -c '*.{json,yml,md,ts}'",
+    "start": "lerna run start --scope=@authx/example",
     "test": "lerna run --parallel test",
     "update": "lerna exec --parallel -- npx ncu -u && npx npm-check-updates -u && npm i && npm update"
   },

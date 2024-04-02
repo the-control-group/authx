@@ -13,3 +13,10 @@ updates:
       interval: "daily"
     open-pull-requests-limit: 0
     versioning-strategy: increase-if-necessary
+    groups:
+      dev-dependencies:
+        dependency-type: development
+      minor-updates:
+        update-types:
+          - "minor"
+          - "patch"

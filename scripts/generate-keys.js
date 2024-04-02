@@ -1,5 +1,13 @@
 import { generateKeyPairSync } from "node:crypto";
-import { writeFileSync } from "node:fs";
+import { writeFileSync, existsSync } from "node:fs";
+
+// Check if the keys already exist.
+if (existsSync("private.pem") && existsSync("public.pem")) {
+  // eslint-disable-next-line no-undef
+  console.log("Keys already exist.");
+  // eslint-disable-next-line no-undef
+  process.exit(0);
+}
 
 // Generate a new RSA key pair.
 const { publicKey, privateKey } = generateKeyPairSync("rsa", {

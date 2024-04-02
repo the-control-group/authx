@@ -5,6 +5,10 @@ services:
 
   # This container runs the database.
   postgres:
+    profiles:
+      - all
+      - development
+
     image: postgres:16
     restart: always
     environment:
@@ -27,58 +31,78 @@ services:
       timeout: 3s
       retries: 3
 
-  # This container installs node modules from the package-lock.json file.
-  installer: &node
+  # This is the base configuration for all Node.js containers.
+  runner: &base
+    profiles:
+      - all
+
     image: node:20
     working_dir: /workspace
+
+    environment:
+      NODE_ENV: development
+
+    volumes:
+      - type: bind
+        source: .
+        target: /workspace
+
+  # This container installs node modules from the package-lock.json file.
+  installer:
+    <<: *base
+
+    profiles:
+      - all
+      - development
 
     # We would rather ignore scripts, but this repo depends on bcrypt, which
     # requires a build step.
     # command: npm ci --ignore-scripts
     command: scripts/install.sh
 
-    environment:
-      NODE_ENV: development
-    volumes:
-      - type: bind
-        source: .
-        target: /workspace
     healthcheck:
       test: ["CMD", "test", "-f", "/tmp/package-lock.json"]
       start_period: 5s
-      # start_interval: 10s
       interval: 10s
       timeout: 3s
       retries: 6
 
   # This container watches for changes and builds the application.
-  # builder:
-  #   <<: *node
-  #   depends_on:
-  #     installer:
-  #       condition: service_healthy
-  #       restart: false
-  #   command: npm run build:development
-  #   healthcheck:
-  #     test: ["CMD", "test", "-f", "dist/server.js"]
-  #     start_period: 5s
-  #     # start_interval: 10s
-  #     interval: 10s
-  #     timeout: 3s
-  #     retries: 6
+  builder:
+    <<: *base
+
+    profiles:
+      - all
+      - development
+
+    depends_on:
+      installer:
+        condition: service_healthy
+        restart: false
+    command: npx lerna run --parallel --stream build:development:chained
+    healthcheck:
+      test: ["CMD", "test", "-f", "packages/example/dist/server/server.js"]
+      start_period: 5s
+      interval: 10s
+      timeout: 3s
+      retries: 6
 
   # This container runs the server.
   server:
-    <<: *node
-    working_dir: /workspace/packages/example
+    <<: *base
+
+    profiles:
+      - all
+      - development
+
     depends_on:
-      # builder:
-      #   condition: service_healthy
-      #   restart: false
+      builder:
+        condition: service_healthy
+        restart: false
       postgres:
         condition: service_healthy
         restart: false
-    command: npm run start:development
+    command: npm start
     environment:
       NODE_ENV: development
       PGHOST: postgres
