@@ -10,8 +10,7 @@ import {
 
 import { connectionFromArray, connectionArgs } from "graphql-relay";
 
-import { Grant } from "../model/index.js";
-import { Client } from "../model/index.js";
+import { Grant, Client } from "../model/index.js";
 import { Context } from "../Context.js";
 import { GraphQLGrant } from "./GraphQLGrant.js";
 import { GraphQLGrantConnection } from "./GraphQLGrantConnection.js";

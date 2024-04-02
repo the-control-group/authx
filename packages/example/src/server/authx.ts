@@ -3,8 +3,8 @@ import { readFileSync } from "node:fs";
 
 import email from "@authx/strategy-email";
 import password from "@authx/strategy-password";
-// import openid from "@authx/strategy-openid";
-// import saml from "@authx/strategy-saml";
+import openid from "@authx/strategy-openid";
+import saml from "@authx/strategy-saml";
 
 // Create a new instanciate of AuthX.
 export const authx = new AuthX({
@@ -35,10 +35,7 @@ export const authx = new AuthX({
 
   // Provide authentication strategies that are to be available for
   // configuration within AuthX.
-  strategies: new StrategyCollection([
-    email,
-    password, //openid, saml
-  ]),
+  strategies: new StrategyCollection([email, password, openid, saml]),
 
   // The database connection details.
   pg: {
@@ -46,7 +43,7 @@ export const authx = new AuthX({
     host: process.env.PGHOST ?? undefined,
     password: process.env.PGPASSWORD ?? undefined,
     port: process.env.PGPORT ? parseInt(process.env.PGPORT, 10) : undefined,
-    ssl: process.env.PGSSL === "true" ? true : false,
+    ssl: process.env.PGSSL === "true",
     user: process.env.PGUSER ?? undefined,
   },
 

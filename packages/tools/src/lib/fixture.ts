@@ -1,7 +1,7 @@
 import { ClientBase, Client } from "pg";
 
 import {
-  authority,
+  authority as authorityGen,
   client,
   credential,
   grant,
@@ -10,7 +10,13 @@ import {
   user,
 } from "./fixture/index.js";
 
-export async function fixture(tx: ClientBase | Client): Promise<void> {
+export async function fixture(
+  tx: ClientBase | Client,
+  privateKey: string,
+  publicKey: string,
+): Promise<void> {
+  const authority = authorityGen(privateKey, publicKey);
+
   // add entities to satisfy foreign key constraints
   await Promise.all([
     tx.query(

@@ -34,7 +34,7 @@ jobs:
       - name: Lint
         run: npm run lint
       - name: Test
-        run: npm run test
+        run: node scripts/generate-keys.js && npm run test
         env:
           PORT: 12000
           PGHOST: 127.0.0.1
