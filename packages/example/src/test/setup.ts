@@ -6,15 +6,17 @@ import pg from "pg";
 const { Client } = pg;
 import { createServer, Server } from "http";
 import { URL } from "url";
+import { dirname, join } from "path";
+import { readFileSync } from "fs";
 
 import email from "@authx/strategy-email";
 import password from "@authx/strategy-password";
 import openid from "@authx/strategy-openid";
 
 // Load public and private keys from files.
-import { readFileSync } from "fs";
-const privateKey = readFileSync("private.pem", "utf8");
-const publicKey = readFileSync("public.pem", "utf8");
+const __dirname = dirname(new URL(import.meta.url).pathname);
+const privateKey = readFileSync(join(__dirname, "../../private.pem"), "utf8");
+const publicKey = readFileSync(join(__dirname, "../../public.pem"), "utf8");
 
 // This is prefixed to postgres database names.
 const prefix = "authx-test-";

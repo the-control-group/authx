@@ -776,7 +776,7 @@ export function Authorize({
           <div>
             <p>
               Welcome
-              {" " + user?.name ?? ""}!
+              {user?.name ? ` ${user?.name}` : ""}!
               <button
                 onClick={(e) => {
                   e.preventDefault();
