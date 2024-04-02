@@ -2,7 +2,7 @@ import { generateKeyPairSync } from "node:crypto";
 import { writeFileSync, existsSync } from "node:fs";
 
 // Check if the keys already exist.
-if (existsSync("private.pem") && existsSync("public.pem")) {
+if (existsSync("packages/example/private.pem") && existsSync("packages/example/public.pem")) {
   // eslint-disable-next-line no-undef
   console.log("Keys already exist.");
   // eslint-disable-next-line no-undef
