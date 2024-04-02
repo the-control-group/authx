@@ -1,18 +1,44 @@
 import * as React from "react";
 import { createRoot } from "react-dom/client";
 
-import { AuthX } from "@authx/interface/dist/AuthX.js";
-import { Strategy } from "@authx/interface/dist/Strategy.js";
+import { AuthX, Strategy } from "@authx/interface";
+import "@authx/interface/authx.css";
 
 import email from "@authx/strategy-email/dist/interface/index.js";
 import password from "@authx/strategy-password/dist/interface/index.js";
 
+import { createGraphiQLFetcher } from "@graphiql/toolkit";
+import { GraphiQL } from "graphiql/esm";
+import "graphiql/graphiql.css";
+
 // Instantiate the app.
 document.title = "Authorize";
 
-// Create the strategies.
+// Create the AuthX strategies.
 const strategies: Strategy[] = [email, password];
+
+const fetcher = createGraphiQLFetcher({
+  url: "/graphql",
+  headers: {
+    get Authorization() {
+      const authorization = localStorage.getItem(
+        "authx-interface.authorization",
+      );
+      return authorization ? `Basic ${btoa(authorization)}` : "";
+    },
+  },
+});
+
+const Root = (): JSX.Element => {
+  return window.location.pathname === "/graphiql" ? (
+    // On /graphiql, render the GraphiQL editor.
+    <GraphiQL fetcher={fetcher} />
+  ) : (
+    // Otherwise, render the AuthX UI.
+    <AuthX strategies={strategies} realm="authx" />
+  );
+};
 
 // Render the app.
 const root = createRoot(document.getElementById("root") as HTMLElement);
-root.render(<AuthX strategies={strategies} />);
+root.render(<Root />);

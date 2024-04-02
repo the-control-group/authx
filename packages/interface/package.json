@@ -48,7 +48,7 @@
     "permissions"
   ],
   "license": "MIT",
-  "main": "dist/AuthX.js",
+  "main": "authx.js",
   "name": "@authx/interface",
   "peerDependencies": {
     "@authx/authx": "*",
@@ -66,5 +66,6 @@
     "prepublishOnly": "npm run build"
   },
   "type": "module",
+  "types": "authx.d.ts",
   "version": "3.1.0-alpha.52"
 }

@@ -16,11 +16,9 @@ import { match } from "@authx/authx/dist/util/explanations.js";
 import { v4 } from "uuid";
 import { useMutation, useQuery } from "@tanstack/react-query";
 
-declare const __REALM__: string;
-
-const implicitScopes = [
+const implicitScopes = (realm: string) => [
   createV2AuthXScope(
-    __REALM__,
+    realm,
     {
       type: "user",
       userId: "{current_user_id}",
@@ -31,7 +29,7 @@ const implicitScopes = [
     },
   ),
   createV2AuthXScope(
-    __REALM__,
+    realm,
     {
       type: "grant",
       clientId: "{current_client_id}",
@@ -45,7 +43,7 @@ const implicitScopes = [
     },
   ),
   createV2AuthXScope(
-    __REALM__,
+    realm,
     {
       type: "grant",
       clientId: "{current_client_id}",
@@ -59,7 +57,7 @@ const implicitScopes = [
     },
   ),
   createV2AuthXScope(
-    __REALM__,
+    realm,
     {
       type: "authorization",
       authorizationId: "*",
@@ -399,9 +397,11 @@ const createGrantMutationFn = async ({
 export function Authorize({
   clearAuthorization,
   authorization,
+  realm,
 }: {
   clearAuthorization: () => void;
   authorization: { id: string; secret: string };
+  realm: string;
 }): ReactElement<any> {
   const url = new URL(window.location.href);
 
@@ -461,8 +461,8 @@ export function Authorize({
       simplify(
         inject(
           requestedScopeTemplates
-            ? [...requestedScopeTemplates, ...implicitScopes]
-            : implicitScopes,
+            ? [...requestedScopeTemplates, ...implicitScopes(realm)]
+            : implicitScopes(realm),
           {
             /* eslint-disable camelcase */
             current_authorization_id: null,
@@ -473,7 +473,7 @@ export function Authorize({
           },
         ),
       ),
-    [requestedScopeTemplates, clientId, grantId, userId],
+    [requestedScopeTemplates, clientId, grantId, userId, realm],
   );
 
   const grantedScopes = grant?.scopes;

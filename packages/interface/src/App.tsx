@@ -1,17 +1,17 @@
 import React, { ReactElement } from "react";
 import { useAuthorization } from "./useAuthorization.js";
 import { Authenticate } from "./Authenticate.js";
-// import { Authorize } from "./Authorize.js";
+import { Authorize } from "./Authorize.js";
 import { Default } from "./Default.js";
 import { Strategy } from "./Strategy.js";
 
-export function Root({
+export function App({
   strategies,
+  realm,
 }: {
   strategies: ReadonlyArray<Strategy>;
+  realm: string;
 }): ReactElement {
-  // const query = useQuery({ queryKey: ['todos'], queryFn: getTodos })
-
   const { authorization, clearAuthorization, setAuthorization } =
     useAuthorization();
 
@@ -25,10 +25,16 @@ export function Root({
     );
   }
 
-  // // We need to authorize a client.
-  // if (new URL(window.location.href).searchParams.has("response_type")) {
-  //   return <Authorize clearAuthorization={clearAuthorization} />;
-  // }
+  // We need to authorize a client.
+  if (new URL(window.location.href).searchParams.has("response_type")) {
+    return (
+      <Authorize
+        authorization={authorization}
+        clearAuthorization={clearAuthorization}
+        realm={realm}
+      />
+    );
+  }
 
   // We need to allow the user to log out.
   return (

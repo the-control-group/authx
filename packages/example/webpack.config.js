@@ -2,6 +2,7 @@
 import path from "path";
 import HtmlWebpackPlugin from "html-webpack-plugin";
 import ForkTsCheckerWebpackPlugin from "fork-ts-checker-webpack-plugin";
+import MiniCssExtractPlugin from "mini-css-extract-plugin";
 
 
 const __dirname = path.dirname(new URL(import.meta.url).pathname);
@@ -45,6 +46,25 @@ export default (env = {}, argv) => {
     devtool: devMode ? "eval-cheap-module-source-map" : false,
     module: {
       rules: [
+        {
+          test: /\.css$/i,
+          use: [
+            // "style-loader",
+            MiniCssExtractPlugin.loader,
+            // devMode ? "style-loader" : MiniCssExtractPlugin.loader,
+            {
+              loader: "css-loader",
+              options: {
+                modules: {
+                  auto: true,
+                  localIdentName: devMode
+                    ? "[path][name]__[local]"
+                    : "[hash:base64]",
+                },
+              },
+            },
+          ],
+        },
         {
           test: /\.tsx?$/,
           exclude: [/node_modules/],
@@ -96,6 +116,10 @@ export default (env = {}, argv) => {
       new HtmlWebpackPlugin({
         inject: "head",
         template: "src/client/index.html",
+      }),
+      new MiniCssExtractPlugin({
+        filename: "[name].[contenthash].css",
+        chunkFilename: "[name].chunk.[contenthash].css",
       }),
       // This runs the TypeScript typechecking in a separate process from the
       // bundling, greatly increasing build speed
