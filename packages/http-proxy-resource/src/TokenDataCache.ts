@@ -47,7 +47,7 @@ class TokenDataCacheEntry {
   constructor(
     private basicToken: string,
     private conf: TokenDataCacheConfig,
-    private errorHandler: (err: Error) => void
+    private errorHandler: (err: Error) => void,
   ) {
     this.lastRefreshRequestTime = Date.now();
   }
@@ -93,7 +93,7 @@ class TokenDataCacheEntry {
           this.forceRefresh = true;
         }
         this.errorHandler(err);
-      }
+      },
     );
     this.lastRefreshRequestTime = this.conf.timeSource();
   }
@@ -110,7 +110,7 @@ class TokenDataCacheEntry {
         body: JSON.stringify({
           query: "query { viewer { access id user { id } } }",
         }),
-      }
+      },
     );
 
     if (![200, 401].includes(response.status)) {
@@ -159,14 +159,14 @@ export class TokenDataCache extends EventEmitter {
           if (!(err instanceof NoTokenError)) {
             this.emit("error", err);
           }
-        })
+        }),
       );
     }
 
     const ret = this.cache.get(basicToken)?.token;
     if (!ret)
       throw new Error(
-        "Unexpectedly unable to find TokenDataCacheEntry, cache is invalid"
+        "Unexpectedly unable to find TokenDataCacheEntry, cache is invalid",
       );
 
     return ret;

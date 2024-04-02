@@ -1,9 +1,9 @@
 import { Authority, DataLoaderExecutor, QueryCache } from "@authx/authx";
 import { ClientBase, Pool } from "pg";
-import { SamlCredential } from "./SamlCredential";
-import { AuthorityData } from "@authx/authx/src/model/Authority";
+import { SamlCredential } from "./SamlCredential.js";
+import { AuthorityData } from "@authx/authx";
 import { IdentityProvider, ServiceProvider } from "saml2-js";
-import { Role } from "@authx/authx/dist/model/Role";
+import { Role } from "@authx/authx";
 
 export interface SamlAuthorityDetails {
   entityId: string;
@@ -24,7 +24,7 @@ export class SamlAuthority extends Authority<SamlAuthorityDetails> {
   public readonly identityProvider: IdentityProvider;
 
   public constructor(
-    data: AuthorityData<SamlAuthorityDetails> & { readonly recordId: string }
+    data: AuthorityData<SamlAuthorityDetails> & { readonly recordId: string },
   ) {
     super(data);
 
@@ -56,7 +56,7 @@ export class SamlAuthority extends Authority<SamlAuthorityDetails> {
   }
 
   async credentials(
-    tx: Pool | ClientBase | DataLoaderExecutor
+    tx: Pool | ClientBase | DataLoaderExecutor,
   ): Promise<SamlCredential[]> {
     const ids = (
       await queryCache.query(
@@ -69,7 +69,7 @@ export class SamlAuthority extends Authority<SamlAuthorityDetails> {
         AND enabled = true
         AND replacement_record_id IS NULL
       `,
-        [this.id]
+        [this.id],
       )
     ).rows.map(({ id }) => id);
 
@@ -80,7 +80,7 @@ export class SamlAuthority extends Authority<SamlAuthorityDetails> {
 
   public async credential(
     tx: Pool | ClientBase | DataLoaderExecutor,
-    authorityUserId: string
+    authorityUserId: string,
   ): Promise<null | SamlCredential> {
     const results = await queryCache.query(
       tx,
@@ -93,12 +93,12 @@ export class SamlAuthority extends Authority<SamlAuthorityDetails> {
         AND enabled = true
         AND replacement_record_id IS NULL
       `,
-      [this.id, authorityUserId]
+      [this.id, authorityUserId],
     );
 
     if (results.rows.length > 1) {
       throw new Error(
-        "INVARIANT: There cannot be more than one active credential for the same user and authority."
+        "INVARIANT: There cannot be more than one active credential for the same user and authority.",
       );
     }
 
@@ -110,7 +110,7 @@ export class SamlAuthority extends Authority<SamlAuthorityDetails> {
   }
 
   public async assignsCreatedUsersToRoles(
-    tx: DataLoaderExecutor
+    tx: DataLoaderExecutor,
   ): Promise<Role[]> {
     if (!this.details.assignsCreatedUsersToRoleIds) {
       return [];

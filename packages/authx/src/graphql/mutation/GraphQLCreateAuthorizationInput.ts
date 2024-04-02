@@ -6,8 +6,8 @@ import {
   GraphQLInputObjectType,
 } from "graphql";
 
-import { GraphQLAdministrationInput } from "../GraphQLAdministrationInput";
-import { GraphQLScope } from "../GraphQLScope";
+import { GraphQLAdministrationInput } from "../GraphQLAdministrationInput.js";
+import { GraphQLScope } from "../GraphQLScope.js";
 
 export const GraphQLCreateAuthorizationInput = new GraphQLInputObjectType({
   name: "CreateAuthorizationInput",
@@ -28,7 +28,7 @@ export const GraphQLCreateAuthorizationInput = new GraphQLInputObjectType({
     },
     scopes: {
       type: new GraphQLNonNull(
-        new GraphQLList(new GraphQLNonNull(GraphQLScope))
+        new GraphQLList(new GraphQLNonNull(GraphQLScope)),
       ),
     },
     administration: {

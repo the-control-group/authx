@@ -2,13 +2,54 @@ import React, {
   useState,
   useRef,
   useEffect,
-  useContext,
   ReactElement,
   FormEvent,
 } from "react";
 
 import { v4 } from "uuid";
-import { GraphQL, GraphQLContext } from "graphql-react";
+import { useMutation } from "@tanstack/react-query";
+
+const mutationFn = async ({
+  authorityId,
+  code,
+}: {
+  authorityId: string;
+  code: string;
+}): Promise<{
+  errors?: { message: string }[];
+  data?: {
+    authenticateOpenId: null | {
+      id: string;
+      secret: null | string;
+    };
+  };
+}> => {
+  const result = await fetch("/graphql", {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify({
+      query: `
+        mutation($authorityId: ID!, $code: String!) {
+          authenticateOpenId(
+            authorityId: $authorityId,
+            code: $code,
+          ) {
+            id
+            secret
+          }
+        }
+      `,
+      variables: {
+        authorityId,
+        code,
+      },
+    }),
+  });
+
+  return result.json();
+};
 
 interface Props {
   authority: OpenIdAuthorityFragmentData;
@@ -32,7 +73,49 @@ export function OpenIdAuthority({
     }
   });
 
-  const [operating, setOperating] = useState<boolean>(false);
+  const mutation = useMutation({
+    mutationFn,
+    onError(error) {
+      setErrors([error.message]);
+    },
+    onSuccess(result) {
+      if (result.errors && result.errors.length) {
+        // Usually, we would loop through these and display the correct errors
+        // by the correct field. This would work in development, but in
+        // production, AuthX only returns a single generic authentication
+        // failure message, to make it more difficult for an attacker to query
+        // for valid email addresses, user IDs, or other information.
+        setErrors(result.errors.map((e) => e.message));
+        return;
+      }
+
+      // Replace the current URL with the stored one.
+      const r = window.localStorage.getItem(`authx.a.${authority.id}.r`);
+      if (r) {
+        window.history.replaceState({}, document.title, r);
+      }
+
+      // Clear stored values.
+      window.localStorage.removeItem(`authx.a.${authority.id}.s`);
+      window.localStorage.removeItem(`authx.a.${authority.id}.r`);
+
+      const authorization = result.data && result.data.authenticateOpenId;
+      if (!authorization || !authorization.secret) {
+        setErrors([
+          "No authorization was returned. Contact your administrator to ensure you have sufficient access to read your own authorizations and authorization secrets.",
+        ]);
+        return;
+      }
+
+      // We have successfully authenticated!
+      // Zero the error.
+      setErrors([]);
+
+      // Set the authorization.
+      setAuthorization({ id: authorization.id, secret: authorization.secret });
+    },
+  });
+
   useEffect(() => {
     (async () => {
       const code = new URL(window.location.href).searchParams.get("code");
@@ -44,90 +127,10 @@ export function OpenIdAuthority({
       ) {
         return;
       }
-
-      setOperating(true);
-      try {
-        const operation = graphql.operate<
-          {
-            authenticateOpenId: null | {
-              id: string;
-              secret: null | string;
-            };
-          },
-          {
-            authorityId: string;
-            code: string;
-          }
-        >({
-          operation: {
-            query: `
-            mutation($authorityId: ID!, $code: String!) {
-              authenticateOpenId(
-                authorityId: $authorityId,
-                code: $code,
-              ) {
-                id
-                secret
-              }
-            }
-          `,
-            variables: {
-              authorityId: authority.id,
-              code,
-            },
-          },
-        });
-
-        const result = await operation.cacheValuePromise;
-
-        // Replace the current URL with the stored one.
-        const r = window.localStorage.getItem(`authx.a.${authority.id}.r`);
-        if (r) {
-          window.history.replaceState({}, document.title, r);
-        }
-
-        // Clear stored values.
-        window.localStorage.removeItem(`authx.a.${authority.id}.s`);
-        window.localStorage.removeItem(`authx.a.${authority.id}.r`);
-
-        if (result.fetchError) {
-          setErrors([result.fetchError]);
-          return;
-        }
-
-        if (result.graphQLErrors && result.graphQLErrors.length) {
-          setErrors(result.graphQLErrors.map((e) => e.message));
-          return;
-        }
-
-        const authorization = result.data && result.data.authenticateOpenId;
-        if (!authorization || !authorization.secret) {
-          setErrors([
-            "No authorization was returned. Contact your administrator to ensure you have sufficient access to read your own authorizations and authorization secrets.",
-          ]);
-          return;
-        }
-
-        // We have successfully authenticated!
-        // Zero the error.
-        setErrors([]);
-
-        // Set the authorization.
-        setAuthorization({
-          id: authorization.id,
-          secret: authorization.secret,
-        });
-      } catch (error: any) {
-        setErrors([error.message]);
-        return;
-      } finally {
-        setOperating(false);
-      }
     })();
   }, []);
 
   // API and errors
-  const graphql = useContext<GraphQL>(GraphQLContext as any);
   const [errors, setErrors] = useState<string[]>([]);
   async function onSubmit(e: FormEvent): Promise<void> {
     e.preventDefault();
@@ -139,13 +142,13 @@ export function OpenIdAuthority({
     // Store the current URL for later redirection.
     window.localStorage.setItem(
       `authx.a.${authority.id}.r`,
-      window.location.href
+      window.location.href,
     );
 
     // Strip all search params except authorityId from the redirect URL.
     const redirect = new URL(window.location.href);
     new URL(window.location.href).searchParams.forEach(
-      (v, k) => k !== "authorityId" && redirect.searchParams.delete(k)
+      (v, k) => k !== "authorityId" && redirect.searchParams.delete(k),
     );
 
     const url = new URL(authority.authUrl);
@@ -162,7 +165,7 @@ export function OpenIdAuthority({
       onSubmit={onSubmit}
       className={errors.length ? "panel validate" : "panel"}
     >
-      {!operating && errors.length
+      {!mutation.isPending && errors.length
         ? errors.map((error, i) => (
             <p key={i} className="error">
               {error}
@@ -172,11 +175,13 @@ export function OpenIdAuthority({
 
       <label>
         <input
-          disabled={operating}
+          disabled={mutation.isPending}
           ref={focusElement}
           type="submit"
           value={
-            operating ? "Loading..." : `Authenticate with ${authority.name}`
+            mutation.isPending
+              ? "Loading..."
+              : `Authenticate with ${authority.name}`
           }
         />
       </label>

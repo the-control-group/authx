@@ -1,16 +1,16 @@
 {
   "compilerOptions": {
-    "lib": ["es2018", "es2019", "es2020"],
-    "target": "es2018",
-    "module": "commonjs",
-    "outDir": "./dist",
+    "lib": ["ES2022", "DOM"],
+    "target": "ES2022",
+    "module": "NodeNext",
+    "moduleResolution": "NodeNext",
     "declaration": true,
-    "declarationDir": "./dist",
-    "rootDir": "./src",
     "strict": true,
-    "esModuleInterop": true,
-    "skipLibCheck": true,
-    "sourceMap": true
+    "sourceMap": true,
+    "esModuleInterop": false,
+    "allowSyntheticDefaultImports": true,
+    "outDir": "./dist",
+    "declarationDir": "./dist"
   },
   "include": ["./src/**/*"]
 }

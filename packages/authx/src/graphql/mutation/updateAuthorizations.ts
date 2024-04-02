@@ -1,12 +1,12 @@
 import { v4 } from "uuid";
-import { Pool, PoolClient } from "pg";
+import pg, { Pool, PoolClient } from "pg";
 import { GraphQLFieldConfig, GraphQLList, GraphQLNonNull } from "graphql";
-import { Context } from "../../Context";
-import { GraphQLAuthorization } from "../GraphQLAuthorization";
-import { Authorization } from "../../model";
-import { DataLoaderExecutor } from "../../loader";
-import { ForbiddenError } from "../../errors";
-import { GraphQLUpdateAuthorizationInput } from "./GraphQLUpdateAuthorizationInput";
+import { Context } from "../../Context.js";
+import { GraphQLAuthorization } from "../GraphQLAuthorization.js";
+import { Authorization } from "../../model/index.js";
+import { DataLoaderExecutor } from "../../loader.js";
+import { ForbiddenError } from "../../errors.js";
+import { GraphQLUpdateAuthorizationInput } from "./GraphQLUpdateAuthorizationInput.js";
 
 export const updateAuthorizations: GraphQLFieldConfig<
   any,
@@ -23,7 +23,7 @@ export const updateAuthorizations: GraphQLFieldConfig<
   args: {
     authorizations: {
       type: new GraphQLNonNull(
-        new GraphQLList(new GraphQLNonNull(GraphQLUpdateAuthorizationInput))
+        new GraphQLList(new GraphQLNonNull(GraphQLUpdateAuthorizationInput)),
       ),
     },
   },
@@ -36,13 +36,13 @@ export const updateAuthorizations: GraphQLFieldConfig<
 
     if (!a) {
       throw new ForbiddenError(
-        "You must be authenticated to update a authorization."
+        "You must be authenticated to update a authorization.",
       );
     }
 
-    if (!(pool instanceof Pool)) {
+    if (!(pool instanceof pg.Pool)) {
       throw new Error(
-        "INVARIANT: The executor connection is expected to be an instance of Pool."
+        "INVARIANT: The executor connection is expected to be an instance of Pool.",
       );
     }
 
@@ -52,7 +52,7 @@ export const updateAuthorizations: GraphQLFieldConfig<
         // Make sure this transaction is used for queries made by the executor.
         const executor = new DataLoaderExecutor<Pool | PoolClient>(
           tx,
-          strategies
+          strategies,
         );
 
         await tx.query("BEGIN DEFERRABLE");
@@ -68,7 +68,7 @@ export const updateAuthorizations: GraphQLFieldConfig<
           }))
         ) {
           throw new ForbiddenError(
-            "You do not have permission to update this authorization."
+            "You do not have permission to update this authorization.",
           );
         }
 
@@ -86,7 +86,7 @@ export const updateAuthorizations: GraphQLFieldConfig<
             createdByAuthorizationId: a.id,
             createdByCredentialId: null,
             createdAt: new Date(),
-          }
+          },
         );
 
         await tx.query("COMMIT");

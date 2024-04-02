@@ -2,15 +2,15 @@ import { GraphQLBoolean, GraphQLFieldConfig } from "graphql";
 
 import { connectionArgs, ConnectionArguments, Connection } from "graphql-relay";
 
-import { GraphQLAuthorizationConnection } from "../GraphQLAuthorizationConnection";
-import { Context } from "../../Context";
-import { Authorization } from "../../model";
-import { CursorRule } from "../../model/rules/CursorRule";
-import { NoReplacementRecord } from "../../model/rules/NoReplacementRecord";
-import { IsAccessibleByRule } from "../../model/rules/IsAccessibleByRule";
-import { FieldRule } from "../../model/rules/FieldRule";
-import { Rule } from "../../model/rules/Rule";
-import { CursorConnection } from "../connection/CursorConnection";
+import { GraphQLAuthorizationConnection } from "../GraphQLAuthorizationConnection.js";
+import { Context } from "../../Context.js";
+import { Authorization } from "../../model/index.js";
+import { CursorRule } from "../../model/rules/CursorRule.js";
+import { NoReplacementRecord } from "../../model/rules/NoReplacementRecord.js";
+import { IsAccessibleByRule } from "../../model/rules/IsAccessibleByRule.js";
+import { FieldRule } from "../../model/rules/FieldRule.js";
+import { Rule } from "../../model/rules/Rule.js";
+import { CursorConnection } from "../connection/CursorConnection.js";
 
 export const authorizations: GraphQLFieldConfig<
   any,
@@ -49,10 +49,10 @@ export const authorizations: GraphQLFieldConfig<
         new IsAccessibleByRule(
           realm,
           await a.access(executor, realm),
-          "authorization"
+          "authorization",
         ),
       ],
-      args
+      args,
     );
 
     if (!args.includeDisabled) rules.push(new FieldRule("enabled", true));
@@ -63,7 +63,7 @@ export const authorizations: GraphQLFieldConfig<
         SELECT entity_id AS id
         FROM authx.authorization_record
         `,
-      rules
+      rules,
     );
 
     if (!ids.rows.length) {
@@ -80,7 +80,7 @@ export const authorizations: GraphQLFieldConfig<
 
     const authorizations = await Authorization.read(
       executor,
-      ids.rows.map(({ id }) => id)
+      ids.rows.map(({ id }) => id),
     );
 
     return CursorConnection.connectionFromRules(args, authorizations, rules);

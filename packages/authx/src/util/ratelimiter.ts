@@ -1,5 +1,5 @@
 import { performance } from "perf_hooks";
-import { TooManyRequests } from "../errors";
+import { TooManyRequests } from "../errors.js";
 
 /**
  * Applies a simple in-memory rate limiting scheme. This system is designed to prevent a single
@@ -23,7 +23,7 @@ export class LocalMemoryRateLimiter implements RateLimiter {
   constructor(
     private readonly limitPerWindow = 100,
     private readonly window = 60 * 1_000,
-    private readonly timeSource: () => number = performance.now
+    private readonly timeSource: () => number = performance.now,
   ) {}
 
   limit(key: string): void {

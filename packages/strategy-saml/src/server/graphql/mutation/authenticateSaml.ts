@@ -14,16 +14,16 @@ import {
   ReadonlyDataLoaderExecutor,
   User,
 } from "@authx/authx";
-import { SamlAuthority } from "../../model/SamlAuthority";
+import { SamlAuthority } from "../../model/SamlAuthority.js";
 import { PostAssertOptions } from "saml2-js";
 import { v4 } from "uuid";
 import { EmailAuthority, EmailCredential } from "@authx/strategy-email";
-import { SamlCredential } from "../../model/SamlCredential";
+import { SamlCredential } from "../../model/SamlCredential.js";
 import { isSuperset } from "@authx/scopes";
-import { createV2AuthXScope } from "@authx/authx/dist/util/scopes";
+import { createV2AuthXScope } from "@authx/authx/dist/util/scopes.js";
 import { randomBytes } from "crypto";
-import { Pool, PoolClient } from "pg";
-import { Role } from "@authx/authx/dist/model/Role";
+import pg, { Pool, PoolClient } from "pg";
+import { Role } from "@authx/authx";
 
 const ATTRIBUTE_COMMON_NAME = "urn:oid:2.5.4.3";
 const ATTRIBUTE_DISPLAY_NAME = "urn:oid:2.16.840.1.113730.3.1.241";
@@ -47,7 +47,7 @@ interface PostAssertResponse {
 async function findUserByEmail(
   tx: DataLoaderExecutor<Pool | PoolClient>,
   authority: SamlAuthority,
-  emailAddress: string
+  emailAddress: string,
 ): Promise<User | null> {
   const emailAuthorityId = authority.details.emailAuthorityId;
   if (!emailAuthorityId)
@@ -69,7 +69,7 @@ async function createUserByEmail(
   authority: SamlAuthority,
   newAuthorizationId: string,
   emailAddress: string,
-  userFullName: string
+  userFullName: string,
 ): Promise<User> {
   const emailAuthorityId = authority.details.emailAuthorityId;
   if (!emailAuthorityId)
@@ -87,13 +87,13 @@ async function createUserByEmail(
       recordId: v4(),
       createdAt: new Date(),
       createdByAuthorizationId: newAuthorizationId,
-    }
+    },
   );
 
   const roles = await Promise.all(
     authority.details.assignsCreatedUsersToRoleIds.map((id) =>
-      Role.read(tx, id)
-    )
+      Role.read(tx, id),
+    ),
   );
 
   const roleResults = await Promise.allSettled(
@@ -108,9 +108,9 @@ async function createUserByEmail(
           recordId: v4(),
           createdByAuthorizationId: newAuthorizationId,
           createdAt: new Date(),
-        }
-      )
-    )
+        },
+      ),
+    ),
   );
 
   for (const result of roleResults) {
@@ -133,7 +133,7 @@ async function createUserByEmail(
       recordId: v4(),
       createdAt: new Date(),
       createdByAuthorizationId: newAuthorizationId,
-    }
+    },
   );
 
   return user;
@@ -144,7 +144,7 @@ async function createSamlCredentialForUser(
   authority: SamlAuthority,
   user: User,
   newAuthorizationId: string,
-  samlId: string
+  samlId: string,
 ): Promise<SamlCredential> {
   return await SamlCredential.write(
     tx,
@@ -160,7 +160,7 @@ async function createSamlCredentialForUser(
       recordId: v4(),
       createdAt: new Date(),
       createdByAuthorizationId: newAuthorizationId,
-    }
+    },
   );
 }
 
@@ -193,9 +193,9 @@ export const authenticateSaml: GraphQLFieldConfig<
 
     const strategies = executor.strategies;
     const pool = executor.connection;
-    if (!(pool instanceof Pool)) {
+    if (!(pool instanceof pg.Pool)) {
       throw new Error(
-        "INVARIANT: The executor connection is expected to be an instance of Pool."
+        "INVARIANT: The executor connection is expected to be an instance of Pool.",
       );
     }
 
@@ -204,7 +204,7 @@ export const authenticateSaml: GraphQLFieldConfig<
       // Make sure this transaction is used for queries made by the executor.
       const executor = new DataLoaderExecutor<Pool | PoolClient>(
         tx,
-        strategies
+        strategies,
       );
 
       await tx.query("BEGIN DEFERRABLE");
@@ -213,7 +213,7 @@ export const authenticateSaml: GraphQLFieldConfig<
 
       if (!(authority instanceof SamlAuthority)) {
         throw new AuthenticationError(
-          "The authority uses a strategy other than SAML."
+          "The authority uses a strategy other than SAML.",
         );
       }
 
@@ -238,7 +238,7 @@ export const authenticateSaml: GraphQLFieldConfig<
                 resolve(
                   resp as PostAssertResponse & {
                     user: { attributes: { [key: string]: string } };
-                  }
+                  },
                 );
               }
             });
@@ -263,7 +263,7 @@ export const authenticateSaml: GraphQLFieldConfig<
           const matchedUser = await findUserByEmail(
             executor,
             authority,
-            userEmail
+            userEmail,
           );
           if (matchedUser) {
             credential = await createSamlCredentialForUser(
@@ -271,7 +271,7 @@ export const authenticateSaml: GraphQLFieldConfig<
               authority,
               matchedUser,
               authorizationId,
-              validatedAccountId
+              validatedAccountId,
             );
           } else if (authority.details.createsUnmatchedUsers) {
             let userFullName = "";
@@ -302,7 +302,7 @@ export const authenticateSaml: GraphQLFieldConfig<
               authority,
               authorizationId,
               userEmail,
-              userFullName
+              userFullName,
             );
 
             credential = await createSamlCredentialForUser(
@@ -310,7 +310,7 @@ export const authenticateSaml: GraphQLFieldConfig<
               authority,
               newUser,
               authorizationId,
-              validatedAccountId
+              validatedAccountId,
             );
           }
         }
@@ -318,7 +318,7 @@ export const authenticateSaml: GraphQLFieldConfig<
 
       if (!credential) {
         throw new Error(
-          `Could not find a credential linked with account ID ${validatedAccountId}`
+          `Could not find a credential linked with account ID ${validatedAccountId}`,
         );
       }
 
@@ -355,12 +355,12 @@ export const authenticateSaml: GraphQLFieldConfig<
               basic: "*",
               scopes: "*",
               secrets: "*",
-            }
-          )
+            },
+          ),
         )
       ) {
         throw new ForbiddenError(
-          "You do not have permission to create this authorization"
+          "You do not have permission to create this authorization",
         );
       }
 
@@ -380,7 +380,7 @@ export const authenticateSaml: GraphQLFieldConfig<
           createdByAuthorizationId: authorizationId,
           createdByCredentialId: credential.id,
           createdAt: new Date(),
-        }
+        },
       );
 
       // Invoke the new authorization, since it will be used for the remainder

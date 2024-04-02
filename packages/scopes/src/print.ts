@@ -1,10 +1,11 @@
-import { Scope, AnyMultiple, AnySingle } from "./scope";
+import { Domain, Segment } from "./domain.js";
+import { Scope, AnyMultiple, AnySingle } from "./scope.js";
 
 export function print(scope: Scope): string {
   return scope
-    .map((domain) =>
+    .map((domain: Domain) =>
       domain
-        .map((segment) => {
+        .map((segment: Segment) => {
           switch (segment) {
             case AnyMultiple:
               return "**";
@@ -14,7 +15,7 @@ export function print(scope: Scope): string {
               return segment;
           }
         })
-        .join(".")
+        .join("."),
     )
     .join(":");
 }

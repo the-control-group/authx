@@ -1,45 +1,51 @@
 import { ClientBase, Client } from "pg";
 
 import {
-  authority,
+  authority as authorityGen,
   client,
   credential,
   grant,
   role,
   authorization,
   user,
-} from "./fixture/index";
+} from "./fixture/index.js";
 
-export async function fixture(tx: ClientBase | Client): Promise<void> {
+export async function fixture(
+  tx: ClientBase | Client,
+  privateKey: string,
+  publicKey: string,
+): Promise<void> {
+  const authority = authorityGen(privateKey, publicKey);
+
   // add entities to satisfy foreign key constraints
   await Promise.all([
     tx.query(
       "INSERT INTO authx.grant (id) SELECT id FROM UNNEST($1::uuid[]) AS id",
-      [grant.map(({ id }) => id)]
+      [grant.map(({ id }) => id)],
     ),
     tx.query(
       "INSERT INTO authx.authority (id) SELECT id FROM UNNEST($1::uuid[]) AS id",
-      [authority.map(({ id }) => id)]
+      [authority.map(({ id }) => id)],
     ),
     tx.query(
       "INSERT INTO authx.client (id) SELECT id FROM UNNEST($1::uuid[]) AS id",
-      [client.map(({ id }) => id)]
+      [client.map(({ id }) => id)],
     ),
     tx.query(
       "INSERT INTO authx.credential (id) SELECT id FROM UNNEST($1::uuid[]) AS id",
-      [credential.map(({ id }) => id)]
+      [credential.map(({ id }) => id)],
     ),
     tx.query(
       "INSERT INTO authx.role (id) SELECT id FROM UNNEST($1::uuid[]) AS id",
-      [role.map(({ id }) => id)]
+      [role.map(({ id }) => id)],
     ),
     tx.query(
       "INSERT INTO authx.authorization (id) SELECT id FROM UNNEST($1::uuid[]) AS id",
-      [authorization.map(({ id }) => id)]
+      [authorization.map(({ id }) => id)],
     ),
     tx.query(
       "INSERT INTO authx.user (id) SELECT id FROM UNNEST($1::uuid[]) AS id",
-      [user.map(({ id }) => id)]
+      [user.map(({ id }) => id)],
     ),
   ]);
 

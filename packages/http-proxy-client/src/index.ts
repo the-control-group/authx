@@ -1,9 +1,8 @@
 import { createHash } from "crypto";
-import AbortController from "abort-controller";
 import { EventEmitter } from "events";
-import fetch from "node-fetch";
 import { createServer, Server, IncomingMessage, ServerResponse } from "http";
-import { createProxyServer, ServerOptions } from "http-proxy";
+import httpProxy, { ServerOptions } from "http-proxy";
+const { createProxyServer } = httpProxy;
 import { decode } from "jsonwebtoken";
 
 export interface Behavior {
@@ -82,7 +81,7 @@ export interface Rule {
     | Behavior
     | ((
         request: IncomingMessage,
-        response: ServerResponse
+        response: ServerResponse,
       ) => Behavior | undefined);
 }
 
@@ -250,7 +249,7 @@ export default class AuthXClientProxy extends EventEmitter {
     this._config = config;
     this._proxy = createProxyServer({});
     this._proxy.on("error", (error: Error, ...args) =>
-      this.emit("error", error, ...args)
+      this.emit("error", error, ...args),
     );
     this.server = createServer(this._callback);
     this.server.on("listening", () => {
@@ -264,7 +263,7 @@ export default class AuthXClientProxy extends EventEmitter {
 
   private _callback = async (
     request: IncomingMessage,
-    response: ServerResponse
+    response: ServerResponse,
   ): Promise<void> => {
     const meta: Metadata = {
       request: request,
@@ -335,7 +334,7 @@ export default class AuthXClientProxy extends EventEmitter {
             this.tokenPrefix
           } ${await this._getAccessToken(
             behavior.refreshToken,
-            behavior.sendTokenToTargetWithScopes || []
+            behavior.sendTokenToTargetWithScopes || [],
           )}`;
         } catch (error) {
           response.setHeader("Cache-Control", "no-cache");
@@ -364,10 +363,10 @@ export default class AuthXClientProxy extends EventEmitter {
             typeof code === "string" && /INVALID/.test(code)
               ? 502
               : code === "ECONNRESET" ||
-                code === "ENOTFOUND" ||
-                code === "ECONNREFUSED"
-              ? 504
-              : 500;
+                  code === "ENOTFOUND" ||
+                  code === "ECONNREFUSED"
+                ? 504
+                : 500;
 
           response.setHeader("Cache-Control", "no-cache");
           response.writeHead(statusCode);
@@ -388,7 +387,7 @@ export default class AuthXClientProxy extends EventEmitter {
     this.emit(
       "request.error",
       new Error(`No rules matched requested URL "${request.url}".`),
-      meta
+      meta,
     );
     return;
   };
@@ -444,7 +443,7 @@ export default class AuthXClientProxy extends EventEmitter {
    */
   private _getAccessToken(
     refreshToken: string,
-    scopes: ReadonlyArray<string>
+    scopes: ReadonlyArray<string>,
   ): Promise<string> {
     const hash = hashScopes(scopes);
 
@@ -461,7 +460,7 @@ export default class AuthXClientProxy extends EventEmitter {
       this._evictionTimeouts[refreshToken] || Object.create(null);
     this._evictionTimeouts[refreshToken][hash] = setTimeout(
       () => this._evict(refreshToken, hash),
-      (this._config.evictDormantCachedTokensThreshold || 600) * 1000
+      (this._config.evictDormantCachedTokensThreshold || 600) * 1000,
     );
 
     // Return a result from cache if it exists.
@@ -487,7 +486,7 @@ export default class AuthXClientProxy extends EventEmitter {
   private _fetchAccessToken(
     refreshToken: string,
     scopes: ReadonlyArray<string>,
-    retry: boolean
+    retry: boolean,
   ): Promise<string> {
     const hash = hashScopes(scopes);
 
@@ -510,9 +509,12 @@ export default class AuthXClientProxy extends EventEmitter {
 
     // Create a new abort controller.
     const controller = new AbortController();
-    const timeout = setTimeout(() => {
-      controller.abort();
-    }, (this._config.refreshCachedTokensRequestTimeout || 30) * 1000);
+    const timeout = setTimeout(
+      () => {
+        controller.abort();
+      },
+      (this._config.refreshCachedTokensRequestTimeout || 30) * 1000,
+    );
     const request = {
       controller,
       timeout,
@@ -538,14 +540,26 @@ export default class AuthXClientProxy extends EventEmitter {
 
           if (refreshResponse.status !== 200) {
             throw new Error(
-              `Received status code of ${refreshResponse.status} from AuthX.`
+              `Received status code of ${refreshResponse.status} from AuthX.`,
             );
           }
 
           const refreshResponseBody = await refreshResponse.json();
-          if (refreshResponseBody.error) {
+          if (
+            typeof refreshResponseBody !== "object" ||
+            refreshResponseBody === null
+          ) {
+            throw new Error(`Invalid refresh response returned from AuthX.`);
+          }
+
+          if ("error" in refreshResponseBody) {
             throw new Error(
-              refreshResponseBody.error_message || refreshResponseBody.error
+              "error_message" in refreshResponseBody &&
+              typeof refreshResponseBody.error_message === "string"
+                ? refreshResponseBody.error_message
+                : typeof refreshResponseBody.error === "string"
+                  ? refreshResponseBody.error
+                  : "Unknown error reported by AuthX",
             );
           }
 
@@ -555,14 +569,24 @@ export default class AuthXClientProxy extends EventEmitter {
             throw new Error("Request aborted.");
           }
 
-          const accessToken = refreshResponseBody.access_token;
+          const accessToken =
+            "access_token" in refreshResponseBody &&
+            typeof refreshResponseBody.access_token === "string"
+              ? refreshResponseBody.access_token
+              : "";
           if (!accessToken) {
             throw new Error("No access token returned.");
           }
 
           // This code is designed to make sure we keep track of when tokens will expire, and refresh them before they do.
           // BASIC tokens never expire, so this is not applicable to them.
-          if (refreshResponseBody.token_type?.toLowerCase() === "bearer") {
+
+          const tokenType =
+            "token_type" in refreshResponseBody &&
+            typeof refreshResponseBody.token_type === "string"
+              ? refreshResponseBody.token_type
+              : "";
+          if (tokenType?.toLowerCase() === "bearer") {
             const payload = decode(accessToken);
             if (!payload || typeof payload !== "object") {
               throw new Error("Invalid token payload.");
@@ -605,7 +629,7 @@ export default class AuthXClientProxy extends EventEmitter {
             }
             this._refreshTimeouts[refreshToken][hash] = setTimeout(
               () => this._fetchAccessToken(refreshToken, scopes, true),
-              refreshInSeconds * 1000
+              refreshInSeconds * 1000,
             );
           }
 
@@ -638,7 +662,7 @@ export default class AuthXClientProxy extends EventEmitter {
             }
             this._refreshTimeouts[refreshToken][hash] = setTimeout(
               () => this._fetchAccessToken(refreshToken, scopes, true),
-              (this._config.refreshCachedTokensRetryInterval || 10) * 1000
+              (this._config.refreshCachedTokensRetryInterval || 10) * 1000,
             );
           }
 
@@ -682,7 +706,7 @@ export default class AuthXClientProxy extends EventEmitter {
           readableAll?: boolean;
           writableAll?: boolean;
           ipv6Only?: boolean;
-        }
+        },
   ): Promise<void> {
     if (!this._closed) {
       throw new Error("Proxy cannot listen because it not closed.");

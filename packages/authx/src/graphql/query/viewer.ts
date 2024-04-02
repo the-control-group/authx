@@ -1,7 +1,7 @@
 import { GraphQLFieldConfig } from "graphql";
-import { Context } from "../../Context";
-import { GraphQLAuthorization } from "../GraphQLAuthorization";
-import { Authorization } from "../../model";
+import { Context } from "../../Context.js";
+import { GraphQLAuthorization } from "../GraphQLAuthorization.js";
+import { Authorization } from "../../model/index.js";
 
 export const viewer: GraphQLFieldConfig<
   any,

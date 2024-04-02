@@ -3,7 +3,7 @@ import { Authority, DataLoaderExecutor, QueryCache } from "@authx/authx";
 import {
   PasswordCredentialDetails,
   PasswordCredential,
-} from "./PasswordCredential";
+} from "./PasswordCredential.js";
 
 // Authority
 // ---------
@@ -14,7 +14,7 @@ export interface PasswordAuthorityDetails {
 
 export class PasswordAuthority extends Authority<PasswordAuthorityDetails> {
   public async credentials(
-    tx: Pool | ClientBase | DataLoaderExecutor
+    tx: Pool | ClientBase | DataLoaderExecutor,
   ): Promise<PasswordCredential[]> {
     const ids = (
       await queryCache.query(
@@ -27,7 +27,7 @@ export class PasswordAuthority extends Authority<PasswordAuthorityDetails> {
             AND replacement_record_id IS NULL
           ORDER BY id ASC
           `,
-        [this.id]
+        [this.id],
       )
     ).rows.map(({ id }) => id);
 
@@ -38,7 +38,7 @@ export class PasswordAuthority extends Authority<PasswordAuthorityDetails> {
 
   public async credential(
     tx: Pool | ClientBase | DataLoaderExecutor,
-    authorityUserId: string
+    authorityUserId: string,
   ): Promise<null | PasswordCredential> {
     const results = await queryCache.query(
       tx,
@@ -51,12 +51,12 @@ export class PasswordAuthority extends Authority<PasswordAuthorityDetails> {
         AND enabled = true
         AND replacement_record_id IS NULL
       `,
-      [this.id, authorityUserId]
+      [this.id, authorityUserId],
     );
 
     if (results.rows.length > 1) {
       throw new Error(
-        "INVARIANT: There cannot be more than one active credential for the same user and authority."
+        "INVARIANT: There cannot be more than one active credential for the same user and authority.",
       );
     }
 
@@ -66,11 +66,11 @@ export class PasswordAuthority extends Authority<PasswordAuthorityDetails> {
     return tx instanceof DataLoaderExecutor
       ? PasswordCredential.read<PasswordCredentialDetails, PasswordCredential>(
           tx,
-          results.rows[0].id
+          results.rows[0].id,
         )
       : PasswordCredential.read<PasswordCredentialDetails, PasswordCredential>(
           tx,
-          results.rows[0].id
+          results.rows[0].id,
         );
   }
 }

@@ -1,6 +1,6 @@
 import { GraphQLObjectType, GraphQLString, GraphQLNonNull } from "graphql";
-import { GraphQLClient } from "./GraphQLClient";
-import { GraphQLEdge } from "./GraphQLEdge";
+import { GraphQLClient } from "./GraphQLClient.js";
+import { GraphQLEdge } from "./GraphQLEdge.js";
 
 export const GraphQLClientEdge = new GraphQLObjectType({
   name: "ClientEdge",

@@ -1,5 +1,5 @@
-import { EmailAuthority, EmailAuthorityFragment } from "./EmailAuthority";
-export * from "./EmailAuthority";
+import { EmailAuthority, EmailAuthorityFragment } from "./EmailAuthority.js";
+export * from "./EmailAuthority.js";
 export default {
   component: EmailAuthority,
   fragment: EmailAuthorityFragment,

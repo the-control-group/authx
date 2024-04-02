@@ -1,9 +1,9 @@
 import { Pool, ClientBase } from "pg";
-import { Grant } from "./Grant";
-import { Authorization } from "./Authorization";
-import { NotFoundError } from "../errors";
-import { ClientAction, createV2AuthXScope } from "../util/scopes";
-import { DataLoaderExecutor, DataLoaderCache, QueryCache } from "../loader";
+import { Grant } from "./Grant.js";
+import { Authorization } from "./Authorization.js";
+import { NotFoundError } from "../errors.js";
+import { ClientAction, createV2AuthXScope } from "../util/scopes.js";
+import { DataLoaderExecutor, DataLoaderCache, QueryCache } from "../loader.js";
 
 export interface ClientInvocationData {
   readonly id: string;
@@ -85,7 +85,7 @@ export class Client implements ClientData {
     action: ClientAction = {
       basic: "r",
       secrets: "",
-    }
+    },
   ): Promise<boolean> {
     if (
       await a.can(
@@ -97,8 +97,8 @@ export class Client implements ClientData {
             type: "client",
             clientId: this.id,
           },
-          action
-        )
+          action,
+        ),
       )
     ) {
       return true;
@@ -108,7 +108,7 @@ export class Client implements ClientData {
   }
 
   public async grants(
-    tx: Pool | ClientBase | DataLoaderExecutor
+    tx: Pool | ClientBase | DataLoaderExecutor,
   ): Promise<Grant[]> {
     const ids = (
       await queryCache.query(
@@ -121,7 +121,7 @@ export class Client implements ClientData {
             AND replacement_record_id IS NULL
           ORDER BY id ASC
           `,
-        [this.id]
+        [this.id],
       )
     ).rows.map(({ id }) => id);
 
@@ -132,7 +132,7 @@ export class Client implements ClientData {
 
   public async grant(
     tx: Pool | ClientBase | DataLoaderExecutor,
-    userId: string
+    userId: string,
   ): Promise<null | Grant> {
     const result = await queryCache.query(
       tx,
@@ -144,12 +144,12 @@ export class Client implements ClientData {
         AND client_id = $2
         AND replacement_record_id IS NULL
       `,
-      [userId, this.id]
+      [userId, this.id],
     );
 
     if (result.rows.length > 1) {
       throw new Error(
-        "INVARIANT: It must be impossible for the same user and client to have multiple enabled grants."
+        "INVARIANT: It must be impossible for the same user and client to have multiple enabled grants.",
       );
     }
 
@@ -179,7 +179,7 @@ export class Client implements ClientData {
       WHERE entity_id = $1
       ORDER BY created_at DESC
       `,
-      [this.id]
+      [this.id],
     );
 
     return result.rows.map(
@@ -190,7 +190,7 @@ export class Client implements ClientData {
           createdByAuthorizationId: row.created_by_authorization_id,
           createdAt: row.created_at,
           entityId: row.entity_id,
-        })
+        }),
     );
   }
 
@@ -199,12 +199,11 @@ export class Client implements ClientData {
     data: {
       id: string;
       createdAt: Date;
-    }
+    },
   ): Promise<ClientInvocation> {
     // insert the new invocation
-    const result = await (tx instanceof DataLoaderExecutor
-      ? tx.connection
-      : tx
+    const result = await (
+      tx instanceof DataLoaderExecutor ? tx.connection : tx
     ).query(
       `
       INSERT INTO authx.client_invocation
@@ -222,7 +221,7 @@ export class Client implements ClientData {
         record_id,
         created_at
       `,
-      [data.id, this.id, this.recordId, data.createdAt]
+      [data.id, this.id, this.recordId, data.createdAt] as any[],
     );
 
     if (result.rows.length !== 1) {
@@ -254,7 +253,7 @@ export class Client implements ClientData {
       WHERE entity_id = $1
       ORDER BY created_at DESC
       `,
-      [this.id]
+      [this.id],
     );
 
     return result.rows.map(
@@ -264,7 +263,7 @@ export class Client implements ClientData {
           recordId: row.record_id,
           entityId: row.entity_id,
           createdAt: row.created_at,
-        })
+        }),
     );
   }
 
@@ -272,32 +271,32 @@ export class Client implements ClientData {
   public static read(
     tx: DataLoaderExecutor,
     id: string,
-    options?: { forUpdate?: false }
+    options?: { forUpdate?: false },
   ): Promise<Client>;
 
   public static read(
     tx: DataLoaderExecutor,
     id: readonly string[],
-    options?: { forUpdate?: false }
+    options?: { forUpdate?: false },
   ): Promise<Client[]>;
 
   // Read using a connection.
   public static read(
     tx: Pool | ClientBase,
     id: string,
-    options?: { forUpdate?: boolean }
+    options?: { forUpdate?: boolean },
   ): Promise<Client>;
 
   public static read(
     tx: Pool | ClientBase,
     id: readonly string[],
-    options?: { forUpdate?: boolean }
+    options?: { forUpdate?: boolean },
   ): Promise<Client[]>;
 
   public static async read(
     tx: Pool | ClientBase | DataLoaderExecutor,
     id: readonly string[] | string,
-    options?: { forUpdate?: boolean }
+    options?: { forUpdate?: boolean },
   ): Promise<Client[] | Client> {
     if (tx instanceof DataLoaderExecutor) {
       const loader = cache.get(tx);
@@ -318,7 +317,7 @@ export class Client implements ClientData {
     if (options?.forUpdate) {
       await tx.query(
         `SELECT id FROM authx.client WHERE id = ANY($1) FOR UPDATE`,
-        [typeof id === "string" ? [id] : id]
+        [typeof id === "string" ? [id] : id],
       );
     }
 
@@ -341,12 +340,12 @@ export class Client implements ClientData {
         ${options?.forUpdate ? "FOR UPDATE" : ""}
       ) AS client_record
       `,
-      [typeof id === "string" ? [id] : id]
+      [typeof id === "string" ? [id] : id],
     );
 
     if (result.rows.length > (typeof id === "string" ? 1 : id.length)) {
       throw new Error(
-        "INVARIANT: Read must never return more records than requested."
+        "INVARIANT: Read must never return more records than requested.",
       );
     }
 
@@ -361,7 +360,7 @@ export class Client implements ClientData {
           recordId: row.record_id,
           secrets: row.secrets,
           urls: row.urls,
-        })
+        }),
     );
 
     return typeof id === "string" ? clients[0] : clients;
@@ -374,7 +373,7 @@ export class Client implements ClientData {
       recordId: string;
       createdByAuthorizationId: string;
       createdAt: Date;
-    }
+    },
   ): Promise<Client> {
     // ensure that the entity ID exists
     await tx.query(
@@ -385,7 +384,7 @@ export class Client implements ClientData {
         ($1)
       ON CONFLICT DO NOTHING
       `,
-      [data.id]
+      [data.id],
     );
 
     // replace the previous record
@@ -396,12 +395,12 @@ export class Client implements ClientData {
       WHERE entity_id = $1 AND replacement_record_id IS NULL
       RETURNING entity_id AS id, record_id
       `,
-      [data.id, metadata.recordId]
+      [data.id, metadata.recordId],
     );
 
     if (previous.rows.length > 1) {
       throw new Error(
-        "INVARIANT: It must be impossible to replace more than one record."
+        "INVARIANT: It must be impossible to replace more than one record.",
       );
     }
 
@@ -441,7 +440,7 @@ export class Client implements ClientData {
         data.description,
         [...new Set(data.secrets)],
         [...new Set(data.urls)],
-      ]
+      ] as any[],
     );
 
     if (next.rows.length !== 1) {
@@ -464,7 +463,7 @@ export class Client implements ClientData {
   public static prime(
     executor: DataLoaderExecutor,
     id: string,
-    value: Client
+    value: Client,
   ): void {
     cache.get(executor).prime(id, value);
   }
@@ -473,10 +472,10 @@ export class Client implements ClientData {
 const cache = new DataLoaderCache(
   async (
     executor: DataLoaderExecutor,
-    ids: readonly string[]
+    ids: readonly string[],
   ): Promise<Client[]> => {
     return Client.read(executor.connection, ids);
-  }
+  },
 );
 
 const queryCache = new QueryCache<{ id: string }>();

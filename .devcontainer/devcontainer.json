@@ -1,0 +1,49 @@
+{
+  "name": "AuthX",
+
+  // I have mixed feelings about this approach. Using a base image designed to
+  // be a development environment (especially one put out by Microsoft), then
+  // using devcontainer "feature" appears to be the recommendation.
+  //
+  // This helps work around substantial complexity (such as the docker-in-
+  // docker setup), but it deviates from normal docker best practices and in
+  // my current iteration at least, is not fully determanistic (using digests,
+  // etc).
+  //
+  // There is also the issue of drift between node versions in the execution
+  // environment (docker compose) and the devcontainer, but this has always
+  // been an issue and is better than developing directly on a laptop/etc.
+  "image": "mcr.microsoft.com/devcontainers/base:ubuntu",
+
+  "features": {
+    "ghcr.io/devcontainers/features/git:1": {},
+    "ghcr.io/devcontainers/features/git-lfs:1": {},
+    "ghcr.io/devcontainers/features/github-cli:1": {},
+    "ghcr.io/devcontainers/features/docker-in-docker:2": {},
+    "ghcr.io/devcontainers/features/node:1": {}
+  },
+
+  "remoteUser": "vscode",
+  "postAttachCommand": ["bash", "scripts/bootstrap.sh"],
+  "customizations": {
+    "vscode": {
+      "extensions": [
+        "github.vscode-github-actions",
+        "dbaeumer.vscode-eslint",
+        "ms-azuretools.vscode-docker",
+        "ms-vscode-remote.remote-containers",
+        "esbenp.prettier-vscode",
+        "GitHub.copilot"
+      ],
+      "typescript.tsdk": "node_modules/typescript/lib"
+    }
+  },
+  "containerEnv": {
+    "PUBLISH_PORT_POSTGRES": "5555",
+    "PUBLISH_PORT_DASHBOARD": "8888",
+  },
+  "portsAttributes": {
+    "8888": { "label": "Dashboard" },
+    "5555": { "label": "Postgres" }
+  }
+}

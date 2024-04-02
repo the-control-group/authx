@@ -1,10 +1,10 @@
 import { Pool, ClientBase } from "pg";
-import { User } from "./User";
-import { Grant } from "./Grant";
+import { User } from "./User.js";
+import { Grant } from "./Grant.js";
 import { simplify, getIntersection, isSuperset } from "@authx/scopes";
-import { NotFoundError } from "../errors";
-import { AuthorizationAction, createV2AuthXScope } from "../util/scopes";
-import { DataLoaderExecutor, DataLoaderCache } from "../loader";
+import { NotFoundError } from "../errors.js";
+import { AuthorizationAction, createV2AuthXScope } from "../util/scopes.js";
+import { DataLoaderExecutor, DataLoaderCache } from "../loader.js";
 
 export interface AuthorizationInvocationData {
   readonly id: string;
@@ -93,7 +93,7 @@ export class Authorization implements AuthorizationData {
       basic: "r",
       scopes: "",
       secrets: "",
-    }
+    },
   ): Promise<boolean> {
     if (
       await a.can(
@@ -108,8 +108,8 @@ export class Authorization implements AuthorizationData {
             clientId: (await this.grant(tx))?.clientId ?? "",
             userId: this.userId,
           },
-          action
-        )
+          action,
+        ),
       )
     ) {
       return true;
@@ -128,7 +128,7 @@ export class Authorization implements AuthorizationData {
   }
 
   public async grant(
-    tx: Pool | ClientBase | DataLoaderExecutor
+    tx: Pool | ClientBase | DataLoaderExecutor,
   ): Promise<null | Grant> {
     if (!this.grantId) {
       return null;
@@ -144,7 +144,7 @@ export class Authorization implements AuthorizationData {
 
   private async _access(
     tx: Pool | ClientBase | DataLoaderExecutor,
-    realm: string
+    realm: string,
   ): Promise<string[]> {
     if (!this.enabled) {
       return [];
@@ -170,7 +170,7 @@ export class Authorization implements AuthorizationData {
     return simplify([
       ...getIntersection(
         this.scopes,
-        grant ? await grant.access(tx, values) : await user.access(tx, values)
+        grant ? await grant.access(tx, values) : await user.access(tx, values),
       ),
 
       // All active authorizations have the intrinsic ability to query their
@@ -189,7 +189,7 @@ export class Authorization implements AuthorizationData {
           basic: "r",
           scopes: "*",
           secrets: "",
-        }
+        },
       ),
 
       createV2AuthXScope(
@@ -201,7 +201,7 @@ export class Authorization implements AuthorizationData {
         {
           basic: "r",
           scopes: "",
-        }
+        },
       ),
     ]);
   }
@@ -213,7 +213,7 @@ export class Authorization implements AuthorizationData {
 
   public async access(
     tx: Pool | ClientBase | DataLoaderExecutor,
-    realm: string
+    realm: string,
   ): Promise<string[]> {
     // Memoization must be relative to a specific execution context.
     if (!(tx instanceof DataLoaderExecutor)) {
@@ -240,7 +240,7 @@ export class Authorization implements AuthorizationData {
   public async can(
     tx: Pool | ClientBase | DataLoaderExecutor,
     realm: string,
-    scope: string[] | string
+    scope: string[] | string,
   ): Promise<boolean> {
     return isSuperset(await this.access(tx, realm), scope);
   }
@@ -262,7 +262,7 @@ export class Authorization implements AuthorizationData {
       WHERE entity_id = $1
       ORDER BY created_at DESC
       `,
-      [this.id]
+      [this.id],
     );
 
     return result.rows.map(
@@ -274,7 +274,7 @@ export class Authorization implements AuthorizationData {
           createdByCredentialId: row.created_by_credential_id,
           createdAt: row.created_at,
           entityId: row.entity_id,
-        })
+        }),
     );
   }
 
@@ -284,12 +284,11 @@ export class Authorization implements AuthorizationData {
       id: string;
       format: string;
       createdAt: Date;
-    }
+    },
   ): Promise<AuthorizationInvocation> {
     // insert the new invocation
-    const result = await (tx instanceof DataLoaderExecutor
-      ? tx.connection
-      : tx
+    const result = await (
+      tx instanceof DataLoaderExecutor ? tx.connection : tx
     ).query(
       `
       INSERT INTO authx.authorization_invocation
@@ -309,7 +308,7 @@ export class Authorization implements AuthorizationData {
         created_at,
         format
       `,
-      [data.id, this.id, this.recordId, data.createdAt, data.format]
+      [data.id, this.id, this.recordId, data.createdAt, data.format] as any[],
     );
 
     if (result.rows.length !== 1) {
@@ -343,7 +342,7 @@ export class Authorization implements AuthorizationData {
       WHERE entity_id = $1
       ORDER BY created_at DESC
       `,
-      [this.id]
+      [this.id],
     );
 
     return result.rows.map(
@@ -353,7 +352,7 @@ export class Authorization implements AuthorizationData {
           recordId: row.record_id,
           entityId: row.entity_id,
           createdAt: row.created_at,
-        })
+        }),
     );
   }
 
@@ -361,32 +360,32 @@ export class Authorization implements AuthorizationData {
   public static read(
     tx: DataLoaderExecutor,
     id: string,
-    options?: { forUpdate?: false }
+    options?: { forUpdate?: false },
   ): Promise<Authorization>;
 
   public static read(
     tx: DataLoaderExecutor,
     id: readonly string[],
-    options?: { forUpdate?: false }
+    options?: { forUpdate?: false },
   ): Promise<Authorization[]>;
 
   // Read using a connection.
   public static read(
     tx: Pool | ClientBase,
     id: string,
-    options?: { forUpdate?: boolean }
+    options?: { forUpdate?: boolean },
   ): Promise<Authorization>;
 
   public static read(
     tx: Pool | ClientBase,
     id: readonly string[],
-    options?: { forUpdate?: boolean }
+    options?: { forUpdate?: boolean },
   ): Promise<Authorization[]>;
 
   public static async read(
     tx: Pool | ClientBase | DataLoaderExecutor,
     id: readonly string[] | string,
-    options?: { forUpdate?: boolean }
+    options?: { forUpdate?: boolean },
   ): Promise<Authorization[] | Authorization> {
     if (tx instanceof DataLoaderExecutor) {
       const loader = cache.get(tx);
@@ -407,7 +406,7 @@ export class Authorization implements AuthorizationData {
     if (options?.forUpdate) {
       await tx.query(
         `SELECT id FROM authx.authorization WHERE id = ANY($1) FOR UPDATE`,
-        [typeof id === "string" ? [id] : id]
+        [typeof id === "string" ? [id] : id],
       );
     }
 
@@ -427,12 +426,12 @@ export class Authorization implements AuthorizationData {
         AND replacement_record_id IS NULL
       ${options?.forUpdate ? "FOR UPDATE" : ""}
       `,
-      [typeof id === "string" ? [id] : id]
+      [typeof id === "string" ? [id] : id],
     );
 
     if (result.rows.length > (typeof id === "string" ? 1 : id.length)) {
       throw new Error(
-        "INVARIANT: Read must never return more records than requested."
+        "INVARIANT: Read must never return more records than requested.",
       );
     }
 
@@ -447,7 +446,7 @@ export class Authorization implements AuthorizationData {
           recordId: row.record_id,
           userId: row.user_id,
           grantId: row.grant_id,
-        })
+        }),
     );
 
     return typeof id === "string" ? authorizations[0] : authorizations;
@@ -461,7 +460,7 @@ export class Authorization implements AuthorizationData {
       createdByAuthorizationId: string;
       createdByCredentialId: null | string;
       createdAt: Date;
-    }
+    },
   ): Promise<Authorization> {
     // ensure the credential ID shares the user ID
     if (metadata.createdByCredentialId) {
@@ -473,12 +472,12 @@ export class Authorization implements AuthorizationData {
           entity_id = $1
           AND replacement_record_id IS NULL
         `,
-        [metadata.createdByCredentialId]
+        [metadata.createdByCredentialId],
       );
 
       if (result.rows.length !== 1 || result.rows[0].user_id !== data.userId) {
         throw new Error(
-          "If a authorization references a credential, it must belong to the same user as the authorization."
+          "If a authorization references a credential, it must belong to the same user as the authorization.",
         );
       }
     }
@@ -493,12 +492,12 @@ export class Authorization implements AuthorizationData {
           entity_id = $1
           AND replacement_record_id IS NULL
         `,
-        [data.grantId]
+        [data.grantId],
       );
 
       if (result.rows.length !== 1 || result.rows[0].user_id !== data.userId) {
         throw new Error(
-          "If a authorization references a grant, it must belong to the same user as the authorization."
+          "If a authorization references a grant, it must belong to the same user as the authorization.",
         );
       }
     }
@@ -512,7 +511,7 @@ export class Authorization implements AuthorizationData {
         ($1)
       ON CONFLICT DO NOTHING
       `,
-      [data.id]
+      [data.id],
     );
 
     // replace the previous record
@@ -525,12 +524,12 @@ export class Authorization implements AuthorizationData {
         AND replacement_record_id IS NULL
       RETURNING entity_id AS id, record_id
       `,
-      [data.id, metadata.recordId]
+      [data.id, metadata.recordId],
     );
 
     if (previous.rows.length > 1) {
       throw new Error(
-        "INVARIANT: It must be impossible to replace more than one record."
+        "INVARIANT: It must be impossible to replace more than one record.",
       );
     }
 
@@ -572,7 +571,7 @@ export class Authorization implements AuthorizationData {
         data.grantId,
         data.secret,
         simplify([...data.scopes]),
-      ]
+      ] as any[],
     );
 
     if (next.rows.length !== 1) {
@@ -595,7 +594,7 @@ export class Authorization implements AuthorizationData {
   public static prime(
     executor: DataLoaderExecutor,
     id: string,
-    value: Authorization
+    value: Authorization,
   ): void {
     cache.get(executor).prime(id, value);
   }
@@ -604,8 +603,8 @@ export class Authorization implements AuthorizationData {
 const cache = new DataLoaderCache(
   async (
     executor: DataLoaderExecutor,
-    ids: readonly string[]
+    ids: readonly string[],
   ): Promise<Authorization[]> => {
     return Authorization.read(executor.connection, ids);
-  }
+  },
 );

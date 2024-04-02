@@ -1,2 +1,2 @@
-export * from "./PasswordAuthority";
-export * from "./PasswordCredential";
+export * from "./PasswordAuthority.js";
+export * from "./PasswordCredential.js";

@@ -1,5 +1,5 @@
 import { v4 } from "uuid";
-import { Pool, PoolClient } from "pg";
+import pg, { Pool, PoolClient } from "pg";
 import { GraphQLList, GraphQLFieldConfig, GraphQLNonNull } from "graphql";
 
 import {
@@ -17,12 +17,12 @@ import {
 import {
   createV2AuthXScope,
   createV2AuthorityAdministrationScopes,
-} from "@authx/authx/scopes";
+} from "@authx/authx/scopes.js";
 
 import { isSuperset, simplify } from "@authx/scopes";
-import { PasswordAuthority } from "../../model";
-import { GraphQLPasswordAuthority } from "../GraphQLPasswordAuthority";
-import { GraphQLCreatePasswordAuthorityInput } from "./GraphQLCreatePasswordAuthorityInput";
+import { PasswordAuthority } from "../../model/index.js";
+import { GraphQLPasswordAuthority } from "../GraphQLPasswordAuthority.js";
+import { GraphQLCreatePasswordAuthorityInput } from "./GraphQLCreatePasswordAuthorityInput.js";
 
 export const createPasswordAuthorities: GraphQLFieldConfig<
   any,
@@ -46,7 +46,9 @@ export const createPasswordAuthorities: GraphQLFieldConfig<
   args: {
     authorities: {
       type: new GraphQLNonNull(
-        new GraphQLList(new GraphQLNonNull(GraphQLCreatePasswordAuthorityInput))
+        new GraphQLList(
+          new GraphQLNonNull(GraphQLCreatePasswordAuthorityInput),
+        ),
       ),
     },
   },
@@ -59,13 +61,13 @@ export const createPasswordAuthorities: GraphQLFieldConfig<
 
     if (!a) {
       throw new ForbiddenError(
-        "You must be authenticated to create a authority."
+        "You must be authenticated to create a authority.",
       );
     }
 
-    if (!(pool instanceof Pool)) {
+    if (!(pool instanceof pg.Pool)) {
       throw new Error(
-        "INVARIANT: The executor connection is expected to be an instance of Pool."
+        "INVARIANT: The executor connection is expected to be an instance of Pool.",
       );
     }
 
@@ -79,7 +81,7 @@ export const createPasswordAuthorities: GraphQLFieldConfig<
       for (const { roleId } of input.administration) {
         if (!validateIdFormat(roleId)) {
           throw new ValidationError(
-            "The provided `administration` list contains a `roleId` that is an invalid ID."
+            "The provided `administration` list contains a `roleId` that is an invalid ID.",
           );
         }
       }
@@ -89,7 +91,7 @@ export const createPasswordAuthorities: GraphQLFieldConfig<
         // Make sure this transaction is used for queries made by the executor.
         const executor = new DataLoaderExecutor<Pool | PoolClient>(
           tx,
-          strategies
+          strategies,
         );
 
         if (
@@ -105,12 +107,12 @@ export const createPasswordAuthorities: GraphQLFieldConfig<
               {
                 basic: "*",
                 details: "*",
-              }
-            )
+              },
+            ),
           ))
         ) {
           throw new ForbiddenError(
-            "You do not have permission to create an authority."
+            "You do not have permission to create an authority.",
           );
         }
 
@@ -148,7 +150,7 @@ export const createPasswordAuthorities: GraphQLFieldConfig<
               recordId: v4(),
               createdByAuthorizationId: a.id,
               createdAt: new Date(),
-            }
+            },
           );
 
           const possibleAdministrationScopes =
@@ -172,7 +174,7 @@ export const createPasswordAuthorities: GraphQLFieldConfig<
                 })
               ) {
                 throw new ForbiddenError(
-                  `You do not have permission to modify the scopes of role ${roleId}.`
+                  `You do not have permission to modify the scopes of role ${roleId}.`,
                 );
               }
 
@@ -183,7 +185,7 @@ export const createPasswordAuthorities: GraphQLFieldConfig<
                   scopes: simplify([
                     ...administrationRoleBefore.scopes,
                     ...possibleAdministrationScopes.filter((possible) =>
-                      isSuperset(scopes, possible)
+                      isSuperset(scopes, possible),
                     ),
                   ]),
                 },
@@ -191,13 +193,13 @@ export const createPasswordAuthorities: GraphQLFieldConfig<
                   recordId: v4(),
                   createdByAuthorizationId: a.id,
                   createdAt: new Date(),
-                }
+                },
               );
 
               // Clear and prime the loader.
               Role.clear(executor, administrationRole.id);
               Role.prime(executor, administrationRole.id, administrationRole);
-            })
+            }),
           );
 
           for (const result of administrationResults) {

@@ -1,5 +1,3 @@
-module.exports = {
-	...require("./dist/util/scopes"),
-	...require("./dist/util/createV2AuthorityAdministrationScopes"),
-	...require("./dist/util/createV2CredentialAdministrationScopes"),
-};
+export * from "./dist/util/scopes.js";
+export * from "./dist/util/createV2AuthorityAdministrationScopes.js";
+export * from "./dist/util/createV2CredentialAdministrationScopes.js";

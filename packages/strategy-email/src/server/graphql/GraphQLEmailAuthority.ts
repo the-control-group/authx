@@ -9,7 +9,7 @@ import {
 } from "graphql";
 
 import { Context, GraphQLAuthority, GraphQLNode } from "@authx/authx";
-import { EmailAuthority } from "../model";
+import { EmailAuthority } from "../model/index.js";
 
 // Authority
 // ---------
@@ -34,7 +34,7 @@ export const GraphQLEmailAuthority = new GraphQLObjectType<
       async resolve(
         authority,
         args,
-        { realm, authorization: a, executor }: Context
+        { realm, authorization: a, executor }: Context,
       ): Promise<null | string> {
         return a &&
           (await authority.isAccessibleBy(realm, a, executor, {
@@ -52,7 +52,7 @@ export const GraphQLEmailAuthority = new GraphQLObjectType<
       async resolve(
         authority,
         args,
-        { realm, authorization: a, executor }: Context
+        { realm, authorization: a, executor }: Context,
       ): Promise<null | string[]> {
         return a &&
           (await authority.isAccessibleBy(realm, a, executor, {
@@ -69,7 +69,7 @@ export const GraphQLEmailAuthority = new GraphQLObjectType<
       async resolve(
         authority,
         args,
-        { realm, authorization: a, executor }: Context
+        { realm, authorization: a, executor }: Context,
       ): Promise<null | number> {
         return a &&
           (await authority.isAccessibleBy(realm, a, executor, {
@@ -87,7 +87,7 @@ export const GraphQLEmailAuthority = new GraphQLObjectType<
       async resolve(
         authority,
         args,
-        { realm, authorization: a, executor }: Context
+        { realm, authorization: a, executor }: Context,
       ): Promise<null | string> {
         return a &&
           (await authority.isAccessibleBy(realm, a, executor, {
@@ -105,7 +105,7 @@ export const GraphQLEmailAuthority = new GraphQLObjectType<
       async resolve(
         authority,
         args,
-        { realm, authorization: a, executor }: Context
+        { realm, authorization: a, executor }: Context,
       ): Promise<null | string> {
         return a &&
           (await authority.isAccessibleBy(realm, a, executor, {
@@ -123,7 +123,7 @@ export const GraphQLEmailAuthority = new GraphQLObjectType<
       async resolve(
         authority,
         args,
-        { realm, authorization: a, executor }: Context
+        { realm, authorization: a, executor }: Context,
       ): Promise<null | string> {
         return a &&
           (await authority.isAccessibleBy(realm, a, executor, {
@@ -141,7 +141,7 @@ export const GraphQLEmailAuthority = new GraphQLObjectType<
       async resolve(
         authority,
         args,
-        { realm, authorization: a, executor }: Context
+        { realm, authorization: a, executor }: Context,
       ): Promise<null | string> {
         return a &&
           (await authority.isAccessibleBy(realm, a, executor, {
@@ -159,7 +159,7 @@ export const GraphQLEmailAuthority = new GraphQLObjectType<
       async resolve(
         authority,
         args,
-        { realm, authorization: a, executor }: Context
+        { realm, authorization: a, executor }: Context,
       ): Promise<null | string> {
         return a &&
           (await authority.isAccessibleBy(realm, a, executor, {
@@ -177,7 +177,7 @@ export const GraphQLEmailAuthority = new GraphQLObjectType<
       async resolve(
         authority,
         args,
-        { realm, authorization: a, executor }: Context
+        { realm, authorization: a, executor }: Context,
       ): Promise<null | string> {
         return a &&
           (await authority.isAccessibleBy(realm, a, executor, {

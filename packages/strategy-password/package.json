@@ -5,33 +5,30 @@
   },
   "bugs": "https://github.com/the-control-group/authx/issues",
   "dependencies": {
-    "@authx/scopes": "^3.1.0-alpha.52",
-    "@types/bcrypt": "^3.0.1",
-    "@types/graphql-react": "^8.1.1",
-    "@types/pg": "^7.14.11",
-    "@types/react": "^17.0.0",
-    "@types/react-dom": "^17.0.0",
-    "@types/uuid": "^8.3.0",
-    "bcrypt": "^5.0.1",
-    "graphql": "15.5.0",
-    "graphql-react": "^12.0.1",
-    "pg": "^8.6.0",
-    "react": "^17.0.0",
-    "react-dom": "^17.0.0",
-    "uuid": "^8.3.2"
+    "@authx/scopes": "*",
+    "@types/bcrypt": "^5.0.2",
+    "@types/pg": "^8.11.4",
+    "@types/react": "^18.2.73",
+    "@types/react-dom": "^18.2.23",
+    "@types/uuid": "^9.0.8",
+    "bcrypt": "^5.1.1",
+    "graphql": "16.8.1",
+    "pg": "^8.11.4",
+    "react": "^18.2.0",
+    "react-dom": "^18.2.0",
+    "uuid": "^9.0.1"
   },
   "description": "",
   "devDependencies": {
-    "@authx/authx": "^3.1.0-alpha.52",
-    "@typescript-eslint/eslint-plugin": "^4.6.1",
-    "@typescript-eslint/parser": "^4.6.1",
-    "ava": "^3.5.2",
-    "eslint": "^7.12.1",
-    "eslint-config-prettier": "^8.2.0",
-    "eslint-plugin-prettier": "^3.1.1",
-    "nodemon": "^2.0.2",
-    "prettier": "^2.0.2",
-    "typescript": "^4.0.5"
+    "@authx/authx": "*",
+    "@typescript-eslint/eslint-plugin": "^7.5.0",
+    "@typescript-eslint/parser": "^7.5.0",
+    "ava": "^6.1.2",
+    "eslint": "^8.57.0",
+    "eslint-config-prettier": "^9.1.0",
+    "eslint-plugin-prettier": "^5.1.3",
+    "prettier": "^3.2.5",
+    "typescript": "^5.4.3"
   },
   "engines": {
     "node": ">=10"
@@ -51,10 +48,10 @@
     "permissions"
   ],
   "license": "MIT",
-  "main": "dist/server",
+  "main": "dist/server/index.js",
   "name": "@authx/strategy-password",
   "peerDependencies": {
-    "@authx/authx": "^3.1.0-alpha.18"
+    "@authx/authx": "*"
   },
   "repository": "https://github.com/the-control-group/authx",
   "scripts": {
@@ -64,11 +61,12 @@
     "build:development": "rm -rf dist && tsc --watch",
     "build:development:chained": "tsc --watch --preserveWatchOutput --pretty",
     "start": "NODE_ENV=production node dist/server",
-    "start:development": "NODE_ENV=development nodemon --delay 2 --inspect dist/server",
+    "start:development": "NODE_ENV=development node --watch --delay 2 --inspect dist/server",
     "test": "ava --verbose dist/*.test.js",
     "test:development": "ava --verbose --watch dist/*.test.js",
     "prepublishOnly": "npm run build"
   },
+  "type": "module",
   "types": "dist/server/index.d.ts",
   "version": "3.1.0-alpha.52"
 }

@@ -1,5 +1,5 @@
 import { v4 } from "uuid";
-import { Pool, PoolClient } from "pg";
+import pg, { Pool, PoolClient } from "pg";
 import { GraphQLFieldConfig, GraphQLNonNull, GraphQLList } from "graphql";
 
 import {
@@ -11,9 +11,9 @@ import {
   validateIdFormat,
   DataLoaderExecutor,
 } from "@authx/authx";
-import { OpenIdCredential } from "../../model";
-import { GraphQLOpenIdCredential } from "../GraphQLOpenIdCredential";
-import { GraphQLUpdateOpenIdCredentialInput } from "./GraphQLUpdateOpenIdCredentialInput";
+import { OpenIdCredential } from "../../model/index.js";
+import { GraphQLOpenIdCredential } from "../GraphQLOpenIdCredential.js";
+import { GraphQLUpdateOpenIdCredentialInput } from "./GraphQLUpdateOpenIdCredentialInput.js";
 
 export const updateOpenIdCredentials: GraphQLFieldConfig<
   any,
@@ -30,7 +30,7 @@ export const updateOpenIdCredentials: GraphQLFieldConfig<
   args: {
     credentials: {
       type: new GraphQLNonNull(
-        new GraphQLList(new GraphQLNonNull(GraphQLUpdateOpenIdCredentialInput))
+        new GraphQLList(new GraphQLNonNull(GraphQLUpdateOpenIdCredentialInput)),
       ),
     },
   },
@@ -43,13 +43,13 @@ export const updateOpenIdCredentials: GraphQLFieldConfig<
 
     if (!a) {
       throw new ForbiddenError(
-        "You must be authenticated to update an credential."
+        "You must be authenticated to update an credential.",
       );
     }
 
-    if (!(pool instanceof Pool)) {
+    if (!(pool instanceof pg.Pool)) {
       throw new Error(
-        "INVARIANT: The executor connection is expected to be an instance of Pool."
+        "INVARIANT: The executor connection is expected to be an instance of Pool.",
       );
     }
 
@@ -64,7 +64,7 @@ export const updateOpenIdCredentials: GraphQLFieldConfig<
         // Make sure this transaction is used for queries made by the executor.
         const executor = new DataLoaderExecutor<Pool | PoolClient>(
           tx,
-          strategies
+          strategies,
         );
 
         await tx.query("BEGIN DEFERRABLE");
@@ -84,7 +84,7 @@ export const updateOpenIdCredentials: GraphQLFieldConfig<
           }))
         ) {
           throw new ForbiddenError(
-            "You do not have permission to update this credential."
+            "You do not have permission to update this credential.",
           );
         }
 
@@ -101,7 +101,7 @@ export const updateOpenIdCredentials: GraphQLFieldConfig<
             recordId: v4(),
             createdByAuthorizationId: a.id,
             createdAt: new Date(),
-          }
+          },
         );
 
         await tx.query("COMMIT");

@@ -1,3 +1,3 @@
-export * from "./dist/util/scopes";
-export * from "./dist/util/createV2AuthorityAdministrationScopes";
-export * from "./dist/util/createV2CredentialAdministrationScopes";
+export * from "./dist/util/scopes.js";
+export * from "./dist/util/createV2AuthorityAdministrationScopes.js";
+export * from "./dist/util/createV2CredentialAdministrationScopes.js";

@@ -9,15 +9,15 @@ import {
 
 import jwt from "jsonwebtoken";
 import { v4 } from "uuid";
-import { Grant, Authorization, User } from "../model";
-import { Context } from "../Context";
-import { GraphQLExplanation } from "./GraphQLExplanation";
-import { GraphQLGrant } from "./GraphQLGrant";
-import { GraphQLUser } from "./GraphQLUser";
-import { GraphQLTokenFormat } from "./GraphQLTokenFormat";
-import { GraphQLScope } from "./GraphQLScope";
-import { Explanation, match } from "../util/explanations";
-import { GraphQLNode } from "./GraphQLNode";
+import { Grant, Authorization, User } from "../model/index.js";
+import { Context } from "../Context.js";
+import { GraphQLExplanation } from "./GraphQLExplanation.js";
+import { GraphQLGrant } from "./GraphQLGrant.js";
+import { GraphQLUser } from "./GraphQLUser.js";
+import { GraphQLTokenFormat } from "./GraphQLTokenFormat.js";
+import { GraphQLScope } from "./GraphQLScope.js";
+import { Explanation, match } from "../util/explanations.js";
+import { GraphQLNode } from "./GraphQLNode.js";
 
 export const GraphQLAuthorization: GraphQLObjectType<Authorization, Context> =
   new GraphQLObjectType<Authorization, Context>({
@@ -33,7 +33,7 @@ export const GraphQLAuthorization: GraphQLObjectType<Authorization, Context> =
         async resolve(
           authorization,
           args,
-          { realm, authorization: a, executor }: Context
+          { realm, authorization: a, executor }: Context,
         ): Promise<null | Grant> {
           if (!a) return null;
           const grant = await authorization.grant(executor);
@@ -47,7 +47,7 @@ export const GraphQLAuthorization: GraphQLObjectType<Authorization, Context> =
         async resolve(
           authorization,
           args,
-          { realm, authorization: a, executor }: Context
+          { realm, authorization: a, executor }: Context,
         ): Promise<null | User> {
           if (!a) return null;
 
@@ -60,7 +60,7 @@ export const GraphQLAuthorization: GraphQLObjectType<Authorization, Context> =
         async resolve(
           authorization,
           args,
-          { realm, authorization: a, executor }: Context
+          { realm, authorization: a, executor }: Context,
         ): Promise<null | string> {
           return a &&
             (await authorization.isAccessibleBy(realm, a, executor, {
@@ -77,7 +77,7 @@ export const GraphQLAuthorization: GraphQLObjectType<Authorization, Context> =
         async resolve(
           authorization,
           args,
-          { realm, authorization: a, executor }: Context
+          { realm, authorization: a, executor }: Context,
         ): Promise<null | string[]> {
           return a &&
             (await authorization.isAccessibleBy(realm, a, executor, {
@@ -94,7 +94,7 @@ export const GraphQLAuthorization: GraphQLObjectType<Authorization, Context> =
         async resolve(
           authorization,
           args,
-          { realm, authorization: a, executor, explanations }: Context
+          { realm, authorization: a, executor, explanations }: Context,
         ): Promise<null | Explanation[]> {
           if (
             !a ||
@@ -120,7 +120,7 @@ export const GraphQLAuthorization: GraphQLObjectType<Authorization, Context> =
         async resolve(
           authorization,
           args,
-          { realm, authorization: a, executor }: Context
+          { realm, authorization: a, executor }: Context,
         ): Promise<null | string[]> {
           if (!a) return null;
           return (await authorization.isAccessibleBy(realm, a, executor, {
@@ -149,7 +149,7 @@ export const GraphQLAuthorization: GraphQLObjectType<Authorization, Context> =
             authorization: a,
             executor,
             rateLimiter,
-          }: Context
+          }: Context,
         ): Promise<null | string> {
           if (!a) return null;
           if (
@@ -170,7 +170,7 @@ export const GraphQLAuthorization: GraphQLObjectType<Authorization, Context> =
           if (args.format === "basic") {
             return `Basic ${Buffer.from(
               `${authorization.id}:${authorization.secret}`,
-              "utf8"
+              "utf8",
             ).toString("base64")}`;
           }
 
@@ -201,7 +201,7 @@ export const GraphQLAuthorization: GraphQLObjectType<Authorization, Context> =
                 // The jwt library uses the presence of keys in its validation,
                 // so we cannot just set `audience` to undefined.
                 ...(grant ? { audience: grant.clientId } : {}),
-              }
+              },
             )}`;
           }
 

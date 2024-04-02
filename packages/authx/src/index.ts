@@ -2,41 +2,42 @@ import body from "koa-body";
 import { v4 } from "uuid";
 import createPlaygroundMiddleware from "graphql-playground-middleware-koa";
 import Router, { IRouterOptions } from "koa-router";
-import { errorHandler, execute } from "graphql-api-koa";
+import errorHandler from "graphql-api-koa/errorHandler.mjs";
+import execute from "graphql-api-koa/execute.mjs";
 import { Context as KoaContext, Next as KoaNext, Middleware } from "koa";
 import { parse } from "auth-header";
-import { Pool } from "pg";
+import pg, { Pool } from "pg";
 
-import x from "./x";
-import oauth2 from "./oauth2";
-import { Config, assertConfig } from "./Config";
-import { Context } from "./Context";
-import { createSchema } from "./graphql";
-import { fromBasic, fromBearer } from "./util/getAuthorization";
-import { StrategyCollection } from "./StrategyCollection";
-import { UnsupportedMediaTypeError } from "./errors";
-import { createAuthXExplanations } from "./explanations";
-import { DataLoaderExecutor } from "./loader";
+import x from "./x.js";
+import oauth2 from "./oauth2.js";
+import { Config, assertConfig } from "./Config.js";
+import { Context } from "./Context.js";
+import { createSchema } from "./graphql/index.js";
+import { fromBasic, fromBearer } from "./util/getAuthorization.js";
+import { StrategyCollection } from "./StrategyCollection.js";
+import { UnsupportedMediaTypeError } from "./errors.js";
+import { createAuthXExplanations } from "./explanations.js";
+import { DataLoaderExecutor } from "./loader.js";
 import {
   LocalMemoryRateLimiter,
   NoOpRateLimiter,
   RateLimiter,
-} from "./util/ratelimiter";
+} from "./util/ratelimiter.js";
 import {
   EagerInvocationRecorder,
   InvocationRecorder,
-} from "./InvocationRecorder";
+} from "./InvocationRecorder.js";
 
-export * from "./x";
-export * from "./errors";
-export * from "./loader";
-export * from "./model";
-export * from "./graphql";
-export * from "./Strategy";
-export * from "./StrategyCollection";
-export * from "./Config";
-export * from "./Context";
-export * from "./util/validateIdFormat";
+export * from "./x.js";
+export * from "./errors.js";
+export * from "./loader.js";
+export * from "./model/index.js";
+export * from "./graphql/index.js";
+export * from "./Strategy.js";
+export * from "./StrategyCollection.js";
+export * from "./Config.js";
+export * from "./Context.js";
+export * from "./util/validateIdFormat.js";
 
 type AuthXMiddleware = Middleware<any, KoaContext & { [x]: Context }>;
 
@@ -59,7 +60,7 @@ export class AuthX extends Router<any, { [x]: Context }> {
         : new StrategyCollection(config.strategies);
 
     // create a database pool
-    this.pool = new Pool(config.pg);
+    this.pool = new pg.Pool(config.pg) as Pool;
     this.rateLimiter =
       typeof config.maxRequestsPerMinute === "number"
         ? new LocalMemoryRateLimiter(config.maxRequestsPerMinute)
@@ -68,7 +69,7 @@ export class AuthX extends Router<any, { [x]: Context }> {
     // define the context middleware
     const contextMiddleware = async (
       ctx: KoaContext & { [x]: Context },
-      next: KoaNext
+      next: KoaNext,
     ): Promise<void> => {
       const tx = await this.pool.connect();
       try {
@@ -100,7 +101,7 @@ export class AuthX extends Router<any, { [x]: Context }> {
               id: v4(),
               format: "basic",
               createdAt: new Date(),
-            }
+            },
           );
         }
 
@@ -120,7 +121,7 @@ export class AuthX extends Router<any, { [x]: Context }> {
         // An authorization header exists, but did not match a known format.
         if (ctx.request.header.authorization && !authorization) {
           throw new Error(
-            "An authorization header must be of either HTTP Basic or Bearer format."
+            "An authorization header must be of either HTTP Basic or Bearer format.",
           );
         }
 
@@ -157,13 +158,18 @@ export class AuthX extends Router<any, { [x]: Context }> {
       async (ctx, next) => {
         if (!ctx.is("json"))
           throw new UnsupportedMediaTypeError(
-            "Requests to the AuthX GraphQL endpoint MUST specify a Content-Type of `application/json`."
+            "Requests to the AuthX GraphQL endpoint MUST specify a Content-Type of `application/json`.",
           );
 
         await next();
       },
 
-      body({ multipart: false, urlencoded: false, text: false, json: true }),
+      body.default({
+        multipart: false,
+        urlencoded: false,
+        text: false,
+        json: true,
+      }),
 
       execute({
         schema: config.processSchema
@@ -176,13 +182,16 @@ export class AuthX extends Router<any, { [x]: Context }> {
             contextValue,
           };
         },
-      })
+      }),
     );
 
     // GraphiQL
     // ========
     // This is a graphical (get it, graph-i-QL) interface to the AuthX API.
-    this.all("/graphiql", createPlaygroundMiddleware({ endpoint: "/graphql" }));
+    this.all(
+      "/graphiql",
+      createPlaygroundMiddleware.default({ endpoint: "/graphql" }),
+    );
 
     // OAuth
     // =====
@@ -199,8 +208,13 @@ export class AuthX extends Router<any, { [x]: Context }> {
     this.post(
       "/",
       contextMiddleware as AuthXMiddleware,
-      body({ multipart: false, urlencoded: true, text: false, json: true }),
-      oauth2 as AuthXMiddleware
+      body.default({
+        multipart: false,
+        urlencoded: true,
+        text: false,
+        json: true,
+      }),
+      oauth2 as AuthXMiddleware,
     );
 
     for (const strategyName in strategies.map) {
@@ -212,7 +226,7 @@ export class AuthX extends Router<any, { [x]: Context }> {
           `/strategy/${strategyName}`,
           contextMiddleware,
           strategyRouter.routes(),
-          strategyRouter.allowedMethods()
+          strategyRouter.allowedMethods(),
         );
       }
     }

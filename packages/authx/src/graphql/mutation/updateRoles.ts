@@ -1,15 +1,15 @@
 import { v4 } from "uuid";
-import { Pool, PoolClient } from "pg";
+import pg, { Pool, PoolClient } from "pg";
 import { isSuperset } from "@authx/scopes";
 import { GraphQLFieldConfig, GraphQLList, GraphQLNonNull } from "graphql";
-import { Context } from "../../Context";
-import { GraphQLRole } from "../GraphQLRole";
-import { Role } from "../../model";
-import { DataLoaderExecutor } from "../../loader";
-import { filter } from "../../util/filter";
-import { validateIdFormat } from "../../util/validateIdFormat";
-import { ForbiddenError, ValidationError } from "../../errors";
-import { GraphQLUpdateRoleInput } from "./GraphQLUpdateRoleInput";
+import { Context } from "../../Context.js";
+import { GraphQLRole } from "../GraphQLRole.js";
+import { Role } from "../../model/index.js";
+import { DataLoaderExecutor } from "../../loader.js";
+import { filter } from "../../util/filter.js";
+import { validateIdFormat } from "../../util/validateIdFormat.js";
+import { ForbiddenError, ValidationError } from "../../errors.js";
+import { GraphQLUpdateRoleInput } from "./GraphQLUpdateRoleInput.js";
 
 export const updateRoles: GraphQLFieldConfig<
   any,
@@ -31,7 +31,7 @@ export const updateRoles: GraphQLFieldConfig<
   args: {
     roles: {
       type: new GraphQLNonNull(
-        new GraphQLList(new GraphQLNonNull(GraphQLUpdateRoleInput))
+        new GraphQLList(new GraphQLNonNull(GraphQLUpdateRoleInput)),
       ),
     },
   },
@@ -46,9 +46,9 @@ export const updateRoles: GraphQLFieldConfig<
       throw new ForbiddenError("You must be authenticated to update a role.");
     }
 
-    if (!(pool instanceof Pool)) {
+    if (!(pool instanceof pg.Pool)) {
       throw new Error(
-        "INVARIANT: The executor connection is expected to be an instance of Pool."
+        "INVARIANT: The executor connection is expected to be an instance of Pool.",
       );
     }
 
@@ -63,7 +63,7 @@ export const updateRoles: GraphQLFieldConfig<
         for (const userId of input.assignUserIds) {
           if (!validateIdFormat(userId)) {
             throw new ValidationError(
-              "The provided `assignUserIds` list contains an invalid ID."
+              "The provided `assignUserIds` list contains an invalid ID.",
             );
           }
         }
@@ -74,7 +74,7 @@ export const updateRoles: GraphQLFieldConfig<
         // Make sure this transaction is used for queries made by the executor.
         const executor = new DataLoaderExecutor<Pool | PoolClient>(
           tx,
-          strategies
+          strategies,
         );
 
         await tx.query("BEGIN DEFERRABLE");
@@ -91,7 +91,7 @@ export const updateRoles: GraphQLFieldConfig<
           }))
         ) {
           throw new ForbiddenError(
-            "You do not have permission to update this role."
+            "You do not have permission to update this role.",
           );
         }
 
@@ -105,7 +105,7 @@ export const updateRoles: GraphQLFieldConfig<
           }))
         ) {
           throw new ForbiddenError(
-            "You do not have permission to update this role's scopes."
+            "You do not have permission to update this role's scopes.",
           );
         }
 
@@ -130,7 +130,7 @@ export const updateRoles: GraphQLFieldConfig<
                     basic: "w",
                     scopes: "",
                     users: "w",
-                  })
+                  }),
                 )
               ).reduce<string[]>((acc, { scopes }) => {
                 return [...acc, ...scopes];
@@ -139,7 +139,7 @@ export const updateRoles: GraphQLFieldConfig<
 
           if (!isSuperset(assignableScopes, input.scopes))
             throw new ForbiddenError(
-              "You do not have permission to assign the provided scopes."
+              "You do not have permission to assign the provided scopes.",
             );
         }
 
@@ -152,7 +152,7 @@ export const updateRoles: GraphQLFieldConfig<
           }))
         ) {
           throw new ForbiddenError(
-            "You do not have permission to update this role's users."
+            "You do not have permission to update this role's users.",
           );
         }
 
@@ -186,7 +186,7 @@ export const updateRoles: GraphQLFieldConfig<
             recordId: v4(),
             createdByAuthorizationId: a.id,
             createdAt: new Date(),
-          }
+          },
         );
 
         await tx.query("COMMIT");

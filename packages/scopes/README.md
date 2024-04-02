@@ -279,7 +279,7 @@ import { getDifference } from "@authx/scopes";
 
 getDifference(
   ["realm:resource.*:action.*"],
-  ["realm:resource.foo:action.read", "realm:other:action.read"]
+  ["realm:resource.foo:action.read", "realm:other:action.read"],
 );
 // => ["realm:other:action.read"]
 ```

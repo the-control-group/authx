@@ -2,15 +2,15 @@ import { GraphQLBoolean, GraphQLFieldConfig } from "graphql";
 
 import { connectionArgs, ConnectionArguments, Connection } from "graphql-relay";
 
-import { GraphQLRoleConnection } from "../GraphQLRoleConnection";
-import { Context } from "../../Context";
-import { Role } from "../../model";
-import { CursorRule } from "../../model/rules/CursorRule";
-import { NoReplacementRecord } from "../../model/rules/NoReplacementRecord";
-import { IsAccessibleByRule } from "../../model/rules/IsAccessibleByRule";
-import { FieldRule } from "../../model/rules/FieldRule";
-import { Rule } from "../../model/rules/Rule";
-import { CursorConnection } from "../connection/CursorConnection";
+import { GraphQLRoleConnection } from "../GraphQLRoleConnection.js";
+import { Context } from "../../Context.js";
+import { Role } from "../../model/index.js";
+import { CursorRule } from "../../model/rules/CursorRule.js";
+import { NoReplacementRecord } from "../../model/rules/NoReplacementRecord.js";
+import { IsAccessibleByRule } from "../../model/rules/IsAccessibleByRule.js";
+import { FieldRule } from "../../model/rules/FieldRule.js";
+import { Rule } from "../../model/rules/Rule.js";
+import { CursorConnection } from "../connection/CursorConnection.js";
 
 export const roles: GraphQLFieldConfig<
   any,
@@ -48,7 +48,7 @@ export const roles: GraphQLFieldConfig<
         new NoReplacementRecord(),
         new IsAccessibleByRule(realm, await a.access(executor, realm), "role"),
       ],
-      args
+      args,
     );
 
     if (!args.includeDisabled) rules.push(new FieldRule("enabled", true));
@@ -59,7 +59,7 @@ export const roles: GraphQLFieldConfig<
         SELECT entity_id AS id
         FROM authx.role_record
         `,
-      rules
+      rules,
     );
 
     if (!ids.rows.length) {
@@ -76,7 +76,7 @@ export const roles: GraphQLFieldConfig<
 
     const roles = await Role.read(
       executor,
-      ids.rows.map(({ id }) => id)
+      ids.rows.map(({ id }) => id),
     );
 
     return CursorConnection.connectionFromRules(args, roles, rules);

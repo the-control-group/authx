@@ -2,12 +2,61 @@ import React, {
   useState,
   useRef,
   useEffect,
-  useContext,
   ReactElement,
   FormEvent,
 } from "react";
 
-import { GraphQL, GraphQLContext } from "graphql-react";
+import { useMutation } from "@tanstack/react-query";
+
+const mutationFn = async ({
+  identityAuthorityId,
+  identityAuthorityUserId,
+  passwordAuthorityId,
+  password,
+}: {
+  identityAuthorityId: string;
+  identityAuthorityUserId: string;
+  passwordAuthorityId: string;
+  password: string;
+}): Promise<{
+  errors?: { message: string }[];
+  data?: {
+    authenticatePassword: {
+      id: string;
+      secret: string;
+    };
+  };
+}> => {
+  const result = await fetch("/graphql", {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify({
+      query: `
+        mutation($identityAuthorityId: ID!, $identityAuthorityUserId: String!, $passwordAuthorityId: ID!, $password: String!) {
+          authenticatePassword(
+            identityAuthorityId: $identityAuthorityId,
+            identityAuthorityUserId: $identityAuthorityUserId,
+            passwordAuthorityId: $passwordAuthorityId,
+            password: $password,
+          ) {
+            id
+            secret
+          }
+        }
+      `,
+      variables: {
+        identityAuthorityId,
+        identityAuthorityUserId,
+        passwordAuthorityId,
+        password,
+      },
+    }),
+  });
+
+  return result.json();
+};
 
 interface Props {
   authority: PasswordAuthorityFragmentData;
@@ -49,7 +98,7 @@ export function PasswordAuthority({
   // Default to using an email address
   if (!identityAuthorityId) {
     const firstEmailAuthority = authorities.find(
-      (a) => a.__typename === "EmailAuthority"
+      (a) => a.__typename === "EmailAuthority",
     );
     if (firstEmailAuthority) {
       setIdentityAuthorityId(firstEmailAuthority.id);
@@ -62,68 +111,19 @@ export function PasswordAuthority({
   const [password, setPassword] = useState<string>("");
 
   // API and errors
-  const graphql = useContext<GraphQL>(GraphQLContext as any);
-  const [operating, setOperating] = useState<boolean>(false);
-  const [errors, setErrors] = useState<string[]>([]);
-  async function onSubmit(e: FormEvent): Promise<void> {
-    e.preventDefault();
-    if (!identityAuthorityId || !identityAuthorityUserId || !password) {
-      setErrors(["Please select an identity and enter a password."]);
-      return;
-    }
-
-    setOperating(true);
-    try {
-      const operation = graphql.operate<
-        {
-          authenticatePassword: null | {
-            id: string;
-            secret: null | string;
-          };
-        },
-        {
-          identityAuthorityId: string;
-          identityAuthorityUserId: string;
-          passwordAuthorityId: string;
-          password: string;
-        }
-      >({
-        operation: {
-          query: `
-          mutation($identityAuthorityId: ID!, $identityAuthorityUserId: String!, $passwordAuthorityId: ID!, $password: String!) {
-            authenticatePassword(
-              identityAuthorityId: $identityAuthorityId,
-              identityAuthorityUserId: $identityAuthorityUserId,
-              passwordAuthorityId: $passwordAuthorityId,
-              password: $password,
-            ) {
-              id
-              secret
-            }
-          }
-        `,
-          variables: {
-            identityAuthorityId,
-            identityAuthorityUserId,
-            passwordAuthorityId: authority.id,
-            password,
-          },
-        },
-      });
-
-      const result = await operation.cacheValuePromise;
-      if (result.fetchError) {
-        setErrors([result.fetchError]);
-        return;
-      }
-
-      // Usually, we would loop through these and display the correct errors by
-      // the correct field. This would work in development, but in production,
-      // AuthX only returns a single generic authentication failure message, to
-      // make it more difficult for an attacker to query for valid email
-      // addresses, user IDs, or other information.
-      if (result.graphQLErrors && result.graphQLErrors.length) {
-        setErrors(result.graphQLErrors.map((e) => e.message));
+  const mutation = useMutation({
+    mutationFn,
+    onError(error) {
+      setErrors([error.message]);
+    },
+    onSuccess(result) {
+      if (result.errors && result.errors.length) {
+        // Usually, we would loop through these and display the correct errors
+        // by the correct field. This would work in development, but in
+        // production, AuthX only returns a single generic authentication
+        // failure message, to make it more difficult for an attacker to query
+        // for valid email addresses, user IDs, or other information.
+        setErrors(result.errors.map((e) => e.message));
         return;
       }
 
@@ -141,12 +141,23 @@ export function PasswordAuthority({
 
       // Set the authorization.
       setAuthorization({ id: authorization.id, secret: authorization.secret });
-    } catch (error: any) {
-      setErrors([error.message]);
+    },
+  });
+
+  const [errors, setErrors] = useState<string[]>([]);
+  async function onSubmit(e: FormEvent): Promise<void> {
+    e.preventDefault();
+    if (!identityAuthorityId || !identityAuthorityUserId || !password) {
+      setErrors(["Please select an identity and enter a password."]);
       return;
-    } finally {
-      setOperating(false);
     }
+
+    mutation.mutate({
+      identityAuthorityId,
+      identityAuthorityUserId,
+      passwordAuthorityId: authority.id,
+      password,
+    });
   }
 
   return (
@@ -161,7 +172,7 @@ export function PasswordAuthority({
         <div style={{ display: "flex" }}>
           {authorities.length > 1 ? (
             <select
-              disabled={operating}
+              disabled={mutation.isPending}
               value={identityAuthorityId}
               onChange={(e) => setIdentityAuthorityId(e.target.value)}
               style={{ marginRight: "14px" }}
@@ -178,7 +189,7 @@ export function PasswordAuthority({
           ) : null}
           <input
             id="password-authority-identity"
-            disabled={operating}
+            disabled={mutation.isPending}
             ref={focusElement}
             name={
               (identityAuthority &&
@@ -192,8 +203,8 @@ export function PasswordAuthority({
                 (identityAuthority.__typename === "EmailAuthority"
                   ? "email"
                   : identityAuthority.__typename === "PhoneAuthority"
-                  ? "tel"
-                  : null)) ||
+                    ? "tel"
+                    : null)) ||
               "text"
             }
             value={identityAuthorityUserId}
@@ -206,7 +217,7 @@ export function PasswordAuthority({
       <label>
         <span>Password</span>
         <input
-          disabled={operating}
+          disabled={mutation.isPending}
           name="password"
           type="password"
           value={password}
@@ -215,7 +226,7 @@ export function PasswordAuthority({
         />
       </label>
 
-      {!operating && errors.length
+      {!mutation.isPending && errors.length
         ? errors.map((error, i) => (
             <p key={i} className="error">
               {error}
@@ -225,9 +236,9 @@ export function PasswordAuthority({
 
       <label>
         <input
-          disabled={operating}
+          disabled={mutation.isPending}
           type="submit"
-          value={operating ? "Loading..." : "Submit"}
+          value={mutation.isPending ? "Loading..." : "Submit"}
         />
       </label>
     </form>

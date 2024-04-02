@@ -1,5 +1,5 @@
 import { GraphQLString, GraphQLNonNull, GraphQLInterfaceType } from "graphql";
-import { GraphQLNode } from "./GraphQLNode";
+import { GraphQLNode } from "./GraphQLNode.js";
 
 export const GraphQLEdge = new GraphQLInterfaceType({
   name: "Edge",

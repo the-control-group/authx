@@ -1,12 +1,12 @@
 import { Pool, ClientBase } from "pg";
-import { Credential, CredentialData } from "./Credential";
-import { Grant } from "./Grant";
-import { Role } from "./Role";
+import { Credential, CredentialData } from "./Credential.js";
+import { Grant } from "./Grant.js";
+import { Role } from "./Role.js";
 import { simplify, isSuperset } from "@authx/scopes";
-import { Authorization } from "./Authorization";
-import { NotFoundError } from "../errors";
-import { UserAction, createV2AuthXScope } from "../util/scopes";
-import { DataLoaderExecutor, DataLoaderCache, QueryCache } from "../loader";
+import { Authorization } from "./Authorization.js";
+import { NotFoundError } from "../errors.js";
+import { UserAction, createV2AuthXScope } from "../util/scopes.js";
+import { DataLoaderExecutor, DataLoaderCache, QueryCache } from "../loader.js";
 
 export interface UserRecordData {
   readonly id: string;
@@ -63,7 +63,7 @@ export class User implements UserData {
     action: UserAction = {
       basic: "r",
       scopes: "",
-    }
+    },
   ): Promise<boolean> {
     if (
       await a.can(
@@ -75,8 +75,8 @@ export class User implements UserData {
             type: "user",
             userId: this.id,
           },
-          action
-        )
+          action,
+        ),
       )
     ) {
       return true;
@@ -86,7 +86,7 @@ export class User implements UserData {
   }
 
   public async authorizations(
-    tx: Pool | ClientBase | DataLoaderExecutor
+    tx: Pool | ClientBase | DataLoaderExecutor,
   ): Promise<Authorization[]> {
     return (async () => {
       const ids: readonly string[] = (
@@ -99,7 +99,7 @@ export class User implements UserData {
             user_id = $1
             AND replacement_record_id IS NULL
           `,
-          [this.id]
+          [this.id],
         )
       ).rows.map(({ id }) => id);
 
@@ -112,7 +112,7 @@ export class User implements UserData {
 
   public async credentials(
     tx: DataLoaderExecutor,
-    strategies?: undefined
+    strategies?: undefined,
   ): Promise<Credential<unknown>[]>;
 
   public async credentials(
@@ -121,7 +121,7 @@ export class User implements UserData {
       credentialMap: {
         [key: string]: { new (data: CredentialData<any>): Credential<any> };
       };
-    }
+    },
   ): Promise<Credential<unknown>[]>;
 
   public async credentials(
@@ -130,7 +130,7 @@ export class User implements UserData {
       credentialMap: {
         [key: string]: { new (data: CredentialData<any>): Credential<any> };
       };
-    }
+    },
   ): Promise<Credential<unknown>[]> {
     const ids: readonly string[] = (
       await queryCache.query(
@@ -143,7 +143,7 @@ export class User implements UserData {
             AND replacement_record_id IS NULL
           ORDER BY id ASC
           `,
-        [this.id]
+        [this.id],
       )
     ).rows.map(({ id }) => id);
 
@@ -152,12 +152,12 @@ export class User implements UserData {
       : Credential.read(
           tx,
           ids,
-          strategies as typeof strategies & { [key: string]: unknown }
+          strategies as typeof strategies & { [key: string]: unknown },
         );
   }
 
   public async grants(
-    tx: Pool | ClientBase | DataLoaderExecutor
+    tx: Pool | ClientBase | DataLoaderExecutor,
   ): Promise<Grant[]> {
     const ids = (
       await queryCache.query(
@@ -170,7 +170,7 @@ export class User implements UserData {
             AND replacement_record_id IS NULL
           ORDER BY id ASC
           `,
-        [this.id]
+        [this.id],
       )
     ).rows.map(({ id }) => id);
 
@@ -182,7 +182,7 @@ export class User implements UserData {
 
   public async grant(
     tx: Pool | ClientBase | DataLoaderExecutor,
-    clientId: string
+    clientId: string,
   ): Promise<null | Grant> {
     const result = await queryCache.query(
       tx,
@@ -196,12 +196,12 @@ export class User implements UserData {
         AND enabled = TRUE
       ORDER BY id ASC
       `,
-      [this.id, clientId]
+      [this.id, clientId],
     );
 
     if (result.rows.length > 1) {
       throw new Error(
-        "INVARIANT: It must be impossible for the same user and client to have multiple enabled grants.."
+        "INVARIANT: It must be impossible for the same user and client to have multiple enabled grants..",
       );
     }
 
@@ -215,7 +215,7 @@ export class User implements UserData {
   }
 
   public async roles(
-    tx: Pool | ClientBase | DataLoaderExecutor
+    tx: Pool | ClientBase | DataLoaderExecutor,
   ): Promise<Role[]> {
     return (async () => {
       const ids = (
@@ -249,7 +249,7 @@ export class User implements UserData {
                 AND authx.role_record.enabled = TRUE
               ORDER BY id ASC
               `,
-          [this.id]
+          [this.id],
         )
       ).rows.map(({ id }) => id);
 
@@ -267,7 +267,7 @@ export class User implements UserData {
       currentUserId: null | string;
       currentGrantId: null | string;
       currentClientId: null | string;
-    }
+    },
   ): Promise<string[]> {
     if (!this.enabled) {
       return [];
@@ -277,7 +277,7 @@ export class User implements UserData {
       (await this.roles(tx))
         .filter((role) => role.enabled)
         .map((role) => role.access(values))
-        .reduce((a, b) => a.concat(b), [])
+        .reduce((a, b) => a.concat(b), []),
     );
   }
 
@@ -289,7 +289,7 @@ export class User implements UserData {
       currentGrantId: null | string;
       currentClientId: null | string;
     },
-    scope: string[] | string
+    scope: string[] | string,
   ): Promise<boolean> {
     return isSuperset(await this.access(tx, values), scope);
   }
@@ -311,7 +311,7 @@ export class User implements UserData {
       WHERE entity_id = $1
       ORDER BY created_at DESC
       `,
-      [this.id]
+      [this.id],
     );
 
     return result.rows.map(
@@ -322,7 +322,7 @@ export class User implements UserData {
           createdByAuthorizationId: row.created_by_authorization_id,
           createdAt: row.created_at,
           entityId: row.entity_id,
-        })
+        }),
     );
   }
 
@@ -330,32 +330,32 @@ export class User implements UserData {
   public static read(
     tx: DataLoaderExecutor,
     id: string,
-    options?: { forUpdate?: false }
+    options?: { forUpdate?: false },
   ): Promise<User>;
 
   public static read(
     tx: DataLoaderExecutor,
     id: readonly string[],
-    options?: { forUpdate?: false }
+    options?: { forUpdate?: false },
   ): Promise<User[]>;
 
   // Read using a connection.
   public static read(
     tx: Pool | ClientBase,
     id: string,
-    options?: { forUpdate?: boolean }
+    options?: { forUpdate?: boolean },
   ): Promise<User>;
 
   public static read(
     tx: Pool | ClientBase,
     id: readonly string[],
-    options?: { forUpdate?: boolean }
+    options?: { forUpdate?: boolean },
   ): Promise<User[]>;
 
   public static async read(
     tx: Pool | ClientBase | DataLoaderExecutor,
     id: readonly string[] | string,
-    options?: { forUpdate?: boolean }
+    options?: { forUpdate?: boolean },
   ): Promise<User[] | User> {
     if (tx instanceof DataLoaderExecutor) {
       const loader = cache.get(tx);
@@ -376,7 +376,7 @@ export class User implements UserData {
     if (options?.forUpdate) {
       await tx.query(
         `SELECT id FROM authx.user WHERE id = ANY($1) FOR UPDATE`,
-        [typeof id === "string" ? [id] : id]
+        [typeof id === "string" ? [id] : id],
       );
     }
 
@@ -394,12 +394,12 @@ export class User implements UserData {
         AND replacement_record_id IS NULL
       ${options?.forUpdate ? "FOR UPDATE" : ""}
       `,
-      [typeof id === "string" ? [id] : id]
+      [typeof id === "string" ? [id] : id],
     );
 
     if (result.rows.length > (typeof id === "string" ? 1 : id.length)) {
       throw new Error(
-        "INVARIANT: Read must never return more records than requested."
+        "INVARIANT: Read must never return more records than requested.",
       );
     }
 
@@ -412,7 +412,7 @@ export class User implements UserData {
         new User({
           ...row,
           recordId: row.record_id,
-        })
+        }),
     );
 
     return typeof id === "string" ? users[0] : users;
@@ -425,7 +425,7 @@ export class User implements UserData {
       recordId: string;
       createdByAuthorizationId: string;
       createdAt: Date;
-    }
+    },
   ): Promise<User> {
     // ensure that the entity ID exists
     await tx.query(
@@ -436,7 +436,7 @@ export class User implements UserData {
         ($1)
       ON CONFLICT DO NOTHING
       `,
-      [data.id]
+      [data.id],
     );
 
     // replace the previous record
@@ -449,12 +449,12 @@ export class User implements UserData {
         AND replacement_record_id IS NULL
       RETURNING entity_id AS id, record_id
       `,
-      [data.id, metadata.recordId]
+      [data.id, metadata.recordId],
     );
 
     if (previous.rows.length > 1) {
       throw new Error(
-        "INVARIANT: It must be impossible to replace more than one record."
+        "INVARIANT: It must be impossible to replace more than one record.",
       );
     }
 
@@ -488,7 +488,7 @@ export class User implements UserData {
         data.enabled,
         data.type,
         data.name,
-      ]
+      ] as any[],
     );
 
     if (next.rows.length !== 1) {
@@ -509,7 +509,7 @@ export class User implements UserData {
   public static prime(
     executor: DataLoaderExecutor,
     id: string,
-    value: User
+    value: User,
   ): void {
     cache.get(executor).prime(id, value);
   }
@@ -518,10 +518,10 @@ export class User implements UserData {
 const cache = new DataLoaderCache(
   async (
     executor: DataLoaderExecutor,
-    ids: readonly string[]
+    ids: readonly string[],
   ): Promise<User[]> => {
     return User.read(executor.connection, ids);
-  }
+  },
 );
 
 const queryCache = new QueryCache<{ id: string }>();

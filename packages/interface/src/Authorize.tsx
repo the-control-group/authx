@@ -1,0 +1,1027 @@
+import React, {
+  Fragment,
+  ReactElement,
+  useEffect,
+  useCallback,
+  useState,
+  ReactChild,
+  useMemo,
+} from "react";
+
+import { createV2AuthXScope } from "@authx/authx/scopes.js";
+
+import { isSuperset, getDifference, simplify, inject } from "@authx/scopes";
+import { match } from "@authx/authx/dist/util/explanations.js";
+
+import { v4 } from "uuid";
+import { useMutation, useQuery } from "@tanstack/react-query";
+
+const implicitScopes = (realm: string) => [
+  createV2AuthXScope(
+    realm,
+    {
+      type: "user",
+      userId: "{current_user_id}",
+    },
+    {
+      basic: "r",
+      scopes: "",
+    },
+  ),
+  createV2AuthXScope(
+    realm,
+    {
+      type: "grant",
+      clientId: "{current_client_id}",
+      grantId: "{current_grant_id}",
+      userId: "{current_user_id}",
+    },
+    {
+      basic: "r",
+      scopes: "*",
+      secrets: "*",
+    },
+  ),
+  createV2AuthXScope(
+    realm,
+    {
+      type: "grant",
+      clientId: "{current_client_id}",
+      grantId: "{current_grant_id}",
+      userId: "{current_user_id}",
+    },
+    {
+      basic: "w",
+      scopes: "",
+      secrets: "*",
+    },
+  ),
+  createV2AuthXScope(
+    realm,
+    {
+      type: "authorization",
+      authorizationId: "*",
+      clientId: "{current_client_id}",
+      grantId: "{current_grant_id}",
+      userId: "{current_user_id}",
+    },
+    {
+      basic: "*",
+      scopes: "*",
+      secrets: "*",
+    },
+  ),
+];
+
+function Scope({ children }: { children: ReactChild }): ReactElement {
+  return (
+    <div
+      style={{
+        width: "0",
+        minWidth: "100%",
+        boxSizing: "border-box",
+        position: "relative",
+        margin: "0",
+        padding: "0",
+        borderRadius: "7px",
+        overflow: "hidden",
+      }}
+    >
+      <span
+        style={{
+          position: "absolute",
+          top: "0",
+          left: "0",
+          bottom: "0",
+          width: "14px",
+          background:
+            "linear-gradient(-90deg, rgba(22,23,23,0) 0%, rgba(22,23,23,1) 75%)",
+        }}
+      />
+      <pre
+        style={{
+          margin: "0",
+          overflow: "auto",
+          background: "hsl(180, 2%, 9%)",
+          padding: "14px 14px",
+        }}
+      >
+        {children}
+      </pre>
+      <span
+        style={{
+          position: "absolute",
+          top: "0",
+          right: "0",
+          bottom: "0",
+          width: "14px",
+          background:
+            "linear-gradient(90deg, rgba(22,23,23,0) 0%, rgba(22,23,23,1) 75%)",
+        }}
+      />
+    </div>
+  );
+}
+
+function Checkbox({
+  value,
+  onChange,
+}: {
+  value: boolean;
+  onChange: (checked: boolean) => void;
+}): ReactElement {
+  const [hasFocus, setHasFocus] = useState<boolean>(false);
+  return (
+    <div
+      style={{
+        background: value ? "hsl(120, 43%, 50%)" : "hsl(0, 43%, 50%)",
+        borderRadius: "11px",
+        boxSizing: "border-box",
+        position: "relative",
+        textAlign: "center",
+        width: "100px",
+        height: "22px",
+        fontSize: "12px",
+        color: "white",
+        overflow: "hidden",
+        transition: "background 200ms",
+        textTransform: "uppercase",
+      }}
+    >
+      <div
+        style={{
+          height: "100%",
+          width: "calc(200% - 22px)",
+          transition: "left 200ms",
+          position: "relative",
+          display: "flex",
+          alignItems: "stretch",
+          left: value ? "0" : "calc(22px - 100%)",
+        }}
+      >
+        <div
+          style={{
+            flex: "1",
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+            boxSizing: "border-box",
+            paddingLeft: "2px",
+          }}
+        >
+          Granted
+        </div>
+        <div
+          style={{
+            width: "18px",
+            height: "18px",
+            background: "white",
+            borderRadius: "9px",
+            left: "50%",
+            margin: "2px 0",
+          }}
+        />
+        <div
+          style={{
+            flex: "1",
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+            boxSizing: "border-box",
+            paddingRight: "2px",
+          }}
+        >
+          Denied
+        </div>
+      </div>
+      <input
+        onChange={useCallback(
+          (e: React.ChangeEvent<HTMLInputElement>) =>
+            onChange(e.currentTarget.checked),
+          [onChange],
+        )}
+        onFocus={useCallback(() => setHasFocus(true), [setHasFocus])}
+        onBlur={useCallback(() => setHasFocus(false), [setHasFocus])}
+        type="checkbox"
+        checked={value}
+        style={{
+          margin: "0",
+          border: hasFocus ? "2px solid white" : "none",
+          background: "hsla(0, 0%, 0%, 0)",
+          position: "absolute",
+          top: "0",
+          left: "0",
+          height: "100%",
+          width: "100%",
+          WebkitAppearance: "none",
+        }}
+      />
+    </div>
+  );
+}
+
+const makeQuery = async (
+  authorizationId: string,
+  authorizationSecret: string,
+  clientId: string,
+): Promise<{
+  errors?: { message: string }[];
+  data?: {
+    viewer: null | {
+      user: null | {
+        id: string;
+        name: null | string;
+        grant: null | {
+          id: string;
+          scopes: null | string[];
+          enabled: boolean;
+        };
+      };
+    };
+    client: null | {
+      id: string;
+      name: string;
+      urls: string[];
+    };
+    explanations: null | ReadonlyArray<{
+      scope: string;
+      description: string;
+    }>;
+  };
+}> => {
+  const result = await fetch("/graphql", {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      Authorization: `Basic ${btoa(`${authorizationId}:${authorizationSecret}`)}`,
+    },
+    body: JSON.stringify({
+      query: `
+        query($clientId: ID!) {
+          viewer {
+            user {
+              id
+              name
+              grant(clientId: $clientId) {
+                id
+                scopes
+                enabled
+              }
+            }
+          }
+
+          client(id: $clientId) {
+            id
+            name
+            urls
+          }
+
+          explanations {
+            scope
+            description
+          }
+        }
+      `,
+      variables: {
+        clientId,
+      },
+    }),
+  });
+
+  return await result.json();
+};
+
+const updateGrantMutationFn = async ({
+  authorizationId,
+  authorizationSecret,
+  grantId,
+  grantScopes,
+}: {
+  authorizationId: string;
+  authorizationSecret: string;
+  grantId: string;
+  grantScopes: string[];
+}): Promise<{
+  errors?: { message: string }[];
+  data?: {
+    updateGrants: null | ReadonlyArray<null | {
+      codes: null | string[];
+      scopes: null | string[];
+    }>;
+  };
+}> => {
+  const result = await fetch("/graphql", {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      Authorization: `Basic ${btoa(`${authorizationId}:${authorizationSecret}`)}`,
+    },
+    body: JSON.stringify({
+      query: `
+        mutation($id: ID!, $scopes: [Scope!]!) {
+          updateGrants(
+            grants: [{id: $id, scopes: $scopes, generateCodes: 1}]
+          ) {
+            codes
+            scopes
+          }
+        }
+          `,
+      variables: {
+        id: grantId,
+        scopes: grantScopes,
+      },
+    }),
+  });
+
+  return result.json();
+};
+
+const createGrantMutationFn = async ({
+  authorizationId,
+  authorizationSecret,
+  speculativeGrantId,
+  clientId,
+  userId,
+  grantScopes,
+}: {
+  authorizationId: string;
+  authorizationSecret: string;
+  speculativeGrantId: string;
+  clientId: string;
+  userId: string;
+  grantScopes: string[];
+}): Promise<{
+  errors?: { message: string }[];
+  data?: {
+    createGrants: null | ReadonlyArray<null | {
+      codes: null | string[];
+      scopes: null | string[];
+    }>;
+  };
+}> => {
+  const result = await fetch("/graphql", {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      Authorization: `Basic ${btoa(`${authorizationId}:${authorizationSecret}`)}`,
+    },
+    body: JSON.stringify({
+      query: `
+        mutation($id: ID!, $clientId: ID!, $userId: ID!, $scopes: [Scope!]!) {
+          createGrants(
+            grants: [{
+              id: $id,
+              clientId: $clientId,
+              userId: $userId,
+              scopes: $scopes
+            }]
+          ) {
+            codes
+            scopes
+          }
+        }
+      `,
+      variables: {
+        id: speculativeGrantId,
+        clientId: clientId,
+        userId: userId,
+        scopes: grantScopes,
+      },
+    }),
+  });
+
+  return result.json();
+};
+
+export function Authorize({
+  clearAuthorization,
+  authorization,
+  realm,
+}: {
+  clearAuthorization: () => void;
+  authorization: { id: string; secret: string };
+  realm: string;
+}): ReactElement<any> {
+  const url = new URL(window.location.href);
+
+  const paramsResponseType = url.searchParams.get("response_type") || null;
+  const paramsState = url.searchParams.get("state") || null;
+  const paramsClientId = url.searchParams.get("client_id") || null;
+  const paramsRedirectUri = url.searchParams.get("redirect_uri") || null;
+  const paramsScope = url.searchParams.get("scope") || null;
+  const paramsPrompt = url.searchParams.get("prompt") || null;
+
+  // If we end up creating a new grant, this is the ID we'll use.
+  const [speculativeGrantId, setSpeculativeGrantId] = useState(() => v4());
+
+  // Parse the scopes
+  const requestedScopeTemplates = paramsScope ? paramsScope.split(" ") : null;
+  let requestedScopeTemplatesAreValid: boolean | null = null;
+  if (requestedScopeTemplates) {
+    try {
+      // Make sure that the template does not contain variables in addition to
+      // those that can be used here.
+      inject(requestedScopeTemplates, {
+        /* eslint-disable camelcase */
+        current_client_id: "",
+        current_grant_id: "",
+        current_user_id: "",
+        current_authorization_id: "",
+        /* eslint-enable camelcase */
+      });
+
+      requestedScopeTemplatesAreValid = true;
+    } catch (error) {
+      requestedScopeTemplatesAreValid = false;
+    }
+  }
+
+  // Get the user, grant, and client from the API.
+  const { data, isLoading } = useQuery({
+    queryKey: ["authorize", authorization.id, paramsClientId],
+    queryFn: () =>
+      makeQuery(authorization.id, authorization.secret, paramsClientId ?? ""),
+  });
+
+  const user = data?.data?.viewer?.user;
+  const client = data?.data?.client;
+  const grant = user?.grant?.enabled ? user.grant : undefined;
+  const urls = client?.urls;
+  const explanations = data?.data?.explanations;
+
+  // These decisions override the default behavior, which is to
+  const [overrides, setOverrides] = useState<{ [scope: string]: boolean }>({});
+
+  const clientId = client?.id || null;
+  const grantId = grant?.id || speculativeGrantId;
+  const userId = user?.id || null;
+  const requestedScopes = useMemo(
+    () =>
+      simplify(
+        inject(
+          requestedScopeTemplates
+            ? [...requestedScopeTemplates, ...implicitScopes(realm)]
+            : implicitScopes(realm),
+          {
+            /* eslint-disable camelcase */
+            current_authorization_id: null,
+            current_client_id: clientId,
+            current_grant_id: grantId,
+            current_user_id: userId,
+            /* eslint-enable camelcase */
+          },
+        ),
+      ),
+    [requestedScopeTemplates, clientId, grantId, userId, realm],
+  );
+
+  const grantedScopes = grant?.scopes;
+  const grantedScopesExplanations = useMemo(
+    () =>
+      explanations && grantedScopes
+        ? match(explanations, grantedScopes, {
+            currentAuthorizationId: null,
+            currentGrantId: grantId,
+            currentUserId: userId,
+            currentClientId: clientId,
+          })
+        : [],
+    [explanations, grantedScopes, clientId, grantId, userId],
+  );
+
+  const newRequestedScopes = grant?.scopes
+    ? getDifference(
+        grant.scopes.filter((s) => overrides[s] !== false),
+        requestedScopes,
+      )
+    : requestedScopes;
+
+  const newRequestedScopesExplanations = useMemo(
+    () =>
+      explanations
+        ? match(explanations, newRequestedScopes, {
+            currentAuthorizationId: null,
+            currentGrantId: grantId,
+            currentUserId: userId,
+            currentClientId: clientId,
+          })
+        : [],
+    [explanations, newRequestedScopes, clientId, grantId, userId],
+  );
+
+  // API and errors
+  const [redirecting, setRedirecting] = useState<boolean>(false);
+  const [errors, setErrors] = useState<string[]>([]);
+
+  const createGrantMutation = useMutation({
+    mutationFn: createGrantMutationFn,
+    onError(error) {
+      setErrors([error.message]);
+    },
+    onSuccess(result) {
+      if (result.errors && result.errors.length) {
+        setErrors(result.errors.map((e) => e.message));
+        return;
+      }
+
+      const final = result.data?.createGrants?.[0];
+
+      const code =
+        (final?.codes && [...final.codes].sort().reverse()[0]) || null;
+
+      if (!code) {
+        setErrors([
+          "No code was returned. Contact your administrator to ensure you have sufficient access to read your own authorizations and authorization secrets.",
+        ]);
+        return;
+      }
+
+      // We have successfully created the grant!
+      // Zero the error.
+      setErrors([]);
+
+      if (!paramsRedirectUri) {
+        setErrors(["Impossible condition: no redirect URI was provided."]);
+        return;
+      }
+
+      // Redirect
+      const url = new URL(paramsRedirectUri);
+      if (paramsState) url.searchParams.set("state", paramsState);
+      url.searchParams.set("code", code);
+      setRedirecting(true);
+      setSpeculativeGrantId(v4());
+      window.location.replace(url.href);
+    },
+  });
+
+  const updateGrantMutation = useMutation({
+    mutationFn: updateGrantMutationFn,
+    onError(error) {
+      setErrors([error.message]);
+    },
+    onSuccess(result) {
+      if (result.errors && result.errors.length) {
+        setErrors(result.errors.map((e) => e.message));
+        return;
+      }
+
+      const final = result.data?.updateGrants?.[0];
+
+      const code =
+        (final?.codes && [...final.codes].sort().reverse()[0]) || null;
+
+      if (!code) {
+        setErrors([
+          "No code was returned. Contact your administrator to ensure you have sufficient access to read your own authorizations and authorization secrets.",
+        ]);
+        return;
+      }
+
+      // We have successfully updated the grant!
+      // Zero the error.
+      setErrors([]);
+
+      if (!paramsRedirectUri) {
+        setErrors(["Impossible condition: No redirect URI was provided."]);
+        return;
+      }
+
+      // Redirect
+      const url = new URL(paramsRedirectUri);
+      if (paramsState) url.searchParams.set("state", paramsState);
+      url.searchParams.set("code", code);
+      setRedirecting(true);
+      setSpeculativeGrantId(v4());
+      window.location.replace(url.href);
+    },
+  });
+
+  async function onGrantAccess(): Promise<void> {
+    if (!paramsRedirectUri) return;
+    if (!user || !client) return;
+
+    if (grant) {
+      const scopes = simplify(
+        [...(grant.scopes || []), ...requestedScopes].filter(
+          (s) => overrides[s] !== false,
+        ),
+      );
+
+      updateGrantMutation.mutate({
+        authorizationId: authorization.id,
+        authorizationSecret: authorization.secret,
+        grantId: grant.id,
+        grantScopes: scopes,
+      });
+    } else {
+      const scopes = requestedScopes;
+
+      createGrantMutation.mutate({
+        authorizationId: authorization.id,
+        authorizationSecret: authorization.secret,
+        speculativeGrantId,
+        clientId: client.id,
+        userId: user.id,
+        grantScopes: scopes,
+      });
+    }
+  }
+
+  const operating =
+    createGrantMutation.isPending || updateGrantMutation.isPending;
+
+  useEffect(() => {
+    // Make sure we're ready and it's safe to redirect the user
+    if (
+      paramsClientId &&
+      paramsRedirectUri &&
+      urls?.includes(paramsRedirectUri)
+    ) {
+      const url = new URL(paramsRedirectUri);
+      if (paramsState) url.searchParams.set("state", paramsState);
+
+      if (paramsResponseType !== "code") {
+        url.searchParams.append("error", "unsupported_response_type");
+        url.searchParams.append(
+          "error_description",
+          'The `response_type` must be set to "code".',
+        );
+      }
+
+      if (requestedScopeTemplatesAreValid === false) {
+        url.searchParams.append("error", "invalid_scope ");
+        url.searchParams.append(
+          "error_description",
+          "If set, the `scope` must be contain a space-separated list of valid authx scopes.",
+        );
+      }
+
+      // We have an error to redirect
+      if (url.searchParams.has("error")) {
+        setRedirecting(true);
+        setSpeculativeGrantId(v4());
+        window.location.replace(url.href);
+        return;
+      }
+
+      // Check that all requested scopes are already granted, that we are
+      // not in the process of operating, and that we have not just tried to
+      // operate.
+      const grantedScopes = grant?.scopes;
+      if (
+        grantedScopes &&
+        requestedScopeTemplates &&
+        isSuperset(grantedScopes, requestedScopeTemplates) &&
+        !operating
+      ) {
+        // TODO: This does NOT fully follow the OpenID Connect spec here, which
+        // should be considered instead of the current behavior.
+        // https://openid.net/specs/openid-connect-core-1_0.html#rfc.section.3.1.2.1
+        if (!paramsPrompt || paramsPrompt === "none") {
+          onGrantAccess();
+        }
+      }
+    }
+  }, [
+    paramsClientId,
+    paramsRedirectUri,
+    urls,
+    paramsState,
+    paramsResponseType,
+    requestedScopeTemplates,
+    requestedScopeTemplatesAreValid,
+    grant,
+  ]);
+
+  // This is an invalid request
+  if (
+    !paramsClientId ||
+    !paramsRedirectUri ||
+    (urls && !urls.includes(paramsRedirectUri)) ||
+    paramsResponseType !== "code" ||
+    requestedScopeTemplatesAreValid === false
+  ) {
+    return (
+      <div>
+        <h1>Authorize</h1>
+        <div className="panel">
+          {!paramsClientId ? (
+            <p className="error">
+              Parameter <span className="code">client_id</span> must be
+              specified.
+            </p>
+          ) : null}
+          {!paramsRedirectUri ? (
+            <p className="error">
+              Parameter <span className="code">redirect_uri</span> must be
+              specified.
+            </p>
+          ) : null}
+          {paramsRedirectUri && urls && !urls.includes(paramsRedirectUri) ? (
+            <p className="error">
+              The specified <span className="code">redirect_uri</span> is not
+              registered with the client.
+            </p>
+          ) : null}
+          {paramsResponseType !== "code" ? (
+            <p className="error">
+              Parameter <span className="code">response_type</span> must be set
+              to &quot;code&quot;.
+            </p>
+          ) : null}
+          {requestedScopeTemplatesAreValid === false ? (
+            <p className="error">
+              If set, the <span className="code">scope</span> must be contain a
+              space-separated list of valid authx scopes.
+            </p>
+          ) : null}
+        </div>
+      </div>
+    );
+  }
+
+  // Internal error
+  if (!user || !client) {
+    return (
+      <div>
+        <h1>Authorize</h1>
+        <div className="panel">
+          {isLoading || operating || redirecting ? (
+            <p>Loading...</p>
+          ) : (
+            <Fragment>
+              {!user ? <p className="error">Unable to load user.</p> : null}
+              {user && !client ? (
+                <p className="error">
+                  Unable to load client. Make sure you have access to read
+                  clients.
+                </p>
+              ) : null}
+            </Fragment>
+          )}
+        </div>
+      </div>
+    );
+  }
+
+  return (
+    <div>
+      <h1>Authorize</h1>
+      <div className="panel">
+        {isLoading || operating || redirecting ? (
+          <p>Loading...</p>
+        ) : (
+          <div>
+            <p>
+              Welcome
+              {user?.name ? ` ${user?.name}` : ""}!
+              <button
+                onClick={(e) => {
+                  e.preventDefault();
+                  clearAuthorization();
+                }}
+                type="button"
+                style={{
+                  background: "hsl(206, 0%, 80%)",
+                  color: "hsl(0, 0%, 9%)",
+                  borderRadius: "14px",
+                  margin: "0 14px",
+                }}
+              >
+                Log Out
+              </button>
+            </p>
+
+            {grant?.scopes?.length ? (
+              <>
+                <p>
+                  The app <strong>{client.name}</strong> has previously been
+                  granted the following scopes:
+                </p>
+                <table className="info">
+                  <tbody>
+                    {grant.scopes.map((s, i) => {
+                      const explanations =
+                        (grantedScopesExplanations.filter((e) => {
+                          return e && isSuperset(s, e.scope);
+                        }) as ReadonlyArray<{
+                          scope: string;
+                          description: string;
+                        }>) || [];
+
+                      const explanationScopes = new Set(
+                        simplify(explanations.map(({ scope }) => scope)),
+                      );
+
+                      return (
+                        <Fragment key={i}>
+                          <tr>
+                            <td
+                              colSpan={2}
+                              style={{
+                                paddingBottom: "0px",
+                                borderTop:
+                                  i > 0
+                                    ? "2px solid hsla(0, 0%, 100%, 0.04)"
+                                    : undefined,
+                              }}
+                            >
+                              <Scope>{s}</Scope>
+                            </td>
+                          </tr>
+                          <tr>
+                            <td>
+                              {explanations.length ? (
+                                <ul
+                                  style={{
+                                    fontSize: "14px",
+                                    padding: "0 0 0 10px",
+                                    margin: "0",
+                                  }}
+                                >
+                                  {explanations
+                                    .filter((e) =>
+                                      explanationScopes.has(e.scope),
+                                    )
+                                    .map((e) => (
+                                      <li
+                                        style={{ margin: "10px" }}
+                                        key={e.scope}
+                                      >
+                                        {e.description}
+                                      </li>
+                                    ))}
+                                </ul>
+                              ) : (
+                                <div
+                                  style={{
+                                    opacity: 0.8,
+                                    fontSize: "14px",
+                                    margin: "10px",
+                                  }}
+                                >
+                                  No explanations found.
+                                </div>
+                              )}
+                            </td>
+                            <td style={{ width: "100px" }}>
+                              <Checkbox
+                                value={overrides[s] === false ? false : true}
+                                onChange={(v) =>
+                                  setOverrides({
+                                    ...overrides,
+                                    [s]: v,
+                                  })
+                                }
+                              />
+                            </td>
+                          </tr>
+                        </Fragment>
+                      );
+                    }) || null}
+                  </tbody>
+                </table>
+              </>
+            ) : null}
+
+            {newRequestedScopes.length ? (
+              <>
+                {grant?.scopes?.length ? (
+                  <p>It is also requesting access to the following scopes:</p>
+                ) : (
+                  <p>
+                    The app &quot;{client.name}&quot; is requesting access to
+                    the following scopes:
+                  </p>
+                )}
+
+                <table className="info">
+                  <tbody>
+                    {newRequestedScopes.map((s, i) => {
+                      const explanations =
+                        (newRequestedScopesExplanations.filter((e) => {
+                          return e && isSuperset(s, e.scope);
+                        }) as ReadonlyArray<{
+                          scope: string;
+                          description: string;
+                        }>) || [];
+
+                      const explanationScopes = new Set(
+                        simplify(explanations.map(({ scope }) => scope)),
+                      );
+
+                      return (
+                        <Fragment key={i}>
+                          <tr>
+                            <td
+                              colSpan={2}
+                              style={{
+                                paddingBottom: "0px",
+                                borderTop:
+                                  i > 0
+                                    ? "2px solid hsla(0, 0%, 100%, 0.04)"
+                                    : undefined,
+                              }}
+                            >
+                              <Scope>{s}</Scope>
+                            </td>
+                          </tr>
+                          <tr>
+                            <td>
+                              {explanations.length ? (
+                                <ul
+                                  style={{
+                                    fontSize: "14px",
+                                    padding: "0 0 0 10px",
+                                    margin: "0",
+                                  }}
+                                >
+                                  {explanations
+                                    .filter((e) =>
+                                      explanationScopes.has(e.scope),
+                                    )
+                                    .map((e) => (
+                                      <li
+                                        style={{ margin: "10px" }}
+                                        key={e.scope}
+                                      >
+                                        {e.description}
+                                      </li>
+                                    ))}
+                                </ul>
+                              ) : (
+                                <div
+                                  style={{
+                                    opacity: 0.8,
+                                    fontSize: "14px",
+                                    margin: "10px",
+                                  }}
+                                >
+                                  No explanations found.
+                                </div>
+                              )}
+                            </td>
+                            <td style={{ width: "100px" }}>
+                              <Checkbox
+                                value={overrides[s] === false ? false : true}
+                                onChange={(v) =>
+                                  setOverrides({
+                                    ...overrides,
+                                    [s]: v,
+                                  })
+                                }
+                              />
+                            </td>
+                          </tr>
+                        </Fragment>
+                      );
+                    }) || null}
+                  </tbody>
+                </table>
+              </>
+            ) : null}
+          </div>
+        )}
+
+        {errors.length
+          ? errors.map((error, i) => (
+              <p key={i} className="error">
+                {error}
+              </p>
+            ))
+          : null}
+
+        {isLoading || operating || redirecting ? null : (
+          <div style={{ display: "flex", margin: "14px" }}>
+            <input
+              onClick={(e) => {
+                e.preventDefault();
+                onGrantAccess();
+              }}
+              style={{ flex: "1", marginRight: "14px" }}
+              type="button"
+              value="Save &amp; Continue"
+            />
+            <input
+              onClick={(e) => {
+                e.preventDefault();
+                const url = new URL(paramsRedirectUri);
+                url.searchParams.set("error", "access_denied");
+                if (paramsState) url.searchParams.set("state", paramsState);
+                setRedirecting(true);
+                setSpeculativeGrantId(v4());
+                window.location.replace(url.href);
+              }}
+              className="danger"
+              style={{ flex: "1", marginLeft: "11px" }}
+              type="button"
+              value="Cancel"
+            />
+          </div>
+        )}
+      </div>
+    </div>
+  );
+}

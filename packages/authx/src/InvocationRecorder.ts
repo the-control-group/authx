@@ -1,6 +1,6 @@
 import { ClientBase, Pool } from "pg";
-import { DataLoaderExecutor } from "./loader";
-import { Authorization, AuthorizationInvocation } from "./model";
+import { DataLoaderExecutor } from "./loader.js";
+import { Authorization, AuthorizationInvocation } from "./model/index.js";
 
 export interface InvocationRecorder {
   /**
@@ -18,7 +18,7 @@ export interface InvocationRecorder {
       id: string;
       format: string;
       createdAt: Date;
-    }
+    },
   ): Promise<AuthorizationInvocation>;
 }
 
@@ -30,7 +30,7 @@ export class EagerInvocationRecorder implements InvocationRecorder {
       id: string;
       format: string;
       createdAt: Date;
-    }
+    },
   ): Promise<AuthorizationInvocation> {
     return await authorization.invoke(tx, data);
   }

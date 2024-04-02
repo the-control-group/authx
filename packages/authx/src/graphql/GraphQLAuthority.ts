@@ -6,7 +6,7 @@ import {
   GraphQLInterfaceType,
 } from "graphql";
 
-import { GraphQLNode } from "./GraphQLNode";
+import { GraphQLNode } from "./GraphQLNode.js";
 
 export const GraphQLAuthority = new GraphQLInterfaceType({
   name: "Authority",

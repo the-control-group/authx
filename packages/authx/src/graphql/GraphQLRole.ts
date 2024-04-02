@@ -14,12 +14,12 @@ import {
   ConnectionArguments,
 } from "graphql-relay";
 
-import { Role } from "../model";
-import { Context } from "../Context";
-import { GraphQLUserConnection } from "./GraphQLUserConnection";
-import { GraphQLScopeTemplate } from "./GraphQLScopeTemplate";
-import { GraphQLNode } from "./GraphQLNode";
-import { filter } from "../util/filter";
+import { Role } from "../model/index.js";
+import { Context } from "../Context.js";
+import { GraphQLUserConnection } from "./GraphQLUserConnection.js";
+import { GraphQLScopeTemplate } from "./GraphQLScopeTemplate.js";
+import { GraphQLNode } from "./GraphQLNode.js";
+import { filter } from "../util/filter.js";
 
 export const GraphQLRole = new GraphQLObjectType<Role, Context>({
   name: "Role",
@@ -40,7 +40,7 @@ export const GraphQLRole = new GraphQLObjectType<Role, Context>({
       async resolve(
         role,
         args: ConnectionArguments,
-        { realm, authorization: a, executor }: Context
+        { realm, authorization: a, executor }: Context,
       ) {
         return a &&
           (await role.isAccessibleBy(realm, a, executor, {
@@ -50,9 +50,9 @@ export const GraphQLRole = new GraphQLObjectType<Role, Context>({
           }))
           ? connectionFromArray(
               await filter(await role.users(executor), (user) =>
-                user.isAccessibleBy(realm, a, executor)
+                user.isAccessibleBy(realm, a, executor),
               ),
-              args
+              args,
             )
           : null;
       },
@@ -62,7 +62,7 @@ export const GraphQLRole = new GraphQLObjectType<Role, Context>({
       async resolve(
         role,
         args,
-        { realm, authorization: a, executor }: Context
+        { realm, authorization: a, executor }: Context,
       ): Promise<null | string[]> {
         return a &&
           (await role.isAccessibleBy(realm, a, executor, {

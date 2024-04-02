@@ -1,6 +1,6 @@
 import { GraphQLObjectType, GraphQLString, GraphQLNonNull } from "graphql";
-import { GraphQLRole } from "./GraphQLRole";
-import { GraphQLEdge } from "./GraphQLEdge";
+import { GraphQLRole } from "./GraphQLRole.js";
+import { GraphQLEdge } from "./GraphQLEdge.js";
 
 export const GraphQLRoleEdge = new GraphQLObjectType({
   name: "RoleEdge",

@@ -1,6 +1,4 @@
-import AbortController from "abort-controller";
 import { EventEmitter } from "events";
-import fetch from "node-fetch";
 
 interface Config {
   /**
@@ -55,11 +53,14 @@ export class AuthXKeyCache extends EventEmitter {
     }
 
     this._fetchAbortController = new AbortController();
-    this._fetchAbortTimeout = setTimeout(() => {
-      if (this._fetchAbortController) {
-        this._fetchAbortController.abort();
-      }
-    }, (this._config.authxPublicKeyRefreshRequestTimeout || 30) * 1000);
+    this._fetchAbortTimeout = setTimeout(
+      () => {
+        if (this._fetchAbortController) {
+          this._fetchAbortController.abort();
+        }
+      },
+      (this._config.authxPublicKeyRefreshRequestTimeout || 30) * 1000,
+    );
 
     try {
       // Fetch the keys from AuthX.
@@ -74,11 +75,26 @@ export class AuthXKeyCache extends EventEmitter {
         })
       ).json();
 
+      if (typeof response !== "object" || response === null) {
+        throw new Error("The response from AuthX is not an object.");
+      }
+
       // Make sure we don't have any errors.
-      if (response.errors && response.errors[0])
+      if (
+        "errors" in response &&
+        response.errors &&
+        Array.isArray(response.errors) &&
+        response.errors[0]
+      )
         throw new Error(response.errors[0]);
 
-      if (!response.data || !response.data.keys) {
+      if (
+        !("data" in response) ||
+        response.data === null ||
+        typeof response.data !== "object" ||
+        !("keys" in response.data) ||
+        !Array.isArray(response.data.keys)
+      ) {
         throw new Error("The response from AuthX is missing keys.");
       }
 
@@ -105,18 +121,22 @@ export class AuthXKeyCache extends EventEmitter {
       this.emit("ready");
 
       // Fetch again in 1 minute.
-      this._fetchTimeout = setTimeout(
-        this._fetch,
-        (this._config.authxPublicKeyRefreshInterval || 60) * 1000
-      );
+      if (this.active && !this._fetchTimeout) {
+        this._fetchTimeout = setTimeout(
+          this._fetch,
+          (this._config.authxPublicKeyRefreshInterval || 60) * 1000,
+        );
+      }
     } catch (error) {
       this.emit("error", error);
 
       // Fetch again in 10 seconds.
-      this._fetchTimeout = setTimeout(
-        this._fetch,
-        (this._config.authxPublicKeyRetryInterval || 10) * 1000
-      );
+      if (this.active && !this._fetchTimeout) {
+        this._fetchTimeout = setTimeout(
+          this._fetch,
+          (this._config.authxPublicKeyRetryInterval || 10) * 1000,
+        );
+      }
     } finally {
       this._fetchAbortController = null;
       clearTimeout(this._fetchAbortTimeout);
@@ -135,6 +155,17 @@ export class AuthXKeyCache extends EventEmitter {
     if (!this.active) return;
 
     this.active = false;
+
+    // Clear any pending timeouts.
+    const timeout = this._fetchTimeout;
+    if (timeout) {
+      clearTimeout(timeout);
+    }
+
+    const abortTimeout = this._fetchAbortTimeout;
+    if (abortTimeout) {
+      clearTimeout(abortTimeout);
+    }
 
     // Abort any in-flight key requests.
     const abort = this._fetchAbortController;

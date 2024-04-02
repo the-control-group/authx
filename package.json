@@ -1,71 +1,32 @@
 {
   "private": true,
-  "main": "dist/server",
+  "type": "module",
   "workspaces": [
+    "packages/scopes",
     "packages/authx",
     "packages/http-proxy-client",
     "packages/http-proxy-web",
     "packages/http-proxy-resource",
     "packages/interface",
-    "packages/scopes",
     "packages/strategy-email",
     "packages/strategy-openid",
     "packages/strategy-password",
     "packages/strategy-saml",
-    "packages/tools"
-  ],
-  "nohoist": [
-    "packages/authx-interface/html-webpack-plugin"
+    "packages/tools",
+    "packages/example"
   ],
   "scripts": {
-    "packages": "lerna run",
-    "packages:build": "npm run packages build",
-    "packages:format": "npm run packages format",
-    "packages:lint": "npm run packages lint",
-    "packages:test": "npm run packages test",
-    "root:build": "rm -rf dist && tsc",
-    "root:build:development": "rm -rf dist && tsc --watch",
-    "root:build:development:chained": "tsc --watch --preserveWatchOutput --pretty",
-    "root:format": "prettier --list-different --write '**/*.{json,yml,md,ts}'",
-    "root:lint": "prettier -c '**/*.{json,yml,md,ts}' && eslint src --ext ts",
-    "root:test": "ava --verbose",
-    "root:test:development": "ava --verbose --watch dist/*.test.js",
-    "build": "npm run packages:build && echo '\n\n  ---------- ' && npm run root:build",
-    "build:development": "npm run packages:build:development & npm run root:build:development",
-    "build:development:chained": "lerna run --parallel build:development:chained & npm run root:build:development:chained",
-    "format": "npm run packages:format && echo '\n\n  ---------- ' && npm run root:format",
-    "lint": "npm run packages:lint && echo '\n\n  ---------- ' && npm run root:lint",
-    "start": "node dist/server",
-    "start:development": "nodemon --delay 2 --inspect dist/server",
-    "test": "npm run packages:test && echo '\n\n  ---------- ' && npm run root:test"
+    "build": "lerna run build",
+    "format": "lerna run --parallel format && npx prettier --list-different --write '*.{json,yml,md,ts,html,css}'",
+    "lint": "lerna run --parallel lint && npx prettier -c '*.{json,yml,md,ts,html,css}'",
+    "start": "lerna run start --scope=@authx/example",
+    "test": "lerna run --parallel test",
+    "update": "lerna exec --parallel -- npx ncu -u && npx npm-check-updates -u && npm i && npm update"
   },
   "devDependencies": {
-    "@typescript-eslint/eslint-plugin": "^4.22.0",
-    "@typescript-eslint/parser": "^4.22.0",
-    "ava": "^3.15.0",
-    "eslint": "^7.24.0",
-    "eslint-config-prettier": "^8.2.0",
-    "eslint-plugin-prettier": "^3.4.0",
-    "koa": "^2.13.1",
-    "lerna": "^5.0.0",
-    "nodemon": "^2.0.7",
-    "prettier": "^2.1.1",
-    "typescript": "^4.2.4"
+    "lerna": "^8.1.2",
+    "npm-check-updates": "^16.14.18",
+    "prettier": "^3.2.5"
   },
-  "ava": {
-    "files": [
-      "dist/**/*.test.js"
-    ],
-    "timeout": "60s"
-  },
-  "dependencies": {
-    "@authx/authx": "workspace:^",
-    "@authx/interface": "workspace:^",
-    "@authx/scopes": "workspace:^",
-    "@authx/strategy-email": "workspace:^",
-    "@authx/strategy-openid": "workspace:^",
-    "@authx/strategy-password": "workspace:^",
-    "@authx/strategy-saml": "workspace:^",
-    "@authx/tools": "workspace:^"
-  }
+  "dependencies": {}
 }

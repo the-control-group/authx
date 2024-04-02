@@ -1,13 +1,13 @@
 import { createHash, randomBytes } from "crypto";
 import { URL } from "url";
 import { EventEmitter } from "events";
-import fetch from "node-fetch";
 import { createServer, Server, IncomingMessage, ServerResponse } from "http";
 import Cookies from "cookies";
-import { createProxyServer, ServerOptions } from "http-proxy";
+import httpProxy, { ServerOptions } from "http-proxy";
 import { decode } from "jsonwebtoken";
 import { simplify } from "@authx/scopes";
 
+const { createProxyServer } = httpProxy;
 export interface Behavior {
   /**
    * The options to pass to node-proxy.
@@ -76,7 +76,7 @@ export interface Rule {
     | Behavior
     | ((
         request: IncomingMessage,
-        response: ServerResponse
+        response: ServerResponse,
       ) => Behavior | undefined);
 }
 
@@ -107,8 +107,8 @@ export interface Config {
   readonly requestGrantedScopes: string[];
 
   /**
-   * Format (BEARER or BASIC) of tokens that the proxy will request from AuthX and pass to the
-   * the resource.
+   * Format (BEARER or BASIC) of tokens that the proxy will request from AuthX
+   * and pass to the the resource.
    *
    * If unspecified, the format BEARER will be used.
    */
@@ -184,7 +184,7 @@ export default class AuthXWebProxy extends EventEmitter {
     this._config = config;
     this._proxy = createProxyServer({});
     this._proxy.on("error", (error: Error, ...args) =>
-      this.emit("error", error, ...args)
+      this.emit("error", error, ...args),
     );
     this.server = createServer(this._callback);
     this.server.on("listening", () => {
@@ -198,7 +198,7 @@ export default class AuthXWebProxy extends EventEmitter {
 
   private _callback = async (
     request: IncomingMessage,
-    response: ServerResponse
+    response: ServerResponse,
   ): Promise<void> => {
     const meta: Metadata = {
       request: request,
@@ -231,7 +231,7 @@ export default class AuthXWebProxy extends EventEmitter {
       options: ServerOptions,
       rule: Rule,
       behavior: Behavior,
-      hash?: string
+      hash?: string,
     ): void => {
       // Merge `set-cookie` header values with those set by the proxy.
       const setHeader = response.setHeader;
@@ -287,10 +287,10 @@ export default class AuthXWebProxy extends EventEmitter {
             typeof code === "string" && /INVALID/.test(code)
               ? 502
               : code === "ECONNRESET" ||
-                code === "ENOTFOUND" ||
-                code === "ECONNREFUSED"
-              ? 504
-              : 500;
+                  code === "ENOTFOUND" ||
+                  code === "ECONNREFUSED"
+                ? 504
+                : 500;
 
           response.setHeader("Cache-Control", "no-cache");
           response.writeHead(statusCode);
@@ -319,7 +319,7 @@ export default class AuthXWebProxy extends EventEmitter {
     // Serve the client URL.
     const requestUrl = new URL(
       request.url || "/",
-      "http://this-does-not-matter"
+      "http://this-does-not-matter",
     );
     const clientUrl = new URL(this._config.clientUrl);
     if (requestUrl.pathname === clientUrl.pathname) {
@@ -347,7 +347,7 @@ export default class AuthXWebProxy extends EventEmitter {
                     .replace(/</g, "&lt;")
                     .replace(/>/g, "&gt;")
                     .replace(/"/g, "&quot;")
-                    .replace(/'/g, "&#039;")}</div>`
+                    .replace(/'/g, "&#039;")}</div>`,
               )}
             </body>
           </html>
@@ -408,18 +408,30 @@ export default class AuthXWebProxy extends EventEmitter {
 
         if (tokenResponse.status !== 200) {
           throw new Error(
-            `Received status code of ${tokenResponse.status} from AuthX.`
+            `Received status code of ${tokenResponse.status} from AuthX.`,
           );
         }
 
         const tokenResponseBody = await tokenResponse.json();
+        if (
+          typeof tokenResponseBody !== "object" ||
+          tokenResponseBody === null
+        ) {
+          throw new Error(`Invalid token response returned from AuthX.`);
+        }
 
-        if (tokenResponseBody.error) {
+        if (
+          "error" in tokenResponseBody &&
+          typeof tokenResponseBody.error === "string"
+        ) {
           throw new Error(tokenResponseBody.error);
         }
 
         // Update the refresh token.
-        if (tokenResponseBody.refresh_token) {
+        if (
+          "refresh_token" in tokenResponseBody &&
+          typeof tokenResponseBody.refresh_token === "string"
+        ) {
           cookies.set("authx.r", tokenResponseBody.refresh_token);
         }
 
@@ -534,27 +546,43 @@ export default class AuthXWebProxy extends EventEmitter {
 
           if (refreshResponse.status !== 200) {
             throw new Error(
-              `Received status code of ${refreshResponse.status} from AuthX.`
+              `Received status code of ${refreshResponse.status} from AuthX.`,
             );
           }
 
           const refreshResponseBody = await refreshResponse.json();
-          if (refreshResponseBody.error) {
+          if (
+            typeof refreshResponseBody !== "object" ||
+            refreshResponseBody === null
+          ) {
+            throw new Error(`Invalid refresh response returned from AuthX.`);
+          }
+
+          if ("error" in refreshResponseBody) {
             throw new Error(
-              refreshResponseBody.error_message || refreshResponseBody.error
+              "error_message" in refreshResponseBody &&
+              typeof refreshResponseBody.error_message === "string"
+                ? refreshResponseBody.error_message
+                : typeof refreshResponseBody.error === "string"
+                  ? refreshResponseBody.error
+                  : "Unknown error reported by AuthX",
             );
           }
 
           // Update the refresh token.
           if (
-            refreshResponseBody.refresh_token &&
+            "refresh_token" in refreshResponseBody &&
+            typeof refreshResponseBody.refresh_token === "string" &&
             refreshResponseBody.refresh_token !== refreshToken
           ) {
             cookies.set("authx.r", refreshResponseBody.refresh_token);
           }
 
           // Use the new access token.
-          if (refreshResponseBody.access_token) {
+          if (
+            "access_token" in refreshResponseBody &&
+            typeof refreshResponseBody.access_token === "string"
+          ) {
             cookies.set(`authx.t.${hash}`, refreshResponseBody.access_token);
             request.headers.authorization = `${this.tokenPrefix} ${refreshResponseBody.access_token}`;
 
@@ -584,7 +612,7 @@ export default class AuthXWebProxy extends EventEmitter {
       location.searchParams.append("redirect_uri", this._config.clientUrl);
       location.searchParams.append(
         "scope",
-        this._config.requestGrantedScopes.join(" ")
+        this._config.requestGrantedScopes.join(" "),
       );
       location.searchParams.append("state", state);
       response.setHeader("Location", location.href);
@@ -604,7 +632,7 @@ export default class AuthXWebProxy extends EventEmitter {
     this.emit(
       "request.error",
       new Error(`No rules matched requested URL "${request.url}".`),
-      meta
+      meta,
     );
   };
 
@@ -620,7 +648,7 @@ export default class AuthXWebProxy extends EventEmitter {
           readableAll?: boolean;
           writableAll?: boolean;
           ipv6Only?: boolean;
-        }
+        },
   ): Promise<void> {
     if (!this._closed) {
       throw new Error("Proxy cannot listen because it not closed.");

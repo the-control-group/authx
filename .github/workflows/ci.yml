@@ -9,31 +9,32 @@ jobs:
 
     services:
       postgres:
-        image: postgres:9.6.17
+        image: postgres:16
         env:
           POSTGRES_PASSWORD: postgres
         ports:
           - 5432:5432
 
     steps:
-      - uses: actions/checkout@v2.3.4
-      - name: Use Node 16
-        uses: actions/setup-node@v2.1.5
+      - name: Checkout
+        uses: actions/checkout@v4
+      - name: Use Node 20
+        uses: actions/setup-node@v4
         with:
-          node-version: "16.x"
+          node-version: "20.x"
       - name: Cache node modules
-        uses: actions/cache@v2.1.5
+        uses: actions/cache@v4.0.2
         with:
           path: "**/node_modules"
           key: ${{ runner.os }}-build-${{ hashFiles('package-lock.json') }}
-      - name: Install Dependencies and Test
+      - name: Install Dependencies
         run: npm ci
       - name: Build
         run: npm run build
       - name: Lint
         run: npm run lint
       - name: Test
-        run: npm run test
+        run: node scripts/generate-keys.js && npm run test
         env:
           PORT: 12000
           PGHOST: 127.0.0.1

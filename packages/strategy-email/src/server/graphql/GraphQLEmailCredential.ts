@@ -13,8 +13,8 @@ import {
   GraphQLNode,
   Context,
 } from "@authx/authx";
-import { EmailCredential, EmailAuthority } from "../model";
-import { GraphQLEmailAuthority } from "./GraphQLEmailAuthority";
+import { EmailCredential, EmailAuthority } from "../model/index.js";
+import { GraphQLEmailAuthority } from "./GraphQLEmailAuthority.js";
 
 // Credential
 // ----------
@@ -36,7 +36,7 @@ export const GraphQLEmailCredential = new GraphQLObjectType<
       async resolve(
         credential,
         args,
-        { realm, authorization: a, executor }: Context
+        { realm, authorization: a, executor }: Context,
       ): Promise<null | User> {
         if (!a) return null;
         const user = await credential.user(executor);
@@ -48,7 +48,7 @@ export const GraphQLEmailCredential = new GraphQLObjectType<
       async resolve(
         credential,
         args,
-        { executor }: Context
+        { executor }: Context,
       ): Promise<null | EmailAuthority> {
         return credential.authority(executor);
       },

@@ -1,6 +1,5 @@
 import Router from "koa-router";
 import body from "koa-body";
-import fetch from "node-fetch";
 import { Context, x } from "@authx/authx";
 
 export function samlRouterFactory(): Router<any, { [x]: Context }> {
@@ -8,7 +7,7 @@ export function samlRouterFactory(): Router<any, { [x]: Context }> {
 
   router.post(
     "/:authorityId/assert",
-    body({ multipart: true, urlencoded: true, text: true, json: true }),
+    body.default({ multipart: true, urlencoded: true, text: true, json: true }),
     async (ctx) => {
       const base = ctx[x].base;
       const saml = ctx.request.body ? ctx.request.body.SAMLResponse : "";
@@ -43,32 +42,32 @@ export function samlRouterFactory(): Router<any, { [x]: Context }> {
         ctx.redirect(
           `${base}?${data.errors
             .map((it: any) => `errors=${encodeURIComponent(it.message)}`)
-            .join("&")}&authorityId=${encodeURIComponent(authorityId)}`
+            .join("&")}&authorityId=${encodeURIComponent(authorityId)}`,
         );
       } else {
         ctx.cookies.set(
           "strategy.saml.authorization_id",
           data.data.authenticateSaml.id,
-          { httpOnly: false }
+          { httpOnly: false },
         );
         ctx.cookies.set(
           "strategy.saml.authorization_secret",
           data.data.authenticateSaml.secret,
-          { httpOnly: false }
+          { httpOnly: false },
         );
 
         const destination = decodeURIComponent(
           ctx.cookies.get("strategy.saml.destination", {
             signed: false,
-          }) ?? ""
+          }) ?? "",
         );
 
         ctx.redirect(
           destination ||
-            `${base}?authorityId=${encodeURIComponent(authorityId)}`
+            `${base}?authorityId=${encodeURIComponent(authorityId)}`,
         );
       }
-    }
+    },
   );
 
   router.get("/:authorityId/metadata", async (ctx) => {
@@ -98,7 +97,7 @@ export function samlRouterFactory(): Router<any, { [x]: Context }> {
 
     ctx.body = Buffer.from(
       (await result.json()).data.authority.metadata,
-      "base64"
+      "base64",
     ).toString("utf8");
     ctx.type = "application/samlmetadata+xml";
   });

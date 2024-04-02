@@ -1,5 +1,5 @@
 import { QueryResult } from "pg";
-import { ReadonlyDataLoaderExecutor } from "../../loader";
+import { ReadonlyDataLoaderExecutor } from "../../loader.js";
 
 export interface BuiltQuery {
   query: string;
@@ -106,7 +106,7 @@ export class Rule {
   static async runQuery(
     tx: ReadonlyDataLoaderExecutor,
     root: string,
-    rules: Rule[]
+    rules: Rule[],
   ): Promise<QueryResult> {
     const built = this.buildQuery(root, rules);
 

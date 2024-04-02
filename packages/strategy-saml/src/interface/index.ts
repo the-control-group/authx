@@ -1,6 +1,6 @@
-import { SamlAuthority, SamlAuthorityFragment } from "./SamlAuthority";
+import { SamlAuthority, SamlAuthorityFragment } from "./SamlAuthority.js";
 
-export * from "./SamlAuthority";
+export * from "./SamlAuthority.js";
 export default {
   component: SamlAuthority,
   fragment: SamlAuthorityFragment,

@@ -1,10 +1,10 @@
 import { Pool, ClientBase } from "pg";
-import { User } from "./User";
-import { Authorization } from "./Authorization";
+import { User } from "./User.js";
+import { Authorization } from "./Authorization.js";
 import { simplify, isSuperset, inject } from "@authx/scopes";
-import { NotFoundError } from "../errors";
-import { RoleAction, createV2AuthXScope } from "../util/scopes";
-import { DataLoaderExecutor, DataLoaderCache } from "../loader";
+import { NotFoundError } from "../errors.js";
+import { RoleAction, createV2AuthXScope } from "../util/scopes.js";
+import { DataLoaderExecutor, DataLoaderCache } from "../loader.js";
 
 export interface RoleRecordData {
   readonly id: string;
@@ -66,7 +66,7 @@ export class Role implements RoleData {
       basic: "r",
       scopes: "",
       users: "",
-    }
+    },
   ): Promise<boolean> {
     if (
       await a.can(
@@ -78,8 +78,8 @@ export class Role implements RoleData {
             type: "role",
             roleId: this.id,
           },
-          action
-        )
+          action,
+        ),
       )
     ) {
       return true;
@@ -124,7 +124,7 @@ export class Role implements RoleData {
       currentGrantId: null | string;
       currentClientId: null | string;
     },
-    scope: string[] | string
+    scope: string[] | string,
   ): Promise<boolean> {
     return isSuperset(this.access(values), scope);
   }
@@ -143,7 +143,7 @@ export class Role implements RoleData {
       WHERE entity_id = $1
       ORDER BY created_at DESC
       `,
-      [this.id]
+      [this.id],
     );
 
     return result.rows.map(
@@ -154,7 +154,7 @@ export class Role implements RoleData {
           createdByAuthorizationId: row.created_by_authorization_id,
           createdAt: row.created_at,
           entityId: row.entity_id,
-        })
+        }),
     );
   }
 
@@ -162,32 +162,32 @@ export class Role implements RoleData {
   public static read(
     tx: DataLoaderExecutor,
     id: string,
-    options?: { forUpdate?: false }
+    options?: { forUpdate?: false },
   ): Promise<Role>;
 
   public static read(
     tx: DataLoaderExecutor,
     id: readonly string[],
-    options?: { forUpdate?: false }
+    options?: { forUpdate?: false },
   ): Promise<Role[]>;
 
   // Read using a connection.
   public static read(
     tx: Pool | ClientBase,
     id: string,
-    options?: { forUpdate?: boolean }
+    options?: { forUpdate?: boolean },
   ): Promise<Role>;
 
   public static read(
     tx: Pool | ClientBase,
     id: readonly string[],
-    options?: { forUpdate?: boolean }
+    options?: { forUpdate?: boolean },
   ): Promise<Role[]>;
 
   public static async read(
     tx: Pool | ClientBase | DataLoaderExecutor,
     id: readonly string[] | string,
-    options?: { forUpdate?: boolean }
+    options?: { forUpdate?: boolean },
   ): Promise<Role[] | Role> {
     if (tx instanceof DataLoaderExecutor) {
       const loader = cache.get(tx);
@@ -208,7 +208,7 @@ export class Role implements RoleData {
     if (options?.forUpdate) {
       await tx.query(
         `SELECT id FROM authx.role WHERE id = ANY($1) FOR UPDATE`,
-        [typeof id === "string" ? [id] : id]
+        [typeof id === "string" ? [id] : id],
       );
     }
 
@@ -240,12 +240,12 @@ export class Role implements RoleData {
         role_record.description,
         role_record.scopes
       `,
-      [typeof id === "string" ? [id] : id]
+      [typeof id === "string" ? [id] : id],
     );
 
     if (result.rows.length > (typeof id === "string" ? 1 : id.length)) {
       throw new Error(
-        "INVARIANT: Read must never return more records than requested."
+        "INVARIANT: Read must never return more records than requested.",
       );
     }
 
@@ -259,7 +259,7 @@ export class Role implements RoleData {
           ...row,
           recordId: row.record_id,
           userIds: row.user_ids.filter((id: null | string) => id),
-        })
+        }),
     );
 
     return typeof id === "string" ? roles[0] : roles;
@@ -272,7 +272,7 @@ export class Role implements RoleData {
       recordId: string;
       createdByAuthorizationId: string;
       createdAt: Date;
-    }
+    },
   ): Promise<Role> {
     // ensure that the entity ID exists
     await tx.query(
@@ -283,7 +283,7 @@ export class Role implements RoleData {
         ($1)
       ON CONFLICT DO NOTHING
       `,
-      [data.id]
+      [data.id],
     );
 
     // replace the previous record
@@ -294,12 +294,12 @@ export class Role implements RoleData {
       WHERE entity_id = $1 AND replacement_record_id IS NULL
       RETURNING entity_id AS id, record_id
       `,
-      [data.id, metadata.recordId]
+      [data.id, metadata.recordId],
     );
 
     if (previous.rows.length > 1) {
       throw new Error(
-        "INVARIANT: It must be impossible to replace more than one record."
+        "INVARIANT: It must be impossible to replace more than one record.",
       );
     }
 
@@ -314,13 +314,13 @@ export class Role implements RoleData {
         WHERE role_record_id = $1 AND role_replacement_record_id IS NULL
         RETURNING role_record_id
         `,
-        [previousRoleRecordId, metadata.recordId]
+        [previousRoleRecordId, metadata.recordId],
       );
 
       for (const row of previousUsers.rows as { role_record_id: string }[]) {
         if (row.role_record_id !== previousRoleRecordId) {
           throw new Error(
-            "INVARIANT: It must be impossible for a different role's users to be updated."
+            "INVARIANT: It must be impossible for a different role's users to be updated.",
           );
         }
       }
@@ -359,7 +359,7 @@ export class Role implements RoleData {
         data.name,
         data.description,
         simplify([...data.scopes]),
-      ]
+      ] as any[],
     );
 
     if (next.rows.length !== 1) {
@@ -377,12 +377,12 @@ export class Role implements RoleData {
       SELECT $1::uuid AS role_record_id, user_id FROM UNNEST($2::uuid[]) AS user_id
       RETURNING user_id
       `,
-      [metadata.recordId, userIds]
+      [metadata.recordId, userIds] as any[],
     );
 
     if (users.rows.length !== userIds.length) {
       throw new Error(
-        "INVARIANT: Insert or user IDs must return the same number of rows as input."
+        "INVARIANT: Insert or user IDs must return the same number of rows as input.",
       );
     }
 
@@ -400,7 +400,7 @@ export class Role implements RoleData {
   public static prime(
     executor: DataLoaderExecutor,
     id: string,
-    value: Role
+    value: Role,
   ): void {
     cache.get(executor).prime(id, value);
   }
@@ -409,8 +409,8 @@ export class Role implements RoleData {
 const cache = new DataLoaderCache(
   async (
     executor: DataLoaderExecutor,
-    ids: readonly string[]
+    ids: readonly string[],
   ): Promise<Role[]> => {
     return Role.read(executor.connection, ids);
-  }
+  },
 );

@@ -17,11 +17,11 @@ updates:
     schedule:
       interval: "weekly"
     # Use groups to consolidate updates into a larger PR
+    versioning-strategy: increase-if-necessary
     groups:
+      dev-dependencies:
+        dependency-type: development
       minor-updates:
         update-types:
           - "minor"
           - "patch"
-      dev-dependencies:
-        dependency-type: development
-    versioning-strategy: increase-if-necessary

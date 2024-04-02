@@ -1,6 +1,6 @@
 import { GraphQLObjectType, GraphQLString } from "graphql";
 
-import { Context } from "../Context";
+import { Context } from "../Context.js";
 export const GraphQLExplanation: GraphQLObjectType<
   { scope: string; description: string },
   Context
