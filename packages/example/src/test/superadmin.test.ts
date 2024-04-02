@@ -2,14 +2,16 @@ import test from "ava";
 import { URL, fileURLToPath } from "url";
 import { setup } from "./setup.js";
 import { basename } from "path";
+import { dirname, join } from "path";
+import { readFileSync } from "fs";
 
 let url: URL;
 let teardown: () => Promise<void>;
 
 // Load public and private keys from files.
-import { readFileSync } from "fs";
-const privateKey = readFileSync("private.pem", "utf8");
-const publicKey = readFileSync("public.pem", "utf8");
+const __dirname = dirname(new URL(import.meta.url).pathname);
+const privateKey = readFileSync(join(__dirname, "../../private.pem"), "utf8");
+const publicKey = readFileSync(join(__dirname, "../../public.pem"), "utf8");
 
 // Setup.
 test.before(async () => {
@@ -349,9 +351,7 @@ test("Root query fields.", async (t) => {
   t.deepEqual(
     {
       data: {
-        keys: [
-          "-----BEGIN PUBLIC KEY-----\nMIGfMA0GCSqGSIb3DQEBAQUAA4GNADCBiQKBgQCfb+nyTPFCntEXbrFPU5DeE0gC\n4jXRcSFWDfCRgeqeQWqIW9DeMmCj13k0z6fQCiG3FATYosS64wAs+OiyGtu9q/Jy\nUEVIBMF0upDJMA53AFFx+0Fb/i76JFPTY7SxzvioIFeKRwY8evIRWQWYO95Os6gK\nBac/x5qiUn5fh2xM+wIDAQAB\n-----END PUBLIC KEY-----",
-        ],
+        keys: [publicKey],
         viewer: {
           id: "c70da498-27ed-4c3b-a318-38bb220cef48",
           enabled: true,

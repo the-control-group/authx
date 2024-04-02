@@ -2,9 +2,15 @@ import test from "ava";
 import { URL, fileURLToPath } from "url";
 import { setup } from "./setup.js";
 import { basename } from "path";
+import { dirname, join } from "path";
+import { readFileSync } from "fs";
 
 let url: URL;
 let teardown: () => Promise<void>;
+
+// Load public key from files.
+const __dirname = dirname(new URL(import.meta.url).pathname);
+const publicKey = readFileSync(join(__dirname, "../../public.pem"), "utf8");
 
 // Setup.
 test.before(async () => {
@@ -310,9 +316,7 @@ test("Root query fields.", async (t) => {
           edges: [],
         },
         viewer: null,
-        keys: [
-          "-----BEGIN PUBLIC KEY-----\nMIGfMA0GCSqGSIb3DQEBAQUAA4GNADCBiQKBgQCfb+nyTPFCntEXbrFPU5DeE0gC\n4jXRcSFWDfCRgeqeQWqIW9DeMmCj13k0z6fQCiG3FATYosS64wAs+OiyGtu9q/Jy\nUEVIBMF0upDJMA53AFFx+0Fb/i76JFPTY7SxzvioIFeKRwY8evIRWQWYO95Os6gK\nBac/x5qiUn5fh2xM+wIDAQAB\n-----END PUBLIC KEY-----",
-        ],
+        keys: [publicKey],
       },
     },
     json,
