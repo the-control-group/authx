@@ -12,7 +12,7 @@
     "@types/react-dom": "^18.2.23",
     "@types/uuid": "^9.0.8",
     "graphql": "16.8.1",
-    "pg": "^8.11.3",
+    "pg": "^8.11.4",
     "react": "^18.2.0",
     "react-dom": "^18.2.0",
     "uuid": "^9.0.1"
@@ -20,8 +20,8 @@
   "description": "",
   "devDependencies": {
     "@authx/authx": "*",
-    "@typescript-eslint/eslint-plugin": "^7.4.0",
-    "@typescript-eslint/parser": "^7.4.0",
+    "@typescript-eslint/eslint-plugin": "^7.5.0",
+    "@typescript-eslint/parser": "^7.5.0",
     "ava": "^6.1.2",
     "eslint": "^8.57.0",
     "eslint-config-prettier": "^9.1.0",
