@@ -2,9 +2,14 @@ import Koa from "koa";
 import { AuthX, Config, StrategyCollection } from "@authx/authx";
 
 import * as tools from "@authx/tools";
-import { Client } from "pg";
+import pg from "pg";
+const { Client } = pg;
 import { createServer, Server } from "http";
 import { URL } from "url";
+
+import email from "@authx/strategy-email";
+import password from "@authx/strategy-password";
+import openid from "@authx/strategy-openid";
 
 // This is prefixed to postgres database names.
 const prefix = "authx-test-";
@@ -101,9 +106,7 @@ Bac/x5qiUn5fh2xM+wIDAQAB
       console.log("--- SENDING EMAIL MESSAGE -------------------------");
       console.log(options);
     },
-    strategies: new StrategyCollection([
-      // email, password, openid
-    ]),
+    strategies: new StrategyCollection([email, password, openid]),
     pg: {
       database,
       host: process.env.PGHOST ?? undefined,
