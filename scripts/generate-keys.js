@@ -25,7 +25,7 @@ const { publicKey, privateKey } = generateKeyPairSync("rsa", {
 });
 
 // Save the private key to the file system.
-writeFileSync("private.pem", privateKey);
+writeFileSync("packages/example/private.pem", privateKey);
 
 // Save the public key to the file system.
-writeFileSync("public.pem", publicKey);
+writeFileSync("packages/example/public.pem", publicKey);
