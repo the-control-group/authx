@@ -85,13 +85,11 @@ export function SamlAuthority({
           ))
         : null}
 
-      <label>
-        <input
-          ref={focusElement}
-          type="submit"
-          value={`Authenticate with ${authority.name}`}
-        />
-      </label>
+      <input
+        ref={focusElement}
+        type="submit"
+        value={`Authenticate with ${authority.name}`}
+      />
     </form>
   );
 }

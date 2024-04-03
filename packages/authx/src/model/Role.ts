@@ -89,12 +89,7 @@ export class Role implements RoleData {
   }
 
   public users(tx: Pool | ClientBase | DataLoaderExecutor): Promise<User[]> {
-    return (
-      // Some silliness to help typescript...
-      tx instanceof DataLoaderExecutor
-        ? User.read(tx, [...this.userIds].sort())
-        : User.read(tx, [...this.userIds].sort())
-    );
+    return User.read(tx, [...this.userIds].sort());
   }
 
   public access(values: {
@@ -158,28 +153,14 @@ export class Role implements RoleData {
     );
   }
 
-  // Read using an executor.
   public static read(
-    tx: DataLoaderExecutor,
-    id: string,
-    options?: { forUpdate?: false },
-  ): Promise<Role>;
-
-  public static read(
-    tx: DataLoaderExecutor,
-    id: readonly string[],
-    options?: { forUpdate?: false },
-  ): Promise<Role[]>;
-
-  // Read using a connection.
-  public static read(
-    tx: Pool | ClientBase,
+    tx: Pool | ClientBase | DataLoaderExecutor,
     id: string,
     options?: { forUpdate?: boolean },
   ): Promise<Role>;
 
   public static read(
-    tx: Pool | ClientBase,
+    tx: Pool | ClientBase | DataLoaderExecutor,
     id: readonly string[],
     options?: { forUpdate?: boolean },
   ): Promise<Role[]>;

@@ -11,23 +11,23 @@ import {
 
 const ctx = registerHooks(fileURLToPath(import.meta.url));
 
+function createUserReadScope(userId: string): string {
+  const action: UserAction = {
+    basic: "r",
+    scopes: "",
+  };
+
+  return createV2AuthXScope(
+    "authx",
+    {
+      type: "user",
+      userId: userId,
+    },
+    action,
+  );
+}
+
 test("Fetch users with limited read scope and page", async (t) => {
-  function createUserReadScope(userId: string): string {
-    const action: UserAction = {
-      basic: "r",
-      scopes: "",
-    };
-
-    return createV2AuthXScope(
-      "authx",
-      {
-        type: "user",
-        userId: userId,
-      },
-      action,
-    );
-  }
-
   const [, token] = await ctx.createLimitedAuthorization([
     createUserReadScope("0cbd3783-0424-4f35-be51-b42f07a2a987"), // Dwight Schrute
     createUserReadScope("51192909-3664-44d5-be62-c6b45f0b0ee6"), // Darryl Philbin
@@ -254,22 +254,6 @@ test("Fetch users with limited read scope and page", async (t) => {
 });
 
 test("Fetch users with limited read scope and reverse page", async (t) => {
-  function createUserReadScope(userId: string): string {
-    const action: UserAction = {
-      basic: "r",
-      scopes: "",
-    };
-
-    return createV2AuthXScope(
-      "authx",
-      {
-        type: "user",
-        userId: userId,
-      },
-      action,
-    );
-  }
-
   const [, token] = await ctx.createLimitedAuthorization([
     createUserReadScope("0cbd3783-0424-4f35-be51-b42f07a2a987"), // Dwight Schrute
     createUserReadScope("51192909-3664-44d5-be62-c6b45f0b0ee6"), // Darryl Philbin

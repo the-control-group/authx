@@ -12,8 +12,12 @@ export class EmailCredential extends Credential<EmailCredentialDetails> {
   public authority(
     tx: Pool | ClientBase | DataLoaderExecutor,
   ): Promise<EmailAuthority> {
-    return tx instanceof DataLoaderExecutor
-      ? EmailAuthority.read(tx, this.authorityId)
-      : EmailAuthority.read(tx, this.authorityId);
+    // This explicit check is necessary to work around a TS limitation with
+    // unions in overloaded functions.
+    if (tx instanceof DataLoaderExecutor) {
+      return EmailAuthority.read(tx, this.authorityId);
+    }
+
+    return EmailAuthority.read(tx, this.authorityId);
   }
 }

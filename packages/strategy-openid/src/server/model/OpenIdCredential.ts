@@ -12,11 +12,18 @@ export class OpenIdCredential extends Credential<OpenIdCredentialDetails> {
   public authority(
     tx: Pool | ClientBase | DataLoaderExecutor,
   ): Promise<OpenIdAuthority> {
-    return tx instanceof DataLoaderExecutor
-      ? (OpenIdAuthority.read(tx, this.authorityId) as Promise<OpenIdAuthority>)
-      : (OpenIdAuthority.read(
-          tx,
-          this.authorityId,
-        ) as Promise<OpenIdAuthority>);
+    // This explicit check is necessary to work around a TS limitation with
+    // unions in overloaded functions.
+    if (tx instanceof DataLoaderExecutor) {
+      return OpenIdAuthority.read(
+        tx,
+        this.authorityId,
+      ) as Promise<OpenIdAuthority>;
+    }
+
+    return OpenIdAuthority.read(
+      tx,
+      this.authorityId,
+    ) as Promise<OpenIdAuthority>;
   }
 }

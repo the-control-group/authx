@@ -123,12 +123,7 @@ export abstract class Credential<C> implements CredentialData<C> {
   ): Promise<Authority<any>>;
 
   public user(tx: Pool | ClientBase | DataLoaderExecutor): Promise<User> {
-    return (
-      // Some silliness to help typescript...
-      tx instanceof DataLoaderExecutor
-        ? User.read(tx, this.userId)
-        : User.read(tx, this.userId)
-    );
+    return User.read(tx, this.userId);
   }
 
   public async records(tx: ClientBase): Promise<CredentialRecord[]> {

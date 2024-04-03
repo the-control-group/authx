@@ -9,8 +9,12 @@ export class SamlCredential extends Credential<SamlCredentialDetails> {
   async authority(
     tx: Pool | ClientBase | DataLoaderExecutor,
   ): Promise<SamlAuthority> {
-    return tx instanceof DataLoaderExecutor
-      ? (SamlAuthority.read(tx, this.authorityId) as Promise<SamlAuthority>)
-      : (SamlAuthority.read(tx, this.authorityId) as Promise<SamlAuthority>);
+    // This explicit check is necessary to work around a TS limitation with
+    // unions in overloaded functions.
+    if (tx instanceof DataLoaderExecutor) {
+      return SamlAuthority.read(tx, this.authorityId) as Promise<SamlAuthority>;
+    }
+
+    return SamlAuthority.read(tx, this.authorityId) as Promise<SamlAuthority>;
   }
 }

@@ -49,7 +49,7 @@ export class Rule {
     if (orderByClauseElements.length === 1) {
       ret += ` ${orderByClauseElements[0]}`;
     } else if (orderByClauseElements.length > 1) {
-      throw "Only one ORDER BY element is allowed in rules";
+      throw new Error("Only one ORDER BY element is allowed in rules");
     }
 
     const limitClauseElements = rules
@@ -59,7 +59,7 @@ export class Rule {
     if (limitClauseElements.length === 1) {
       ret += ` LIMIT ${limitClauseElements[0]}`;
     } else if (limitClauseElements.length > 1) {
-      throw "Only one LIMIT element is allowed in rules";
+      throw new Error("Only one LIMIT element is allowed in rules");
     }
 
     const allParams: { [key: string]: any } = {};
@@ -68,7 +68,7 @@ export class Rule {
       const params = rule.toSQLParams();
       for (const k in params) {
         if (typeof allParams[k] != "undefined")
-          throw `Param ${k} defined twice!`;
+          throw new Error(`Param ${k} defined twice!`);
 
         allParams[k] = params[k];
 
@@ -79,7 +79,7 @@ export class Rule {
     for (let i = 0; i < paramPairs.length; ++i) {
       const search = `:${paramPairs[i][0]}`;
       if (!ret.includes(search))
-        throw `SQL string "${ret}" must contain ${search}`;
+        throw new Error(`SQL string "${ret}" must contain ${search}`);
       ret = ret.replace(search, `$${i + 1}`);
     }
 

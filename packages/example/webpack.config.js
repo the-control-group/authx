@@ -13,7 +13,7 @@ const __dirname = path.dirname(new URL(import.meta.url).pathname);
  * @param {object} argv - Webpack arguments
  * @returns {Configuration} Webpack configuration object
  */
-export default (env = {}, argv) => {
+export default (env, argv) => {
   const devMode = argv.mode !== "production";
   return {
     mode: devMode ? "development" : "production",

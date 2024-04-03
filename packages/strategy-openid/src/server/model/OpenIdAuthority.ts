@@ -40,9 +40,13 @@ export class OpenIdAuthority extends Authority<OpenIdAuthorityDetails> {
       )
     ).rows.map(({ id }) => id);
 
-    return tx instanceof DataLoaderExecutor
-      ? OpenIdCredential.read(tx, ids)
-      : OpenIdCredential.read(tx, ids);
+    // This explicit check is necessary to work around a TS limitation with
+    // unions in overloaded functions.
+    if (tx instanceof DataLoaderExecutor) {
+      return OpenIdCredential.read(tx, ids);
+    }
+
+    return OpenIdCredential.read(tx, ids);
   }
 
   public async credential(
@@ -71,15 +75,19 @@ export class OpenIdAuthority extends Authority<OpenIdAuthorityDetails> {
 
     if (!results.rows[0]) return null;
 
-    return tx instanceof DataLoaderExecutor
-      ? (OpenIdCredential.read(
-          tx,
-          results.rows[0].id,
-        ) as Promise<OpenIdCredential>)
-      : (OpenIdCredential.read(
-          tx,
-          results.rows[0].id,
-        ) as Promise<OpenIdCredential>);
+    // This explicit check is necessary to work around a TS limitation with
+    // unions in overloaded functions.
+    if (tx instanceof DataLoaderExecutor) {
+      return OpenIdCredential.read(
+        tx,
+        results.rows[0].id,
+      ) as Promise<OpenIdCredential>;
+    }
+
+    return OpenIdCredential.read(
+      tx,
+      results.rows[0].id,
+    ) as Promise<OpenIdCredential>;
   }
 
   public async emailAuthority(
@@ -99,9 +107,13 @@ export class OpenIdAuthority extends Authority<OpenIdAuthorityDetails> {
       return [];
     }
 
-    return tx instanceof DataLoaderExecutor
-      ? Role.read(tx, this.details.assignsCreatedUsersToRoleIds)
-      : Role.read(tx, this.details.assignsCreatedUsersToRoleIds);
+    // This explicit check is necessary to work around a TS limitation with
+    // unions in overloaded functions.
+    if (tx instanceof DataLoaderExecutor) {
+      return Role.read(tx, this.details.assignsCreatedUsersToRoleIds);
+    }
+
+    return Role.read(tx, this.details.assignsCreatedUsersToRoleIds);
   }
 }
 

@@ -116,21 +116,11 @@ export class Grant implements GrantData {
   }
 
   public client(tx: Pool | ClientBase | DataLoaderExecutor): Promise<Client> {
-    return (
-      // Some silliness to help typescript...
-      tx instanceof DataLoaderExecutor
-        ? Client.read(tx, this.clientId)
-        : Client.read(tx, this.clientId)
-    );
+    return Client.read(tx, this.clientId);
   }
 
   public user(tx: Pool | ClientBase | DataLoaderExecutor): Promise<User> {
-    return (
-      // Some silliness to help typescript...
-      tx instanceof DataLoaderExecutor
-        ? User.read(tx, this.userId)
-        : User.read(tx, this.userId)
-    );
+    return User.read(tx, this.userId);
   }
 
   public async authorizations(
@@ -151,10 +141,7 @@ export class Grant implements GrantData {
       )
     ).rows.map(({ id }) => id);
 
-    // Some silliness to help typescript...
-    return tx instanceof DataLoaderExecutor
-      ? Authorization.read(tx, ids)
-      : Authorization.read(tx, ids);
+    return Authorization.read(tx, ids);
   }
 
   public async access(
@@ -296,28 +283,14 @@ export class Grant implements GrantData {
     );
   }
 
-  // Read using an executor.
   public static read(
-    tx: DataLoaderExecutor,
-    id: string,
-    options?: { forUpdate?: false },
-  ): Promise<Grant>;
-
-  public static read(
-    tx: DataLoaderExecutor,
-    id: readonly string[],
-    options?: { forUpdate?: false },
-  ): Promise<Grant[]>;
-
-  // Read using a connection.
-  public static read(
-    tx: Pool | ClientBase,
+    tx: Pool | ClientBase | DataLoaderExecutor,
     id: string,
     options?: { forUpdate?: boolean },
   ): Promise<Grant>;
 
   public static read(
-    tx: Pool | ClientBase,
+    tx: Pool | ClientBase | DataLoaderExecutor,
     id: readonly string[],
     options?: { forUpdate?: boolean },
   ): Promise<Grant[]>;

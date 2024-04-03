@@ -44,8 +44,12 @@ export function generateScopeTables(
 
   const results = [];
   for (const [realm, { title, header, rows }] of Object.entries(data)) {
-    const columnKeys = [...header].sort();
-    const rowKeys = Object.keys(rows).sort();
+    const columnKeys = [...header].sort((a, b) =>
+      a.localeCompare(b, "en", { sensitivity: "base" }),
+    );
+    const rowKeys = Object.keys(rows).sort((a, b) =>
+      a.localeCompare(b, "en", { sensitivity: "base" }),
+    );
     if (!rowKeys.length) {
       continue;
     }

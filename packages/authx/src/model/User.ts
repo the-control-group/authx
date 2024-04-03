@@ -103,10 +103,7 @@ export class User implements UserData {
         )
       ).rows.map(({ id }) => id);
 
-      // Some silliness to help typescript...
-      return tx instanceof DataLoaderExecutor
-        ? Authorization.read(tx, ids)
-        : Authorization.read(tx, ids);
+      return Authorization.read(tx, ids);
     })();
   }
 
@@ -174,10 +171,7 @@ export class User implements UserData {
       )
     ).rows.map(({ id }) => id);
 
-    // Some silliness to help typescript...
-    return tx instanceof DataLoaderExecutor
-      ? Grant.read(tx, ids)
-      : Grant.read(tx, ids);
+    return Grant.read(tx, ids);
   }
 
   public async grant(
@@ -253,10 +247,7 @@ export class User implements UserData {
         )
       ).rows.map(({ id }) => id);
 
-      // Some silliness to help typescript...
-      return tx instanceof DataLoaderExecutor
-        ? Role.read(tx, ids)
-        : Role.read(tx, ids);
+      return Role.read(tx, ids);
     })();
   }
 
@@ -326,28 +317,14 @@ export class User implements UserData {
     );
   }
 
-  // Read using an executor.
   public static read(
-    tx: DataLoaderExecutor,
-    id: string,
-    options?: { forUpdate?: false },
-  ): Promise<User>;
-
-  public static read(
-    tx: DataLoaderExecutor,
-    id: readonly string[],
-    options?: { forUpdate?: false },
-  ): Promise<User[]>;
-
-  // Read using a connection.
-  public static read(
-    tx: Pool | ClientBase,
+    tx: Pool | ClientBase | DataLoaderExecutor,
     id: string,
     options?: { forUpdate?: boolean },
   ): Promise<User>;
 
   public static read(
-    tx: Pool | ClientBase,
+    tx: Pool | ClientBase | DataLoaderExecutor,
     id: readonly string[],
     options?: { forUpdate?: boolean },
   ): Promise<User[]>;

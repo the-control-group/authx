@@ -20,7 +20,7 @@ export function pagingTests(config: PagingTestsConfig): void {
   if (!config.endpointName) config.endpointName = `${config.entityType}s`;
 
   const endpointName = config.endpointName;
-  if (!endpointName) throw "Need an endpoint name";
+  if (!endpointName) throw new Error("Need an endpoint name");
 
   test(`Forward paging for ${config.endpointName}, ${config.testName}`, async (t) => {
     const [currentAuthorizationId, token] =

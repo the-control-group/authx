@@ -125,7 +125,7 @@ export function Default({
       setErrors([error.message]);
     },
     onSuccess(result) {
-      if (result.errors && result.errors.length) {
+      if (result.errors?.length) {
         setErrors(result.errors.map((e) => e.message));
         return;
       }

@@ -12,7 +12,7 @@ export class FunctionalTestContext {
     basicAuthString: string | null = null,
   ): Promise<{ errors?: null | { message: string }[]; data: unknown }> {
     if (this.url == null)
-      throw '"graphQL" should only be called from in a test';
+      throw new Error('"graphQL" should only be called from in a test');
 
     const graphqlUrl = new URL(this.url.href);
     graphqlUrl.pathname = "/graphql";

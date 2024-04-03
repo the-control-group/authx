@@ -265,11 +265,16 @@ export const createGrants: GraphQLFieldConfig<
               });
 
               if (
-                !administrationRoleBefore.isAccessibleBy(realm, a, executor, {
-                  basic: "w",
-                  scopes: "w",
-                  users: "",
-                })
+                !(await administrationRoleBefore.isAccessibleBy(
+                  realm,
+                  a,
+                  executor,
+                  {
+                    basic: "w",
+                    scopes: "w",
+                    users: "",
+                  },
+                ))
               ) {
                 throw new ForbiddenError(
                   `You do not have permission to modify the scopes of role ${roleId}.`,

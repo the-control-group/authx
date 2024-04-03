@@ -16,15 +16,18 @@ export class PasswordCredential extends Credential<PasswordCredentialDetails> {
   public authority(
     tx: Pool | ClientBase | DataLoaderExecutor,
   ): Promise<PasswordAuthority> {
-    return tx instanceof DataLoaderExecutor
-      ? // Some silliness to help typescript...
-        PasswordAuthority.read<PasswordAuthorityDetails, PasswordAuthority>(
-          tx,
-          this.authorityId,
-        )
-      : PasswordAuthority.read<PasswordAuthorityDetails, PasswordAuthority>(
-          tx,
-          this.authorityId,
-        );
+    // This explicit check is necessary to work around a TS limitation with
+    // unions in overloaded functions.
+    if (tx instanceof DataLoaderExecutor) {
+      return PasswordAuthority.read<
+        PasswordAuthorityDetails,
+        PasswordAuthority
+      >(tx, this.authorityId);
+    }
+
+    return PasswordAuthority.read<PasswordAuthorityDetails, PasswordAuthority>(
+      tx,
+      this.authorityId,
+    );
   }
 }
