@@ -79,7 +79,7 @@ export function OpenIdAuthority({
       setErrors([error.message]);
     },
     onSuccess(result) {
-      if (result.errors && result.errors.length) {
+      if (result.errors?.length) {
         // Usually, we would loop through these and display the correct errors
         // by the correct field. This would work in development, but in
         // production, AuthX only returns a single generic authentication
@@ -99,7 +99,7 @@ export function OpenIdAuthority({
       window.localStorage.removeItem(`authx.a.${authority.id}.s`);
       window.localStorage.removeItem(`authx.a.${authority.id}.r`);
 
-      const authorization = result.data && result.data.authenticateOpenId;
+      const authorization = result.data?.authenticateOpenId;
       if (!authorization || !authorization.secret) {
         setErrors([
           "No authorization was returned. Contact your administrator to ensure you have sufficient access to read your own authorizations and authorization secrets.",

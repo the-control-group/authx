@@ -44,8 +44,8 @@ function sortByFreedom(
   const length = Math.max(a.length, b.length);
   for (let i = 0; i < length; i++) {
     if (a[i] === b[i]) continue;
-    if (a[i] === undefined) 1;
-    if (a[i] === undefined) -1;
+    if (a[i] === undefined) return 1;
+    if (a[i] === undefined) return -1;
     return a[i] < b[i] ? -1 : 1;
   }
 
@@ -138,7 +138,7 @@ export function match(
       continue;
     }
 
-    const explanation = explanationsByScope[scope].sort(sortByFreedom)[0];
+    const explanation = [...explanationsByScope[scope]].sort(sortByFreedom)[0];
     if (explanation) {
       filteredResults.push({
         scope: explanation.scope,

@@ -45,8 +45,7 @@ export function extract(
       result[d] = [];
 
       for (const [s, segment] of domain.entries()) {
-        const name =
-          domainParameterPositions && domainParameterPositions.get(s);
+        const name = domainParameterPositions?.get(s);
 
         if (!name) {
           result[d][s] = query[d][s];

@@ -115,7 +115,7 @@ export function EmailAuthority({
       setErrors([error.message]);
     },
     onSuccess(result) {
-      if (result.errors && result.errors.length) {
+      if (result.errors?.length) {
         // Usually, we would loop through these and display the correct errors
         // by the correct field. This would work in development, but in
         // production, AuthX only returns a single generic authentication
@@ -125,7 +125,7 @@ export function EmailAuthority({
         return;
       }
 
-      const authorization = result.data && result.data.authenticateEmail;
+      const authorization = result.data?.authenticateEmail;
       if (!authorization || !authorization.secret) {
         setErrors([
           "No authorization was returned. Contact your administrator to ensure you have sufficient access to read your own authorizations and authorization secrets.",

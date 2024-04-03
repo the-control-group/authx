@@ -267,28 +267,14 @@ export class Client implements ClientData {
     );
   }
 
-  // Read using an executor.
   public static read(
-    tx: DataLoaderExecutor,
-    id: string,
-    options?: { forUpdate?: false },
-  ): Promise<Client>;
-
-  public static read(
-    tx: DataLoaderExecutor,
-    id: readonly string[],
-    options?: { forUpdate?: false },
-  ): Promise<Client[]>;
-
-  // Read using a connection.
-  public static read(
-    tx: Pool | ClientBase,
+    tx: Pool | ClientBase | DataLoaderExecutor,
     id: string,
     options?: { forUpdate?: boolean },
   ): Promise<Client>;
 
   public static read(
-    tx: Pool | ClientBase,
+    tx: Pool | ClientBase | DataLoaderExecutor,
     id: readonly string[],
     options?: { forUpdate?: boolean },
   ): Promise<Client[]>;

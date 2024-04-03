@@ -119,12 +119,7 @@ export class Authorization implements AuthorizationData {
   }
 
   public user(tx: Pool | ClientBase | DataLoaderExecutor): Promise<User> {
-    return (
-      // Some silliness to help typescript...
-      tx instanceof DataLoaderExecutor
-        ? User.read(tx, this.userId)
-        : User.read(tx, this.userId)
-    );
+    return User.read(tx, this.userId);
   }
 
   public async grant(
@@ -134,12 +129,7 @@ export class Authorization implements AuthorizationData {
       return null;
     }
 
-    return (
-      // Some silliness to help typescript...
-      tx instanceof DataLoaderExecutor
-        ? Grant.read(tx, this.grantId)
-        : Grant.read(tx, this.grantId)
-    );
+    return Grant.read(tx, this.grantId);
   }
 
   private async _access(
@@ -356,28 +346,14 @@ export class Authorization implements AuthorizationData {
     );
   }
 
-  // Read using an executor.
   public static read(
-    tx: DataLoaderExecutor,
-    id: string,
-    options?: { forUpdate?: false },
-  ): Promise<Authorization>;
-
-  public static read(
-    tx: DataLoaderExecutor,
-    id: readonly string[],
-    options?: { forUpdate?: false },
-  ): Promise<Authorization[]>;
-
-  // Read using a connection.
-  public static read(
-    tx: Pool | ClientBase,
+    tx: Pool | ClientBase | DataLoaderExecutor,
     id: string,
     options?: { forUpdate?: boolean },
   ): Promise<Authorization>;
 
   public static read(
-    tx: Pool | ClientBase,
+    tx: Pool | ClientBase | DataLoaderExecutor,
     id: readonly string[],
     options?: { forUpdate?: boolean },
   ): Promise<Authorization[]>;

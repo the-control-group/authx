@@ -31,9 +31,13 @@ export class PasswordAuthority extends Authority<PasswordAuthorityDetails> {
       )
     ).rows.map(({ id }) => id);
 
-    return tx instanceof DataLoaderExecutor
-      ? PasswordCredential.read(tx, ids)
-      : PasswordCredential.read(tx, ids);
+    // This explicit check is necessary to work around a TS limitation with
+    // unions in overloaded functions.
+    if (tx instanceof DataLoaderExecutor) {
+      return PasswordCredential.read(tx, ids);
+    }
+
+    return PasswordCredential.read(tx, ids);
   }
 
   public async credential(
@@ -62,16 +66,19 @@ export class PasswordAuthority extends Authority<PasswordAuthorityDetails> {
 
     if (!results.rows[0]) return null;
 
-    // Some silliness to help typescript...
-    return tx instanceof DataLoaderExecutor
-      ? PasswordCredential.read<PasswordCredentialDetails, PasswordCredential>(
-          tx,
-          results.rows[0].id,
-        )
-      : PasswordCredential.read<PasswordCredentialDetails, PasswordCredential>(
-          tx,
-          results.rows[0].id,
-        );
+    // This explicit check is necessary to work around a TS limitation with
+    // unions in overloaded functions.
+    if (tx instanceof DataLoaderExecutor) {
+      return PasswordCredential.read<
+        PasswordCredentialDetails,
+        PasswordCredential
+      >(tx, results.rows[0].id);
+    }
+
+    return PasswordCredential.read<
+      PasswordCredentialDetails,
+      PasswordCredential
+    >(tx, results.rows[0].id);
   }
 }
 

@@ -73,9 +73,13 @@ export class SamlAuthority extends Authority<SamlAuthorityDetails> {
       )
     ).rows.map(({ id }) => id);
 
-    return tx instanceof DataLoaderExecutor
-      ? ((await SamlCredential.read(tx, ids)) as SamlCredential[])
-      : ((await SamlCredential.read(tx, ids)) as SamlCredential[]);
+    // This explicit check is necessary to work around a TS limitation with
+    // unions in overloaded functions.
+    if (tx instanceof DataLoaderExecutor) {
+      return (await SamlCredential.read(tx, ids)) as SamlCredential[];
+    }
+
+    return (await SamlCredential.read(tx, ids)) as SamlCredential[];
   }
 
   public async credential(
@@ -104,9 +108,19 @@ export class SamlAuthority extends Authority<SamlAuthorityDetails> {
 
     if (!results.rows[0]) return null;
 
-    return tx instanceof DataLoaderExecutor
-      ? ((await SamlCredential.read(tx, results.rows[0].id)) as SamlCredential)
-      : ((await SamlCredential.read(tx, results.rows[0].id)) as SamlCredential);
+    // This explicit check is necessary to work around a TS limitation with
+    // unions in overloaded functions.
+    if (tx instanceof DataLoaderExecutor) {
+      return (await SamlCredential.read(
+        tx,
+        results.rows[0].id,
+      )) as SamlCredential;
+    }
+
+    return (await SamlCredential.read(
+      tx,
+      results.rows[0].id,
+    )) as SamlCredential;
   }
 
   public async assignsCreatedUsersToRoles(
@@ -116,9 +130,7 @@ export class SamlAuthority extends Authority<SamlAuthorityDetails> {
       return [];
     }
 
-    return tx instanceof DataLoaderExecutor
-      ? Role.read(tx, this.details.assignsCreatedUsersToRoleIds)
-      : Role.read(tx, this.details.assignsCreatedUsersToRoleIds);
+    return Role.read(tx, this.details.assignsCreatedUsersToRoleIds);
   }
 }
 

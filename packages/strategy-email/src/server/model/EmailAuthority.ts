@@ -36,9 +36,13 @@ export class EmailAuthority extends Authority<EmailAuthorityDetails> {
       )
     ).rows.map(({ id }) => id);
 
-    return tx instanceof DataLoaderExecutor
-      ? EmailCredential.read(tx, ids)
-      : EmailCredential.read(tx, ids);
+    // This explicit check is necessary to work around a TS limitation with
+    // unions in overloaded functions.
+    if (tx instanceof DataLoaderExecutor) {
+      return EmailCredential.read(tx, ids);
+    }
+
+    return EmailCredential.read(tx, ids);
   }
 
   public async credential(
@@ -67,9 +71,13 @@ export class EmailAuthority extends Authority<EmailAuthorityDetails> {
 
     if (!results.rows[0]) return null;
 
-    return tx instanceof DataLoaderExecutor
-      ? EmailCredential.read(tx, results.rows[0].id)
-      : EmailCredential.read(tx, results.rows[0].id);
+    // This explicit check is necessary to work around a TS limitation with
+    // unions in overloaded functions.
+    if (tx instanceof DataLoaderExecutor) {
+      return EmailCredential.read(tx, results.rows[0].id);
+    }
+
+    return EmailCredential.read(tx, results.rows[0].id);
   }
 }
 

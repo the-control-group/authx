@@ -587,7 +587,7 @@ import { parseScopeLiteral } from "./parse.js";
   t(`simplify - (${scopes.join(") • (")}) => ${result}`, (t) => {
     t.deepEqual(
       simplify(scopes.map(parseScopeLiteral)).map(print).sort(),
-      result.sort(),
+      [...result].sort(),
     );
   });
 });

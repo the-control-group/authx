@@ -64,7 +64,7 @@ test.before(async () => {
       });
 
       server.once("listening", async () => {
-        const address = server && server.address();
+        const address = server.address();
         if (!address || typeof address === "string" || !address.port) {
           reject(new Error("No address for mock server."));
           return;
@@ -102,7 +102,7 @@ test.before(async () => {
       });
 
       server.once("listening", async () => {
-        const address = server && server.address();
+        const address = server.address();
         if (!address || typeof address === "string" || !address.port) {
           reject(new Error("No address for mock server."));
           return;
@@ -187,7 +187,7 @@ test.before(async () => {
   // Set up the bearer proxy.
   bearerProxy = new AuthXWebProxy({ ...config, tokenFormat: "BEARER" });
   await bearerProxy.listen({ port: 0, host: "localhost" });
-  const bearerAddress = bearerProxy && bearerProxy.server.address();
+  const bearerAddress = bearerProxy.server.address();
   if (
     !bearerAddress ||
     typeof bearerAddress === "string" ||
@@ -200,7 +200,7 @@ test.before(async () => {
   // Set up the basic proxy.
   basicProxy = new AuthXWebProxy({ ...config, tokenFormat: "BASIC" });
   await basicProxy.listen({ port: 0, host: "localhost" });
-  const basicAddress = basicProxy && basicProxy.server.address();
+  const basicAddress = basicProxy.server.address();
   if (!basicAddress || typeof basicAddress === "string" || !basicAddress.port) {
     throw new Error("No address for mock server.");
   }

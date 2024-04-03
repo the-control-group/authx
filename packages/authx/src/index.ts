@@ -173,7 +173,7 @@ export class AuthX extends Router<any, { [x]: Context }> {
 
       execute({
         schema: config.processSchema
-          ? (config.processSchema(createSchema(strategies)) as any)
+          ? config.processSchema(createSchema(strategies))
           : (createSchema(strategies) as any),
         override: (ctx: any) => {
           const contextValue: Context = ctx[x];
