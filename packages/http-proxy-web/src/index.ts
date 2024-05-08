@@ -317,10 +317,23 @@ export default class AuthXWebProxy extends EventEmitter {
     }
 
     // Serve the client URL.
-    const requestUrl = new URL(
-      request.url || "/",
-      "http://this-does-not-matter",
-    );
+    let requestUrl: URL;
+    try {
+      requestUrl = new URL(request.url || "/", "http://this-does-not-matter");
+    } catch (error) {
+      response.setHeader("Cache-Control", "no-cache");
+      response.statusCode = 400;
+      meta.message = "Request handled by client endpoint: invalid URL.";
+      return send(`
+        <html>
+          <head><title>Error</title></head>
+          <body>
+            <div>The URL provided is invalid.</div>
+          </body>
+        </html>
+      `);
+    }
+
     const clientUrl = new URL(this._config.clientUrl);
     if (requestUrl.pathname === clientUrl.pathname) {
       const params = requestUrl.searchParams;

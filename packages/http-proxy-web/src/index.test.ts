@@ -420,3 +420,14 @@ test("fetch token from authx (basic)", async (t) => {
       "Basic NjM3MmRmZjMtMzcwOC00MWMyLWE5ZjQtNjMyZWExNDg1MTZkOjkwNDg5OTExN2M3ZDgwNWE4NGYxM2ZiYzEwNWYxMDhjMDIzMGFhOGM=",
   });
 });
+
+test("does not proxy an invalid URL", async (t) => {
+  const response = await fetch(
+    `http://localhost:${bearerProxyPort}//?this_is_invalid`,
+    {
+      redirect: "manual",
+    },
+  );
+  t.is(response.status, 400);
+  t.regex(await response.text(), /The URL provided is invalid\./);
+});
