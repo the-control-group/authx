@@ -1,18 +1,61 @@
 name: Release
 on:
+  workflow_dispatch:
+    inputs:
+      version:
+        required: true
   release:
     types: [published]
 jobs:
   build:
     runs-on: ubuntu-latest
+
+    services:
+      postgres:
+        image: postgres:16
+        env:
+          POSTGRES_PASSWORD: postgres
+        ports:
+          - 5432:5432
+
     steps:
+      # Validate the version input
+      - name: Validate version
+        run: |
+          if ! [[ ${{ github.event.release.tag_name }} =~ ^v[0-9]+\.[0-9]+\.[0-9]+(-[a-zA-Z0-9\._-]+)?$ ]]; then
+            echo "Invalid version tag. Please use the format v1.2.3."
+            exit 1
+          fi
+
+      # Checkout the code
       - uses: actions/checkout@v4
-      # Setup .npmrc file to publish to npm
+
+      # Set up Node.js
       - uses: actions/setup-node@v4
         with:
           node-version: "22.x"
           registry-url: "https://registry.npmjs.org"
+
+      # Install, build, list, and test
       - run: npm ci
-      - run: npm publish --provenance --access public
+      - run: npm run build
+      - run: npm run lint
+      - run: node scripts/generate-keys.js && npm run test
+        env:
+          PORT: 12000
+          PGHOST: 127.0.0.1
+          PGUSER: postgres
+          PGPASSWORD: postgres
+          PGPORT: 5432
+          PGSSL: false
+
+      # Bump the version
+      - run: npx lerna version -y "${{ github.event.inputs.version }}"
+
+      # Commit the version bump
+      - run: git push --follow-tags
+
+      # Publish the package
+      - run: npx lerna exec -- npm publish --access public --tag "${{ github.event.inputs.version }}"
         env:
           NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
