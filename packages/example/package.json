@@ -5,14 +5,14 @@
   },
   "bugs": "https://github.com/the-control-group/authx/issues",
   "dependencies": {
-    "@authx/authx": "*",
-    "@authx/interface": "*",
-    "@authx/scopes": "*",
-    "@authx/strategy-email": "*",
-    "@authx/strategy-openid": "*",
-    "@authx/strategy-password": "*",
-    "@authx/strategy-saml": "*",
-    "@authx/tools": "*",
+    "@authx/authx": "3.1.0-alpha.52",
+    "@authx/interface": "3.1.0-alpha.52",
+    "@authx/scopes": "3.1.0-alpha.52",
+    "@authx/strategy-email": "3.1.0-alpha.52",
+    "@authx/strategy-openid": "3.1.0-alpha.52",
+    "@authx/strategy-password": "3.1.0-alpha.52",
+    "@authx/strategy-saml": "3.1.0-alpha.52",
+    "@authx/tools": "3.1.0-alpha.52",
     "@types/koa-send": "^4.1.6",
     "koa": "^2.15.3",
     "koa-send": "^5.0.1"
@@ -64,7 +64,7 @@
   "main": "dist/server/index.js",
   "name": "@authx/example",
   "peerDependencies": {
-    "@authx/authx": "*",
+    "@authx/authx": "3.1.0-alpha.52",
     "koa": "^2.7.0"
   },
   "repository": "https://github.com/the-control-group/authx",

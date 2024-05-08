@@ -1,18 +1,69 @@
 name: Release
 on:
-  release:
-    types: [published]
+  workflow_dispatch:
+    inputs:
+      version:
+        required: true
+
 jobs:
   build:
     runs-on: ubuntu-latest
+
+    services:
+      postgres:
+        image: postgres:16
+        env:
+          POSTGRES_PASSWORD: postgres
+        ports:
+          - 5432:5432
+
     steps:
+      # Validate the version input
+      - name: Validate version
+        run: |
+          if ! [[ ${{ github.event.inputs.version }} =~ ^v[0-9]+\.[0-9]+\.[0-9]+(-[a-zA-Z0-9\._-]+)?$ ]]; then
+            echo "Invalid version tag. Please use the format v1.2.3."
+            exit 1
+          fi
+
+      # Checkout the code
       - uses: actions/checkout@v4
-      # Setup .npmrc file to publish to npm
+
+      # Set up Node.js
       - uses: actions/setup-node@v4
         with:
           node-version: "22.x"
           registry-url: "https://registry.npmjs.org"
+
+      # Install, build, list, and test
       - run: npm ci
-      - run: npm publish --provenance --access public
+      - run: npm run build
+      - run: npm run lint
+      - run: node scripts/generate-keys.js && npm run test
+        env:
+          PORT: 12000
+          PGHOST: 127.0.0.1
+          PGUSER: postgres
+          PGPASSWORD: postgres
+          PGPORT: 5432
+          PGSSL: false
+
+      # Bump the version
+      - run: npx lerna version --no-git-tag-version -y "${{ github.event.inputs.version }}"
+      - run: npm run format
+
+      # Commit and push
+      - run: |
+          git config --global user.name 'Github Actions'
+          git config --global user.email 'githubactions'
+          git commit -am "v$VERSION"
+          git tag -f -a "v$VERSION" -m "v$VERSION"
+          git branch -va
+          git push --atomic origin HEAD:main refs/tags/${{ github.event.inputs.version }}
+
+      - run: git push --follow-tags
+
+      # Publish the package to NPM
+      - run: npx lerna exec -- npm publish --access public --tag "${{ github.event.inputs.version }}"
         env:
           NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}

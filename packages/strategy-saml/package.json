@@ -1,9 +1,9 @@
 {
   "bugs": "https://github.com/the-control-group/authx/issues",
   "dependencies": {
-    "@authx/authx": "*",
-    "@authx/scopes": "*",
-    "@authx/strategy-email": "*",
+    "@authx/authx": "3.1.0-alpha.52",
+    "@authx/scopes": "3.1.0-alpha.52",
+    "@authx/strategy-email": "3.1.0-alpha.52",
     "@types/bcrypt": "^5.0.2",
     "@types/pg": "^8.11.6",
     "@types/react": "^18.3.1",
@@ -52,7 +52,7 @@
   "main": "dist/server/index.js",
   "name": "@authx/strategy-saml",
   "peerDependencies": {
-    "@authx/authx": "*"
+    "@authx/authx": "3.1.0-alpha.52"
   },
   "repository": "https://github.com/the-control-group/authx",
   "scripts": {
