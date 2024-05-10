@@ -68,6 +68,6 @@ jobs:
           VERSION: ${{ github.event.inputs.version }}
 
       # Publish the package to NPM
-      - run: npx lerna exec -- npm publish --access public --tag "${{ github.event.inputs.version }}"
+      - run: npx lerna exec -- npm publish --access public
         env:
           NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
