@@ -5,14 +5,14 @@
   },
   "bugs": "https://github.com/the-control-group/authx/issues",
   "dependencies": {
-    "@authx/authx": "^3.1.0-alpha.55",
-    "@authx/interface": "^3.1.0-alpha.55",
-    "@authx/scopes": "^3.1.0-alpha.55",
-    "@authx/strategy-email": "^3.1.0-alpha.55",
-    "@authx/strategy-openid": "^3.1.0-alpha.55",
-    "@authx/strategy-password": "^3.1.0-alpha.55",
-    "@authx/strategy-saml": "^3.1.0-alpha.55",
-    "@authx/tools": "^3.1.0-alpha.55",
+    "@authx/authx": "^3.1.0-alpha.56",
+    "@authx/interface": "^3.1.0-alpha.56",
+    "@authx/scopes": "^3.1.0-alpha.56",
+    "@authx/strategy-email": "^3.1.0-alpha.56",
+    "@authx/strategy-openid": "^3.1.0-alpha.56",
+    "@authx/strategy-password": "^3.1.0-alpha.56",
+    "@authx/strategy-saml": "^3.1.0-alpha.56",
+    "@authx/tools": "^3.1.0-alpha.56",
     "@types/koa-send": "^4.1.6",
     "koa": "^2.15.3",
     "koa-send": "^5.0.1"
@@ -85,5 +85,5 @@
   },
   "type": "module",
   "types": "dist/server/index.d.ts",
-  "version": "3.1.0-alpha.55"
+  "version": "3.1.0-alpha.56"
 }
