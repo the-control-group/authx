@@ -1,3 +1,20 @@
+# This workflow runs `actions/dependency-review-action`.
+# - [Dependency Review](https://docs.github.com/en/enterprise-cloud@latest/code-security/supply-chain-security/understanding-your-software-supply-chain/about-dependency-review) is a supply-chain security feature of [GitHub Advanced Security](https://docs.github.com/en/enterprise-cloud@latest/get-started/learning-about-github/about-github-advanced-security).
+#
+# This is intended to help identify and block the use of low-quality open-source packages.
+# Many acceptance rules may be evaluated and result in a pass/fail status for PRs that update this repo's dependency tree.
+# For example, a package may be automatically blocked if it:
+#  - Is found to have a known vulnerability
+#  - Contains licensing requirements that are incompatible with the licensing policies set forth in our Engineering Standards documentation
+#  - Has an overall quality score that is deemed to be too low
+#
+# Additionally, this workflow will highlight changes to the dependency tree in its related PR.
+# This empowers developers and reviewers to make informed decisions about changes to the project's library dependencies.
+#
+# To provide adequate guardrails for developers,
+# this workflow must be standardized across many (or all) repositories across the organization.
+# Consequently changes to this workflow will need to be reviewed and approved at the organization level,
+# so that updates can be synchronized across all org repositories in a consistent manner.
 name: 'Dependency Review'
 on: [pull_request]
 
@@ -10,10 +27,15 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: 'Checkout Repository'
-        uses: actions/checkout@a5ac7e51b41094c92402da3b24376905380afc29 # v4.1.6
+        uses: actions/checkout@692973e3d937129bcbf40652eb9f2f61becf3332 # v4.1.7
       - name: 'Dependency Review'
-        uses: actions/dependency-review-action@0c155c5e8556a497adf53f2c18edabf945ed8e70 # v4.3.2
+        uses: actions/dependency-review-action@72eb03d02c7872a771aacd928f3123ac62ad6d3a # v4.3.3
         with:
           comment-summary-in-pr: always
           fail-on-scopes: runtime, development, unknown
-          allow_licenses: MIT, Apache 2.0, ISC, BSD 3 Clause, BSD 2 Clause
+          allow-licenses: >-
+            MIT,
+            Apache-2.0,
+            ISC,
+            BSD-3-Clause,
+            BSD-2-Clause
