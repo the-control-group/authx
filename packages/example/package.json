@@ -19,7 +19,7 @@
   },
   "description": "",
   "devDependencies": {
-    "@graphiql/react": "^0.22.0",
+    "@graphiql/react": "^0.23.1",
     "@graphiql/toolkit": "^0.9.1",
     "@types/koa-static": "^4.0.4",
     "@typescript-eslint/eslint-plugin": "^7.8.0",
