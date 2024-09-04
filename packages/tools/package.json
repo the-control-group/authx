@@ -10,21 +10,21 @@
   "dependencies": {
     "@authx/authx": "^3.1.0-alpha.56",
     "@authx/strategy-password": "^3.1.0-alpha.56",
-    "@types/pg": "^8.11.6",
-    "@types/uuid": "^9.0.8",
-    "pg": "^8.11.5",
+    "@types/pg": "^8.11.8",
+    "@types/uuid": "^10.0.0",
+    "pg": "^8.12.0",
     "uuid": "^10.0.0"
   },
   "description": "",
   "devDependencies": {
-    "@typescript-eslint/eslint-plugin": "^7.8.0",
-    "@typescript-eslint/parser": "^7.8.0",
+    "@typescript-eslint/eslint-plugin": "^8.3.0",
+    "@typescript-eslint/parser": "^8.3.0",
     "ava": "^6.1.3",
-    "eslint": "^8.57.0",
+    "eslint": "^9.9.1",
     "eslint-config-prettier": "^9.1.0",
-    "eslint-plugin-prettier": "^5.1.3",
-    "prettier": "^3.2.5",
-    "typescript": "^5.4.5"
+    "eslint-plugin-prettier": "^5.2.1",
+    "prettier": "^3.3.3",
+    "typescript": "^5.5.4"
   },
   "engines": {
     "node": ">=10"
