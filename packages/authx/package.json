@@ -22,7 +22,7 @@
     "graphql-playground-middleware-koa": "^1.6.22",
     "graphql-relay": "^0.10.1",
     "jsonwebtoken": "^9.0.2",
-    "koa": "^2.15.3",
+    "koa": "^3.0.1",
     "koa-body": "^6.0.1",
     "koa-router": "^12.0.1",
     "object-hash": "^3.0.0",
