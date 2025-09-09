@@ -1,7 +1,7 @@
 import { Authority, Credential } from "./model/index.js";
 import { GraphQLNamedType, GraphQLFieldConfig } from "graphql";
 import { Context } from "./Context.js";
-import Router from "koa-router";
+import Router from "@koa/router";
 import x from "./x.js";
 
 export interface Strategy {

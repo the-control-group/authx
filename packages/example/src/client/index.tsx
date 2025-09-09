@@ -8,8 +8,8 @@ import email from "@authx/strategy-email/dist/interface/index.js";
 import password from "@authx/strategy-password/dist/interface/index.js";
 
 import { createGraphiQLFetcher } from "@graphiql/toolkit";
-import { GraphiQL } from "graphiql/esm";
-import "graphiql/graphiql.css";
+import { GraphiQL } from "graphiql";
+import 'graphiql/style.css';
 
 // Instantiate the app.
 document.title = "Authorize";
@@ -29,7 +29,7 @@ const fetcher = createGraphiQLFetcher({
   },
 });
 
-const Root = (): JSX.Element => {
+const Root = (): React.ReactElement => {
   return window.location.pathname === "/graphiql" ? (
     // On /graphiql, render the GraphiQL editor.
     <GraphiQL fetcher={fetcher} />

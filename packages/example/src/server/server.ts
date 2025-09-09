@@ -26,7 +26,7 @@ try {
       return;
     }
 
-    await send(ctx, "index.html", {
+    await send(ctx as any, "index.html", {
       root: path.resolve(__dirname, "../../static/"),
     });
   });
