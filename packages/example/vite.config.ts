@@ -1,22 +1,24 @@
-import { defineConfig } from 'vite';
-import react from '@vitejs/plugin-react';
-import $monacoEditorPlugin from 'vite-plugin-monaco-editor';
+import { defineConfig } from "vite";
+import react from "@vitejs/plugin-react";
+import $monacoEditorPlugin from "vite-plugin-monaco-editor";
 
-const monacoEditorPlugin: typeof $monacoEditorPlugin = ($monacoEditorPlugin as any).default;
+const monacoEditorPlugin: typeof $monacoEditorPlugin = (
+  $monacoEditorPlugin as any
+).default;
 
 export default defineConfig({
-  root: 'src/client',
+  root: "src/client",
   build: {
-    outDir: '../../static'
+    outDir: "../../static",
   },
   plugins: [
     react(),
     monacoEditorPlugin({
-      languageWorkers: ['editorWorkerService', 'json'],
+      languageWorkers: ["editorWorkerService", "json"],
       customWorkers: [
         {
-          label: 'graphql',
-          entry: 'monaco-graphql/esm/graphql.worker.js',
+          label: "graphql",
+          entry: "monaco-graphql/esm/graphql.worker.js",
         },
       ],
     }),
