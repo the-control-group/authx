@@ -1,1 +1,2 @@
-export declare const GraphQLUpdateOpenIdAuthorityInput: any;
+import { GraphQLInputObjectType } from "graphql";
+export declare const GraphQLUpdateOpenIdAuthorityInput: GraphQLInputObjectType;

@@ -1,1 +1,2 @@
-export declare const GraphQLUpdateEmailAuthorityInput: any;
+import { GraphQLInputObjectType } from "graphql";
+export declare const GraphQLUpdateEmailAuthorityInput: GraphQLInputObjectType;
