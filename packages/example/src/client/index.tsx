@@ -9,7 +9,7 @@ import password from "@authx/strategy-password/dist/interface/index.js";
 
 import { createGraphiQLFetcher } from "@graphiql/toolkit";
 import { GraphiQL } from "graphiql";
-import 'graphiql/style.css';
+import "graphiql/style.css";
 
 // Instantiate the app.
 document.title = "Authorize";

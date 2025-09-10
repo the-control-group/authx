@@ -54,8 +54,8 @@
   },
   "repository": "https://github.com/the-control-group/authx",
   "scripts": {
-    "format": "prettier --list-different --write '**/*.{json,yml,md,ts}'",
-    "lint": "prettier -c '**/*.{json,yml,md,ts}' && eslint src --ext ts",
+    "format": "prettier --list-different --write '**/*.{json,yml,md,ts,tsx}'",
+    "lint": "prettier -c '**/*.{json,yml,md,ts,tsx}' && eslint src",
     "build": "rm -rf dist && tsc",
     "build:development": "rm -rf dist && tsc --watch",
     "build:development:chained": "tsc --watch --preserveWatchOutput --pretty",

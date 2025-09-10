@@ -60,8 +60,8 @@
   "name": "@authx/example",
   "repository": "https://github.com/the-control-group/authx",
   "scripts": {
-    "format": "prettier --list-different --write '**/*.{json,yml,md,ts}'",
-    "lint": "prettier -c '**/*.{json,yml,md,ts}' && eslint src --ext ts",
+    "format": "prettier --list-different --write '**/*.{json,yml,md,ts,tsx}'",
+    "lint": "prettier -c '**/*.{json,yml,md,ts,tsx}' && eslint src",
     "build:client": "vite build --mode production",
     "build:client:development": "vite build --mode development --watch",
     "build:server": "tsc",
