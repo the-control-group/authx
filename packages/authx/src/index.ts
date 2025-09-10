@@ -1,7 +1,6 @@
 import body from "koa-body";
 import { v4 } from "uuid";
-import createPlaygroundMiddleware from "graphql-playground-middleware-koa";
-import Router, { IRouterOptions } from "koa-router";
+import Router, { RouterOptions } from "@koa/router";
 import errorHandler from "graphql-api-koa/errorHandler.mjs";
 import execute from "graphql-api-koa/execute.mjs";
 import { Context as KoaContext, Next as KoaNext, Middleware } from "koa";
@@ -45,7 +44,7 @@ export class AuthX extends Router<any, { [x]: Context }> {
   public readonly pool: Pool;
   public readonly rateLimiter: RateLimiter;
   public readonly invocationRecorder: InvocationRecorder;
-  public constructor(config: Config & IRouterOptions) {
+  public constructor(config: Config & RouterOptions) {
     assertConfig(config);
     super(config);
 
@@ -185,14 +184,6 @@ export class AuthX extends Router<any, { [x]: Context }> {
       }),
     );
 
-    // GraphiQL
-    // ========
-    // This is a graphical (get it, graph-i-QL) interface to the AuthX API.
-    this.all(
-      "/graphiql",
-      createPlaygroundMiddleware.default({ endpoint: "/graphql" }),
-    );
-
     // OAuth
     // =====
     // The core AuthX library supports the following OAuth2 grant types:
@@ -213,7 +204,7 @@ export class AuthX extends Router<any, { [x]: Context }> {
         urlencoded: true,
         text: false,
         json: true,
-      }),
+      }) as Middleware<any, any>,
       oauth2 as AuthXMiddleware,
     );
 

@@ -24,9 +24,14 @@
     "update": "lerna exec --parallel -- npx ncu -u && npx npm-check-updates -u && npm i && npm update"
   },
   "devDependencies": {
-    "lerna": "^8.1.2",
-    "npm-check-updates": "^16.14.20",
-    "prettier": "^3.2.5"
-  },
-  "dependencies": {}
+    "@eslint/js": "^9.35.0",
+    "eslint": "^9.35.0",
+    "eslint-config-prettier": "^10.1.8",
+    "eslint-plugin-prettier": "^5.5.4",
+    "eslint-plugin-react-hooks": "^5.2.0",
+    "lerna": "^8.2.3",
+    "npm-check-updates": "^18.1.0",
+    "prettier": "^3.6.2",
+    "typescript-eslint": "^8.43.0"
+  }
 }

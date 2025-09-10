@@ -10,7 +10,7 @@ function createFetchFunc(conf: {
   useOriginalToken?: boolean;
   throwErrorOnCalls?: number[];
   overrideStatusCodes?: (number | null)[];
-  overrideTokenData?: (TokenData | null | {})[];
+  overrideTokenData?: (TokenData | null | { [key: string]: any })[];
 }): FetchFunction {
   return async (uri, fetchConf) => {
     conf.numCalls++;

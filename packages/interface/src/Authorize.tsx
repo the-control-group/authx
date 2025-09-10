@@ -4,7 +4,7 @@ import React, {
   useEffect,
   useCallback,
   useState,
-  ReactChild,
+  ReactNode,
   useMemo,
 } from "react";
 
@@ -73,7 +73,7 @@ const implicitScopes = (realm: string) => [
   ),
 ];
 
-function Scope({ children }: { children: ReactChild }): ReactElement {
+function Scope({ children }: { children: ReactNode }): ReactElement {
   return (
     <div
       style={{

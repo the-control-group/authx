@@ -1,4 +1,4 @@
-import Router from "koa-router";
+import Router from "@koa/router";
 import body from "koa-body";
 import { Context, x } from "@authx/authx";
 
