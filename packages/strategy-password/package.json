@@ -5,7 +5,7 @@
   },
   "bugs": "https://github.com/the-control-group/authx/issues",
   "dependencies": {
-    "@authx/scopes": "^3.1.0-alpha.56",
+    "@authx/scopes": "^3.1.0-alpha.57",
     "@types/bcrypt": "^6.0.0",
     "@types/pg": "^8.15.5",
     "@types/react": "^19.1.12",
@@ -20,7 +20,7 @@
   },
   "description": "",
   "devDependencies": {
-    "@authx/authx": "^3.1.0-alpha.56",
+    "@authx/authx": "^3.1.0-alpha.57",
     "@typescript-eslint/eslint-plugin": "^8.43.0",
     "@typescript-eslint/parser": "^8.43.0",
     "ava": "^6.4.1",
@@ -68,5 +68,5 @@
   },
   "type": "module",
   "types": "dist/server/index.d.ts",
-  "version": "3.1.0-alpha.56"
+  "version": "3.1.0-alpha.57"
 }

@@ -5,13 +5,13 @@
   },
   "bugs": "https://github.com/the-control-group/authx/issues",
   "dependencies": {
+    "@authx/scopes": "^3.1.0-alpha.57",
     "@koa/router": "^14.0.0",
-    "@types/koa__router": "^12.0.4",
-    "@authx/scopes": "^3.1.0-alpha.56",
     "@types/auth-header": "^1.0.6",
     "@types/jsonwebtoken": "^9.0.10",
     "@types/koa": "3.0.0",
     "@types/koa-send": "^4.1.6",
+    "@types/koa__router": "^12.0.4",
     "@types/object-hash": "^3.0.6",
     "@types/pg": "^8.15.5",
     "@types/uuid": "^10.0.0",
@@ -76,5 +76,5 @@
   },
   "type": "module",
   "types": "dist/index.d.ts",
-  "version": "3.1.0-alpha.56"
+  "version": "3.1.0-alpha.57"
 }
