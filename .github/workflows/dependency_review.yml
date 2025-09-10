@@ -33,9 +33,32 @@ jobs:
         with:
           comment-summary-in-pr: always
           fail-on-scopes: runtime, development, unknown
+
+          # Note that the AND operator is frequently misused where OR is more correct:
+          # https://spdx.github.io/spdx-spec/v2.3/SPDX-license-expressions/
           allow-licenses: >-
-            MIT,
+            0BSD AND ISC AND MIT,
+            0BSD,
             Apache-2.0,
-            ISC,
+            BlueOak-1.0.0,
+            BSD-2-Clause AND BSD-2-Clause-Views,
+            BSD-2-Clause AND BSD-3-Clause,
+            BSD-2-Clause AND CC0-1.0 AND ISC AND MIT,
+            BSD-2-Clause,
             BSD-3-Clause,
-            BSD-2-Clause
+            CC-BY-4.0,
+            CC0-1.0 AND MIT,
+            CC0-1.0,
+            ISC AND MIT,
+            ISC,
+            LicenseRef-scancode-alliance-open-media-patent-1.0,
+            LicenseRef-scancode-generic-cla,
+            LicenseRef-scancode-other-permissive,
+            LicenseRef-scancode-unicode,
+            MIT,
+            MPL-2.0,
+            OFL-1.1,
+            Python-2.0,
+            Unlicense,
+            WTFPL,
+            Zlib
