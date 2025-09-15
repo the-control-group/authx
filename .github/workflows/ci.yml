@@ -19,7 +19,7 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4.1.4
       - name: Use Node 22
-        uses: actions/setup-node@v4
+        uses: actions/setup-node@v5
         with:
           node-version: "22.x"
       - name: Cache node modules
