@@ -6,12 +6,12 @@
   "bugs": "https://github.com/the-control-group/authx/issues",
   "dependencies": {
     "@authx/scopes": "^3.1.0-alpha.57",
-    "@types/http-proxy": "^1.17.16",
+    "@types/http-proxy": "^1.17.17",
     "@types/jsonwebtoken": "^9.0.10",
     "@types/node-fetch": "^2.6.13",
-    "@types/pg": "^8.15.5",
+    "@types/pg": "^8.20.0",
     "http-proxy": "^1.18.1",
-    "jsonwebtoken": "^9.0.2"
+    "jsonwebtoken": "^9.0.3"
   },
   "description": "",
   "devDependencies": {
