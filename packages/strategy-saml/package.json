@@ -19,7 +19,7 @@
     "react": "^19.1.1",
     "react-dom": "^19.1.1",
     "saml2-js": "^4.0.4",
-    "uuid": "^13.0.0"
+    "uuid": "^14.0.0"
   },
   "description": "",
   "devDependencies": {

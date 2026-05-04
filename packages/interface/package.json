@@ -14,7 +14,7 @@
     "react": "^19.1.1",
     "react-dom": "^19.1.1",
     "source-map-loader": "^5.0.0",
-    "uuid": "^13.0.0"
+    "uuid": "^14.0.0"
   },
   "description": "",
   "devDependencies": {
